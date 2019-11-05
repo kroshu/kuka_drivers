@@ -7,6 +7,7 @@
 
 #include "robot_manager.hpp"
 #include "tcp_connection.hpp"
+#include "serialization.hpp"
 
 #include <thread>
 #include <chrono>
@@ -49,18 +50,17 @@ bool RobotManager::deactivateControl(){
 }
 
 bool RobotManager::setControlMode(ControlModeID control_mode_id){
-  sendCommand(SET_CONTROL_MODE);
-  tcp_connection_.sendByte(control_mode_id);
-  wait();
-  return assertLastCommandSuccess(SET_CONTROL_MODE);
+  std::vector<char> command_data = { control_mode_id };
+  return sendCommandAndWait(SET_CONTROL_MODE, command_data);
 }
 
-bool RobotManager::setFRIConfig(){
-
-}
-
-void RobotManager::sendCommand(CommandID command_id){
-  tcp_connection_.sendByte(command_id);
+bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier){
+  std::vector<char> serialized(3*sizeof(int));
+  int msg_size = 0;
+  msg_size += serializeNext(remote_port, serialized);
+  msg_size += serializeNext(send_period_ms, serialized);
+  msg_size += serializeNext(receive_multiplier, serialized);
+  return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 
 void RobotManager::wait(){
@@ -80,7 +80,16 @@ bool RobotManager::assertLastCommandSuccess(CommandID command_id){
 }
 
 bool RobotManager::sendCommandAndWait(CommandID command_id){
-  sendCommand(command_id);
+  tcp_connection_.sendByte(command_id);
+  wait();
+  return assertLastCommandSuccess(command_id);
+}
+
+bool RobotManager::sendCommandAndWait(CommandID command_id, const std::vector<char>& command_data){
+  std::vector<char> msg(1 + command_data.size());
+  msg[0] = command_id;
+  msg.insert(msg.end(), command_data.begin(), command_data.end());
+  tcp_connection_.sendBytes(msg);
   wait();
   return assertLastCommandSuccess(command_id);
 }

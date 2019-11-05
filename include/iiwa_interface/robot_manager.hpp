@@ -54,7 +54,7 @@ class RobotManager{
   bool deactivateControl();
   bool setControlMode(ControlModeID control_mode_id);
   //bool getControlMode();
-  bool setFRIConfig();
+  bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);
   //bool getFRIConfig();
 
 private:
@@ -68,10 +68,10 @@ private:
   CommandID last_command_id_;
   CommandSuccess last_command_success_;
 
-  void sendCommand(CommandID command_id);
   void wait();
   bool assertLastCommandSuccess(CommandID command_id);
   bool sendCommandAndWait(CommandID command_id);
+  bool sendCommandAndWait(CommandID command_id, const std::vector<char>& command_data);
 
 };
 
