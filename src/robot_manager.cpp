@@ -5,9 +5,9 @@
  *      Author: rosdeveloper
  */
 
-#include "robot_manager.hpp"
-#include "tcp_connection.hpp"
-#include "serialization.hpp"
+#include "iiwa_interface/robot_manager.hpp"
+#include "iiwa_interface/tcp_connection.hpp"
+#include "iiwa_interface/serialization.hpp"
 
 #include <thread>
 #include <chrono>
@@ -17,16 +17,16 @@ namespace iiwa_interface{
 
 bool RobotManager::connect(const char* server_addr, int server_port){
   //TODO: check if already connected
-  tcp_connection_ = TCPConnection(server_addr, server_port,
-                                  [](std::vector<char> data){this->handleReceivedTCPData(data);},
-                                  [](){this->connectionLostCallback();});
+  tcp_connection_ = std::make_unique<TCPConnection>(server_addr, server_port,
+                                  [this](std::vector<char> data){this->handleReceivedTCPData(data);},
+                                  [this](){this->connectionLostCallback();});
 
   return sendCommandAndWait(CONNECT);
 }
 
 bool RobotManager::disconnect(){
   if(sendCommandAndWait(DISCONNECT) == true){
-    tcp_connection_.closeConnection();
+    tcp_connection_->closeConnection();
     return true;
   } else {
     return false;
@@ -80,7 +80,7 @@ bool RobotManager::assertLastCommandSuccess(CommandID command_id){
 }
 
 bool RobotManager::sendCommandAndWait(CommandID command_id){
-  tcp_connection_.sendByte(command_id);
+  tcp_connection_->sendByte(command_id);
   wait();
   return assertLastCommandSuccess(command_id);
 }
@@ -89,7 +89,7 @@ bool RobotManager::sendCommandAndWait(CommandID command_id, const std::vector<ch
   std::vector<char> msg(1 + command_data.size());
   msg[0] = command_id;
   msg.insert(msg.end(), command_data.begin(), command_data.end());
-  tcp_connection_.sendBytes(msg);
+  tcp_connection_->sendBytes(msg);
   wait();
   return assertLastCommandSuccess(command_id);
 }
@@ -106,15 +106,15 @@ void RobotManager::handleReceivedTCPData(const std::vector<char>& data){
         //TODO: error
       }
       last_command_state_ = ACCEPTED;
-      last_command_id_ = data[1];
-      last_command_success_ = data[2];
+      last_command_id_ = (CommandID)data[1];
+      last_command_success_ = (CommandSuccess)data[2];
       break;
     case REJECTED:
       if(data.size() < 2){
         //TODO: error
       }
       last_command_state_ = REJECTED;
-      last_command_id_ = data[1];
+      last_command_id_ = (CommandID)data[1];
       break;
     case UNKNOWN:
       last_command_state_ = UNKNOWN;

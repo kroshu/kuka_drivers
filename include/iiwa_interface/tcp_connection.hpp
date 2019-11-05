@@ -31,10 +31,11 @@ public:
   void closeConnection();
 
   ~TCPConnection();
-
-private:
   TCPConnection(const TCPConnection&) = delete;
   TCPConnection& operator=(const TCPConnection&) = delete;
+  TCPConnection& operator=(TCPConnection&& from);
+private:
+
 
   static void* listen_helper(void *tcpConnection);
   void listen();

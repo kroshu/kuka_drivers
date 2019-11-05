@@ -8,6 +8,8 @@
 #ifndef INCLUDE_IIWA_INTERFACE_ROBOT_MANAGER_HPP_
 #define INCLUDE_IIWA_INTERFACE_ROBOT_MANAGER_HPP_
 
+#include <memory>
+
 #include <vector>
 
 namespace iiwa_interface{
@@ -58,7 +60,7 @@ class RobotManager{
   //bool getFRIConfig();
 
 private:
-  TCPConnection tcp_connection_;
+  std::unique_ptr<TCPConnection> tcp_connection_;
 
 
   void handleReceivedTCPData(const std::vector<char>& data);

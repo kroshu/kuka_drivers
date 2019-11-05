@@ -5,16 +5,18 @@
  *      Author: rosdeveloper
  */
 
-#include "tcp_connection.hpp"
+#include "iiwa_interface/tcp_connection.hpp"
+
+#include <stdexcept>
 
 namespace iiwa_interface{
 
 TCPConnection::TCPConnection(const char* server_addr, int server_port,
                              std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(void)> connection_lost_callback):
-    socket_desc_(socket(AF_INET, SOCK_STREAM, 0)),
-    cancelled_(false),
     dataReceivedCallback_(data_received_callback),
-    connectionLostCallback_(connection_lost_callback)
+    connectionLostCallback_(connection_lost_callback),
+    socket_desc_(socket(AF_INET, SOCK_STREAM, 0)),
+    cancelled_(false)
 {
   if(socket_desc_ == -1){
     throw std::runtime_error("Could not create socket");
@@ -62,7 +64,8 @@ TCPConnection::~TCPConnection(){
 }
 
 void* TCPConnection::listen_helper(void *tcpConnection){
-  return ((TCPConnection *)tcpConnection)->listen();
+  ((TCPConnection *)tcpConnection)->listen();
+  return NULL;
 }
 
 void TCPConnection::listen(){

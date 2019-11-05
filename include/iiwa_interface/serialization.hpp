@@ -22,7 +22,8 @@ int deserializeNext(const std::vector<char>& serialized_in, int& integer_out){
   if(serialized_in.size() < sizeof(int)){
     //TODO: error
   }
-  integer_out = *(reinterpret_cast<int*>(serialized_in.data()));
+  std::vector<char> serialized_copy = serialized_in;
+  integer_out = *(reinterpret_cast<int*>(serialized_copy.data()));
   return sizeof(int);
 }
 

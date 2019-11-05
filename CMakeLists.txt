@@ -17,10 +17,27 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+include_directories(include)
+
+add_library(robot_manager SHARED 
+	src/robot_manager.cpp
+	src/tcp_connection.cpp)
+	
+add_library(robot_control_client SHARED
+	src/robot_control_client.cpp
+	src/robot_observer.cpp
+	src/robot_commander.cpp)
+	
+ament_target_dependencies(robot_control_client rclcpp)
+	
+install(TARGETS robot_manager robot_control_client
+	DESTINATION lib/${PROJECT_NAME})
+	
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
