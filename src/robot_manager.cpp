@@ -5,14 +5,13 @@
  *      Author: rosdeveloper
  */
 
-#include "iiwa_interface/robot_manager.hpp"
-#include "iiwa_interface/tcp_connection.hpp"
-#include "iiwa_interface/serialization.hpp"
-
+#include <kuka_sunrise_interface/robot_manager.hpp>
+#include <kuka_sunrise_interface/serialization.hpp>
+#include <kuka_sunrise_interface/tcp_connection.hpp>
 #include <thread>
 #include <chrono>
 
-namespace iiwa_interface{
+namespace kuka_sunrise_interface{
 
 
 bool RobotManager::connect(const char* server_addr, int server_port){

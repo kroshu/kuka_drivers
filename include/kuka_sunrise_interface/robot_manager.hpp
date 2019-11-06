@@ -5,14 +5,14 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_IIWA_INTERFACE_ROBOT_MANAGER_HPP_
-#define INCLUDE_IIWA_INTERFACE_ROBOT_MANAGER_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_HPP_
+#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_HPP_
 
 #include <memory>
 
 #include <vector>
 
-namespace iiwa_interface{
+namespace kuka_sunrise_interface{
 //forward declaration
 class TCPConnection;
 
@@ -89,4 +89,4 @@ private:
 
 
 
-#endif /* INCLUDE_IIWA_INTERFACE_ROBOT_MANAGER_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_HPP_ */

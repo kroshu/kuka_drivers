@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_IIWA_INTERFACE_SERIALIZATION_HPP_
-#define INCLUDE_IIWA_INTERFACE_SERIALIZATION_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_
+#define INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_
 
 #include <vector>
 
@@ -29,4 +29,4 @@ int deserializeNext(const std::vector<char>& serialized_in, int& integer_out){
 
 
 
-#endif /* INCLUDE_IIWA_INTERFACE_SERIALIZATION_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_ */

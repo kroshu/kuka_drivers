@@ -5,6 +5,9 @@
  *      Author: rosdeveloper
  */
 
-#include "rclcpp/rclcpp.hpp"
+
+namespace kuka_sunrise_interface{
 
 
+
+}

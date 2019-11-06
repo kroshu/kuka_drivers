@@ -5,15 +5,15 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_IIWA_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
-#define INCLUDE_IIWA_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
+#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
 
 #include "fri_client/friLBRClient.h"
 
 #include <condition_variable>
 #include <memory>
 
-namespace iiwa_interface{
+namespace kuka_sunrise_interface{
 
 class RobotObserver;
 class RobotCommander;
@@ -43,4 +43,4 @@ private:
 
 
 
-#endif /* INCLUDE_IIWA_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_ */

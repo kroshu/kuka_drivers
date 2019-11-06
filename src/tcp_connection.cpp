@@ -5,11 +5,10 @@
  *      Author: rosdeveloper
  */
 
-#include "iiwa_interface/tcp_connection.hpp"
-
+#include <kuka_sunrise_interface/tcp_connection.hpp>
 #include <stdexcept>
 
-namespace iiwa_interface{
+namespace kuka_sunrise_interface{
 
 TCPConnection::TCPConnection(const char* server_addr, int server_port,
                              std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(void)> connection_lost_callback):

@@ -5,7 +5,7 @@
  *      Author: rosdeveloper
  */
 
-namespace iiwa_interface{
+namespace kuka_sunrise_interface{
 
 
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(iiwa_interface)
+project(kuka_sunrise_interface)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,6 +18,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -33,7 +34,7 @@ add_library(robot_control_client SHARED
 	src/robot_observer.cpp
 	src/robot_commander.cpp)
 	
-ament_target_dependencies(robot_control_client rclcpp)
+ament_target_dependencies(robot_control_client rclcpp sensor_msgs)
 	
 install(TARGETS robot_manager robot_control_client
 	DESTINATION lib/${PROJECT_NAME})
