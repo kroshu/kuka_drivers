@@ -24,7 +24,7 @@ public:
     return is_active_;
   }
   virtual ~ActivatableInterface();
-private:
+protected:
   bool is_active_;
 };
 

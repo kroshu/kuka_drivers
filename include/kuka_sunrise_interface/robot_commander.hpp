@@ -42,8 +42,8 @@ public:
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
     qos.best_effort();
     auto msg_strategy = std::make_shared<MessagePoolMemoryStrategy<ROSType, 1>>();
-    subscription_ = robot_control_node->create_subscription(name_, qos,
-                                                            [this](ROSType msg){this->commandReceivedCallback(msg);},
+    subscription_ = robot_control_node->create_subscription<ROSType>(name_, qos,
+                                                            [this](typename ROSType::ConstSharedPtr msg){this->commandReceivedCallback(msg);},
                                                             rclcpp::SubscriptionOptions(), msg_strategy);
   }
 private:
@@ -52,21 +52,21 @@ private:
   const bool& is_commanding_active_;
   typename rclcpp::Subscription<ROSType>::SharedPtr subscription_;
 
-  void commandReceivedCallback(ROSType msg){
+  void commandReceivedCallback(typename ROSType::ConstSharedPtr msg){
     if(!is_commanding_active_){
       return;
     }
-    FRIType value = msg.data;
+    const FRIType& value = msg->data;
     setOutput_(name_, value);
   }
 };
 
 class RobotCommander: public ActivatableInterface{
 public:
-  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, std::function<void(rclcpp::Time)> command_ready_callback, rclcpp::Node::SharedPtr robot_control_node);
-  void addBooleanOutputCommander(std::string name);
-  void addDigitalOutputCommander(std::string name);
-  void addAnalogOutputCommander(std::string name);
+  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, std::function<void(const rclcpp::Time&)> command_ready_callback, rclcpp::Node::SharedPtr robot_control_node);
+  void addBooleanOutputCommander(const std::string& name);
+  void addDigitalOutputCommander(const std::string& name);
+  void addAnalogOutputCommander(const std::string& name);
 
 private:
   KUKA::FRI::LBRCommand& robot_command_;
@@ -80,7 +80,7 @@ private:
 
   rclcpp::Clock ros_clock_;
 
-  std::function<void(rclcpp::Time)> commandReadyCallback_;
+  std::function<void(const rclcpp::Time&)> commandReadyCallback_;
   void commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg);
 
 
