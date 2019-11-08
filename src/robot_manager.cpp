@@ -6,7 +6,7 @@
  */
 
 #include <kuka_sunrise_interface/robot_manager.hpp>
-#include <kuka_sunrise_interface/serialization.hpp>
+#include <kuka_sunrise_interface/internal/serialization.hpp>
 #include <kuka_sunrise_interface/tcp_connection.hpp>
 #include <thread>
 #include <chrono>

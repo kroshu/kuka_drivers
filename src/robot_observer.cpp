@@ -10,7 +10,7 @@
 #include "rclcpp/time.hpp"
 
 namespace kuka_sunrise_interface{
-
+/*
 InputPublisherBase::InputPublisherBase(std::string name, const KUKA::FRI::LBRState& robot_state, rclcpp::Node::SharedPtr robot_control_node):
     name_(name),
     robot_state_(robot_state),
@@ -54,6 +54,30 @@ void AnalogInputPublisher::publishInputValue(){
   publisher_->publish(msg);
 }
 
+
+*/
+
+void RobotObserver::addBooleanInputObserver(std::string name){
+  auto input_getter_func = [this](std::string name)->bool{
+    return this->robot_state_.getBooleanIOValue(name.c_str());
+  };
+  input_publishers_.emplace_back(std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(name, input_getter_func, robot_control_node_));
+}
+
+void RobotObserver::addDigitalInputObserver(std::string name){
+  auto input_getter_func = [this](std::string name)->unsigned long long{
+    return this->robot_state_.getDigitalIOValue(name.c_str());
+  };
+  input_publishers_.emplace_back(std::make_unique<InputPublisher<unsigned long long, std_msgs::msg::UInt64>>(name, input_getter_func, robot_control_node_));
+}
+
+void RobotObserver::addAnalogInputObserver(std::string name){
+  auto input_getter_func = [this](std::string name)->double{
+    return this->robot_state_.getDigitalIOValue(name.c_str());
+  };
+  input_publishers_.emplace_back(std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(name, input_getter_func, robot_control_node_));
+}
+
 RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Node::SharedPtr robot_control_node):
     robot_state_(robot_state),
     robot_control_node_(robot_control_node),
@@ -64,15 +88,15 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Nod
   joint_state_msg_.effort.reserve(robot_state_.NUMBER_OF_JOINTS);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
-  robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
+  joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
-void RobotObserver::publishRobotState(){
+void RobotObserver::publishRobotState(rclcpp::Time stamp){
   const double* joint_positions = robot_state_.getMeasuredJointPosition();
   const double* joint_torques = robot_state_.getExternalTorque(); //TODO: external vs measured?
 
   joint_state_msg_.header.frame_id = "world";
-  joint_state_msg_.header.stamp = ros_clock_.now();//TODO catch exceptions
+  joint_state_msg_.header.stamp = stamp;//TODO catch exceptions
 
   joint_state_msg_.velocity.clear();
   joint_state_msg_.position.assign(joint_positions, joint_positions + robot_state_.NUMBER_OF_JOINTS);
@@ -80,7 +104,7 @@ void RobotObserver::publishRobotState(){
   joint_state_publisher_->publish(joint_state_msg_);
   //TODO double check this:
   for(auto i = std::next(input_publishers_.begin()); i != input_publishers_.end(); i++){
-    (*i)->publishInputValue(robot_state_);
+    (*i)->publishInputValue();
   }
 }
 

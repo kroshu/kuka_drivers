@@ -25,6 +25,7 @@ public:
   bool setControlMode();
   bool selectActiveIOs();
 
+  virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
   virtual void monitor();
   virtual void waitForCommand();
   virtual void command();
@@ -33,7 +34,7 @@ private:
   std::unique_ptr<RobotObserver> robot_observer_;
   std::unique_ptr<RobotCommander> robot_commander_;
 
-  bool command_received_;
+  bool command_ready_;
   std::mutex mutex_;
   std::condition_variable cv_;
 

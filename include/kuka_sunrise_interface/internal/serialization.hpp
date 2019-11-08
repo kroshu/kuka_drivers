@@ -10,6 +10,8 @@
 
 #include <vector>
 
+namespace kuka_sunrise_interface{
+
 int serializeNext(int integer_in, std::vector<char>& serialized_out){
   char* bytes = reinterpret_cast<char*>(&integer_in);
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(int));
@@ -27,6 +29,9 @@ int deserializeNext(const std::vector<char>& serialized_in, int& integer_out){
   return sizeof(int);
 }
 
+
+
+}
 
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_ */
