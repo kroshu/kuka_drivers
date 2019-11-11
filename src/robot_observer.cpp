@@ -80,8 +80,7 @@ void RobotObserver::addAnalogInputObserver(std::string name){
 
 RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Node::SharedPtr robot_control_node):
     robot_state_(robot_state),
-    robot_control_node_(robot_control_node),
-    ros_clock_(RCL_ROS_TIME)
+    robot_control_node_(robot_control_node)
 {
   joint_state_msg_.position.reserve(robot_state_.NUMBER_OF_JOINTS);
   joint_state_msg_.velocity.reserve(robot_state_.NUMBER_OF_JOINTS);

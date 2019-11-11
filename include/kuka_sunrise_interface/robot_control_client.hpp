@@ -10,6 +10,8 @@
 
 #include "fri_client/friLBRClient.h"
 
+#include "rclcpp/rclcpp.hpp"
+
 #include <condition_variable>
 #include <memory>
 
@@ -20,12 +22,12 @@ class RobotCommander;
 
 class RobotControlClient: public KUKA::FRI::LBRClient{
 public:
+  RobotControlClient(rclcpp::Node::SharedPtr robot_control_node);
+
   bool activateControl();
   bool deactivateControl();
-  bool setControlMode();
-  bool selectActiveIOs();
 
-  virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
+  //virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
   virtual void monitor();
   virtual void waitForCommand();
   virtual void command();
@@ -34,9 +36,9 @@ private:
   std::unique_ptr<RobotObserver> robot_observer_;
   std::unique_ptr<RobotCommander> robot_commander_;
 
-  bool command_ready_;
-  std::mutex mutex_;
-  std::condition_variable cv_;
+  rclcpp::Node::SharedPtr robot_control_node_;
+  rclcpp::Clock ros_clock_;
+
 
 };
 

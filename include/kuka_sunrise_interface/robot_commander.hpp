@@ -19,6 +19,7 @@
 #include <rclcpp/strategies/allocator_memory_strategy.hpp>
 
 #include <functional>
+#include <condition_variable>
 
 namespace kuka_sunrise_interface{
 
@@ -28,6 +29,7 @@ using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrat
 
 class OutputSubscriptionBase{
 public:
+  virtual void updateOutput() = 0;
   virtual ~OutputSubscriptionBase();
 };
 
@@ -46,44 +48,60 @@ public:
                                                             [this](typename ROSType::ConstSharedPtr msg){this->commandReceivedCallback(msg);},
                                                             rclcpp::SubscriptionOptions(), msg_strategy);
   }
+
+  virtual void updateOutput(){
+    std::unique_lock<std::mutex> lk(m_);
+    lk.lock();
+    setOutput_(name_, output_msg_->data);
+    lk.unlock();
+  }
+
 private:
   std::string name_;
   std::function<void(std::string name, FRIType value)> setOutput_;
   const bool& is_commanding_active_;
+  typename ROSType::ConstSharedPtr output_msg_;
   typename rclcpp::Subscription<ROSType>::SharedPtr subscription_;
 
+  std::mutex m_;
+
   void commandReceivedCallback(typename ROSType::ConstSharedPtr msg){
-    if(!is_commanding_active_){
-      return;
+    std::unique_lock<std::mutex> lk(m_);
+    lk.lock();
+    if(is_commanding_active_){
+      output_msg_ = msg;
     }
-    const FRIType& value = msg->data;
-    setOutput_(name_, value);
+    lk.unlock();
   }
 };
 
 class RobotCommander: public ActivatableInterface{
 public:
-  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, std::function<void(const rclcpp::Time&)> command_ready_callback, rclcpp::Node::SharedPtr robot_control_node);
+  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, rclcpp::Node::SharedPtr robot_control_node);
   void addBooleanOutputCommander(const std::string& name);
   void addDigitalOutputCommander(const std::string& name);
   void addAnalogOutputCommander(const std::string& name);
+  void setTorqeCommanding(bool is_torque_mode_active);
+  void updateCommand(const rclcpp::Time& stamp);
+  void isCommandReady();
+  const KUKA::FRI::LBRCommand& getCommand();
+  virtual bool deactivate();
 
 private:
   KUKA::FRI::LBRCommand& robot_command_;
   const KUKA::FRI::LBRState& robot_state_;
   bool torque_command_mode_;//TODO use atomic instead?
-  sensor_msgs::msg::JointState joint_command_msg_;
+  sensor_msgs::msg::JointState::ConstSharedPtr joint_command_msg_;
 
   rclcpp::Node::SharedPtr robot_control_node_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
   std::list<std::unique_ptr<OutputSubscriptionBase>> output_subsciptions_;
 
   rclcpp::Clock ros_clock_;
-
-  std::function<void(const rclcpp::Time&)> commandReadyCallback_;
   void commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg);
 
-
+  std::mutex m_;
+  std::condition_variable cv_;
 
 };
 
