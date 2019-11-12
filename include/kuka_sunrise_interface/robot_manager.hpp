@@ -48,6 +48,7 @@ enum ControlModeID: char{
 
 
 class RobotManager{
+public:
   bool connect(const char* server_addr, int server_port);
   bool disconnect();
   bool startFRI();
@@ -59,12 +60,15 @@ class RobotManager{
   bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);
   //bool getFRIConfig();
 
+  bool isConnected();
+  ~RobotManager();
+
 private:
   std::unique_ptr<TCPConnection> tcp_connection_;
 
 
   void handleReceivedTCPData(const std::vector<char>& data);
-  void connectionLostCallback();
+  void connectionLostCallback(const char* server_addr, int server_port);
 
   CommandState last_command_state_;
   CommandID last_command_id_;

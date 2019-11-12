@@ -11,7 +11,7 @@
 namespace kuka_sunrise_interface{
 
 TCPConnection::TCPConnection(const char* server_addr, int server_port,
-                             std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(void)> connection_lost_callback):
+                             std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(const char* server_addr, const int server_port)> connection_lost_callback):
     dataReceivedCallback_(data_received_callback),
     connectionLostCallback_(connection_lost_callback),
     socket_desc_(socket(AF_INET, SOCK_STREAM, 0)),
@@ -31,7 +31,6 @@ TCPConnection::TCPConnection(const char* server_addr, int server_port,
     throw std::runtime_error("Could not connect to server");
   }
   pthread_create(&read_thread_, NULL, &TCPConnection::listen_helper, this);
-  pthread_detach(read_thread_);
 }
 
 bool TCPConnection::sendByte(char data){
@@ -51,14 +50,15 @@ bool TCPConnection::sendBytes(const std::vector<char>& data){
 }
 
 void TCPConnection::closeConnection(){
+  //TODO what happens upon multiple calls to close?
   cancelled_.store(true);
   close(socket_desc_);
+  pthread_join(read_thread_, NULL);
   //TODO: handle errors of close?
 }
 
 TCPConnection::~TCPConnection(){
-  cancelled_.store(true);
-  close(socket_desc_);
+  closeConnection();
   //TODO: handle errors of close?
 }
 
@@ -77,7 +77,7 @@ void TCPConnection::listen(){
       }
       //TODO: handle error
     } else if(length == 0) { //TODO: is this the way to check for connection loss?
-      connectionLostCallback_();
+      connectionLostCallback_(inet_ntoa(server_.sin_addr), ntohs(server_.sin_port));
       break;
     } else{
       std::vector<char> server_msg(msg_buffer, msg_buffer + length);

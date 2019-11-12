@@ -24,7 +24,7 @@ class TCPConnection{
 
 public:
   TCPConnection(const char* server_addr, const int server_port,
-                std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(void)> connection_lost_callback);
+                std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(const char* server_addr, const int server_port)> connection_lost_callback);
 
   bool sendByte(char data);
   bool sendBytes(const std::vector<char>& data);
@@ -40,7 +40,7 @@ private:
   static void* listen_helper(void *tcpConnection);
   void listen();
   std::function<void(const std::vector<char>&)> dataReceivedCallback_;
-  std::function<void(void)> connectionLostCallback_;
+  std::function<void(const char* server_addr, const int server_port)> connectionLostCallback_;
 
   int socket_desc_;
   struct sockaddr_in server_;

@@ -13,19 +13,31 @@
 
 namespace kuka_sunrise_interface{
 
+RobotManager::~RobotManager(){
+  disconnect();
+}
 
 bool RobotManager::connect(const char* server_addr, int server_port){
   //TODO: check if already connected
-  tcp_connection_ = std::make_unique<TCPConnection>(server_addr, server_port,
-                                  [this](std::vector<char> data){this->handleReceivedTCPData(data);},
-                                  [this](){this->connectionLostCallback();});
+  try{
+    tcp_connection_ = std::make_unique<TCPConnection>(server_addr, server_port,
+                                    [this](std::vector<char> data){this->handleReceivedTCPData(data);},
+                                    [this](const char* server_addr, int server_port){this->connectionLostCallback(server_addr, server_port);});
+  } catch(...){
+    tcp_connection_.reset();
+  }
 
+  if(!isConnected()){
+    return false;
+  }
   return sendCommandAndWait(CONNECT);
+
 }
 
 bool RobotManager::disconnect(){
   if(sendCommandAndWait(DISCONNECT) == true){
     tcp_connection_->closeConnection();
+    tcp_connection_.reset();
     return true;
   } else {
     return false;
@@ -60,6 +72,14 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
   msg_size += serializeNext(send_period_ms, serialized);
   msg_size += serializeNext(receive_multiplier, serialized);
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
+}
+
+bool RobotManager::isConnected(){
+  if(tcp_connection_){
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void RobotManager::wait(){
@@ -122,6 +142,10 @@ void RobotManager::handleReceivedTCPData(const std::vector<char>& data){
       //TODO handle error
       break;
   }
+}
+
+void RobotManager::connectionLostCallback(const char* server_addr, int server_port){
+  connect(server_addr, server_port);
 }
 
 

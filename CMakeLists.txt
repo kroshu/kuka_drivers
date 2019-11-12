@@ -39,6 +39,11 @@ add_library(robot_control_client SHARED
 	src/robot_commander.cpp)
 ament_target_dependencies(robot_control_client rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
 
+add_executable(robot_manager_node
+	src/robot_manager_node.cpp)
+ament_target_dependencies(robot_manager_node rclcpp rclcpp_lifecycle)
+target_link_libraries(robot_manager_node
+	robot_manager)
 	
 add_executable(robot_control_node
 	src/robot_control_node.cpp)
@@ -48,8 +53,8 @@ target_link_libraries(robot_control_node
 	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
 
 	
-install(TARGETS robot_manager robot_control_client robot_control_node
-	DESTINATION lib/${PROJECT_NAME})
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node
+	 DESTINATION lib/${PROJECT_NAME})
 	
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
