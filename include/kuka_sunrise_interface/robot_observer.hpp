@@ -9,6 +9,7 @@
 #define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_OBSERVER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node_impl.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int64.hpp"
@@ -24,7 +25,7 @@ class InputPublisherBase{
 public:
   //InputPublisherBase(std::string name);
   virtual void publishInputValue() = 0;
-  virtual ~InputPublisherBase();
+  virtual ~InputPublisherBase(){}
 protected:
   //virtual void createPublisher() = 0;
   //std::string name_;
@@ -35,7 +36,7 @@ protected:
 template <typename FRIType, typename ROSType>
 class InputPublisher : public InputPublisherBase{
 public:
-  InputPublisher(std::string name, std::function<FRIType(std::string)> input_getter_func, rclcpp::Node::SharedPtr robot_control_node):
+  InputPublisher(std::string name, std::function<FRIType(std::string)> input_getter_func, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node):
     name_(name),
     getInput_(input_getter_func)
   {
@@ -87,17 +88,17 @@ private:
 */
 class RobotObserver{
 public:
-  RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Node::SharedPtr robot_control_node);
+  RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
-  void publishRobotState(rclcpp::Time stamp);
+  void publishRobotState(const rclcpp::Time& stamp);
 
 private:
   const KUKA::FRI::LBRState& robot_state_;
   sensor_msgs::msg::JointState joint_state_msg_;
 
-  rclcpp::Node::SharedPtr robot_control_node_;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
 };

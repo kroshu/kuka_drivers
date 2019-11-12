@@ -18,11 +18,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_library(libFRIClient.a
+	PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
 
 include_directories(include)
 
@@ -34,10 +37,18 @@ add_library(robot_control_client SHARED
 	src/robot_control_client.cpp
 	src/robot_observer.cpp
 	src/robot_commander.cpp)
+ament_target_dependencies(robot_control_client rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
+
 	
-ament_target_dependencies(robot_control_client rclcpp std_msgs sensor_msgs)
+add_executable(robot_control_node
+	src/robot_control_node.cpp)
+ament_target_dependencies(robot_control_node rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
+target_link_libraries(robot_control_node 
+	robot_control_client
+	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
+
 	
-install(TARGETS robot_manager robot_control_client
+install(TARGETS robot_manager robot_control_client robot_control_node
 	DESTINATION lib/${PROJECT_NAME})
 	
 if(BUILD_TESTING)

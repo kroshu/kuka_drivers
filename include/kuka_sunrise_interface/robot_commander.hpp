@@ -12,6 +12,7 @@
 #include "kuka_sunrise_interface/internal/activatable_interface.hpp"
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include <rclcpp/message_memory_strategy.hpp>
@@ -30,13 +31,13 @@ using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrat
 class OutputSubscriptionBase{
 public:
   virtual void updateOutput() = 0;
-  virtual ~OutputSubscriptionBase();
+  virtual ~OutputSubscriptionBase(){}
 };
 
 template <typename FRIType, typename ROSType>
 class OutputSubscription : public OutputSubscriptionBase{
 public:
-  OutputSubscription(std::string name, std::function<void(std::string, FRIType)> output_setter_func, const bool& is_commanding_active_flag, rclcpp::Node::SharedPtr robot_control_node):
+  OutputSubscription(std::string name, std::function<void(std::string, FRIType)> output_setter_func, const bool& is_commanding_active_flag, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node):
     name_(name),
     setOutput_(output_setter_func),
     is_commanding_active_(is_commanding_active_flag)
@@ -77,7 +78,7 @@ private:
 
 class RobotCommander: public ActivatableInterface{
 public:
-  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, rclcpp::Node::SharedPtr robot_control_node);
+  RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA::FRI::LBRState& robot_state_, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
   void addBooleanOutputCommander(const std::string& name);
   void addDigitalOutputCommander(const std::string& name);
   void addAnalogOutputCommander(const std::string& name);
@@ -93,7 +94,7 @@ private:
   bool torque_command_mode_;//TODO use atomic instead?
   sensor_msgs::msg::JointState::ConstSharedPtr joint_command_msg_;
 
-  rclcpp::Node::SharedPtr robot_control_node_;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
   std::list<std::unique_ptr<OutputSubscriptionBase>> output_subsciptions_;
 

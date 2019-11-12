@@ -11,13 +11,14 @@
 
 namespace kuka_sunrise_interface{
 
-RobotControlClient::RobotControlClient(rclcpp::Node::SharedPtr robot_control_node):
-    robot_observer_(new RobotObserver(robotState(), robot_control_node)),
-    robot_commander_(new RobotCommander(robotCommand(), robotState(), robot_control_node)),
+RobotControlClient::RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node):
     robot_control_node_(robot_control_node)
 {
-
+  robot_observer_ = std::make_unique<RobotObserver>(robotState(), robot_control_node);
+  robot_commander_ = std::make_unique<RobotCommander>(robotCommand(), robotState(), robot_control_node);
 }
+
+RobotControlClient::~RobotControlClient() = default;
 
 bool RobotControlClient::activateControl(){
   return robot_commander_->activate();
@@ -43,6 +44,7 @@ void RobotControlClient::command(){
   robot_observer_->publishRobotState(stamp);
   robot_commander_->updateCommand(stamp);
 }
+
 
 
 

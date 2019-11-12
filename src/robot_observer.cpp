@@ -57,7 +57,11 @@ void AnalogInputPublisher::publishInputValue(){
 
 */
 
+
 void RobotObserver::addBooleanInputObserver(std::string name){
+  if(robot_control_node_->get_current_state().label() != "unconfigured"){
+    return; //TODO handle other states
+  }
   auto input_getter_func = [this](std::string name)->bool{
     return this->robot_state_.getBooleanIOValue(name.c_str());
   };
@@ -65,6 +69,9 @@ void RobotObserver::addBooleanInputObserver(std::string name){
 }
 
 void RobotObserver::addDigitalInputObserver(std::string name){
+  if(robot_control_node_->get_current_state().label() != "unconfigured"){
+    return; //TODO handle other states
+  }
   auto input_getter_func = [this](std::string name)->unsigned long long{
     return this->robot_state_.getDigitalIOValue(name.c_str());
   };
@@ -72,13 +79,16 @@ void RobotObserver::addDigitalInputObserver(std::string name){
 }
 
 void RobotObserver::addAnalogInputObserver(std::string name){
+  if(robot_control_node_->get_current_state().label() != "unconfigured"){
+    return; //TODO handle other states
+  }
   auto input_getter_func = [this](std::string name)->double{
     return this->robot_state_.getDigitalIOValue(name.c_str());
   };
   input_publishers_.emplace_back(std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(name, input_getter_func, robot_control_node_));
 }
 
-RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Node::SharedPtr robot_control_node):
+RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node):
     robot_state_(robot_state),
     robot_control_node_(robot_control_node)
 {
@@ -90,7 +100,11 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp::Nod
   joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
-void RobotObserver::publishRobotState(rclcpp::Time stamp){
+void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
+  if(robot_control_node_->get_current_state().label() != "inactive" &&
+      robot_control_node_->get_current_state().label() != "active"){
+    return; //TODO handle other states
+  }
   const double* joint_positions = robot_state_.getMeasuredJointPosition();
   const double* joint_torques = robot_state_.getExternalTorque(); //TODO: external vs measured?
 

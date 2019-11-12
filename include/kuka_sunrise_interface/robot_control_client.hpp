@@ -11,6 +11,7 @@
 #include "fri_client/friLBRClient.h"
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 
 #include <condition_variable>
 #include <memory>
@@ -22,8 +23,8 @@ class RobotCommander;
 
 class RobotControlClient: public KUKA::FRI::LBRClient{
 public:
-  RobotControlClient(rclcpp::Node::SharedPtr robot_control_node);
-
+  RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
+  ~RobotControlClient();
   bool activateControl();
   bool deactivateControl();
 
@@ -36,7 +37,7 @@ private:
   std::unique_ptr<RobotObserver> robot_observer_;
   std::unique_ptr<RobotCommander> robot_commander_;
 
-  rclcpp::Node::SharedPtr robot_control_node_;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Clock ros_clock_;
 
 

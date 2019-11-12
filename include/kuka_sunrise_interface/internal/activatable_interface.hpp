@@ -23,7 +23,7 @@ public:
   bool isActive(){
     return is_active_;
   }
-  virtual ~ActivatableInterface();
+  virtual ~ActivatableInterface(){}
 protected:
   bool is_active_;
 };
