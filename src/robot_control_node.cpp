@@ -37,9 +37,7 @@ void RobotControlNode::runClientApplication(){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
   (void)state;
-  auto SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  auto ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  //TODO change stack size with setrlimit rlimit_stack?
+   //TODO change stack size with setrlimit rlimit_stack?
   if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1){
     return ERROR;
   }
@@ -65,8 +63,6 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
   (void)state;
-  auto SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  //auto ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   pthread_join(client_application_thread_, NULL);//TODO close client separately here?
   return SUCCESS;
 }
@@ -74,8 +70,6 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
   (void)state;
-  auto SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  //auto ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   pthread_join(client_application_thread_, NULL);//TODO close client separately here?
   return SUCCESS;
 }
@@ -83,9 +77,6 @@ RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State& state){
   (void)state;
-  auto SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  auto ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-
   if(client_.activateControl()){
     return SUCCESS;
   } else {
@@ -96,8 +87,6 @@ RobotControlNode::on_activate(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_deactivate(const rclcpp_lifecycle::State& state){
   (void)state;
-  auto SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  auto ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
 
   if(client_.deactivateControl()){
     return SUCCESS;
