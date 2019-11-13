@@ -97,15 +97,21 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp_life
   joint_state_msg_.effort.reserve(robot_state_.NUMBER_OF_JOINTS);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
-  joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
+  joint_state_publisher_ = rclcpp::create_publisher<sensor_msgs::msg::JointState>(*robot_control_node, "lbr_joint_state", qos);
+  //joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
-void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
+void RobotObserver::publishRobotState(const rclcpp::Time& stamp, bool ipo){
   if(robot_control_node_->get_current_state().label() != "inactive" &&
       robot_control_node_->get_current_state().label() != "active"){
     return; //TODO handle other states
   }
-  const double* joint_positions = robot_state_.getMeasuredJointPosition();
+  const double* joint_positions;
+  if(ipo){
+    joint_positions = robot_state_.getIpoJointPosition();
+  } else {
+    joint_positions = robot_state_.getMeasuredJointPosition();
+  }
   const double* joint_torques = robot_state_.getExternalTorque(); //TODO: external vs measured?
 
   joint_state_msg_.header.frame_id = "world";
@@ -113,7 +119,7 @@ void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
 
   joint_state_msg_.velocity.clear();
   joint_state_msg_.position.assign(joint_positions, joint_positions + robot_state_.NUMBER_OF_JOINTS);
-  joint_state_msg_.effort.assign(joint_positions, joint_torques + robot_state_.NUMBER_OF_JOINTS);
+  joint_state_msg_.effort.assign(joint_torques, joint_torques + robot_state_.NUMBER_OF_JOINTS);
   joint_state_publisher_->publish(joint_state_msg_);
   //TODO double check this:
   for(auto i = std::next(input_publishers_.begin()); i != input_publishers_.end(); i++){

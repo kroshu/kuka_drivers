@@ -52,8 +52,11 @@ target_link_libraries(robot_control_node
 	robot_control_client
 	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
 
+add_executable(position_controller_node
+	test/position_controller.cpp)
+ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
 	
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node
 	 DESTINATION lib/${PROJECT_NAME})
 	
 if(BUILD_TESTING)

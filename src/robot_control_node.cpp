@@ -11,21 +11,20 @@
 namespace kuka_sunrise_interface{
 
 RobotControlNode::RobotControlNode():
-    LifecycleNode("robot_control"),
-    client_(rclcpp_lifecycle::LifecycleNode::shared_from_this()),
-    client_application_(udp_connection_, client_),
-    client_application_thread_(0)
+    LifecycleNode("robot_control")
 {
 
 }
 
 void RobotControlNode::runClientApplication(){
-  client_application_.connect(30200, NULL);
+  RCLCPP_INFO(get_logger(), "in runClientApplication, not connected");
+  client_application_->connect(30200, NULL);
+  RCLCPP_INFO(get_logger(), "in runClientApplication, connected");
   bool success = true;
   while(success){
-    success = client_application_.step();
+    success = client_application_->step();
 
-    if(client_.robotState().getSessionState() == KUKA::FRI::IDLE){
+    if(client_->robotState().getSessionState() == KUKA::FRI::IDLE){
       break;
     }
   }
@@ -37,47 +36,59 @@ void RobotControlNode::runClientApplication(){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
   (void)state;
+  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
+  client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
+  client_application_thread_ = std::make_unique<pthread_t>();
+
    //TODO change stack size with setrlimit rlimit_stack?
   if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1){
+    RCLCPP_ERROR(get_logger(), "mlockall error");
+    RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
 
   struct sched_param param;
   param.sched_priority = 90;
   if(sched_setscheduler(0, SCHED_FIFO, &param) == -1){
+    RCLCPP_ERROR(get_logger(), "setscheduler error");
+    RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
 
-  void*(*run_app)(void*) = [](void* robot_control_node)->void*{
+  auto run_app = [](void* robot_control_node)->void*{
     static_cast<RobotControlNode*>(robot_control_node)->runClientApplication();
-    return NULL;
+    return nullptr;
   };
+  RCLCPP_INFO(get_logger(), "about to create pthread");
 
-  if(pthread_create(&client_application_thread_, NULL, run_app, static_cast<void*>(this))){
+  if(pthread_create(client_application_thread_.get(), nullptr, run_app, this)){
+    RCLCPP_ERROR(get_logger(), "pthread_create error");
+    RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
 
+  RCLCPP_INFO(get_logger(), "successful oncfiguration");
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
   (void)state;
-  pthread_join(client_application_thread_, NULL);//TODO close client separately here?
+  pthread_join(*client_application_thread_, NULL);//TODO close client separately here?
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
   (void)state;
-  pthread_join(client_application_thread_, NULL);//TODO close client separately here?
+  pthread_join(*client_application_thread_, NULL);//TODO close client separately here?
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State& state){
   (void)state;
-  if(client_.activateControl()){
+  if(client_->activateControl()){
     return SUCCESS;
   } else {
     return ERROR;
@@ -88,7 +99,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_deactivate(const rclcpp_lifecycle::State& state){
   (void)state;
 
-  if(client_.deactivateControl()){
+  if(client_->deactivateControl()){
     return SUCCESS;
   } else {
     return ERROR;

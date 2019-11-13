@@ -49,10 +49,10 @@ public:
 
 private:
   KUKA::FRI::UdpConnection udp_connection_;
-  RobotControlClient client_;
-  KUKA::FRI::ClientApplication client_application_;
+  std::unique_ptr<RobotControlClient> client_;
+  std::unique_ptr<KUKA::FRI::ClientApplication> client_application_;
 
-  pthread_t client_application_thread_;
+  std::unique_ptr<pthread_t> client_application_thread_;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;

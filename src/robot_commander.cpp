@@ -72,16 +72,12 @@ void RobotCommander::setTorqeCommanding(bool is_torque_mode_active){
 
 void RobotCommander::updateCommand(const rclcpp::Time& stamp){
   std::unique_lock<std::mutex> lk(m_);
-  lk.lock();
-  if(joint_command_msg_->header.stamp != stamp){
-    lk.unlock();
+  while(joint_command_msg_->header.stamp != stamp){
     cv_.wait(lk);
-    lk.lock();
-  }
-  //check if wait has been interrupted by the robot manager
-  if(!is_active_){
-    lk.unlock();
-    return;
+    //check if wait has been interrupted by the robot manager
+    if(!is_active_){
+      return;
+    }
   }
 
   if(torque_command_mode_){
@@ -105,26 +101,20 @@ void RobotCommander::updateCommand(const rclcpp::Time& stamp){
     output_subscription->updateOutput();
   }
 
-  lk.unlock();
 }
 
 void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg){
-  std::unique_lock<std::mutex> lk(m_);
-  lk.lock();
+  std::lock_guard<std::mutex> lk(m_);
   if(!is_active_){
-    lk.unlock();
     return;
   }
   joint_command_msg_ = msg;
-  lk.unlock();
   cv_.notify_one();
 }
 
 bool RobotCommander::deactivate(){
-  std::unique_lock<std::mutex> lk(m_);
-  lk.lock();
+  std::lock_guard<std::mutex> lk(m_);
   is_active_ = false;
-  lk.unlock();
   cv_.notify_one();//interrupt updateCommand()
   return true;
 }

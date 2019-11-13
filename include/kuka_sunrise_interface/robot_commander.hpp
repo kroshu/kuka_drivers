@@ -51,10 +51,8 @@ public:
   }
 
   virtual void updateOutput(){
-    std::unique_lock<std::mutex> lk(m_);
-    lk.lock();
+    std::lock_guard<std::mutex> lk(m_);
     setOutput_(name_, output_msg_->data);
-    lk.unlock();
   }
 
 private:
@@ -67,12 +65,10 @@ private:
   std::mutex m_;
 
   void commandReceivedCallback(typename ROSType::ConstSharedPtr msg){
-    std::unique_lock<std::mutex> lk(m_);
-    lk.lock();
+    std::lock_guard<std::mutex> lk(m_);
     if(is_commanding_active_){
       output_msg_ = msg;
     }
-    lk.unlock();
   }
 };
 

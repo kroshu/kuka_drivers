@@ -30,18 +30,18 @@ bool RobotControlClient::deactivateControl(){
 
 void RobotControlClient::monitor(){
   rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
+  robot_observer_->publishRobotState(stamp, false);
 }
 
 void RobotControlClient::waitForCommand(){
   rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
+  robot_observer_->publishRobotState(stamp, false);
   robot_commander_->updateCommand(stamp);
 }
 
 void RobotControlClient::command(){
   rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
+  robot_observer_->publishRobotState(stamp, true);
   robot_commander_->updateCommand(stamp);
 }
 

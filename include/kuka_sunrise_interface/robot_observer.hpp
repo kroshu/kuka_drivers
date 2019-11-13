@@ -92,7 +92,7 @@ public:
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
-  void publishRobotState(const rclcpp::Time& stamp);
+  void publishRobotState(const rclcpp::Time& stamp, bool ipo);
 
 private:
   const KUKA::FRI::LBRState& robot_state_;
