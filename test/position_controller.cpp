@@ -26,7 +26,7 @@ public:
     ros_clock_(RCL_ROS_TIME),
     joint_mask_(0x8),
     offset_(0),
-    ampl_rad_(0.1),
+    ampl_rad_(0.05),
     phi_(0),
     freq_hz_(0.25),
     filter_coeff_(0.99),

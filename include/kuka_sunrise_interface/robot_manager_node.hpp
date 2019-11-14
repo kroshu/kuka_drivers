@@ -45,6 +45,8 @@ private:
   RobotManager robot_manager_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   bool requestRobotControlNodeStateTransition(std::uint8_t transition);
+  void handleControlEndedError();
+  void handleFRIEndedError();
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;

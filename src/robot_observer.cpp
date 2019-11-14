@@ -101,17 +101,19 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp_life
   //joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
-void RobotObserver::publishRobotState(const rclcpp::Time& stamp, bool ipo){
+void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
   if(robot_control_node_->get_current_state().label() != "inactive" &&
       robot_control_node_->get_current_state().label() != "active"){
     return; //TODO handle other states
   }
   const double* joint_positions;
-  if(ipo){
-    joint_positions = robot_state_.getIpoJointPosition();
-  } else {
+  if(robot_state_.getSessionState() == KUKA::FRI::MONITORING_READY ||
+      robot_state_.getSessionState() == KUKA::FRI::MONITORING_WAIT){
     joint_positions = robot_state_.getMeasuredJointPosition();
+  } else {
+    joint_positions = robot_state_.getIpoJointPosition();
   }
+
   const double* joint_torques = robot_state_.getExternalTorque(); //TODO: external vs measured?
 
   joint_state_msg_.header.frame_id = "world";

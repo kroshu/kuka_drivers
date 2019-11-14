@@ -76,10 +76,12 @@ void RobotCommander::updateCommand(const rclcpp::Time& stamp){
     cv_.wait(lk);
     //check if wait has been interrupted by the robot manager
     if(!is_active_){
+      RCLCPP_INFO(robot_control_node_->get_logger(), "robot commander deactivated, exiting updatecommand");
       return;
     }
   }
 
+  RCLCPP_INFO(robot_control_node_->get_logger(), "updating command");
   if(torque_command_mode_){
     if(joint_command_msg_->effort.empty()){
       //raise some error/warning

@@ -13,6 +13,16 @@
 
 namespace kuka_sunrise_interface{
 
+RobotManager::RobotManager(std::function<void(void)> handle_control_ended_error_callback,  std::function<void(void)> handle_fri_ended_callback):
+    handleControlEndedError_(handle_control_ended_error_callback),
+    handleFRIEndedError_(handle_fri_ended_callback),
+    last_command_state_(ACCEPTED),
+    last_command_id_(CONNECT),
+    last_command_success_(NO_SUCCESS)
+{
+
+}
+
 RobotManager::~RobotManager(){
   disconnect();
 }
@@ -83,7 +93,7 @@ bool RobotManager::isConnected(){
 }
 
 void RobotManager::wait(){
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 }
 
 bool RobotManager::assertLastCommandSuccess(CommandID command_id){
@@ -99,8 +109,10 @@ bool RobotManager::assertLastCommandSuccess(CommandID command_id){
 }
 
 bool RobotManager::sendCommandAndWait(CommandID command_id){
+  printf("command sent: %u\n", command_id);
   tcp_connection_->sendByte(command_id);
   wait();
+  printf("feedback: \n\t%u\t%u\t%u", last_command_state_, last_command_id_, last_command_success_);
   return assertLastCommandSuccess(command_id);
 }
 
@@ -117,6 +129,7 @@ void RobotManager::handleReceivedTCPData(const std::vector<char>& data){
   if(data.size() == 0){
     return;
   }
+  pthread_t handler_thread;
 
   //TODO handle invalid data
   switch((CommandState)data[0]){
@@ -138,13 +151,19 @@ void RobotManager::handleReceivedTCPData(const std::vector<char>& data){
     case UNKNOWN:
       last_command_state_ = UNKNOWN;
       break;
-    case ERROR_SIGNAL:
-      //TODO handle error
+    case ERROR_CONTROL_ENDED:
+      pthread_create(&handler_thread, nullptr, [](void* self)->void*{static_cast<RobotManager*>(self)->handleControlEndedError_(); return nullptr;}, this);
+      pthread_detach(handler_thread); //TODO ther might be a better way to do this
+      break;
+    case ERROR_FRI_ENDED:
+      pthread_create(&handler_thread, nullptr, [](void* self)->void*{static_cast<RobotManager*>(self)->handleFRIEndedError_(); return nullptr;}, this);
+      pthread_detach(handler_thread); //TODO ther might be a better way to do this
       break;
   }
 }
 
 void RobotManager::connectionLostCallback(const char* server_addr, int server_port){
+  printf("Connection lost, trying to reconnect");
   connect(server_addr, server_port);
 }
 

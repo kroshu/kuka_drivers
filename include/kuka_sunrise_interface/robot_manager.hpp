@@ -9,7 +9,7 @@
 #define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_HPP_
 
 #include <memory>
-
+#include <functional>
 #include <vector>
 
 namespace kuka_sunrise_interface{
@@ -20,7 +20,8 @@ enum CommandState: char{
   ACCEPTED = 1,
   REJECTED = 2,
   UNKNOWN = 3,
-  ERROR_SIGNAL = 4
+  ERROR_CONTROL_ENDED = 4,
+  ERROR_FRI_ENDED = 5
 };
 
 enum CommandID: char{
@@ -49,6 +50,8 @@ enum ControlModeID: char{
 
 class RobotManager{
 public:
+  RobotManager(std::function<void(void)> handle_control_ended_error_callback,  std::function<void(void)> handle_fri_ended_callback);
+  ~RobotManager();
   bool connect(const char* server_addr, int server_port);
   bool disconnect();
   bool startFRI();
@@ -61,11 +64,12 @@ public:
   //bool getFRIConfig();
 
   bool isConnected();
-  ~RobotManager();
 
 private:
   std::unique_ptr<TCPConnection> tcp_connection_;
 
+  std::function<void(void)> handleControlEndedError_;
+  std::function<void(void)> handleFRIEndedError_;
 
   void handleReceivedTCPData(const std::vector<char>& data);
   void connectionLostCallback(const char* server_addr, int server_port);

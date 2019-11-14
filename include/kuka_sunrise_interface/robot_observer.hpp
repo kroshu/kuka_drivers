@@ -92,7 +92,7 @@ public:
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
-  void publishRobotState(const rclcpp::Time& stamp, bool ipo);
+  void publishRobotState(const rclcpp::Time& stamp);
 
 private:
   const KUKA::FRI::LBRState& robot_state_;
@@ -101,6 +101,8 @@ private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
+
+  int i = 0;
 };
 
 

@@ -52,8 +52,9 @@ bool TCPConnection::sendBytes(const std::vector<char>& data){
 void TCPConnection::closeConnection(){
   //TODO what happens upon multiple calls to close?
   cancelled_.store(true);
+  pthread_cancel(read_thread_);
   close(socket_desc_);
-  pthread_join(read_thread_, NULL);
+  //pthread_join(read_thread_, NULL);
   //TODO: handle errors of close?
 }
 

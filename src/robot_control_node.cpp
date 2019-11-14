@@ -100,8 +100,10 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State& state){
   (void)state;
 
   if(client_->deactivateControl()){
+    RCLCPP_INFO(get_logger(), "Deactivated successfully");
     return SUCCESS;
   } else {
+    RCLCPP_INFO(get_logger(), "Deactivation error");
     return ERROR;
   }
 }
