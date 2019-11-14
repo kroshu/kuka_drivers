@@ -72,12 +72,14 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State& state){
   lifecycle_msgs::msg::Transition::_id_type transition;
   switch(state.id()){
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      this->on_deactivate(state);
-      this->on_cleanup(state);
+      if(this->on_deactivate(get_current_state()) != SUCCESS){
+        break;
+      }
+      this->on_cleanup(get_current_state());
       transition = lifecycle_msgs::msg::Transition::TRANSITION_ACTIVE_SHUTDOWN;
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      this->on_cleanup(state);
+      this->on_cleanup(get_current_state());
       transition = lifecycle_msgs::msg::Transition::TRANSITION_INACTIVE_SHUTDOWN;
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:

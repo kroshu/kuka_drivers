@@ -93,7 +93,7 @@ bool RobotManager::isConnected(){
 }
 
 void RobotManager::wait(){
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(3500));
 }
 
 bool RobotManager::assertLastCommandSuccess(CommandID command_id){

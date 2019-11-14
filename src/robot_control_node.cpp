@@ -7,11 +7,13 @@
 
 
 #include "kuka_sunrise_interface/robot_control_node.hpp"
+#include "lifecycle_msgs/msg/state.hpp"
 
 namespace kuka_sunrise_interface{
 
 RobotControlNode::RobotControlNode():
-    LifecycleNode("robot_control")
+    LifecycleNode("robot_control"),
+    close_requested_(false)
 {
 
 }
@@ -21,7 +23,7 @@ void RobotControlNode::runClientApplication(){
   client_application_->connect(30200, NULL);
   RCLCPP_INFO(get_logger(), "in runClientApplication, connected");
   bool success = true;
-  while(success){
+  while(success && !close_requested_.load()){
     success = client_application_->step();
 
     if(client_->robotState().getSessionState() == KUKA::FRI::IDLE){
@@ -74,15 +76,32 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
   (void)state;
-  pthread_join(*client_application_thread_, NULL);//TODO close client separately here?
+  close_requested_.store(true);
+  pthread_join(*client_application_thread_, NULL);
+  close_requested_.store(false);
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
-  (void)state;
-  pthread_join(*client_application_thread_, NULL);//TODO close client separately here?
-  return SUCCESS;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn result = SUCCESS;
+  switch(state.id()){
+    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
+      if(this->on_deactivate(get_current_state()) != SUCCESS){
+        result = ERROR;
+        break;
+      }
+      this->on_cleanup(get_current_state());
+      break;
+    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
+      this->on_cleanup(get_current_state());
+      break;
+    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
+      break;
+    default:
+      break;
+  }
+  return result;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn

@@ -72,7 +72,11 @@ void RobotCommander::setTorqeCommanding(bool is_torque_mode_active){
 
 void RobotCommander::updateCommand(const rclcpp::Time& stamp){
   std::unique_lock<std::mutex> lk(m_);
-  while(joint_command_msg_->header.stamp != stamp){
+  while(!joint_command_msg_ || joint_command_msg_->header.stamp != stamp){
+    if(!is_active_){
+      RCLCPP_INFO(robot_control_node_->get_logger(), "robot commander deactivated, exiting updatecommand");
+      return;
+    }
     cv_.wait(lk);
     //check if wait has been interrupted by the robot manager
     if(!is_active_){
@@ -81,7 +85,7 @@ void RobotCommander::updateCommand(const rclcpp::Time& stamp){
     }
   }
 
-  RCLCPP_INFO(robot_control_node_->get_logger(), "updating command");
+  //RCLCPP_INFO(robot_control_node_->get_logger(), "updating command");
   if(torque_command_mode_){
     if(joint_command_msg_->effort.empty()){
       //raise some error/warning

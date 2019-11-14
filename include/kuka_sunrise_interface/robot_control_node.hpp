@@ -53,6 +53,7 @@ private:
   std::unique_ptr<KUKA::FRI::ClientApplication> client_application_;
 
   std::unique_ptr<pthread_t> client_application_thread_;
+  std::atomic_bool close_requested_;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;

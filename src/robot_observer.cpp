@@ -98,7 +98,8 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState& robot_state, rclcpp_life
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
   joint_state_publisher_ = rclcpp::create_publisher<sensor_msgs::msg::JointState>(*robot_control_node, "lbr_joint_state", qos);
-  //joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
+  joint_state_publisher2_ = rclcpp::create_publisher<sensor_msgs::msg::JointState>(*robot_control_node, "lbr_joint_state2", qos);
+//joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
 void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
@@ -106,23 +107,31 @@ void RobotObserver::publishRobotState(const rclcpp::Time& stamp){
       robot_control_node_->get_current_state().label() != "active"){
     return; //TODO handle other states
   }
-  const double* joint_positions;
-  if(robot_state_.getSessionState() == KUKA::FRI::MONITORING_READY ||
-      robot_state_.getSessionState() == KUKA::FRI::MONITORING_WAIT){
-    joint_positions = robot_state_.getMeasuredJointPosition();
-  } else {
-    joint_positions = robot_state_.getIpoJointPosition();
-  }
 
-  const double* joint_torques = robot_state_.getExternalTorque(); //TODO: external vs measured?
 
   joint_state_msg_.header.frame_id = "world";
   joint_state_msg_.header.stamp = stamp;//TODO catch exceptions
 
+  const double* joint_positions_measured = robot_state_.getMeasuredJointPosition();
+  const double* joint_torques_measured = robot_state_.getMeasuredTorque();
+
+
   joint_state_msg_.velocity.clear();
-  joint_state_msg_.position.assign(joint_positions, joint_positions + robot_state_.NUMBER_OF_JOINTS);
-  joint_state_msg_.effort.assign(joint_torques, joint_torques + robot_state_.NUMBER_OF_JOINTS);
-  joint_state_publisher_->publish(joint_state_msg_);
+  joint_state_msg_.position.assign(joint_positions_measured, joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
+  joint_state_msg_.effort.assign(joint_torques_measured, joint_torques_measured + robot_state_.NUMBER_OF_JOINTS);
+  joint_state_publisher2_->publish(joint_state_msg_);
+  //RCLCPP_INFO(robot_control_node_->get_logger(), "%u", robot_state_.getSessionState());
+  if(robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT ||
+       robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE){
+     const double* joint_positions_ipo = robot_state_.getIpoJointPosition();
+     const double* joint_torques_external = robot_state_.getMeasuredTorque(); //TODO: external vs measured?
+     joint_state_msg_.velocity.clear();
+     joint_state_msg_.position.assign(joint_positions_ipo, joint_positions_ipo + robot_state_.NUMBER_OF_JOINTS);
+     joint_state_msg_.effort.assign(joint_torques_external, joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
+     //RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg updated");
+     joint_state_publisher_->publish(joint_state_msg_);
+     //RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg sent");
+  }
   //TODO double check this:
   for(auto i = std::next(input_publishers_.begin()); i != input_publishers_.end(); i++){
     (*i)->publishInputValue();

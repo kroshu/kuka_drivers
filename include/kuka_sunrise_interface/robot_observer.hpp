@@ -100,6 +100,7 @@ private:
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher2_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
 
   int i = 0;
