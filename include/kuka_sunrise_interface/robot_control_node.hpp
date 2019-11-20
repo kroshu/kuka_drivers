@@ -27,6 +27,7 @@ class RobotControlNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   RobotControlNode();
+  ~RobotControlNode();
   void runClientApplication();
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -54,6 +55,7 @@ private:
 
   std::unique_ptr<pthread_t> client_application_thread_;
   std::atomic_bool close_requested_;
+
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;

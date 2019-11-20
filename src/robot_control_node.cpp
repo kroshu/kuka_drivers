@@ -18,6 +18,10 @@ RobotControlNode::RobotControlNode():
 
 }
 
+RobotControlNode::~RobotControlNode(){
+  printf("in destructor");
+}
+
 void RobotControlNode::runClientApplication(){
   RCLCPP_INFO(get_logger(), "in runClientApplication, not connected");
   client_application_->connect(30200, NULL);
@@ -77,8 +81,10 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
   (void)state;
   close_requested_.store(true);
+  client_.reset();
   pthread_join(*client_application_thread_, NULL);
   close_requested_.store(false);
+  client_application_->disconnect();
   return SUCCESS;
 }
 
@@ -129,7 +135,8 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State& state){
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_error(const rclcpp_lifecycle::State& state){
-  return this->on_cleanup(state);
+  RCLCPP_INFO(get_logger(), "An error occured");
+  return SUCCESS;
 }
 
 }

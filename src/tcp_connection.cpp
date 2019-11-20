@@ -11,7 +11,7 @@
 namespace kuka_sunrise_interface{
 
 TCPConnection::TCPConnection(const char* server_addr, int server_port,
-                             std::function<void(const std::vector<char>&)> data_received_callback, std::function<void(const char* server_addr, const int server_port)> connection_lost_callback):
+                             std::function<void(const std::vector<std::uint8_t>&)> data_received_callback, std::function<void(const char* server_addr, const int server_port)> connection_lost_callback):
     dataReceivedCallback_(data_received_callback),
     connectionLostCallback_(connection_lost_callback),
     socket_desc_(socket(AF_INET, SOCK_STREAM, 0)),
@@ -33,7 +33,7 @@ TCPConnection::TCPConnection(const char* server_addr, int server_port,
   pthread_create(&read_thread_, NULL, &TCPConnection::listen_helper, this);
 }
 
-bool TCPConnection::sendByte(char data){
+bool TCPConnection::sendByte(std::uint8_t data){
   int sent_length = write(socket_desc_, &data, 1);
   if(sent_length < 0){
     return false;
@@ -41,7 +41,7 @@ bool TCPConnection::sendByte(char data){
   return true;
 }
 
-bool TCPConnection::sendBytes(const std::vector<char>& data){
+bool TCPConnection::sendBytes(const std::vector<std::uint8_t>& data){
   int sent_length = write(socket_desc_, data.data(), data.size());
   if(sent_length < 0){
     return false;
@@ -69,7 +69,7 @@ void* TCPConnection::listen_helper(void *tcpConnection){
 }
 
 void TCPConnection::listen(){
-  char msg_buffer[300];
+  std::uint8_t msg_buffer[300];
   while(!cancelled_.load()){
     int length = recv(socket_desc_, msg_buffer, 300, 0);
     if(length < 0){
@@ -81,7 +81,7 @@ void TCPConnection::listen(){
       connectionLostCallback_(inet_ntoa(server_.sin_addr), ntohs(server_.sin_port));
       break;
     } else{
-      std::vector<char> server_msg(msg_buffer, msg_buffer + length);
+      std::vector<std::uint8_t> server_msg(msg_buffer, msg_buffer + length);
       dataReceivedCallback_(server_msg);
     }
   }

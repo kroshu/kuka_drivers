@@ -20,6 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -37,13 +38,19 @@ add_library(robot_control_client SHARED
 	src/robot_control_client.cpp
 	src/robot_observer.cpp
 	src/robot_commander.cpp)
-ament_target_dependencies(robot_control_client rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
+ament_target_dependencies(robot_control_client rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
+
+add_library(configuration_manager SHARED
+	src/configuration_manager.cpp)
+ament_target_dependencies(configuration_manager rclcpp rclcpp_lifecycle std_msgs std_srvs)
+
 
 add_executable(robot_manager_node
 	src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp rclcpp_lifecycle)
 target_link_libraries(robot_manager_node
-	robot_manager)
+	robot_manager
+	configuration_manager)
 	
 add_executable(robot_control_node
 	src/robot_control_node.cpp)
@@ -55,8 +62,13 @@ target_link_libraries(robot_control_node
 add_executable(position_controller_node
 	test/position_controller.cpp)
 ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
+
+
+add_executable(lifecycle_client_node
+	test/lifecycle_client_test.cpp)
+ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
 	
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node lifecycle_client_node
 	 DESTINATION lib/${PROJECT_NAME})
 	
 if(BUILD_TESTING)

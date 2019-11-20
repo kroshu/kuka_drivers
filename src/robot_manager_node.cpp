@@ -7,35 +7,42 @@
 
 
 #include "kuka_sunrise_interface/robot_manager_node.hpp"
+#include "kuka_sunrise_interface/internal/service_tools.hpp"
 
 namespace kuka_sunrise_interface{
 
 RobotManagerNode::RobotManagerNode():
-    LifecycleNode("robot_manager"),
-    robot_manager_([this]{this->handleControlEndedError();}, [this]{this->handleFRIEndedError();})
+    LifecycleNode("robot_manager")
 {
-  change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>("robot_control_node/change_state");
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  robot_manager_ = std::make_shared<RobotManager>([this]{this->handleControlEndedError();}, [this]{this->handleFRIEndedError();});
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
+  qos.reliable();
+  cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+  change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>("robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
 }
+
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State& state){
   (void)state;
-  if(!robot_manager_.isConnected()){
-    if(!robot_manager_.connect("192.168.37.29", 30000)){ //TODO use ros params
+  configuration_manager_ = std::make_unique<ConfigurationManager>(this->shared_from_this(), robot_manager_);
+  if(!robot_manager_->isConnected()){
+    if(!robot_manager_->connect("192.168.37.29", 30000)){ //TODO use ros params
       RCLCPP_ERROR(get_logger(), "could not connect");
-      return ERROR;
+      return FAILURE;
     }
   }
   //TODO get IO configuration
 
   if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE)){
     RCLCPP_ERROR(get_logger(), "could not configure robot control node");
-    return ERROR;
+    return FAILURE;
   }
 
-  if(!robot_manager_.startFRI()){
+  if(!robot_manager_->startFRI()){
     RCLCPP_ERROR(get_logger(), "could not start fri");
-    return ERROR;
+    return FAILURE;
   }
 
   return SUCCESS;
@@ -44,19 +51,19 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State& state){
   (void)state;
-  if(!robot_manager_.isConnected()){
+  if(!robot_manager_->isConnected()){
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
 
-  if(!robot_manager_.endFRI()){
+  if(!robot_manager_->endFRI()){
     RCLCPP_ERROR(get_logger(), "could not end fri");
-    return ERROR;
+    return FAILURE;
   }
 
-  if(!robot_manager_.disconnect()){ //TODO use ros params
+  if(!robot_manager_->disconnect()){ //TODO use ros params
     RCLCPP_ERROR(get_logger(), "could not disconnect");
-    return ERROR;
+    return FAILURE;
   }
 
   if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP)){
@@ -69,27 +76,23 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State& state){
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State& state){
-  lifecycle_msgs::msg::Transition::_id_type transition;
   switch(state.id()){
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
       if(this->on_deactivate(get_current_state()) != SUCCESS){
         break;
       }
       this->on_cleanup(get_current_state());
-      transition = lifecycle_msgs::msg::Transition::TRANSITION_ACTIVE_SHUTDOWN;
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
       this->on_cleanup(get_current_state());
-      transition = lifecycle_msgs::msg::Transition::TRANSITION_INACTIVE_SHUTDOWN;
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      transition = lifecycle_msgs::msg::Transition::TRANSITION_UNCONFIGURED_SHUTDOWN;
       break;
     default:
-      return ERROR;
+      return SUCCESS;
   }
 
-  if(!requestRobotControlNodeStateTransition(transition)){
+  if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_UNCONFIGURED_SHUTDOWN)){
     RCLCPP_ERROR(get_logger(), "could not shut down control");
     return ERROR;
   }
@@ -100,7 +103,7 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State& state){
   (void)state;
-  if(!robot_manager_.isConnected()){
+  if(!robot_manager_->isConnected()){
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
@@ -108,10 +111,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State& state){
 
   if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE)){
     RCLCPP_ERROR(get_logger(), "could not activate control node");
-    return ERROR;
+    return FAILURE;
   }
 
-  if(!robot_manager_.activateControl()){
+  if(!robot_manager_->activateControl()){
     //deactivate robot control node
     RCLCPP_ERROR(get_logger(), "could not deactivate control");
     return ERROR;
@@ -123,14 +126,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State& state){
   (void)state;
-  if(!robot_manager_.isConnected()){
+  if(!robot_manager_->isConnected()){
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
 
-  if(!robot_manager_.deactivateControl()){
+  if(!robot_manager_->deactivateControl()){
     RCLCPP_ERROR(get_logger(), "could not deactivate control");
-    return ERROR;
+    return FAILURE;
   }
 
   if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE)){
@@ -144,44 +147,32 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State& state){
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_error(const rclcpp_lifecycle::State& state){
   (void)state;
-  return this->on_cleanup(state);
+  RCLCPP_ERROR(get_logger(), "An error occured");
+  return SUCCESS;
 }
 
-template<typename FutureT, typename WaitTimeT>
-std::future_status
-wait_for_result(
-  FutureT & future,
-  WaitTimeT time_to_wait)
-{
-  auto end = std::chrono::steady_clock::now() + time_to_wait;
-  std::chrono::milliseconds wait_period(100);
-  std::future_status status = std::future_status::timeout;
-  do {
-    auto now = std::chrono::steady_clock::now();
-    auto time_left = end - now;
-    if (time_left <= std::chrono::seconds(0)) {break;}
-    status = future.wait_for((time_left < wait_period) ? time_left : wait_period);
-  } while (rclcpp::ok() && status != std::future_status::ready);
-  return status;
-}
+
 
 bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t transition){
-  return true;
   auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
   request->transition.id = transition;
-  if(!change_robot_control_state_client_->wait_for_service(std::chrono::seconds(1))){
+  if(!change_robot_control_state_client_->wait_for_service(std::chrono::milliseconds(2000))){
+    RCLCPP_ERROR(get_logger(), "Wait for service failed");
     return false;
   }
   auto future_result = change_robot_control_state_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::seconds(1));
+  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if(future_status != std::future_status::ready){
+    RCLCPP_ERROR(get_logger(), "Future status not ready");
     return false;
   }
   if(future_result.get()->success){
     return true;
   } else {
+    RCLCPP_ERROR(get_logger(), "Future result not success");
     return false;
   }
+
 
 }
 
@@ -204,7 +195,10 @@ void RobotManagerNode::handleFRIEndedError(){
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<kuka_sunrise_interface::RobotManagerNode>()->get_node_base_interface());
+  rclcpp::executors::MultiThreadedExecutor executor;
+  auto node = std::make_shared<kuka_sunrise_interface::RobotManagerNode>();
+  executor.add_node(node->get_node_base_interface());
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }

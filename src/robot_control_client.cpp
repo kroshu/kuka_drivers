@@ -18,7 +18,10 @@ RobotControlClient::RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPt
   robot_commander_ = std::make_unique<RobotCommander>(robotCommand(), robotState(), robot_control_node);
 }
 
-RobotControlClient::~RobotControlClient() = default;
+RobotControlClient::~RobotControlClient(){
+  RCLCPP_INFO(robot_control_node_->get_logger(), "RobotControlClient destructor called");
+  robot_commander_->deactivate();
+}
 
 bool RobotControlClient::activateControl(){
   return robot_commander_->activate();

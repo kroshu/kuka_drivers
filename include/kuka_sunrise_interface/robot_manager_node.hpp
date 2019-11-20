@@ -15,6 +15,9 @@
 #include "lifecycle_msgs/msg/state.hpp"
 
 #include "kuka_sunrise_interface/robot_manager.hpp"
+#include "kuka_sunrise_interface/configuration_manager.hpp"
+
+#include "atomic"
 
 namespace kuka_sunrise_interface{
 
@@ -42,8 +45,10 @@ public:
   on_error(const rclcpp_lifecycle::State&);
 
 private:
-  RobotManager robot_manager_;
+  std::shared_ptr<RobotManager> robot_manager_;
+  std::unique_ptr<ConfigurationManager> configuration_manager_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
+  rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
   bool requestRobotControlNodeStateTransition(std::uint8_t transition);
   void handleControlEndedError();
   void handleFRIEndedError();

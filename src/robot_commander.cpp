@@ -25,9 +25,21 @@ RobotCommander::RobotCommander(KUKA::FRI::LBRCommand& robot_command, const KUKA:
   auto callback = [this](sensor_msgs::msg::JointState::ConstSharedPtr msg)->void{this->commandReceivedCallback(msg);};
   auto msg_strategy = std::make_shared<MessageMemoryStrategy<sensor_msgs::msg::JointState>>();//TODO use TLSFAllocator? implement static strategy for jointstatemsg?
   joint_command_subscription_ =
-        robot_control_node->create_subscription<sensor_msgs::msg::JointState>("lbr_joint_command", qos,
+        robot_control_node_->create_subscription<sensor_msgs::msg::JointState>("lbr_joint_command", qos,
                                                                               callback,
                                                                               rclcpp::SubscriptionOptions(), msg_strategy);
+
+  auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+                      std_srvs::srv::SetBool::Request::SharedPtr request,
+                      std_srvs::srv::SetBool::Response::SharedPtr response){
+    (void)request_header;
+    if(this->setTorqeCommanding(request->data)){
+      response->success = true;
+    } else {
+      response->success = false;
+    }
+  };
+  set_command_mode_service_ = robot_control_node_->create_service<std_srvs::srv::SetBool>("set_command_mode", command_srv_callback);
 }
 
 void RobotCommander::addBooleanOutputCommander(const std::string& name){
@@ -63,11 +75,13 @@ void RobotCommander::addAnalogOutputCommander(const std::string& name){
                                     (name, output_setter_func, is_active_, robot_control_node_));
 }
 
-void RobotCommander::setTorqeCommanding(bool is_torque_mode_active){
-  if(is_active_){
-    return; //TODO handle
+bool RobotCommander::setTorqeCommanding(bool is_torque_mode_active){
+  if(!is_active_){
+    torque_command_mode_ = is_torque_mode_active;
+    return true;
+  } else{
+    return false;
   }
-  torque_command_mode_ = is_torque_mode_active;
 }
 
 void RobotCommander::updateCommand(const rclcpp::Time& stamp){
@@ -124,9 +138,6 @@ bool RobotCommander::deactivate(){
   cv_.notify_one();//interrupt updateCommand()
   return true;
 }
-
-
-
 
 
 

@@ -15,6 +15,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 #include <rclcpp/message_memory_strategy.hpp>
 #include <rclcpp/strategies/message_pool_memory_strategy.hpp>
 #include <rclcpp/strategies/allocator_memory_strategy.hpp>
@@ -78,7 +79,7 @@ public:
   void addBooleanOutputCommander(const std::string& name);
   void addDigitalOutputCommander(const std::string& name);
   void addAnalogOutputCommander(const std::string& name);
-  void setTorqeCommanding(bool is_torque_mode_active);
+  bool setTorqeCommanding(bool is_torque_mode_active);
   void updateCommand(const rclcpp::Time& stamp);
   void isCommandReady();
   const KUKA::FRI::LBRCommand& getCommand();
@@ -93,6 +94,7 @@ private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
   std::list<std::unique_ptr<OutputSubscriptionBase>> output_subsciptions_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_mode_service_;
 
   rclcpp::Clock ros_clock_;
   void commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg);
