@@ -27,7 +27,8 @@ private:
 public:
   PositionController() :
       Node("torque_controller", rclcpp::NodeOptions().allow_undeclared_parameters(true)), ros_clock_(RCL_ROS_TIME), joint_mask_(
-          0x8), receive_multiplier_(0), receive_counter_(0), offset_(0), ampl_rad_(3), phi_(0), freq_hz_(0.25), step_width_(0)
+          0x8), receive_multiplier_(0), receive_counter_(0), offset_(0), ampl_rad_(3), phi_(0), freq_hz_(0.25), step_width_(
+          0)
   {
     step_width_ = 2 * M_PI * freq_hz_ * 0.01;
     command_.position.reserve(7);

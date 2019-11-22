@@ -17,12 +17,14 @@
 #include <condition_variable>
 #include <memory>
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
 class RobotObserver;
 class RobotCommander;
 
-class RobotControlClient: public KUKA::FRI::LBRClient{
+class RobotControlClient : public KUKA::FRI::LBRClient
+{
 public:
   RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
   ~RobotControlClient();
@@ -48,7 +50,5 @@ private:
 };
 
 }
-
-
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_ */

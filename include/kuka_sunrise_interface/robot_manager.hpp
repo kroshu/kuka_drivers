@@ -13,11 +13,13 @@
 #include <vector>
 #include <condition_variable>
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 //forward declaration
 class TCPConnection;
 
-enum CommandState: std::uint8_t{
+enum CommandState : std::uint8_t
+{
   ACCEPTED = 1,
   REJECTED = 2,
   UNKNOWN = 3,
@@ -25,7 +27,8 @@ enum CommandState: std::uint8_t{
   ERROR_FRI_ENDED = 5
 };
 
-enum CommandID: std::uint8_t{
+enum CommandID : std::uint8_t
+{
   CONNECT = 1,
   DISCONNECT = 2,
   START_FRI = 3,
@@ -40,37 +43,42 @@ enum CommandID: std::uint8_t{
   SET_COMMAND_MODE = 12
 };
 
-enum CommandSuccess: std::uint8_t{
+enum CommandSuccess : std::uint8_t
+{
   SUCCESS = 1,
   NO_SUCCESS = 2
 };
 
-enum ControlModeID: std::uint8_t{
+enum ControlModeID : std::uint8_t
+{
   POSITION_CONTROL_MODE = 1,
   JOINT_IMPEDANCE_CONTROL_MODE = 2
 };
 
-enum ClientCommandModeID: std::uint8_t{
+enum ClientCommandModeID : std::uint8_t
+{
   POSITION_COMMAND_MODE = 1,
   TORQUE_COMMAND_MODE = 3
 };
 
-static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = { 0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
-static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = { 0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
+static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
+static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
 
-
-class RobotManager{
+class RobotManager
+{
 public:
-  RobotManager(std::function<void(void)> handle_control_ended_error_callback,  std::function<void(void)> handle_fri_ended_callback);
+  RobotManager(std::function<void(void)> handle_control_ended_error_callback,
+               std::function<void(void)> handle_fri_ended_callback);
   ~RobotManager();
-  bool connect(const char* server_addr, int server_port);
+  bool connect(const char *server_addr, int server_port);
   bool disconnect();
   bool startFRI();
   bool endFRI();
   bool activateControl();
   bool deactivateControl();
   bool setPositionControlMode();
-  bool setJointImpedanceControlMode(const std::vector<double>& joint_stiffness, const std::vector<double>& joint_damping);
+  bool setJointImpedanceControlMode(const std::vector<double> &joint_stiffness,
+                                    const std::vector<double> &joint_damping);
   bool setClientCommandMode(ClientCommandModeID client_command_mode);
   //bool getControlMode();
   bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);
@@ -84,8 +92,8 @@ private:
   std::function<void(void)> handleControlEndedError_;
   std::function<void(void)> handleFRIEndedError_;
 
-  void handleReceivedTCPData(const std::vector<std::uint8_t>& data);
-  void connectionLostCallback(const char* server_addr, int server_port);
+  void handleReceivedTCPData(const std::vector<std::uint8_t> &data);
+  void connectionLostCallback(const char *server_addr, int server_port);
 
   CommandState last_command_state_;
   CommandID last_command_id_;
@@ -99,20 +107,10 @@ private:
   //void wait();
   bool assertLastCommandSuccess(CommandID command_id);
   bool sendCommandAndWait(CommandID command_id);
-  bool sendCommandAndWait(CommandID command_id, const std::vector<std::uint8_t>& command_data);
+  bool sendCommandAndWait(CommandID command_id, const std::vector<std::uint8_t> &command_data);
 
 };
 
-
-
-
-
-
-
-
-
 }
-
-
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_HPP_ */

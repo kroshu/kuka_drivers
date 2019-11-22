@@ -20,8 +20,8 @@
 #include "sched.h"
 #include "sys/mman.h"
 
-
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
 class RobotControlNode : public rclcpp_lifecycle::LifecycleNode
 {
@@ -56,16 +56,14 @@ private:
   std::unique_ptr<pthread_t> client_application_thread_;
   std::atomic_bool close_requested_;
 
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  FAILURE = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ERROR =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 
 };
-
 
 }
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_NODE_HPP_ */

@@ -12,10 +12,12 @@
 #include <cstdint>
 #include <algorithm>
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
-int serializeNext(int integer_in, std::vector<std::uint8_t>& serialized_out){
-  std::uint8_t* bytes = reinterpret_cast<std::uint8_t*>(&integer_in);
+int serializeNext(int integer_in, std::vector<std::uint8_t> &serialized_out)
+{
+  std::uint8_t *bytes = reinterpret_cast<std::uint8_t*>(&integer_in);
   auto it = serialized_out.end();
   serialized_out.insert(it, bytes, bytes + sizeof(int));
   std::reverse(it, serialized_out.end());
@@ -24,8 +26,10 @@ int serializeNext(int integer_in, std::vector<std::uint8_t>& serialized_out){
   return sizeof(int);
 }
 
-int deserializeNext(const std::vector<std::uint8_t>& serialized_in, int& integer_out){
-  if(serialized_in.size() < sizeof(int)){
+int deserializeNext(const std::vector<std::uint8_t> &serialized_in, int &integer_out)
+{
+  if (serialized_in.size() < sizeof(int))
+  {
     //TODO: error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
@@ -33,8 +37,9 @@ int deserializeNext(const std::vector<std::uint8_t>& serialized_in, int& integer
   return sizeof(int);
 }
 
-int serializeNext(double double_in, std::vector<std::uint8_t>& serialized_out){
-  std::uint8_t* bytes = reinterpret_cast<std::uint8_t*>(&double_in);
+int serializeNext(double double_in, std::vector<std::uint8_t> &serialized_out)
+{
+  std::uint8_t *bytes = reinterpret_cast<std::uint8_t*>(&double_in);
   auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
   std::reverse(it, serialized_out.end());
@@ -43,8 +48,10 @@ int serializeNext(double double_in, std::vector<std::uint8_t>& serialized_out){
   return sizeof(int);
 }
 
-int deserializeNext(const std::vector<std::uint8_t>& serialized_in, double& double_out){
-  if(serialized_in.size() < sizeof(double)){
+int deserializeNext(const std::vector<std::uint8_t> &serialized_in, double &double_out)
+{
+  if (serialized_in.size() < sizeof(double))
+  {
     //TODO: error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
@@ -53,6 +60,5 @@ int deserializeNext(const std::vector<std::uint8_t>& serialized_in, double& doub
 }
 
 }
-
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_ */

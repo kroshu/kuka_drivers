@@ -18,36 +18,37 @@
 #include <vector>
 #include <atomic>
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
-class TCPConnection{
+class TCPConnection
+{
 
 public:
-  TCPConnection(const char* server_addr, const int server_port,
-                std::function<void(const std::vector<std::uint8_t>&)> data_received_callback, std::function<void(const char* server_addr, const int server_port)> connection_lost_callback);
+  TCPConnection(const char *server_addr, const int server_port,
+                std::function<void(const std::vector<std::uint8_t>&)> data_received_callback,
+                std::function<void(const char *server_addr, const int server_port)> connection_lost_callback);
 
   bool sendByte(std::uint8_t data);
-  bool sendBytes(const std::vector<std::uint8_t>& data);
+  bool sendBytes(const std::vector<std::uint8_t> &data);
   void closeConnection();
 
   ~TCPConnection();
   TCPConnection(const TCPConnection&) = delete;
   TCPConnection& operator=(const TCPConnection&) = delete;
-  TCPConnection& operator=(TCPConnection&& from);
+  TCPConnection& operator=(TCPConnection &&from);
 private:
-
 
   static void* listen_helper(void *tcpConnection);
   void listen();
   std::function<void(const std::vector<std::uint8_t>&)> dataReceivedCallback_;
-  std::function<void(const char* server_addr, const int server_port)> connectionLostCallback_;
+  std::function<void(const char *server_addr, const int server_port)> connectionLostCallback_;
 
   int socket_desc_;
   struct sockaddr_in server_;
   pthread_t read_thread_;
   std::atomic_bool cancelled_;
 };
-
 
 }
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_TCP_CONNECTION_HPP_ */

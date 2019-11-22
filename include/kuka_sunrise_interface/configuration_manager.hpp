@@ -17,17 +17,21 @@
 #include "map"
 #include "vector"
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
 class RobotManager;
 
-struct ParameterSetAccessRights{
+struct ParameterSetAccessRights
+{
   bool unconfigured;
   bool inactive;
   bool active;
   bool finalized;
-  bool isSetAllowed(std::uint8_t current_state){
-    switch(current_state){
+  bool isSetAllowed(std::uint8_t current_state)
+  {
+    switch (current_state)
+    {
       case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
         return unconfigured;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
@@ -42,10 +46,12 @@ struct ParameterSetAccessRights{
   }
 };
 
-class ConfigurationManager{
+class ConfigurationManager
+{
 public:
-  ConfigurationManager(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node, std::shared_ptr<RobotManager> robot_manager);
-  rcl_interfaces::msg::SetParametersResult onParamChange(const std::vector<rclcpp::Parameter>& parameters);
+  ConfigurationManager(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
+                       std::shared_ptr<RobotManager> robot_manager);
+  rcl_interfaces::msg::SetParametersResult onParamChange(const std::vector<rclcpp::Parameter> &parameters);
 
 private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
@@ -58,21 +64,18 @@ private:
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;
 
-  bool canSetParameter(const rclcpp::Parameter& param);
-  bool onCommandModeChangeRequest(const rclcpp::Parameter& param);
-  bool onControlModeChangeRequest(const rclcpp::Parameter& param);
-  bool onJointStiffnessChangeRequest(const rclcpp::Parameter& param);
-  bool onJointDampingChangeRequest(const rclcpp::Parameter& param);
-  bool onSendPeriodChangeRequest(const rclcpp::Parameter& param);
-  bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter& param);
-  bool setCommandMode(const std::string& control_mode);
+  bool canSetParameter(const rclcpp::Parameter &param);
+  bool onCommandModeChangeRequest(const rclcpp::Parameter &param);
+  bool onControlModeChangeRequest(const rclcpp::Parameter &param);
+  bool onJointStiffnessChangeRequest(const rclcpp::Parameter &param);
+  bool onJointDampingChangeRequest(const rclcpp::Parameter &param);
+  bool onSendPeriodChangeRequest(const rclcpp::Parameter &param);
+  bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter &param);
+  bool setCommandMode(const std::string &control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
-
 
 };
 
 }
-
-
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_CONFIGURATION_MANAGER_HPP_ */

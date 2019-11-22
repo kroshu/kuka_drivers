@@ -19,7 +19,8 @@
 
 #include "atomic"
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
 class RobotManagerNode : public rclcpp_lifecycle::LifecycleNode
 {
@@ -53,19 +54,14 @@ private:
   void handleControlEndedError();
   void handleFRIEndedError();
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  SUCCESS =  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  ERROR = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  FAILURE = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ERROR =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
+      rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 };
 
-
-
-
 }
-
-
 
 #endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_NODE_HPP_ */

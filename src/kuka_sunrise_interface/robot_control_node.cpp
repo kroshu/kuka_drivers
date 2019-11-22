@@ -5,49 +5,55 @@
  *      Author: rosdeveloper
  */
 
-
 #include "kuka_sunrise_interface/robot_control_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
-namespace kuka_sunrise_interface{
+namespace kuka_sunrise_interface
+{
 
-RobotControlNode::RobotControlNode():
-    LifecycleNode("robot_control"),
-    close_requested_(false)
+RobotControlNode::RobotControlNode() :
+    LifecycleNode("robot_control"), close_requested_(false)
 {
 
 }
 
-RobotControlNode::~RobotControlNode(){
+RobotControlNode::~RobotControlNode()
+{
   printf("in destructor");
 }
 
-void RobotControlNode::runClientApplication(){
+void RobotControlNode::runClientApplication()
+{
   RCLCPP_INFO(get_logger(), "in runClientApplication, not connected");
   client_application_->connect(30200, NULL);
   RCLCPP_INFO(get_logger(), "in runClientApplication, connected");
   bool success = true;
-  while(success && !close_requested_.load()){
+  while (success && !close_requested_.load())
+  {
     success = client_application_->step();
 
-    if(client_->robotState().getSessionState() == KUKA::FRI::IDLE){
+    if (client_->robotState().getSessionState() == KUKA::FRI::IDLE)
+    {
       break;
     }
   }
-  if(!success){
+  if (!success)
+  {
     //TODO handle
   }
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_configure(
+    const rclcpp_lifecycle::State &state)
+{
   (void)state;
   client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
   client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
-   //TODO change stack size with setrlimit rlimit_stack?
-  if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1){
+  //TODO change stack size with setrlimit rlimit_stack?
+  if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
+  {
     RCLCPP_ERROR(get_logger(), "mlockall error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
@@ -55,19 +61,22 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
 
   struct sched_param param;
   param.sched_priority = 90;
-  if(sched_setscheduler(0, SCHED_FIFO, &param) == -1){
+  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
+  {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
 
-  auto run_app = [](void* robot_control_node)->void*{
+  auto run_app = [](void *robot_control_node) -> void*
+  {
     static_cast<RobotControlNode*>(robot_control_node)->runClientApplication();
     return nullptr;
   };
   RCLCPP_INFO(get_logger(), "about to create pthread");
 
-  if(pthread_create(client_application_thread_.get(), nullptr, run_app, this)){
+  if (pthread_create(client_application_thread_.get(), nullptr, run_app, this))
+  {
     RCLCPP_ERROR(get_logger(), "pthread_create error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
@@ -77,8 +86,9 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State& state){
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_cleanup(
+    const rclcpp_lifecycle::State &state)
+{
   (void)state;
   close_requested_.store(true);
   client_.reset();
@@ -88,12 +98,15 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State& state){
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_shutdown(
+    const rclcpp_lifecycle::State &state)
+{
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn result = SUCCESS;
-  switch(state.id()){
+  switch (state.id())
+  {
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      if(this->on_deactivate(get_current_state()) != SUCCESS){
+      if (this->on_deactivate(get_current_state()) != SUCCESS)
+      {
         result = ERROR;
         break;
       }
@@ -110,38 +123,47 @@ RobotControlNode::on_shutdown(const rclcpp_lifecycle::State& state){
   return result;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_activate(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_activate(
+    const rclcpp_lifecycle::State &state)
+{
   (void)state;
-  if(client_->activateControl()){
+  if (client_->activateControl())
+  {
     return SUCCESS;
-  } else {
+  }
+  else
+  {
     return ERROR;
   }
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_deactivate(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_deactivate(
+    const rclcpp_lifecycle::State &state)
+{
   (void)state;
 
-  if(client_->deactivateControl()){
+  if (client_->deactivateControl())
+  {
     RCLCPP_INFO(get_logger(), "Deactivated successfully");
     return SUCCESS;
-  } else {
+  }
+  else
+  {
     RCLCPP_INFO(get_logger(), "Deactivation error");
     return ERROR;
   }
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_error(const rclcpp_lifecycle::State& state){
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_error(
+    const rclcpp_lifecycle::State &state)
+{
   RCLCPP_INFO(get_logger(), "An error occured");
   return SUCCESS;
 }
 
 }
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<kuka_sunrise_interface::RobotControlNode>()->get_node_base_interface());
