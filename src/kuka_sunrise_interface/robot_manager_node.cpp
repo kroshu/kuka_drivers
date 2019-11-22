@@ -34,6 +34,17 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State& state){
     }
   }
   //TODO get IO configuration
+  if(!this->has_parameter("send_period_ms") || !this->has_parameter("receive_multiplier")){
+    RCLCPP_ERROR(get_logger(), "Parameter send_period_ms or receive_multiplier not available");
+    return FAILURE;
+  }
+  rclcpp::Parameter send_period_ms = this->get_parameter("send_period_ms");
+  rclcpp::Parameter receive_multiplier = this->get_parameter("receive_multiplier");
+
+  if(!robot_manager_->setFRIConfig(30200, send_period_ms.as_int(), receive_multiplier.as_int())){
+    RCLCPP_ERROR(get_logger(), "could not set fri config");
+    return FAILURE;
+  }
 
   if(!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE)){
     RCLCPP_ERROR(get_logger(), "could not configure robot control node");

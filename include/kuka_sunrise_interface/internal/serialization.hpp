@@ -9,12 +9,16 @@
 #define INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_
 
 #include <vector>
+#include <cstdint>
+#include <algorithm>
 
 namespace kuka_sunrise_interface{
 
 int serializeNext(int integer_in, std::vector<std::uint8_t>& serialized_out){
   std::uint8_t* bytes = reinterpret_cast<std::uint8_t*>(&integer_in);
-  serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(int));
+  auto it = serialized_out.end();
+  serialized_out.insert(it, bytes, bytes + sizeof(int));
+  std::reverse(it, serialized_out.end());
   //TODO: assert that int is 4 bytes long
   //TODO: check endiannes
   return sizeof(int);
@@ -31,7 +35,9 @@ int deserializeNext(const std::vector<std::uint8_t>& serialized_in, int& integer
 
 int serializeNext(double double_in, std::vector<std::uint8_t>& serialized_out){
   std::uint8_t* bytes = reinterpret_cast<std::uint8_t*>(&double_in);
+  auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
+  std::reverse(it, serialized_out.end());
   //TODO: assert that int is 4 bytes long
   //TODO: check endiannes
   return sizeof(int);

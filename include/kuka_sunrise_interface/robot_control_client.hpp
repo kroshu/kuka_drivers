@@ -12,6 +12,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
 #include <condition_variable>
 #include <memory>
@@ -27,6 +28,7 @@ public:
   ~RobotControlClient();
   bool activateControl();
   bool deactivateControl();
+  bool setReceiveMultiplier(int receive_multiplier);
 
   //virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
   virtual void monitor();
@@ -38,8 +40,10 @@ private:
   std::unique_ptr<RobotCommander> robot_commander_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
+  rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
-
+  int receive_multiplier_;
+  int receive_counter_;
 
 };
 

@@ -103,14 +103,16 @@ void RobotCommander::updateCommand(const rclcpp::Time& stamp){
   if(torque_command_mode_){
     if(joint_command_msg_->effort.empty()){
       //raise some error/warning
+      RCLCPP_ERROR(robot_control_node_->get_logger(), "Effort of joint command msg is empty in torque command mode");
       return;
     }
-    const double* joint_torques_ = joint_command_msg_->position.data();
+    const double* joint_torques_ = joint_command_msg_->effort.data();
     robot_command_.setJointPosition(robot_state_.getIpoJointPosition());
     robot_command_.setTorque(joint_torques_);
   } else {
     if(joint_command_msg_->position.empty()){
       //raise some error/warning
+      RCLCPP_ERROR(robot_control_node_->get_logger(), "Position of joint command msg is empty in position command mode");
       return;
     }
     const double* joint_positions_ = joint_command_msg_->position.data();

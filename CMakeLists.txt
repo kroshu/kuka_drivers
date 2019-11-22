@@ -22,6 +22,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(kuka_sunrise_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -30,31 +31,32 @@ find_library(libFRIClient.a
 
 include_directories(include)
 
+
 add_library(robot_manager SHARED 
-	src/robot_manager.cpp
-	src/tcp_connection.cpp)
+	src/kuka_sunrise_interface/robot_manager.cpp
+	src/kuka_sunrise_interface/tcp_connection.cpp)
 	
 add_library(robot_control_client SHARED
-	src/robot_control_client.cpp
-	src/robot_observer.cpp
-	src/robot_commander.cpp)
-ament_target_dependencies(robot_control_client rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
+	src/kuka_sunrise_interface/robot_control_client.cpp
+	src/kuka_sunrise_interface/robot_observer.cpp
+	src/kuka_sunrise_interface/robot_commander.cpp)
+ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 
 add_library(configuration_manager SHARED
-	src/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager rclcpp rclcpp_lifecycle std_msgs std_srvs)
+	src/kuka_sunrise_interface/configuration_manager.cpp)
+ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs)
 
 
 add_executable(robot_manager_node
-	src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp rclcpp_lifecycle)
+	src/kuka_sunrise_interface/robot_manager_node.cpp)
+ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle)
 target_link_libraries(robot_manager_node
 	robot_manager
 	configuration_manager)
 	
 add_executable(robot_control_node
-	src/robot_control_node.cpp)
-ament_target_dependencies(robot_control_node rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
+	src/kuka_sunrise_interface/robot_control_node.cpp)
+ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
 target_link_libraries(robot_control_node 
 	robot_control_client
 	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
@@ -63,12 +65,16 @@ add_executable(position_controller_node
 	test/position_controller.cpp)
 ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
 
+add_executable(torque_controller_node
+	test/torque_controller.cpp)
+ament_target_dependencies(torque_controller_node rclcpp sensor_msgs)
 
 add_executable(lifecycle_client_node
 	test/lifecycle_client_test.cpp)
 ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
 	
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node lifecycle_client_node
+	
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node lifecycle_client_node
 	 DESTINATION lib/${PROJECT_NAME})
 	
 if(BUILD_TESTING)

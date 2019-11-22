@@ -78,36 +78,26 @@ bool RobotManager::setPositionControlMode(){
 }
 
 bool RobotManager::setJointImpedanceControlMode(const std::vector<double>& joint_stiffness, const std::vector<double>& joint_damping){
+  int msg_size = 0;
   printf("Sizeof(double) = %u\n", sizeof(double));
   printf("Joint_stiffness size: %u, joint damping size: %u\n", joint_stiffness.size(), joint_damping.size());
-  std::vector<std::uint8_t> command_data;
-  command_data.reserve(1 + 2*7*sizeof(double));
-  auto it = command_data.begin();
-  *it = JOINT_IMPEDANCE_CONTROL_MODE;
-  it++;
+  std::vector<std::uint8_t> serialized;
+  serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2*7*sizeof(double));
+  serialized.emplace_back(JOINT_IMPEDANCE_CONTROL_MODE);
+  msg_size++;
+  for(std::uint8_t byte : CONTROL_MODE_HEADER){
+    serialized.emplace_back(byte);
+    msg_size++;
+  }
   for(double js : joint_stiffness){
     printf("js = %lf\n", js);
-    std::vector<std::uint8_t> next_value;
-    next_value.reserve(sizeof(double));
-    serializeNext(js, next_value);
-    for(std::uint8_t byte : next_value){
-      printf("byte = %lf\n", byte);
-    }
-    command_data.insert(it, next_value.begin(), next_value.end());
-    it += sizeof(double);
+    msg_size += serializeNext(js, serialized);
   }
   for(double jd : joint_damping){
     printf("jd = %lf\n", jd);
-    std::vector<std::uint8_t> next_value;
-    next_value.reserve(sizeof(double));
-    serializeNext(jd, next_value);
-    for(std::uint8_t byte : next_value){
-      printf("byte = %lf\n", byte);
-    }
-    command_data.insert(it, next_value.begin(), next_value.end());
-    it += sizeof(double);
+    msg_size += serializeNext(jd, serialized);
   }
-  return sendCommandAndWait(SET_CONTROL_MODE, command_data);
+  return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
 
 bool RobotManager::setClientCommandMode(ClientCommandModeID client_command_mode){
@@ -116,11 +106,19 @@ bool RobotManager::setClientCommandMode(ClientCommandModeID client_command_mode)
 }
 
 bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier){
-  std::vector<std::uint8_t> serialized(3*sizeof(int));
+  std::vector<std::uint8_t> serialized;
+  serialized.reserve(FRI_CONFIG_HEADER.size() + 3*sizeof(int));
   int msg_size = 0;
+  for(std::uint8_t byte : FRI_CONFIG_HEADER){
+    serialized.emplace_back(byte);
+    msg_size++;
+  }
   msg_size += serializeNext(remote_port, serialized);
   msg_size += serializeNext(send_period_ms, serialized);
   msg_size += serializeNext(receive_multiplier, serialized);
+  for(std::uint8_t byte : serialized){
+    printf("%x-", byte);
+  }
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 

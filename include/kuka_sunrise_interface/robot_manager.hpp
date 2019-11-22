@@ -52,10 +52,11 @@ enum ControlModeID: std::uint8_t{
 
 enum ClientCommandModeID: std::uint8_t{
   POSITION_COMMAND_MODE = 1,
-  TORQUE_COMMAND_MODE = 2
+  TORQUE_COMMAND_MODE = 3
 };
 
-static const std::vector<std::uint8_t> SERIALIZED_DATA_HEADER = { 0xAC, 0xED };
+static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = { 0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
+static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = { 0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
 
 
 class RobotManager{

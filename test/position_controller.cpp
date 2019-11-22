@@ -6,6 +6,7 @@
  */
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/exceptions.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include <rclcpp/message_memory_strategy.hpp>
 #include <math.h>
@@ -19,16 +20,20 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_command_publisher_;
   rclcpp::Clock ros_clock_;
   int joint_mask_;
+  int receive_multiplier_;
+  int receive_counter_;
   double offset_, ampl_rad_, phi_, freq_hz_, filter_coeff_, step_width_;
 public:
   PositionController():
-    Node("position_controller"),
+    Node("position_controller", rclcpp::NodeOptions().allow_undeclared_parameters(true)),
     ros_clock_(RCL_ROS_TIME),
     joint_mask_(0x8),
+    receive_multiplier_(0),
+    receive_counter_(0),
     offset_(0),
-    ampl_rad_(1),
+    ampl_rad_(0.04),
     phi_(0),
-    freq_hz_(1),
+    freq_hz_(0.25),
     filter_coeff_(0.99),
     step_width_(0)
   {
@@ -46,30 +51,47 @@ public:
   }
   void loopCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg){
     //RCLCPP_INFO(get_logger(), "joint state received");
-    double newOffset = ampl_rad_ * std::sin(phi_);
-    offset_ = offset_ * filter_coeff_ + newOffset * (1.0 - filter_coeff_);
-    phi_ += step_width_;
-    if(phi_ >= 2* M_PI){
-      phi_ -= 2*M_PI;
-    }
-    double jointPos[7];
-    if(msg->position.empty()){
-      //RCLCPP_WARN(get_logger(), "joint position data is empty");
-    }
-    if(msg->position.size() != 7){
-      //RCLCPP_WARN(get_logger(), "joint position count is not 7");
-    }
-    memcpy(jointPos, msg->position.data(), 7*sizeof(double));
-    for(int i = 0; i < 7; i++){
-      if(joint_mask_ & (1<<i)){
-        jointPos[i] += offset_;
+    if(receive_multiplier_ == 0){
+      try{
+        receive_multiplier_ = this->get_parameter("receive_multiplier").as_int();
+      } catch(const rclcpp::exceptions::ParameterNotDeclaredException& e){
+        RCLCPP_INFO(get_logger(), "Parameter receive_multiplier not set, using default: 1");
+        receive_multiplier_ = 1;
+      } catch(...){
+        RCLCPP_INFO(get_logger(), "error");
+        receive_multiplier_ = 1;
       }
+      receive_counter_ = receive_multiplier_;
     }
-    command_.header.frame_id = "world";
-    command_.header.stamp = msg->header.stamp;
-    command_.position.assign(jointPos, jointPos + 7);
-    //RCLCPP_INFO(get_logger(), "command calculated");
-    joint_command_publisher_->publish(command_);
+    if(--receive_counter_ == 0){
+      receive_counter_ = receive_multiplier_;
+      double newOffset = ampl_rad_ * std::sin(phi_);
+     offset_ = offset_ * filter_coeff_ + newOffset * (1.0 - filter_coeff_);
+     phi_ += step_width_;
+     if(phi_ >= 2* M_PI){
+       phi_ -= 2*M_PI;
+     }
+     double jointPos[7];
+     if(msg->position.empty()){
+       //RCLCPP_WARN(get_logger(), "joint position data is empty");
+     }
+     if(msg->position.size() != 7){
+       //RCLCPP_WARN(get_logger(), "joint position count is not 7");
+     }
+     memcpy(jointPos, msg->position.data(), 7*sizeof(double));
+     for(int i = 0; i < 7; i++){
+       if(joint_mask_ & (1<<i)){
+         jointPos[i] += offset_;
+       }
+     }
+     command_.header.frame_id = "world";
+     command_.header.stamp = msg->header.stamp;
+     command_.position.assign(jointPos, jointPos + 7);
+     //RCLCPP_INFO(get_logger(), "command calculated");
+     joint_command_publisher_->publish(command_);
+    }
+
+
   }
 
 
@@ -78,6 +100,8 @@ public:
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
   rclcpp::spin(std::make_shared<PositionController>()->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
