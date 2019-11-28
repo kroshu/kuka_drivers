@@ -169,13 +169,13 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
 bool RobotControlNode::activate()
 {
   this->ActivatableInterface::activate();
-  return client_->activateControl();
+  return client_->activate();
 }
 
 bool RobotControlNode::deactivate()
 {
   this->ActivatableInterface::deactivate();
-  return client_->deactivateControl();
+  return client_->deactivate();
 }
 
 }

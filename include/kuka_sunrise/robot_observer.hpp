@@ -18,6 +18,8 @@
 #include "fri_client/friLBRClient.h"
 #include <list>
 
+#include "kuka_sunrise/internal/activatable_interface.hpp"
+
 namespace kuka_sunrise
 {
 
@@ -33,7 +35,7 @@ public:
 };
 
 template<typename FRIType, typename ROSType>
-class InputPublisher : public InputPublisherBase
+class InputPublisher : public InputPublisherBase, public ActivatableInterface
 {
 public:
   InputPublisher(std::string name, std::function<FRIType(std::string)> input_getter_func,
@@ -57,7 +59,7 @@ private:
   typename rclcpp::Publisher<ROSType>::SharedPtr publisher_;
 };
 
-class RobotObserver
+class RobotObserver : public ActivatableInterface
 {
 public:
   RobotObserver(const KUKA::FRI::LBRState &robot_state, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
@@ -65,15 +67,17 @@ public:
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
   void publishRobotState(const rclcpp::Time &stamp);
+  virtual bool activate();
+  virtual bool deactivate();
 
 private:
   const KUKA::FRI::LBRState &robot_state_;
   sensor_msgs::msg::JointState joint_state_msg_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
-  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
-  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher2_;
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr tracking_performance_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher2_;
+  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>::SharedPtr tracking_performance_publisher_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
 
   int i = 0;

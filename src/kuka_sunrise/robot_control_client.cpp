@@ -41,14 +41,20 @@ RobotControlClient::~RobotControlClient()
   robot_commander_->deactivate();
 }
 
-bool RobotControlClient::activateControl()
+bool RobotControlClient::activate()
 {
-  return robot_commander_->activate();
+  this->ActivatableInterface::activate();
+  robot_commander_->activate();
+  robot_observer_->activate();
+  return true; //TODO check if successful
 }
 
-bool RobotControlClient::deactivateControl()
+bool RobotControlClient::deactivate()
 {
-  return robot_commander_->deactivate();
+  this->ActivatableInterface::activate();
+  robot_commander_->deactivate();
+  robot_observer_->activate();
+  return true;  //TODO check if successful
 }
 
 void RobotControlClient::monitor()

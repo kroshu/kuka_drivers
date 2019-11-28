@@ -14,6 +14,8 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
+#include "kuka_sunrise/internal/activatable_interface.hpp"
+
 #include <condition_variable>
 #include <memory>
 
@@ -23,13 +25,13 @@ namespace kuka_sunrise
 class RobotObserver;
 class RobotCommander;
 
-class RobotControlClient : public KUKA::FRI::LBRClient
+class RobotControlClient : public KUKA::FRI::LBRClient, public ActivatableInterface
 {
 public:
   RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
   ~RobotControlClient();
-  bool activateControl();
-  bool deactivateControl();
+  bool activate();
+  bool deactivate();
   bool setReceiveMultiplier(int receive_multiplier);
 
   //virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
