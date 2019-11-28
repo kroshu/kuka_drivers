@@ -56,7 +56,7 @@ target_link_libraries(robot_manager_node
 	
 add_executable(robot_control_node
 	src/kuka_sunrise/robot_control_node.cpp)
-ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
+ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 target_link_libraries(robot_control_node 
 	robot_control_client
 	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
