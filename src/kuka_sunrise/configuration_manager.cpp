@@ -51,12 +51,12 @@ ConfigurationManager::ConfigurationManager(rclcpp_lifecycle::LifecycleNode::Shar
                                                                                    qos.get_rmw_qos_profile(), cbg_);
   receive_multiplier_client_ = robot_manager_node->create_client<kuka_sunrise_interfaces::srv::SetInt>(
       "set_receive_multiplier", qos.get_rmw_qos_profile(), cbg_);
-  parameter_set_access_rights_.emplace("command_mode", ParameterSetAccessRights {false, true, false, false});
-  parameter_set_access_rights_.emplace("control_mode", ParameterSetAccessRights {false, true, false, false});
-  parameter_set_access_rights_.emplace("joint_stiffness", ParameterSetAccessRights {false, true, false, false});
-  parameter_set_access_rights_.emplace("joint_damping", ParameterSetAccessRights {false, true, false, false});
-  parameter_set_access_rights_.emplace("send_period_ms", ParameterSetAccessRights {true, false, false, false});
-  parameter_set_access_rights_.emplace("receive_multiplier", ParameterSetAccessRights {true, false, false, false});
+  parameter_set_access_rights_.emplace("command_mode", ParameterSetAccessRights {false, true, true, false});
+  parameter_set_access_rights_.emplace("control_mode", ParameterSetAccessRights {false, true, true, false});
+  parameter_set_access_rights_.emplace("joint_stiffness", ParameterSetAccessRights {false, true, true, false});
+  parameter_set_access_rights_.emplace("joint_damping", ParameterSetAccessRights {false, true, true, false});
+  parameter_set_access_rights_.emplace("send_period_ms", ParameterSetAccessRights {false, true, false, false});
+  parameter_set_access_rights_.emplace("receive_multiplier", ParameterSetAccessRights {false, true, false, false});
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
