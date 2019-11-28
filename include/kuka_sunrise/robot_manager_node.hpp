@@ -16,13 +16,14 @@
 
 #include "kuka_sunrise/robot_manager.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
+#include "kuka_sunrise/internal/activatable_interface.hpp"
 
 #include "atomic"
 
 namespace kuka_sunrise
 {
 
-class RobotManagerNode : public rclcpp_lifecycle::LifecycleNode
+class RobotManagerNode : public rclcpp_lifecycle::LifecycleNode, public ActivatableInterface
 {
 public:
   RobotManagerNode();
@@ -45,14 +46,21 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_error(const rclcpp_lifecycle::State&);
 
+  virtual bool activate();
+  virtual bool deactivate();
+
 private:
   std::shared_ptr<RobotManager> robot_manager_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_state_service_;
+
   bool requestRobotControlNodeStateTransition(std::uint8_t transition);
+  bool setRobotControlNodeCommandState(bool active);
   void handleControlEndedError();
   void handleFRIEndedError();
+  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr set_command_state_client_;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
       rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
