@@ -5,11 +5,11 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/robot_observer.hpp"
+#include "kuka_sunrise/robot_observer.hpp"
 
 #include "rclcpp/time.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 void RobotObserver::addBooleanInputObserver(std::string name)

@@ -5,14 +5,14 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_
+#define INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_
 
 #include <vector>
 #include <cstdint>
 #include <algorithm>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 int serializeNext(int integer_in, std::vector<std::uint8_t> &serialized_out)
@@ -61,4 +61,4 @@ int deserializeNext(const std::vector<std::uint8_t> &serialized_in, double &doub
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_SERIALIZATION_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_ */

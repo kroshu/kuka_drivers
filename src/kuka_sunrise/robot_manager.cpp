@@ -5,13 +5,13 @@
  *      Author: rosdeveloper
  */
 
-#include <kuka_sunrise_interface/robot_manager.hpp>
-#include <kuka_sunrise_interface/internal/serialization.hpp>
-#include <kuka_sunrise_interface/tcp_connection.hpp>
+#include <kuka_sunrise/robot_manager.hpp>
+#include <kuka_sunrise/internal/serialization.hpp>
+#include <kuka_sunrise/tcp_connection.hpp>
 #include <thread>
 #include <chrono>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 RobotManager::RobotManager(std::function<void(void)> handle_control_ended_error_callback,

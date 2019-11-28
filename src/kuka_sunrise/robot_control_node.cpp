@@ -5,10 +5,10 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/robot_control_node.hpp"
+#include "kuka_sunrise/robot_control_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 RobotControlNode::RobotControlNode() :
@@ -166,7 +166,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<kuka_sunrise_interface::RobotControlNode>()->get_node_base_interface());
+  rclcpp::spin(std::make_shared<kuka_sunrise::RobotControlNode>()->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

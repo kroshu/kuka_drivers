@@ -5,11 +5,11 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_COMMANDER_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_COMMANDER_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
+#define INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
 
 #include "fri_client/friLBRClient.h"
-#include "kuka_sunrise_interface/internal/activatable_interface.hpp"
+#include "kuka_sunrise/internal/activatable_interface.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -23,7 +23,7 @@
 #include <functional>
 #include <condition_variable>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 using rclcpp::message_memory_strategy::MessageMemoryStrategy;
@@ -117,4 +117,4 @@ private:
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_COMMANDER_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_ */

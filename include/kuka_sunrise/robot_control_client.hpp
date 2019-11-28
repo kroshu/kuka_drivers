@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
+#define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
 
 #include "fri_client/friLBRClient.h"
 
@@ -17,7 +17,7 @@
 #include <condition_variable>
 #include <memory>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 class RobotObserver;
@@ -51,4 +51,4 @@ private:
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_CLIENT_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_ */

@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_TCP_CONNECTION_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_TCP_CONNECTION_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_
+#define INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -18,7 +18,7 @@
 #include <vector>
 #include <atomic>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 class TCPConnection
@@ -51,4 +51,4 @@ private:
 };
 
 }
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_TCP_CONNECTION_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_ */

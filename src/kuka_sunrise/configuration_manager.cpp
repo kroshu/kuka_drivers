@@ -5,11 +5,11 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/configuration_manager.hpp"
-#include "kuka_sunrise_interface/internal/service_tools.hpp"
-#include "kuka_sunrise_interface/robot_manager.hpp"
+#include "kuka_sunrise/configuration_manager.hpp"
+#include "kuka_sunrise/internal/service_tools.hpp"
+#include "kuka_sunrise/robot_manager.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 ConfigurationManager::ConfigurationManager(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,

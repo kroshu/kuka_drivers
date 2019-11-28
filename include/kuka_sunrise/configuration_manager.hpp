@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_CONFIGURATION_MANAGER_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_CONFIGURATION_MANAGER_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_
+#define INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -17,7 +17,7 @@
 #include "map"
 #include "vector"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 class RobotManager;
@@ -78,4 +78,4 @@ private:
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_CONFIGURATION_MANAGER_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_ */

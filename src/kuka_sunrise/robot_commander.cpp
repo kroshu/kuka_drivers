@@ -5,12 +5,12 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/robot_commander.hpp"
+#include "kuka_sunrise/robot_commander.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_msgs/msg/float64.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 RobotCommander::RobotCommander(KUKA::FRI::LBRCommand &robot_command, const KUKA::FRI::LBRState &robot_state_,

@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_OBSERVER_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_OBSERVER_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
+#define INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node_impl.hpp"
@@ -18,7 +18,7 @@
 #include "fri_client/friLBRClient.h"
 #include <list>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 //TODO: use message types with headers instead?
@@ -81,4 +81,4 @@ private:
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_OBSERVER_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_ */

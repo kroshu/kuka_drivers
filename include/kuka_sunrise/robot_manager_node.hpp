@@ -5,8 +5,8 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_NODE_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_NODE_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_
+#define INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
@@ -14,12 +14,12 @@
 #include "lifecycle_msgs/srv/change_state.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
-#include "kuka_sunrise_interface/robot_manager.hpp"
-#include "kuka_sunrise_interface/configuration_manager.hpp"
+#include "kuka_sunrise/robot_manager.hpp"
+#include "kuka_sunrise/configuration_manager.hpp"
 
 #include "atomic"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 class RobotManagerNode : public rclcpp_lifecycle::LifecycleNode
@@ -64,4 +64,4 @@ private:
 
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_MANAGER_NODE_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_ */

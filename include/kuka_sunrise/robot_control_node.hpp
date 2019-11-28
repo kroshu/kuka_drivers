@@ -5,12 +5,12 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_NODE_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_NODE_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
+#define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
 
 #include "fri_client/friClientApplication.h"
 #include "fri_client/friUdpConnection.h"
-#include "kuka_sunrise_interface/robot_control_client.hpp"
+#include "kuka_sunrise/robot_control_client.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -20,7 +20,7 @@
 #include "sched.h"
 #include "sys/mman.h"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 class RobotControlNode : public rclcpp_lifecycle::LifecycleNode
@@ -66,4 +66,4 @@ private:
 };
 
 }
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_ROBOT_CONTROL_NODE_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_ */

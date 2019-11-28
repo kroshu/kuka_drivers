@@ -5,10 +5,10 @@
  *      Author: rosdeveloper
  */
 
-#include <kuka_sunrise_interface/tcp_connection.hpp>
+#include <kuka_sunrise/tcp_connection.hpp>
 #include <stdexcept>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 TCPConnection::TCPConnection(

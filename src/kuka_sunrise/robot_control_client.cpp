@@ -5,11 +5,11 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/robot_control_client.hpp"
-#include "kuka_sunrise_interface/robot_commander.hpp"
-#include "kuka_sunrise_interface/robot_observer.hpp"
+#include "kuka_sunrise/robot_control_client.hpp"
+#include "kuka_sunrise/robot_commander.hpp"
+#include "kuka_sunrise/robot_observer.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 RobotControlClient::RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node) :

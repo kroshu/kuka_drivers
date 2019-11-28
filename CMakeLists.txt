@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(kuka_sunrise_interface)
+project(kuka_sunrise)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -33,29 +33,29 @@ include_directories(include)
 
 
 add_library(robot_manager SHARED 
-	src/kuka_sunrise_interface/robot_manager.cpp
-	src/kuka_sunrise_interface/tcp_connection.cpp)
+	src/kuka_sunrise/robot_manager.cpp
+	src/kuka_sunrise/tcp_connection.cpp)
 	
 add_library(robot_control_client SHARED
-	src/kuka_sunrise_interface/robot_control_client.cpp
-	src/kuka_sunrise_interface/robot_observer.cpp
-	src/kuka_sunrise_interface/robot_commander.cpp)
+	src/kuka_sunrise/robot_control_client.cpp
+	src/kuka_sunrise/robot_observer.cpp
+	src/kuka_sunrise/robot_commander.cpp)
 ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 
 add_library(configuration_manager SHARED
-	src/kuka_sunrise_interface/configuration_manager.cpp)
+	src/kuka_sunrise/configuration_manager.cpp)
 ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs)
 
 
 add_executable(robot_manager_node
-	src/kuka_sunrise_interface/robot_manager_node.cpp)
+	src/kuka_sunrise/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle)
 target_link_libraries(robot_manager_node
 	robot_manager
 	configuration_manager)
 	
 add_executable(robot_control_node
-	src/kuka_sunrise_interface/robot_control_node.cpp)
+	src/kuka_sunrise/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs)
 target_link_libraries(robot_control_node 
 	robot_control_client

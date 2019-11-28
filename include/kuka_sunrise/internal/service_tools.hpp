@@ -5,13 +5,13 @@
  *      Author: rosdeveloper
  */
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERFACE_INTERNAL_SERVICE_TOOLS_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERFACE_INTERNAL_SERVICE_TOOLS_HPP_
+#ifndef INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_
+#define INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_
 
 #include <future>
 #include <rclcpp/rclcpp.hpp>
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 template<typename FutureT, typename WaitTimeT>
@@ -34,4 +34,4 @@ std::future_status wait_for_result(FutureT &future, WaitTimeT time_to_wait)
 }
 }
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERFACE_INTERNAL_SERVICE_TOOLS_HPP_ */
+#endif /* INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_ */

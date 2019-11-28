@@ -5,10 +5,10 @@
  *      Author: rosdeveloper
  */
 
-#include "kuka_sunrise_interface/robot_manager_node.hpp"
-#include "kuka_sunrise_interface/internal/service_tools.hpp"
+#include "kuka_sunrise/robot_manager_node.hpp"
+#include "kuka_sunrise/internal/service_tools.hpp"
 
-namespace kuka_sunrise_interface
+namespace kuka_sunrise
 {
 
 RobotManagerNode::RobotManagerNode() :
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_sunrise_interface::RobotManagerNode>();
+  auto node = std::make_shared<kuka_sunrise::RobotManagerNode>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();
