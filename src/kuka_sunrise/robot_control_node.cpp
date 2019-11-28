@@ -31,7 +31,7 @@ RobotControlNode::RobotControlNode() :
                                          response->success = this->deactivate();
                                        }
                                      };
-  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("set_commanding_state",
+  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("robot_control/set_commanding_state",
                                                                             command_srv_callback);
 }
 
@@ -145,11 +145,14 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
     const rclcpp_lifecycle::State &state)
 {
   (void)state;
+  if(this->isActive()){
+    this->deactivate();
+  }
   close_requested_.store(true);
-  client_.reset();
   pthread_join(*client_application_thread_, NULL); //TODO can hang here, apply timeout
   close_requested_.store(false);
   client_application_->disconnect();
+  client_.reset();
   client_application_.reset();
   client_application_thread_.reset();
   return SUCCESS;
@@ -180,7 +183,10 @@ bool RobotControlNode::deactivate()
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<kuka_sunrise::RobotControlNode>()->get_node_base_interface());
+  rclcpp::executors::MultiThreadedExecutor executor;
+  auto node = std::make_shared<kuka_sunrise::RobotControlNode>();
+  executor.add_node(node->get_node_base_interface());
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }

@@ -25,7 +25,7 @@ RobotManagerNode::RobotManagerNode() :
   cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
       "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
-  set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>("set_command_state_robot_control_",
+  set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>("robot_control/set_commanding_state",
                                                                           qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
                                      std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -41,7 +41,7 @@ RobotManagerNode::RobotManagerNode() :
                                          response->success = this->deactivate();
                                        }
                                      };
-  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("set_commanding_state",
+  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("robot_manager/set_commanding_state",
                                                                             command_srv_callback);
 }
 
@@ -74,6 +74,11 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotM
 {
   (void)state;
 
+  if (!requestRobotControlNodeStateTransition(lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+  {
+    RCLCPP_ERROR(get_logger(), "could not clean up robot control node");
+    return FAILURE;
+  }
 
   if (!robot_manager_->disconnect())
   { //TODO use ros params
@@ -197,6 +202,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotM
 
 bool RobotManagerNode::activate()
 {
+  this->ActivatableInterface::activate();
   if (!robot_manager_->isConnected())
   {
     RCLCPP_ERROR(get_logger(), "not connected");
@@ -221,6 +227,7 @@ bool RobotManagerNode::activate()
 
 bool RobotManagerNode::deactivate()
 {
+  this->ActivatableInterface::deactivate();
   if (!robot_manager_->isConnected())
   {
     RCLCPP_ERROR(get_logger(), "not connected");
