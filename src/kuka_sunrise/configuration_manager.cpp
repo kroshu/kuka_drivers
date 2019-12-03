@@ -305,7 +305,13 @@ bool ConfigurationManager::onReceiveMultiplierChangeRequest(const rclcpp::Parame
   {
     return false;
   }
-
+  if (param.as_int() < 1)
+  {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
+                 param.get_name().c_str());
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
+    return false;
+  }
   return true;
 }
 
