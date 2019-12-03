@@ -75,7 +75,10 @@ ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs
 	
 	
 install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node lifecycle_client_node
-	 DESTINATION lib/${PROJECT_NAME})
+	DESTINATION lib/${PROJECT_NAME})
+	 
+install(DIRECTORY launch
+  	DESTINATION share/${PROJECT_NAME})
 	
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
