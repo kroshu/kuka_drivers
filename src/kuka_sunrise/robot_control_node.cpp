@@ -16,7 +16,7 @@ RobotControlNode::RobotControlNode() :
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
-  cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+  //cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
                                      std_srvs::srv::SetBool::Request::SharedPtr request,
                                      std_srvs::srv::SetBool::Response::SharedPtr response)
@@ -87,7 +87,11 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
     const rclcpp_lifecycle::State &state)
 {
   (void)state;
-
+  if (munlockall() == -1)
+  {
+    RCLCPP_ERROR(get_logger(), "munlockall error");
+    return ERROR;
+  }
   return SUCCESS;
 }
 
@@ -98,15 +102,15 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   switch (state.id())
   {
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      if (this->on_deactivate(get_current_state()) != SUCCESS)
+      result = this->on_deactivate(get_current_state());
+      if(result != SUCCESS)
       {
-        result = ERROR;
         break;
       }
-      this->on_cleanup(get_current_state());
+      result = this->on_cleanup(get_current_state());
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      this->on_cleanup(get_current_state());
+      result = this->on_cleanup(get_current_state());
       break;
     case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
       break;
@@ -182,8 +186,10 @@ bool RobotControlNode::deactivate()
 
 int main(int argc, char *argv[])
 {
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
   rclcpp::init(argc, argv);
-  rclcpp::executors::MultiThreadedExecutor executor;
+  rclcpp::executors::SingleThreadedExecutor executor;
   auto node = std::make_shared<kuka_sunrise::RobotControlNode>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
