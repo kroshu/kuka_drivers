@@ -43,6 +43,7 @@ RobotManagerNode::RobotManagerNode() :
                                      };
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("robot_manager/set_commanding_state",
                                                                             command_srv_callback);
+  command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>("robot_manager/commanding_state_changed", qos);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotManagerNode::on_configure(
@@ -158,6 +159,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotM
     return FAILURE;
   }
 
+  command_state_changed_publisher_->on_activate();
+
   return SUCCESS;
 }
 
@@ -188,6 +191,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotM
     RCLCPP_ERROR(get_logger(), "could not deactivate");
     return ERROR;
   }
+
+  command_state_changed_publisher_->on_deactivate();
 
   return SUCCESS;
 }
@@ -221,7 +226,9 @@ bool RobotManagerNode::activate()
     RCLCPP_ERROR(get_logger(), "could not activate control");
     return false;
   }
-
+  std_msgs::msg::Bool command_state;
+  command_state.data = true;
+  command_state_changed_publisher_->publish(command_state);
   return true;
 }
 
@@ -245,7 +252,9 @@ bool RobotManagerNode::deactivate()
     RCLCPP_ERROR(get_logger(), "could not set command state");
     return false;
   }
-
+  std_msgs::msg::Bool command_state;
+  command_state.data = false;
+  command_state_changed_publisher_->publish(command_state);
   return true;
 }
 
@@ -319,6 +328,8 @@ void RobotManagerNode::handleFRIEndedError()
 
 int main(int argc, char *argv[])
 {
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
   auto node = std::make_shared<kuka_sunrise::RobotManagerNode>();
