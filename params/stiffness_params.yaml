@@ -1,4 +1,4 @@
 robot_manager:
 	ros__parameters:
-		joint_stiffness: [1000.0 1000.0 1000.0 1000.0 1000.0 1000.0 1000.0]
+		joint_stiffness: [100.0 100.0 100.0 100.0 100.0 100.0 100.0]
 		

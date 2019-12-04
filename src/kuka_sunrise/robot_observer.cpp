@@ -108,10 +108,10 @@ void RobotObserver::publishRobotState(const rclcpp::Time &stamp)
   if (robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT
       || robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE)
   {
-    const double *joint_positions_ipo = robot_state_.getMeasuredJointPosition();
+    const double *joint_positions_measured = robot_state_.getMeasuredJointPosition();
     const double *joint_torques_external = robot_state_.getExternalTorque(); //TODO: external vs measured?
     joint_state_msg_.velocity.clear();
-    joint_state_msg_.position.assign(joint_positions_ipo, joint_positions_ipo + robot_state_.NUMBER_OF_JOINTS);
+    joint_state_msg_.position.assign(joint_positions_measured, joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
     joint_state_msg_.effort.assign(joint_torques_external, joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
     //RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg updated");
     joint_state_publisher_->publish(joint_state_msg_);
