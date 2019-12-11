@@ -79,6 +79,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
+  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
 
   return SUCCESS;
 }
@@ -92,6 +93,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
     RCLCPP_ERROR(get_logger(), "munlockall error");
     return ERROR;
   }
+  client_.reset();
   return SUCCESS;
 }
 
@@ -124,7 +126,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
     const rclcpp_lifecycle::State &state)
 {
   (void)state;
-  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
   client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
@@ -156,7 +157,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   pthread_join(*client_application_thread_, NULL); //TODO can hang here, apply timeout
   close_requested_.store(false);
   client_application_->disconnect();
-  client_.reset();
   client_application_.reset();
   client_application_thread_.reset();
   return SUCCESS;
