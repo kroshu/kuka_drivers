@@ -94,7 +94,7 @@ public:
   void updateCommand(const rclcpp::Time &stamp);
   void isCommandReady();
   const KUKA::FRI::LBRCommand& getCommand();
-  virtual bool deactivate();
+  bool deactivate();
 
 private:
   KUKA::FRI::LBRCommand &robot_command_;

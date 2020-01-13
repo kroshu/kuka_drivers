@@ -136,6 +136,7 @@ void RobotCommander::updateCommand(const rclcpp::Time &stamp)
   }
   else
   {
+    //RCLCPP_INFO(robot_control_node_->get_logger(), "updating positions");
     if (joint_command_msg_->position.empty())
     {
       //raise some error/warning
@@ -159,6 +160,7 @@ void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::Const
   std::lock_guard<std::mutex> lk(m_);
   if (!is_active_)
   {
+    RCLCPP_INFO(robot_control_node_->get_logger(), "commander not activated");
     return;
   }
   joint_command_msg_ = msg;

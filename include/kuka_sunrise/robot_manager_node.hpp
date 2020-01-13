@@ -48,8 +48,8 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_error(const rclcpp_lifecycle::State&);
 
-  virtual bool activate();
-  virtual bool deactivate();
+  bool activate();
+  bool deactivate();
 
 private:
   std::shared_ptr<RobotManager> robot_manager_;

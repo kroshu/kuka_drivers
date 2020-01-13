@@ -51,7 +51,6 @@ class ConfigurationManager
 public:
   ConfigurationManager(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
                        std::shared_ptr<RobotManager> robot_manager);
-  rcl_interfaces::msg::SetParametersResult onParamChange(const std::vector<rclcpp::Parameter> &parameters);
 
 private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
@@ -64,6 +63,7 @@ private:
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;
 
+  rcl_interfaces::msg::SetParametersResult onParamChange(const std::vector<rclcpp::Parameter> &parameters);
   bool canSetParameter(const rclcpp::Parameter &param);
   bool onCommandModeChangeRequest(const rclcpp::Parameter &param);
   bool onControlModeChangeRequest(const rclcpp::Parameter &param);

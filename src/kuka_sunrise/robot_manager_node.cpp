@@ -321,7 +321,7 @@ void RobotManagerNode::handleFRIEndedError()
   {
     deactivate();
   }
-  cleanup();
+  this->LifecycleNode::deactivate();
 }
 
 }

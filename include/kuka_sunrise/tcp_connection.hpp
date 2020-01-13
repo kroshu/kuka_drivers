@@ -42,7 +42,7 @@ private:
   static void* listen_helper(void *tcpConnection);
   void listen();
   std::function<void(const std::vector<std::uint8_t>&)> dataReceivedCallback_;
-  std::function<void(const char *server_addr, const int server_port)> connectionLostCallback_;
+  std::function<void(const char*, int)> connectionLostCallback_;
 
   int socket_desc_;
   struct sockaddr_in server_;

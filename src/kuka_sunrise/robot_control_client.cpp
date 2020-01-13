@@ -32,12 +32,11 @@ RobotControlClient::RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPt
                                        }
                                      };
   set_receive_multiplier_service_ = robot_control_node_->create_service<kuka_sunrise_interfaces::srv::SetInt>(
-      "set_command_mode", command_srv_callback);
+      "set_receive_multiplier", command_srv_callback);
 }
 
 RobotControlClient::~RobotControlClient()
 {
-  RCLCPP_INFO(robot_control_node_->get_logger(), "RobotControlClient destructor called");
   robot_commander_->deactivate();
 }
 
@@ -72,6 +71,7 @@ void RobotControlClient::waitForCommand()
     robot_commander_->updateCommand(stamp);
     receive_counter_ = 0;
   }
+  //RCLCPP_INFO(robot_control_node_->get_logger(), "waitforcommand finished");
 }
 
 void RobotControlClient::command()
@@ -83,6 +83,7 @@ void RobotControlClient::command()
     robot_commander_->updateCommand(stamp);
     receive_counter_ = 0;
   }
+  //RCLCPP_INFO(robot_control_node_->get_logger(), "command finished");
 }
 
 bool RobotControlClient::setReceiveMultiplier(int receive_multiplier)

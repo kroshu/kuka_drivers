@@ -81,7 +81,7 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState &robot_state,
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
   joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
-  joint_state_publisher2_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state2", qos);
+  //joint_state_publisher2_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state2", qos);
   tracking_performance_publisher_ = robot_control_node->create_publisher<std_msgs::msg::Float64>("tracking_performance", qos);
   //joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
