@@ -26,8 +26,8 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_library(libFRIClient.a
-	PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
+#find_library(libFRIClient.a
+#	PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
 
 include_directories(include)
 
@@ -58,8 +58,8 @@ add_executable(robot_control_node
 	src/kuka_sunrise/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 target_link_libraries(robot_control_node 
-	robot_control_client
-	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
+	robot_control_client)
+#	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
 
 add_executable(position_controller_node
 	test/position_controller.cpp)
