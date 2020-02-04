@@ -26,15 +26,16 @@ struct ClientData
 };
 
 ClientApplication::ClientApplication(IConnection &connection, IClient &client) :
-    _connection(), _robotClient(), _trafoClient(), _data()
+    _connection(connection), _robotClient(), _trafoClient(), _data()
 {
-
+  (void)client;
 }
 
 ClientApplication::ClientApplication(IConnection &connection, IClient &client, TransformationClient &trafoClient) :
-    _connection(), _robotClient(), _trafoClient(), _data()
+    _connection(connection), _robotClient(), _trafoClient(), _data()
 {
-
+  (void)client;
+  (void)trafoClient;
 }
 
 ClientApplication::~ClientApplication()
@@ -42,8 +43,10 @@ ClientApplication::~ClientApplication()
 
 }
 
-bool ClientApplication::connect(int port, const char *remoteHost = NULL)
+bool ClientApplication::connect(int port, const char *remoteHost)
 {
+  (void)port;
+  (void)remoteHost;
   return false;
 }
 

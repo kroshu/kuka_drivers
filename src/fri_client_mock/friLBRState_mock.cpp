@@ -115,15 +115,18 @@ double LBRState::getTrackingPerformance() const
 
 bool LBRState::getBooleanIOValue(const char* name) const
 {
+  (void)name;
   return false;
 }
 unsigned long long LBRState::getDigitalIOValue(const char* name) const
 {
+  (void)name;
   return 0;
 }
 
 double LBRState::getAnalogIOValue(const char* name) const
 {
+  (void)name;
   return 0.0;
 }
 

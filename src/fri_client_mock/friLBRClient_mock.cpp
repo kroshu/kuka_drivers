@@ -13,6 +13,8 @@ namespace KUKA
 namespace FRI
 {
 
+struct ClientData{};
+
 LBRClient::LBRClient()
 {
 
@@ -25,6 +27,8 @@ LBRClient::~LBRClient()
 
 void LBRClient::onStateChange(ESessionState oldState, ESessionState newState)
 {
+  (void)oldState;
+  (void)newState;
   return;
 }
 
@@ -42,6 +46,12 @@ void LBRClient::command()
 {
   return;
 }
+
+ClientData* LBRClient::createData()
+{
+  return nullptr;
+}
+
 
 }
 }
