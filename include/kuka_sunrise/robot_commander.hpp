@@ -8,7 +8,7 @@
 #ifndef INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
 #define INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
 
-#include "fri_client/friLBRClient.h"
+#include <fri_client/friLBRClient.h>
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 
 #include "rclcpp/rclcpp.hpp"

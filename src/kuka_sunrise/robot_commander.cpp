@@ -13,9 +13,9 @@
 namespace kuka_sunrise
 {
 
-RobotCommander::RobotCommander(KUKA::FRI::LBRCommand &robot_command, const KUKA::FRI::LBRState &robot_state_,
+RobotCommander::RobotCommander(KUKA::FRI::LBRCommand &robot_command, const KUKA::FRI::LBRState &robot_state,
                                rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node) :
-    robot_command_(robot_command), robot_state_(robot_state_), torque_command_mode_(false), robot_control_node_(
+    robot_command_(robot_command), robot_state_(robot_state), torque_command_mode_(false), robot_control_node_(
         robot_control_node), ros_clock_(RCL_ROS_TIME)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));

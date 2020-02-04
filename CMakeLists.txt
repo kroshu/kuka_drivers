@@ -15,7 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-OPTION(MOCK_FRI "Use mock classes instead of the FRI Client Library" OFF)
+option(MOCK_FRI "Use mock classes instead of the FRI Client Library" OFF)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -32,77 +32,77 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 include_directories(include)
 
 if(NOT MOCK_FRI)
-	find_library(fri_client
-		libFRIClient.a
-		PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
+  find_library(fri_client
+    libFRIClient.a
+    PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
 else()
-	add_library(fri_client
-		src/fri_client_mock/friClientApplication_mock.cpp
-		src/fri_client_mock/friLBRClient_mock.cpp
-		src/fri_client_mock/friLBRCommand_mock.cpp
-		src/fri_client_mock/friLBRState_mock.cpp
-		src/fri_client_mock/friTransformationClient_mock.cpp
-		src/fri_client_mock/friUdpConnection_mock.cpp)
+  add_library(fri_client
+    src/fri_client_mock/friClientApplication_mock.cpp
+    src/fri_client_mock/friLBRClient_mock.cpp
+    src/fri_client_mock/friLBRCommand_mock.cpp
+    src/fri_client_mock/friLBRState_mock.cpp
+    src/fri_client_mock/friTransformationClient_mock.cpp
+    src/fri_client_mock/friUdpConnection_mock.cpp)
 endif()
 
 
 
-add_library(robot_manager SHARED 
-	src/kuka_sunrise/robot_manager.cpp
-	src/kuka_sunrise/tcp_connection.cpp)
-	
+add_library(robot_manager SHARED
+  src/kuka_sunrise/robot_manager.cpp
+  src/kuka_sunrise/tcp_connection.cpp)
+
 add_library(robot_control_client SHARED
-	src/kuka_sunrise/robot_control_client.cpp
-	src/kuka_sunrise/robot_observer.cpp
-	src/kuka_sunrise/robot_commander.cpp)
+  src/kuka_sunrise/robot_control_client.cpp
+  src/kuka_sunrise/robot_observer.cpp
+  src/kuka_sunrise/robot_commander.cpp)
 ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 
 add_library(configuration_manager SHARED
-	src/kuka_sunrise/configuration_manager.cpp)
+  src/kuka_sunrise/configuration_manager.cpp)
 ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs)
 
 
 add_executable(robot_manager_node
-	src/kuka_sunrise/robot_manager_node.cpp)
+  src/kuka_sunrise/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle)
 target_link_libraries(robot_manager_node
-	robot_manager
-	configuration_manager)
-	
+  robot_manager
+  configuration_manager)
+
 add_executable(robot_control_node
-	src/kuka_sunrise/robot_control_node.cpp)
+  src/kuka_sunrise/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
-target_link_libraries(robot_control_node 
-	robot_control_client
-	fri_client)
+target_link_libraries(robot_control_node
+  robot_control_client
+  fri_client)
 
 add_executable(position_controller_node
-	test/position_controller.cpp)
+  test/position_controller.cpp)
 ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
 
 add_executable(torque_controller_node
-	test/torque_controller.cpp)
+  test/torque_controller.cpp)
 ament_target_dependencies(torque_controller_node rclcpp sensor_msgs)
 
 add_executable(lifecycle_client_node
-	test/lifecycle_client_test.cpp)
+  test/lifecycle_client_test.cpp)
 ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
-	
-	
+
+
 install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node lifecycle_client_node
-	DESTINATION lib/${PROJECT_NAME})
-	 
+  DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY launch
-  	DESTINATION share/${PROJECT_NAME})
-	
+  DESTINATION share/${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
+  set(ament_cmake_copyright_FOUND TRUE)
   # the following line skips cpplint (only works in a git repo)
   # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
+  set(ament_cmake_cppcheck_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 
@@ -114,7 +114,7 @@ ament_package()
 
 # Additional options for project analysis
 set(SONARQUBE_PACKAGES_FILE "none" CACHE STRING "Path to the file that contains the package source directories for SonarQube.")
-OPTION(TEST_COVERAGE "Generate test coverage reports upon testing." OFF)
+option(TEST_COVERAGE "Generate test coverage reports upon testing." OFF)
 
 if(NOT ${SONARQUBE_PACKAGES_FILE} MATCHES "none")
   file(APPEND ${SONARQUBE_PACKAGES_FILE} "${PROJECT_NAME};${PROJECT_SOURCE_DIR}\n")
@@ -122,20 +122,20 @@ if(NOT ${SONARQUBE_PACKAGES_FILE} MATCHES "none")
 endif()
 
 if(TEST_COVERAGE)
-	# Set build type to debug to avoid compiler optimization when checking coverage
-	set(CMAKE_BUILD_TYPE Debug)
-	# Include coverage report related functions
-	list(APPEND CMAKE_MODULE_PATH "/usr/lib/cmake/CodeCoverage")
-	include(CodeCoverage)
-	# Append compiler flags to gcc for generating coverage notes
-	APPEND_COVERAGE_COMPILER_FLAGS()
-	# Set coverage output dir to ${CMAKE_BINARY_DIR}/test_coverage
-	SET_COVERAGE_OUTPUT_DIR()
+  # Set build type to debug to avoid compiler optimization when checking coverage
+  set(CMAKE_BUILD_TYPE Debug)
+  # Include coverage report related functions
+  list(APPEND CMAKE_MODULE_PATH "/usr/lib/cmake/CodeCoverage")
+  include(CodeCoverage)
+  # Append compiler flags to gcc for generating coverage notes
+  append_coverage_compiler_flags()
+  # Set coverage output dir to ${CMAKE_BINARY_DIR}/test_coverage
+  set_coverage_output_dir()
 endif()
 
 if(TEST_COVERAGE)
-	# Define a coverage target with some libs and executables to check
-	#	NAME 	Name of coverage target. Default: coverage. Only works with default currently.
-	#	TARGETS Library and executable targets for which coverage reports are requested.
-	# add_coverage_gcov(NAME coverage TARGETS mypkg_lib mypkg_node)
+  # Define a coverage target with some libs and executables to check
+  # NAME    Name of coverage target. Default: coverage. Only works with default currently.
+  # TARGETS Library and executable targets for which coverage reports are requested.
+  # add_coverage_gcov(NAME coverage TARGETS mypkg_lib mypkg_node)
 endif()

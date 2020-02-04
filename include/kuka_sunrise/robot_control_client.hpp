@@ -8,7 +8,7 @@
 #ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
 #define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
 
-#include "fri_client/friLBRClient.h"
+#include <fri_client/friLBRClient.h>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"

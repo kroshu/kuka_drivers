@@ -5,10 +5,10 @@ agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germa
 
 SCOPE
 
-The software “KUKA Sunrise.Connectivity FRI Client SDK” is targeted to work in
-conjunction with the “KUKA Sunrise.Connectivity FastRobotInterface” toolkit.
-In the following, the term “software” refers to all material directly
-belonging to the provided SDK “Software development kit”, particularly source
+The software ï¿½KUKA Sunrise.Connectivity FRI Client SDKï¿½ is targeted to work in
+conjunction with the ï¿½KUKA Sunrise.Connectivity FastRobotInterfaceï¿½ toolkit.
+In the following, the term ï¿½softwareï¿½ refers to all material directly
+belonging to the provided SDK ï¿½Software development kitï¿½, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
@@ -60,8 +60,8 @@ cost of any service and repair.
 #ifndef _KUKA_FRI_TRANSFORMATION_CLIENT_H
 #define _KUKA_FRI_TRANSFORMATION_CLIENT_H
 
+#include <fri_client/friClientIf.h>
 #include <vector>
-#include "friClientIf.h"
 
 /** Kuka namespace */
 namespace KUKA

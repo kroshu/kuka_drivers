@@ -8,8 +8,8 @@
 #ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
 #define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
 
-#include "fri_client/friClientApplication.h"
-#include "fri_client/friUdpConnection.h"
+#include <fri_client/friClientApplication.h>
+#include <fri_client/friUdpConnection.h>
 #include "kuka_sunrise/robot_control_client.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 

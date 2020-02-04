@@ -8,6 +8,8 @@
 #ifndef INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
 #define INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
 
+#include <fri_client/friLBRClient.h>
+
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node_impl.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
@@ -15,7 +17,6 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_msgs/msg/float64.hpp"
 
-#include "fri_client/friLBRClient.h"
 #include <list>
 
 #include "kuka_sunrise/internal/activatable_interface.hpp"

@@ -5,7 +5,7 @@
  *      Author: rosdeveloper
  */
 
-#include "fri_client/friLBRCommand.h"
+#include <fri_client/friLBRCommand.h>
 
 namespace KUKA
 {
