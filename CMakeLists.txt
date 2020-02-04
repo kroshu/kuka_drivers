@@ -15,6 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+OPTION(MOCK_FRI "Use mock classes instead of the FRI Client Library" OFF)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -26,10 +28,23 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-#find_library(libFRIClient.a
-#	PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
 
 include_directories(include)
+
+if(NOT MOCK_FRI)
+	find_library(fri_client
+		libFRIClient.a
+		PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
+else()
+	add_library(fri_client
+		src/fri_client_mock/friClientApplication_mock.cpp
+		src/fri_client_mock/friLBRClient_mock.cpp
+		src/fri_client_mock/friLBRCommand_mock.cpp
+		src/fri_client_mock/friLBRState_mock.cpp
+		src/fri_client_mock/friTransformationClient_mock.cpp
+		src/fri_client_mock/friUdpConnection_mock.cpp)
+endif()
+
 
 
 add_library(robot_manager SHARED 
@@ -58,8 +73,8 @@ add_executable(robot_control_node
 	src/kuka_sunrise/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 target_link_libraries(robot_control_node 
-	robot_control_client)
-#	/home/rosdeveloper/Documents/fri_client_source/lib/libFRIClient.a)
+	robot_control_client
+	fri_client)
 
 add_executable(position_controller_node
 	test/position_controller.cpp)
