@@ -32,10 +32,10 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 include_directories(include)
 
 if(NOT MOCK_FRI)
-  find_library(fri_client
+  find_library(fri_client_library
     libFRIClient.a
     PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
-else()
+elseif()
   add_library(fri_client
     src/fri_client_mock/friClientApplication_mock.cpp
     src/fri_client_mock/friLBRClient_mock.cpp
@@ -43,6 +43,7 @@ else()
     src/fri_client_mock/friLBRState_mock.cpp
     src/fri_client_mock/friTransformationClient_mock.cpp
     src/fri_client_mock/friUdpConnection_mock.cpp)
+  set(fri_client_library fri_client)
 endif()
 
 
@@ -74,7 +75,7 @@ add_executable(robot_control_node
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
 target_link_libraries(robot_control_node
   robot_control_client
-  fri_client)
+  ${fri_client_library})
 
 add_executable(position_controller_node
   test/position_controller.cpp)
