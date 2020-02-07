@@ -17,6 +17,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='kuka_sunrise',
+    package_dir={'': 'scripts'},
     version='0.0.1',
     author='Zoltán Rési',
     author_email='resizoltan@gmail.com',
@@ -27,7 +28,7 @@ setup(
     ],
     entry_points={
         'ament_copyright.copyright_name': [
-            'resizoltan = scripts.copyright.copyright:resizoltan',
+            'resizoltan = copyright.copyright:resizoltan',
         ],
     },
     packages=find_packages(),

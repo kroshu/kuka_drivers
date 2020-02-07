@@ -19,6 +19,7 @@ option(MOCK_FRI "Use mock classes instead of the FRI Client Library" OFF)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -97,6 +98,21 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
+
+  # _ament_cmake_python_register_environment_hook()
+  # install custom copyright name
+  install(CODE
+    "execute_process(
+      COMMAND
+        \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\"
+        \"egg_info\" \"--egg-base\" \"${PROJECT_BINARY_DIR}\"
+        \"build\" \"--build-base\" \"${PROJECT_BINARY_DIR}/build\"
+        \"install\" \"--prefix\" \"${CMAKE_INSTALL_PREFIX}\"
+        \"--record\" \"${PROJECT_BINARY_DIR}/install_copyright.log\"
+        \"--single-version-externally-managed\"
+      WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
+  )
+
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
@@ -104,7 +120,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_cpplint REQUIRED)
   find_package(ament_cmake_lint_cmake REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
-  message('${PROJECT_SOURCE_DIR}/include/fri_client/friClientApplication.h')
+
   ament_copyright(--exclude
     friClientApplication.h
     friClientIf.h
