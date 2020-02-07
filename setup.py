@@ -31,5 +31,5 @@ setup(
             'resizoltan = copyright.copyright:resizoltan',
         ],
     },
-    packages=find_packages(),
+    packages=find_packages('scripts'),
 )
