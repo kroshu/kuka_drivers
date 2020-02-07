@@ -32,11 +32,12 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 
 include_directories(include)
 
-if(NOT MOCK_FRI)
+if(NOT ${MOCK_FRI})
   find_library(fri_client_library
     libFRIClient.a
     PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
-elseif()
+  message("Using real fri lib")
+else()
   add_library(fri_client
     src/fri_client_mock/friClientApplication_mock.cpp
     src/fri_client_mock/friLBRClient_mock.cpp
@@ -45,6 +46,7 @@ elseif()
     src/fri_client_mock/friTransformationClient_mock.cpp
     src/fri_client_mock/friUdpConnection_mock.cpp)
   set(fri_client_library fri_client)
+  message("Using mock fri lib")
 endif()
 
 
