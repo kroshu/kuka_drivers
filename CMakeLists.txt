@@ -128,7 +128,7 @@ if(BUILD_TESTING)
     LIST_DIRECTORIES FALSE
     RELATIVE "${PROJECT_SOURCE_DIR}/include/fri_client"
     include/fri_client/*)
- 
+
   ament_copyright(--exclude ${fri_headers})
 #    friClientApplication.h
 #    friClientIf.h
