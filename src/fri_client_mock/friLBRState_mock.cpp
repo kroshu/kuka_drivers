@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fri_client/friClientIf.h>
-#include <fri_client/friLBRState.h>
+#include "fri_client/friClientIf.h"
+#include "fri_client/friLBRState.h"
 
 namespace KUKA
 {
 namespace FRI
 {
 
-struct _FRIMonitoringMessage{};
+struct _FRIMonitoringMessage
+{
+};
 
-LBRState::LBRState():
+LBRState::LBRState() :
     _message()
 {
-
 }
 
 double LBRState::getSampleTime() const
@@ -48,7 +49,6 @@ ESafetyState LBRState::getSafetyState() const
   return NORMAL_OPERATION;
 }
 
-
 EOperationMode LBRState::getOperationMode() const
 {
   return TEST_MODE_1;
@@ -58,7 +58,6 @@ EDriveState LBRState::getDriveState() const
 {
   return OFF;
 }
-
 
 EClientCommandMode LBRState::getClientCommandMode() const
 {
@@ -120,22 +119,23 @@ double LBRState::getTrackingPerformance() const
   return 0.0;
 }
 
-bool LBRState::getBooleanIOValue(const char* name) const
+bool LBRState::getBooleanIOValue(const char *name) const
 {
   (void)name;
   return false;
 }
-unsigned long long LBRState::getDigitalIOValue(const char* name) const
+unsigned long long LBRState::getDigitalIOValue(const char *name) const
 {
   (void)name;
   return 0;
 }
 
-double LBRState::getAnalogIOValue(const char* name) const
+double LBRState::getAnalogIOValue(const char *name) const
 {
   (void)name;
   return 0.0;
 }
 
-}
-}
+}  // namespace FRI
+
+}  // namespace KUKA

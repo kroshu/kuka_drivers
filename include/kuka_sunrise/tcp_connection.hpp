@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_
-#define INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_
+#ifndef KUKA_SUNRISE__TCP_CONNECTION_HPP_
+#define KUKA_SUNRISE__TCP_CONNECTION_HPP_
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <stdexcept>
-#include <string>
 #include <unistd.h>
 #include <pthread.h>
+
+#include <stdexcept>
+#include <string>
 #include <functional>
 #include <vector>
 #include <atomic>
@@ -30,11 +31,11 @@ namespace kuka_sunrise
 
 class TCPConnection
 {
-
 public:
-  TCPConnection(const char *server_addr, const int server_port,
-                std::function<void(const std::vector<std::uint8_t>&)> data_received_callback,
-                std::function<void(const char *server_addr, const int server_port)> connection_lost_callback);
+  TCPConnection(
+      const char *server_addr, const int server_port,
+      std::function<void(const std::vector<std::uint8_t>&)> data_received_callback,
+      std::function<void(const char *server_addr, const int server_port)> connection_lost_callback);
 
   bool sendByte(std::uint8_t data);
   bool sendBytes(const std::vector<std::uint8_t> &data);
@@ -44,8 +45,8 @@ public:
   TCPConnection(const TCPConnection&) = delete;
   TCPConnection& operator=(const TCPConnection&) = delete;
   TCPConnection& operator=(TCPConnection &&from);
-private:
 
+private:
   static void* listen_helper(void *tcpConnection);
   void listen();
   std::function<void(const std::vector<std::uint8_t>&)> dataReceivedCallback_;
@@ -57,5 +58,6 @@ private:
   std::atomic_bool cancelled_;
 };
 
-}
-#endif /* INCLUDE_KUKA_SUNRISE_TCP_CONNECTION_HPP_ */
+}  // namespace kuka_sunrise
+
+#endif  // KUKA_SUNRISE__TCP_CONNECTION_HPP_

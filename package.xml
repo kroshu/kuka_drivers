@@ -1,40 +1,40 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kuka_sunrise</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="resizoltan@gmail.com">Zoltan Resi</maintainer>
-  <license>TODO: License declaration</license>
+	<name>kuka_sunrise</name>
+	<version>0.0.0</version>
+	<description>TODO: Package description</description>
+	<maintainer email="resizoltan@gmail.com">Zoltan Resi</maintainer>
+	<license>TODO: License declaration</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
-  
-  <build_depend>rclcpp</build_depend>
-  <build_depend>rclcpp_lifecycle</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>kuka_sunrise_interfaces</build_depend>
+	<buildtool_depend>ament_cmake</buildtool_depend>
+	<buildtool_depend>ament_cmake_python</buildtool_depend>
+	<buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rclcpp_lifecycle</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>std_srvs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>rosidl_default_runtime</exec_depend>
-  <exec_depend>kuka_sunrise_interfaces</exec_depend>
+	<build_depend>rclcpp</build_depend>
+	<build_depend>rclcpp_lifecycle</build_depend>
+	<build_depend>std_msgs</build_depend>
+	<build_depend>std_srvs</build_depend>
+	<build_depend>sensor_msgs</build_depend>
+	<build_depend>kuka_sunrise_interfaces</build_depend>
 
-  <test_depend>ament_cmake_copyright</test_depend>
-  <test_depend>ament_cmake_cppcheck</test_depend>
-  <test_depend>ament_cmake_pep257</test_depend>
-  <test_depend>ament_cmake_flake8</test_depend>
-  <test_depend>ament_cmake_cpplint</test_depend>
-  <test_depend>ament_cmake_lint_cmake</test_depend>
-  <test_depend>ament_cmake_xmllint</test_depend>
+	<exec_depend>rclcpp</exec_depend>
+	<exec_depend>rclcpp_lifecycle</exec_depend>
+	<exec_depend>std_msgs</exec_depend>
+	<exec_depend>std_srvs</exec_depend>
+	<exec_depend>sensor_msgs</exec_depend>
+	<exec_depend>rosidl_default_runtime</exec_depend>
+	<exec_depend>kuka_sunrise_interfaces</exec_depend>
 
-  <export>
-    <build_type>ament_cmake</build_type>
-  </export>
+	<test_depend>ament_cmake_copyright</test_depend>
+	<test_depend>ament_cmake_cppcheck</test_depend>
+	<test_depend>ament_cmake_pep257</test_depend>
+	<test_depend>ament_cmake_flake8</test_depend>
+	<test_depend>ament_cmake_cpplint</test_depend>
+	<test_depend>ament_cmake_lint_cmake</test_depend>
+	<test_depend>ament_cmake_xmllint</test_depend>
+
+	<export>
+		<build_type>ament_cmake</build_type>
+	</export>
 </package>

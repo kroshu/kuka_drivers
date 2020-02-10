@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_
-#define INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_
+#ifndef KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_
+#define KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_
+
+#include <map>
+#include <vector>
+#include <memory>
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
-
-#include "map"
-#include "vector"
 
 namespace kuka_sunrise
 {
@@ -70,7 +72,8 @@ private:
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;
 
-  rcl_interfaces::msg::SetParametersResult onParamChange(const std::vector<rclcpp::Parameter> &parameters);
+  rcl_interfaces::msg::SetParametersResult onParamChange(
+      const std::vector<rclcpp::Parameter> &parameters);
   bool canSetParameter(const rclcpp::Parameter &param);
   bool onCommandModeChangeRequest(const rclcpp::Parameter &param);
   bool onControlModeChangeRequest(const rclcpp::Parameter &param);
@@ -80,9 +83,8 @@ private:
   bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter &param);
   bool setCommandMode(const std::string &control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
-
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_CONFIGURATION_MANAGER_HPP_ */
+#endif  // KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_

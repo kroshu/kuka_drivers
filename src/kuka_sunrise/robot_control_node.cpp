@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
+
 #include "kuka_sunrise/robot_control_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
@@ -23,23 +25,20 @@ RobotControlNode::RobotControlNode() :
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
-  //cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+  // cbg_ =
+  //   this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
                                      std_srvs::srv::SetBool::Request::SharedPtr request,
-                                     std_srvs::srv::SetBool::Response::SharedPtr response)
-                                     {
+                                     std_srvs::srv::SetBool::Response::SharedPtr response) {
                                        (void)request_header;
-                                       if(request->data == true)
-                                       {
+                                       if (request->data == true) {
                                          response->success = this->activate();
-                                       }
-                                       else
-                                       {
+                                       } else {
                                          response->success = this->deactivate();
                                        }
                                      };
-  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>("robot_control/set_commanding_state",
-                                                                            command_srv_callback);
+  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+      "robot_control/set_commanding_state", command_srv_callback);
 }
 
 RobotControlNode::~RobotControlNode()
@@ -51,28 +50,24 @@ void RobotControlNode::runClientApplication()
 {
   client_application_->connect(30200, NULL);
   bool success = true;
-  while (success && !close_requested_.load())
-  {
+  while (success && !close_requested_.load()) {
     success = client_application_->step();
 
-    if (client_->robotState().getSessionState() == KUKA::FRI::IDLE)
-    {
+    if (client_->robotState().getSessionState() == KUKA::FRI::IDLE) {
       break;
     }
   }
-  if (!success)
-  {
-    //TODO handle
+  if (!success) {
+    // TODO(resizoltan) handle
   }
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_configure(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_configure(const rclcpp_lifecycle::State &state)
 {
   (void)state;
-  //TODO change stack size with setrlimit rlimit_stack?
-  if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
-  {
+  // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
+  if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
@@ -80,8 +75,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
 
   struct sched_param param;
   param.sched_priority = 90;
-  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
-  {
+  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
@@ -91,12 +85,11 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_cleanup(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &state)
 {
   (void)state;
-  if (munlockall() == -1)
-  {
+  if (munlockall() == -1) {
     RCLCPP_ERROR(get_logger(), "munlockall error");
     return ERROR;
   }
@@ -104,16 +97,14 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_shutdown(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_shutdown(const rclcpp_lifecycle::State &state)
 {
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn result = SUCCESS;
-  switch (state.id())
-  {
+  switch (state.id()) {
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
       result = this->on_deactivate(get_current_state());
-      if(result != SUCCESS)
-      {
+      if (result != SUCCESS) {
         break;
       }
       result = this->on_cleanup(get_current_state());
@@ -129,39 +120,36 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   return result;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_activate(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_activate(const rclcpp_lifecycle::State &state)
 {
   (void)state;
   client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
-  auto run_app = [](void *robot_control_node) -> void*
-  {
+  auto run_app = [](void *robot_control_node) -> void* {
     static_cast<RobotControlNode*>(robot_control_node)->runClientApplication();
     return nullptr;
   };
 
-  if (pthread_create(client_application_thread_.get(), nullptr, run_app, this))
-  {
+  if (pthread_create(client_application_thread_.get(), nullptr, run_app, this)) {
     RCLCPP_ERROR(get_logger(), "pthread_create error");
     RCLCPP_ERROR(get_logger(), std::strerror(errno));
     return ERROR;
   }
 
   return SUCCESS;
-
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_deactivate(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &state)
 {
   (void)state;
-  if(this->isActive()){
+  if (this->isActive()) {
     this->deactivate();
   }
   close_requested_.store(true);
-  pthread_join(*client_application_thread_, NULL); //TODO can hang here, apply timeout
+  pthread_join(*client_application_thread_, NULL);  // TODO(resizoltan) can hang here, apply timeout
   close_requested_.store(false);
   client_application_->disconnect();
   client_application_.reset();
@@ -169,8 +157,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotC
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotControlNode::on_error(
-    const rclcpp_lifecycle::State &state)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotControlNode::on_error(const rclcpp_lifecycle::State &state)
 {
   (void)state;
   RCLCPP_INFO(get_logger(), "An error occured");
@@ -189,7 +177,7 @@ bool RobotControlNode::deactivate()
   return client_->deactivate();
 }
 
-}
+}  // namespace kuka_sunrise
 
 int main(int argc, char *argv[])
 {

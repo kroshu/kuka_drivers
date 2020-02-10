@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
-#define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_
+#ifndef KUKA_SUNRISE__ROBOT_CONTROL_NODE_HPP_
+#define KUKA_SUNRISE__ROBOT_CONTROL_NODE_HPP_
 
-#include <fri_client/friClientApplication.h>
-#include <fri_client/friUdpConnection.h>
-#include "kuka_sunrise/robot_control_client.hpp"
-#include "kuka_sunrise/internal/activatable_interface.hpp"
+#include <pthread.h>
+#include <limits.h>
+#include <sched.h>
+#include <sys/mman.h>
+#include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
-#include "pthread.h"
-#include "limits.h"
-#include "sched.h"
-#include "sys/mman.h"
+#include "fri_client/friClientApplication.h"
+#include "fri_client/friUdpConnection.h"
+#include "kuka_sunrise/robot_control_client.hpp"
+#include "kuka_sunrise/internal/activatable_interface.hpp"
 
 namespace kuka_sunrise
 {
@@ -76,8 +77,7 @@ private:
       rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
       rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
-
 };
 
-}
-#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_NODE_HPP_ */
+}  // namespace kuka_sunrise
+#endif  // KUKA_SUNRISE__ROBOT_CONTROL_NODE_HPP_

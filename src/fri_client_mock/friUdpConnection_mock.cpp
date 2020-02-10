@@ -19,14 +19,14 @@ namespace KUKA
 namespace FRI
 {
 
-UdpConnection::UdpConnection(unsigned int receiveTimeout):
-    _udpSock(0),
-    _receiveTimeout(receiveTimeout)
+UdpConnection::UdpConnection(unsigned int receiveTimeout) :
+    _udpSock(0), _receiveTimeout(receiveTimeout)
 {
-
 }
 
-UdpConnection::~UdpConnection(){}
+UdpConnection::~UdpConnection()
+{
+}
 
 bool UdpConnection::open(int port, const char *controllerAddress)
 {
@@ -59,7 +59,7 @@ bool UdpConnection::send(const char *buffer, int size)
   return false;
 }
 
-}
-}
+}  // namespace FRI
 
+}  // namespace KUKA
 

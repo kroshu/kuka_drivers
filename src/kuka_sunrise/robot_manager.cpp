@@ -12,22 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kuka_sunrise/robot_manager.hpp>
-#include <kuka_sunrise/internal/serialization.hpp>
-#include <kuka_sunrise/tcp_connection.hpp>
+#include <memory>
+#include <vector>
 #include <thread>
 #include <chrono>
+
+#include "kuka_sunrise/robot_manager.hpp"
+#include "kuka_sunrise/internal/serialization.hpp"
+#include "kuka_sunrise/tcp_connection.hpp"
 
 namespace kuka_sunrise
 {
 
 RobotManager::RobotManager(std::function<void(void)> handle_control_ended_error_callback,
                            std::function<void(void)> handle_fri_ended_callback) :
-    handleControlEndedError_(handle_control_ended_error_callback), handleFRIEndedError_(handle_fri_ended_callback),
-    last_command_state_(ACCEPTED), last_command_id_(CONNECT), last_command_success_(NO_SUCCESS), answer_wanted_(false),
+    handleControlEndedError_(handle_control_ended_error_callback),
+    handleFRIEndedError_(handle_fri_ended_callback), last_command_state_(ACCEPTED),
+    last_command_id_(CONNECT), last_command_success_(NO_SUCCESS), answer_wanted_(false),
     answer_received_(false)
 {
-
 }
 
 RobotManager::~RobotManager()
@@ -37,37 +40,31 @@ RobotManager::~RobotManager()
 
 bool RobotManager::connect(const char *server_addr, int server_port)
 {
-  //TODO: check if already connected
-  try
-  {
-    tcp_connection_ = std::make_unique<TCPConnection>(server_addr, server_port, [this](std::vector<std::uint8_t> data)
-    { this->handleReceivedTCPData(data);},
-                                                      [this](const char *server_addr, int server_port)
-                                                      { this->connectionLostCallback(server_addr, server_port);});
-  }
-  catch (...)
-  {
+  // TODO(resizoltan) check if already connected
+  try {
+    tcp_connection_ = std::make_unique<TCPConnection>(
+        server_addr,
+        server_port,
+        [this](std::vector<std::uint8_t> data) {this->handleReceivedTCPData(data);},
+        [this](const char *server_addr,
+               int server_port) {this->connectionLostCallback(server_addr, server_port);});
+  } catch (...) {
     tcp_connection_.reset();
   }
 
-  if (!isConnected())
-  {
+  if (!isConnected()) {
     return false;
   }
   return sendCommandAndWait(CONNECT);
-
 }
 
 bool RobotManager::disconnect()
 {
-  if (sendCommandAndWait(DISCONNECT) == true)
-  {
+  if (sendCommandAndWait(DISCONNECT) == true) {
     tcp_connection_->closeConnection();
     tcp_connection_.reset();
     return true;
-  }
-  else
-  {
+  } else {
     return false;
   }
 }
@@ -103,23 +100,21 @@ bool RobotManager::setJointImpedanceControlMode(const std::vector<double> &joint
 {
   int msg_size = 0;
   printf("Sizeof(double) = %u\n", sizeof(double));
-  printf("Joint_stiffness size: %u, joint damping size: %u\n", joint_stiffness.size(), joint_damping.size());
+  printf("Joint_stiffness size: %u, joint damping size: %u\n", joint_stiffness.size(),
+         joint_damping.size());
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
   serialized.emplace_back(JOINT_IMPEDANCE_CONTROL_MODE);
   msg_size++;
-  for (std::uint8_t byte : CONTROL_MODE_HEADER)
-  {
+  for (std::uint8_t byte : CONTROL_MODE_HEADER) {
     serialized.emplace_back(byte);
     msg_size++;
   }
-  for (double js : joint_stiffness)
-  {
+  for (double js : joint_stiffness) {
     printf("js = %lf\n", js);
     msg_size += serializeNext(js, serialized);
   }
-  for (double jd : joint_damping)
-  {
+  for (double jd : joint_damping) {
     printf("jd = %lf\n", jd);
     msg_size += serializeNext(jd, serialized);
   }
@@ -137,16 +132,14 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
   std::vector<std::uint8_t> serialized;
   serialized.reserve(FRI_CONFIG_HEADER.size() + 3 * sizeof(int));
   int msg_size = 0;
-  for (std::uint8_t byte : FRI_CONFIG_HEADER)
-  {
+  for (std::uint8_t byte : FRI_CONFIG_HEADER) {
     serialized.emplace_back(byte);
     msg_size++;
   }
   msg_size += serializeNext(remote_port, serialized);
   msg_size += serializeNext(send_period_ms, serialized);
   msg_size += serializeNext(receive_multiplier, serialized);
-  for (std::uint8_t byte : serialized)
-  {
+  for (std::uint8_t byte : serialized) {
     printf("%x-", byte);
   }
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
@@ -154,12 +147,9 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
 
 bool RobotManager::isConnected()
 {
-  if (tcp_connection_)
-  {
+  if (tcp_connection_) {
     return true;
-  }
-  else
-  {
+  } else {
     return false;
   }
 }
@@ -170,13 +160,11 @@ bool RobotManager::isConnected()
 
 bool RobotManager::assertLastCommandSuccess(CommandID command_id)
 {
-  //TODO: more sophisticated introspection
-  if (last_command_state_ == ACCEPTED && last_command_id_ == command_id && last_command_success_ == SUCCESS)
-  {
+  // TODO(resizoltan) more sophisticated introspection
+  if (last_command_state_ == ACCEPTED && last_command_id_ == command_id
+      && last_command_success_ == SUCCESS) {
     return true;
-  }
-  else
-  {
+  } else {
     return false;
   }
 }
@@ -193,7 +181,8 @@ bool RobotManager::sendCommandAndWait(CommandID command_id)
   return assertLastCommandSuccess(command_id);
 }
 
-bool RobotManager::sendCommandAndWait(CommandID command_id, const std::vector<std::uint8_t> &command_data)
+bool RobotManager::sendCommandAndWait(CommandID command_id,
+                                      const std::vector<std::uint8_t> &command_data)
 {
   std::vector<std::uint8_t> msg;
   msg.push_back(command_id);
@@ -210,19 +199,16 @@ bool RobotManager::sendCommandAndWait(CommandID command_id, const std::vector<st
 
 void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
 {
-  if (data.size() == 0)
-  {
+  if (data.size() == 0) {
     return;
   }
   pthread_t handler_thread;
   std::lock_guard<std::mutex> lk(m_);
-  //TODO handle invalid data
-  switch ((CommandState)data[0])
-  {
+  // TODO(resizoltan) handle invalid data
+  switch ((CommandState)data[0]) {
     case ACCEPTED:
-      if (data.size() < 3)
-      {
-        //TODO: error
+      if (data.size() < 3) {
+        // TODO(resizoltan) error
       }
       last_command_state_ = ACCEPTED;
       last_command_id_ = (CommandID)data[1];
@@ -231,9 +217,8 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
       cv_.notify_one();
       break;
     case REJECTED:
-      if (data.size() < 2)
-      {
-        //TODO: error
+      if (data.size() < 2) {
+         // TODO(resizoltan) error
       }
       last_command_state_ = REJECTED;
       last_command_id_ = (CommandID)data[1];
@@ -246,33 +231,35 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
       cv_.notify_one();
       break;
     case ERROR_CONTROL_ENDED:
-      if (answer_wanted_)
-      {
+      if (answer_wanted_) {
         last_command_state_ = ERROR_CONTROL_ENDED;
         answer_received_ = true;
         cv_.notify_one();
-      }
-      else
-      {
-        pthread_create(&handler_thread, nullptr, [](void *self) -> void*
-        { static_cast<RobotManager*>(self)->handleControlEndedError_(); return nullptr;},
-                       this);
-        pthread_detach(handler_thread); //TODO ther might be a better way to do this
+      } else {
+        pthread_create(
+            &handler_thread,
+            nullptr,
+            [](void *self) -> void* {
+              static_cast<RobotManager*>(self)->handleControlEndedError_();
+              return nullptr;},
+            this);
+        pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
       }
       break;
     case ERROR_FRI_ENDED:
-      if (answer_wanted_)
-      {
+      if (answer_wanted_) {
         last_command_state_ = ERROR_FRI_ENDED;
         answer_received_ = true;
         cv_.notify_one();
-      }
-      else
-      {
-        pthread_create(&handler_thread, nullptr, [](void *self) -> void*
-        { static_cast<RobotManager*>(self)->handleFRIEndedError_(); return nullptr;},
-                       this);
-        pthread_detach(handler_thread); //TODO ther might be a better way to do this
+      } else {
+        pthread_create(
+            &handler_thread,
+            nullptr,
+            [](void *self) -> void* {
+              static_cast<RobotManager*>(self)->handleFRIEndedError_();
+              return nullptr;},
+            this);
+        pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
       }
       break;
   }
@@ -284,5 +271,5 @@ void RobotManager::connectionLostCallback(const char *server_addr, int server_po
   connect(server_addr, server_port);
 }
 
-}
+}  // namespace kuka_sunrise
 

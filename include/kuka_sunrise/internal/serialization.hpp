@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_
-#define INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_
+#ifndef KUKA_SUNRISE__INTERNAL__SERIALIZATION_HPP_
+#define KUKA_SUNRISE__INTERNAL__SERIALIZATION_HPP_
 
 #include <vector>
 #include <cstdint>
@@ -28,8 +28,8 @@ int serializeNext(int integer_in, std::vector<std::uint8_t> &serialized_out)
   auto it = serialized_out.end();
   serialized_out.insert(it, bytes, bytes + sizeof(int));
   std::reverse(it, serialized_out.end());
-  //TODO: assert that int is 4 bytes long
-  //TODO: check endiannes
+  // TODO(resizoltan): assert that int is 4 bytes long
+  // TODO(resizoltan): check endiannes
   return sizeof(int);
 }
 
@@ -37,7 +37,7 @@ int deserializeNext(const std::vector<std::uint8_t> &serialized_in, int &integer
 {
   if (serialized_in.size() < sizeof(int))
   {
-    //TODO: error
+    // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
   integer_out = *(reinterpret_cast<int*>(serialized_copy.data()));
@@ -50,8 +50,8 @@ int serializeNext(double double_in, std::vector<std::uint8_t> &serialized_out)
   auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
   std::reverse(it, serialized_out.end());
-  //TODO: assert that int is 4 bytes long
-  //TODO: check endiannes
+  // TODO(resizoltan): assert that int is 4 bytes long
+  // TODO(resizoltan): check endiannes
   return sizeof(int);
 }
 
@@ -59,13 +59,13 @@ int deserializeNext(const std::vector<std::uint8_t> &serialized_in, double &doub
 {
   if (serialized_in.size() < sizeof(double))
   {
-    //TODO: error
+    // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
   double_out = *(reinterpret_cast<int*>(serialized_copy.data()));
   return sizeof(int);
 }
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_SERIALIZATION_HPP_ */
+#endif  // KUKA_SUNRISE__INTERNAL__SERIALIZATION_HPP_

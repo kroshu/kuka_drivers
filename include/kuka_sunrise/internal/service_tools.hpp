@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_
+#ifndef KUKA_SUNRISE__INTERNAL__SERVICE_TOOLS_HPP_
+#define KUKA_SUNRISE__INTERNAL__SERVICE_TOOLS_HPP_
 
 #include <future>
-#include <rclcpp/rclcpp.hpp>
+
+#include "rclcpp/rclcpp.hpp"
 
 namespace kuka_sunrise
 {
@@ -39,6 +40,7 @@ std::future_status wait_for_result(FutureT &future, WaitTimeT time_to_wait)
   } while (rclcpp::ok() && status != std::future_status::ready);
   return status;
 }
-}
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERNAL_SERVICE_TOOLS_HPP_ */
+}  // namespace kuka_sunrise
+
+#endif  // KUKA_SUNRISE__INTERNAL__SERVICE_TOOLS_HPP_
