@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fri_client/friClientApplication.h>
+#include "fri_client/friClientApplication.h"
 
 namespace KUKA
 {
@@ -38,7 +38,8 @@ ClientApplication::ClientApplication(IConnection &connection, IClient &client) :
   (void)client;
 }
 
-ClientApplication::ClientApplication(IConnection &connection, IClient &client, TransformationClient &trafoClient) :
+ClientApplication::ClientApplication(IConnection &connection, IClient &client,
+                                     TransformationClient &trafoClient) :
     _connection(connection), _robotClient(), _trafoClient(), _data()
 {
   (void)client;
@@ -47,7 +48,6 @@ ClientApplication::ClientApplication(IConnection &connection, IClient &client, T
 
 ClientApplication::~ClientApplication()
 {
-
 }
 
 bool ClientApplication::connect(int port, const char *remoteHost)
@@ -66,5 +66,7 @@ bool ClientApplication::step()
 {
   return false;
 }
-}
-}
+
+}  // namespace FRI
+
+}  // namespace KUKA

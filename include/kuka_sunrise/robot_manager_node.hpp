@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_
-#define INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_
+#ifndef KUKA_SUNRISE__ROBOT_MANAGER_NODE_HPP_
+#define KUKA_SUNRISE__ROBOT_MANAGER_NODE_HPP_
+
+#include <atomic>
+#include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
@@ -27,7 +30,6 @@
 #include "kuka_sunrise/configuration_manager.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 
-#include "atomic"
 
 namespace kuka_sunrise
 {
@@ -64,7 +66,8 @@ private:
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_state_service_;
-  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr command_state_changed_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
+  command_state_changed_publisher_;
 
   bool requestRobotControlNodeStateTransition(std::uint8_t transition);
   bool setRobotControlNodeCommandState(bool active);
@@ -80,6 +83,6 @@ private:
       rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_MANAGER_NODE_HPP_ */
+#endif  // KUKA_SUNRISE__ROBOT_MANAGER_NODE_HPP_

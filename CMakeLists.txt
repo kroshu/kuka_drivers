@@ -32,7 +32,7 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 
 include_directories(include)
 
-if(NOT ${MOCK_FRI})
+if(NOT MOCK_FRI)
   find_library(fri_client_library
     libFRIClient.a
     PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
@@ -142,7 +142,7 @@ if(BUILD_TESTING)
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
-  #ament_cpplint()
+  ament_cpplint()
   ament_lint_cmake()
   ament_xmllint()
 endif()

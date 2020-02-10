@@ -12,23 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
-#define INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_
+#ifndef KUKA_SUNRISE__ROBOT_COMMANDER_HPP_
+#define KUKA_SUNRISE__ROBOT_COMMANDER_HPP_
 
-#include <fri_client/friLBRClient.h>
-#include "kuka_sunrise/internal/activatable_interface.hpp"
+#include <functional>
+#include <condition_variable>
+#include <memory>
+#include <string>
+#include <list>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include <rclcpp/message_memory_strategy.hpp>
-#include <rclcpp/strategies/message_pool_memory_strategy.hpp>
-#include <rclcpp/strategies/allocator_memory_strategy.hpp>
+#include "rclcpp/message_memory_strategy.hpp"
+#include "rclcpp/strategies/message_pool_memory_strategy.hpp"
+#include "rclcpp/strategies/allocator_memory_strategy.hpp"
 
-#include <functional>
-#include <condition_variable>
+#include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "fri_client/friLBRClient.h"
 
 namespace kuka_sunrise
 {
@@ -58,10 +61,10 @@ public:
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
     qos.best_effort();
     auto msg_strategy = std::make_shared<MessagePoolMemoryStrategy<ROSType, 1>>();
-    subscription_ = robot_control_node->create_subscription<ROSType>(name_, qos,
-                                                                     [this](typename ROSType::ConstSharedPtr msg)
-                                                                     { this->commandReceivedCallback(msg);},
-                                                                     rclcpp::SubscriptionOptions(), msg_strategy);
+    subscription_ = robot_control_node->create_subscription<ROSType>(
+        name_, qos, [this](typename ROSType::ConstSharedPtr msg)
+        { this->commandReceivedCallback(msg);},
+        rclcpp::SubscriptionOptions(), msg_strategy);
   }
 
   virtual void updateOutput()
@@ -106,7 +109,7 @@ public:
 private:
   KUKA::FRI::LBRCommand &robot_command_;
   const KUKA::FRI::LBRState &robot_state_;
-  bool torque_command_mode_; //TODO use atomic instead?
+  bool torque_command_mode_;  // TODO(resizoltan) use atomic instead?
   sensor_msgs::msg::JointState::ConstSharedPtr joint_command_msg_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
@@ -119,9 +122,8 @@ private:
 
   std::mutex m_;
   std::condition_variable cv_;
-
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_COMMANDER_HPP_ */
+#endif  // KUKA_SUNRISE__ROBOT_COMMANDER_HPP_

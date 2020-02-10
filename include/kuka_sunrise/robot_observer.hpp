@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
-#define INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_
+#ifndef KUKA_SUNRISE__ROBOT_OBSERVER_HPP_
+#define KUKA_SUNRISE__ROBOT_OBSERVER_HPP_
 
-#include <fri_client/friLBRClient.h>
+#include <list>
+#include <memory>
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node_impl.hpp"
@@ -24,14 +26,13 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_msgs/msg/float64.hpp"
 
-#include <list>
-
 #include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "fri_client/friLBRClient.h"
 
 namespace kuka_sunrise
 {
 
-//TODO: use message types with headers instead?
+// TODO(resizoltan): use message types with headers instead?
 class InputPublisherBase
 {
 public:
@@ -39,7 +40,6 @@ public:
   virtual ~InputPublisherBase()
   {
   }
-
 };
 
 template<typename FRIType, typename ROSType>
@@ -70,7 +70,8 @@ private:
 class RobotObserver : public ActivatableInterface
 {
 public:
-  RobotObserver(const KUKA::FRI::LBRState &robot_state, rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+  RobotObserver(const KUKA::FRI::LBRState &robot_state,
+                rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
@@ -83,14 +84,17 @@ private:
   sensor_msgs::msg::JointState joint_state_msg_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher2_;
-  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>::SharedPtr tracking_performance_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+  joint_state_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+  joint_state_publisher2_;
+  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>::SharedPtr
+  tracking_performance_publisher_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
 
   int i = 0;
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_OBSERVER_HPP_ */
+#endif  // KUKA_SUNRISE__ROBOT_OBSERVER_HPP_

@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fri_client/friClientIf.h>
-#include <fri_client/friLBRClient.h>
+#include "fri_client/friClientIf.h"
+#include "fri_client/friLBRClient.h"
 
 namespace KUKA
 {
 namespace FRI
 {
 
-struct ClientData{};
+struct ClientData
+{
+};
 
 LBRClient::LBRClient()
 {
-
 }
 
 LBRClient::~LBRClient()
 {
-
 }
 
 void LBRClient::onStateChange(ESessionState oldState, ESessionState newState)
@@ -59,6 +59,6 @@ ClientData* LBRClient::createData()
   return nullptr;
 }
 
+}  // namespace FRI
 
-}
-}
+}  // namespace KUKA

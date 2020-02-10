@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
-#define INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_
+#ifndef KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_
+#define KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_
 
-#include <fri_client/friLBRClient.h>
+#include <condition_variable>
+#include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
 #include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "fri_client/friLBRClient.h"
 
-#include <condition_variable>
-#include <memory>
+
 
 namespace kuka_sunrise
 {
@@ -35,13 +36,12 @@ class RobotCommander;
 class RobotControlClient : public KUKA::FRI::LBRClient, public ActivatableInterface
 {
 public:
-  RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
+  explicit RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
   ~RobotControlClient();
   bool activate();
   bool deactivate();
   bool setReceiveMultiplier(int receive_multiplier);
 
-  //virtual void onStateChanged(KUKA::FRI::ESessionState oldState, KUKA::FRI::ESessionState newState);
   virtual void monitor();
   virtual void waitForCommand();
   virtual void command();
@@ -55,9 +55,8 @@ private:
   rclcpp::Clock ros_clock_;
   int receive_multiplier_;
   int receive_counter_;
-
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_ROBOT_CONTROL_CLIENT_HPP_ */
+#endif  // KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_

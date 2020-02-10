@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <fri_client/friClientIf.h>
-#include <fri_client/friTransformationClient.h>
 
+#include <vector>
+
+#include "fri_client/friClientIf.h"
+#include "fri_client/friTransformationClient.h"
 
 namespace KUKA
 {
@@ -22,13 +24,11 @@ namespace FRI
 
 struct ClientData
 {
-
 };
 
-TransformationClient::TransformationClient():
+TransformationClient::TransformationClient() :
     _data()
 {
-
 }
 
 double TransformationClient::getSampleTime() const
@@ -58,8 +58,9 @@ const unsigned int TransformationClient::getTimestampNanoSec() const
   return i;
 }
 
-void TransformationClient::setTransformation(const char* transformationID, const double transformationMatrix[3][4],
-            unsigned int timeSec, unsigned int timeNanoSec)
+void TransformationClient::setTransformation(const char *transformationID,
+                                             const double transformationMatrix[3][4],
+                                             unsigned int timeSec, unsigned int timeNanoSec)
 {
   (void)transformationID;
   (void)transformationMatrix;
@@ -68,45 +69,46 @@ void TransformationClient::setTransformation(const char* transformationID, const
   return;
 }
 
-void TransformationClient::setBooleanIOValue(const char* name, const bool value)
+void TransformationClient::setBooleanIOValue(const char *name, const bool value)
 {
   (void)name;
   (void)value;
   return;
 }
 
-void TransformationClient::setDigitalIOValue(const char* name, const unsigned long long value)
+void TransformationClient::setDigitalIOValue(const char *name, const unsigned long long value)
 {
   (void)name;
   (void)value;
   return;
 }
 
-void TransformationClient::setAnalogIOValue(const char* name, const double value)
+void TransformationClient::setAnalogIOValue(const char *name, const double value)
 {
   (void)name;
   (void)value;
   return;
 }
 
-bool TransformationClient::getBooleanIOValue(const char* name) const
+bool TransformationClient::getBooleanIOValue(const char *name) const
 {
   (void)name;
   return false;
 }
 
-unsigned long long TransformationClient::getDigitalIOValue(const char* name) const
+unsigned long long TransformationClient::getDigitalIOValue(const char *name) const
 {
   (void)name;
   return 0;
 }
 
-double TransformationClient::getAnalogIOValue(const char* name) const
+double TransformationClient::getAnalogIOValue(const char *name) const
 {
   (void)name;
   return 0.0;
 }
 
-}
-}
+}  // namespace FRI
+
+}  // namespace KUKA
 

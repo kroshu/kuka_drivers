@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#ifndef INCLUDE_KUKA_SUNRISE_INTERNAL_ACTIVATABLE_INTERFACE_HPP_
-#define INCLUDE_KUKA_SUNRISE_INTERNAL_ACTIVATABLE_INTERFACE_HPP_
+#ifndef KUKA_SUNRISE__INTERNAL__ACTIVATABLE_INTERFACE_HPP_
+#define KUKA_SUNRISE__INTERNAL__ACTIVATABLE_INTERFACE_HPP_
 
 namespace kuka_sunrise
 {
@@ -44,6 +43,6 @@ protected:
   bool is_active_;
 };
 
-}
+}  // namespace kuka_sunrise
 
-#endif /* INCLUDE_KUKA_SUNRISE_INTERNAL_ACTIVATABLE_INTERFACE_HPP_ */
+#endif  // KUKA_SUNRISE__INTERNAL__ACTIVATABLE_INTERFACE_HPP_
