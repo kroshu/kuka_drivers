@@ -44,7 +44,7 @@ RobotCommander::RobotCommander(KUKA::FRI::LBRCommand &robot_command,
                                      std_srvs::srv::SetBool::Request::SharedPtr request,
                                      std_srvs::srv::SetBool::Response::SharedPtr response) {
                                        (void)request_header;
-                                       if (this->setTorqeCommanding(request->data)) {
+                                       if (this->setTorqueCommanding(request->data)) {
                                          response->success = true;
                                        } else {
                                          response->success = false;
@@ -95,7 +95,7 @@ void RobotCommander::addAnalogOutputCommander(const std::string &name)
                                                                            robot_control_node_));
 }
 
-bool RobotCommander::setTorqeCommanding(bool is_torque_mode_active)
+bool RobotCommander::setTorqueCommanding(bool is_torque_mode_active)
 {
   if (!is_active_) {
     torque_command_mode_ = is_torque_mode_active;
