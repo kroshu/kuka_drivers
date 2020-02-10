@@ -100,7 +100,7 @@ public:
   void addBooleanOutputCommander(const std::string &name);
   void addDigitalOutputCommander(const std::string &name);
   void addAnalogOutputCommander(const std::string &name);
-  bool setTorqeCommanding(bool is_torque_mode_active);
+  bool setTorqueCommanding(bool is_torque_mode_active);
   void updateCommand(const rclcpp::Time &stamp);
   void isCommandReady();
   const KUKA::FRI::LBRCommand& getCommand();
