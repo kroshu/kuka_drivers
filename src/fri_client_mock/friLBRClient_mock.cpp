@@ -36,25 +36,21 @@ void LBRClient::onStateChange(ESessionState oldState, ESessionState newState)
 {
   (void)oldState;
   (void)newState;
-  return;
 }
 
 void LBRClient::monitor()
 {
-  return;
 }
 
 void LBRClient::waitForCommand()
 {
-  return;
 }
 
 void LBRClient::command()
 {
-  return;
 }
 
-ClientData* LBRClient::createData()
+ClientData * LBRClient::createData()
 {
   return nullptr;
 }

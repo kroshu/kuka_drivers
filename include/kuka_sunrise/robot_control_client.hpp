@@ -26,7 +26,6 @@
 #include "fri_client/friLBRClient.h"
 
 
-
 namespace kuka_sunrise
 {
 

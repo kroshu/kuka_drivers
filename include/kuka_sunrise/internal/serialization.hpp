@@ -22,9 +22,9 @@
 namespace kuka_sunrise
 {
 
-int serializeNext(int integer_in, std::vector<std::uint8_t> &serialized_out)
+int serializeNext(int integer_in, std::vector<std::uint8_t> & serialized_out)
 {
-  std::uint8_t *bytes = reinterpret_cast<std::uint8_t*>(&integer_in);
+  std::uint8_t * bytes = reinterpret_cast<std::uint8_t *>(&integer_in);
   auto it = serialized_out.end();
   serialized_out.insert(it, bytes, bytes + sizeof(int));
   std::reverse(it, serialized_out.end());
@@ -33,20 +33,19 @@ int serializeNext(int integer_in, std::vector<std::uint8_t> &serialized_out)
   return sizeof(int);
 }
 
-int deserializeNext(const std::vector<std::uint8_t> &serialized_in, int &integer_out)
+int deserializeNext(const std::vector<std::uint8_t> & serialized_in, int & integer_out)
 {
-  if (serialized_in.size() < sizeof(int))
-  {
+  if (serialized_in.size() < sizeof(int)) {
     // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
-  integer_out = *(reinterpret_cast<int*>(serialized_copy.data()));
+  integer_out = *(reinterpret_cast<int *>(serialized_copy.data()));
   return sizeof(int);
 }
 
-int serializeNext(double double_in, std::vector<std::uint8_t> &serialized_out)
+int serializeNext(double double_in, std::vector<std::uint8_t> & serialized_out)
 {
-  std::uint8_t *bytes = reinterpret_cast<std::uint8_t*>(&double_in);
+  std::uint8_t * bytes = reinterpret_cast<std::uint8_t *>(&double_in);
   auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
   std::reverse(it, serialized_out.end());
@@ -55,14 +54,13 @@ int serializeNext(double double_in, std::vector<std::uint8_t> &serialized_out)
   return sizeof(int);
 }
 
-int deserializeNext(const std::vector<std::uint8_t> &serialized_in, double &double_out)
+int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & double_out)
 {
-  if (serialized_in.size() < sizeof(double))
-  {
+  if (serialized_in.size() < sizeof(double)) {
     // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
-  double_out = *(reinterpret_cast<int*>(serialized_copy.data()));
+  double_out = *(reinterpret_cast<int *>(serialized_copy.data()));
   return sizeof(int);
 }
 

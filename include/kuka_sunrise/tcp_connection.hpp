@@ -33,24 +33,24 @@ class TCPConnection
 {
 public:
   TCPConnection(
-      const char *server_addr, const int server_port,
-      std::function<void(const std::vector<std::uint8_t>&)> data_received_callback,
-      std::function<void(const char *server_addr, const int server_port)> connection_lost_callback);
+    const char * server_addr, const int server_port,
+    std::function<void(const std::vector<std::uint8_t> &)> data_received_callback,
+    std::function<void(const char * server_addr, const int server_port)> connection_lost_callback);
 
   bool sendByte(std::uint8_t data);
-  bool sendBytes(const std::vector<std::uint8_t> &data);
+  bool sendBytes(const std::vector<std::uint8_t> & data);
   void closeConnection();
 
   ~TCPConnection();
-  TCPConnection(const TCPConnection&) = delete;
-  TCPConnection& operator=(const TCPConnection&) = delete;
-  TCPConnection& operator=(TCPConnection &&from);
+  TCPConnection(const TCPConnection &) = delete;
+  TCPConnection & operator=(const TCPConnection &) = delete;
+  TCPConnection & operator=(TCPConnection && from);
 
 private:
-  static void* listen_helper(void *tcpConnection);
+  static void * listen_helper(void * tcpConnection);
   void listen();
-  std::function<void(const std::vector<std::uint8_t>&)> dataReceivedCallback_;
-  std::function<void(const char*, int)> connectionLostCallback_;
+  std::function<void(const std::vector<std::uint8_t> &)> dataReceivedCallback_;
+  std::function<void(const char *, int)> connectionLostCallback_;
 
   int socket_desc_;
   struct sockaddr_in server_;

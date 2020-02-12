@@ -24,12 +24,13 @@
 namespace kuka_sunrise
 {
 
-RobotManager::RobotManager(std::function<void(void)> handle_control_ended_error_callback,
-                           std::function<void(void)> handle_fri_ended_callback) :
-    handleControlEndedError_(handle_control_ended_error_callback),
-    handleFRIEndedError_(handle_fri_ended_callback), last_command_state_(ACCEPTED),
-    last_command_id_(CONNECT), last_command_success_(NO_SUCCESS), answer_wanted_(false),
-    answer_received_(false)
+RobotManager::RobotManager(
+  std::function<void(void)> handle_control_ended_error_callback,
+  std::function<void(void)> handle_fri_ended_callback)
+: handleControlEndedError_(handle_control_ended_error_callback),
+  handleFRIEndedError_(handle_fri_ended_callback), last_command_state_(ACCEPTED),
+  last_command_id_(CONNECT), last_command_success_(NO_SUCCESS), answer_wanted_(false),
+  answer_received_(false)
 {
 }
 
@@ -38,16 +39,16 @@ RobotManager::~RobotManager()
   disconnect();
 }
 
-bool RobotManager::connect(const char *server_addr, int server_port)
+bool RobotManager::connect(const char * server_addr, int server_port)
 {
   // TODO(resizoltan) check if already connected
   try {
     tcp_connection_ = std::make_unique<TCPConnection>(
-        server_addr,
-        server_port,
-        [this](std::vector<std::uint8_t> data) {this->handleReceivedTCPData(data);},
-        [this](const char *server_addr,
-               int server_port) {this->connectionLostCallback(server_addr, server_port);});
+      server_addr,
+      server_port,
+      [this](std::vector<std::uint8_t> data) {this->handleReceivedTCPData(data);},
+      [this](const char * server_addr,
+      int server_port) {this->connectionLostCallback(server_addr, server_port);});
   } catch (...) {
     tcp_connection_.reset();
   }
@@ -95,13 +96,14 @@ bool RobotManager::setPositionControlMode()
   return sendCommandAndWait(SET_CONTROL_MODE, command_data);
 }
 
-bool RobotManager::setJointImpedanceControlMode(const std::vector<double> &joint_stiffness,
-                                                const std::vector<double> &joint_damping)
+bool RobotManager::setJointImpedanceControlMode(
+  const std::vector<double> & joint_stiffness,
+  const std::vector<double> & joint_damping)
 {
   int msg_size = 0;
   printf("Sizeof(double) = %u\n", sizeof(double));
   printf("Joint_stiffness size: %u, joint damping size: %u\n", joint_stiffness.size(),
-         joint_damping.size());
+    joint_damping.size());
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
   serialized.emplace_back(JOINT_IMPEDANCE_CONTROL_MODE);
@@ -161,8 +163,9 @@ bool RobotManager::isConnected()
 bool RobotManager::assertLastCommandSuccess(CommandID command_id)
 {
   // TODO(resizoltan) more sophisticated introspection
-  if (last_command_state_ == ACCEPTED && last_command_id_ == command_id
-      && last_command_success_ == SUCCESS) {
+  if (last_command_state_ == ACCEPTED && last_command_id_ == command_id &&
+    last_command_success_ == SUCCESS)
+  {
     return true;
   } else {
     return false;
@@ -175,14 +178,15 @@ bool RobotManager::sendCommandAndWait(CommandID command_id)
   tcp_connection_->sendByte(command_id);
   std::unique_lock<std::mutex> lk(m_);
   cv_.wait(lk, [this]
-  { return answer_received_;});
+    {return answer_received_;});
   answer_received_ = false;
   answer_wanted_ = false;
   return assertLastCommandSuccess(command_id);
 }
 
-bool RobotManager::sendCommandAndWait(CommandID command_id,
-                                      const std::vector<std::uint8_t> &command_data)
+bool RobotManager::sendCommandAndWait(
+  CommandID command_id,
+  const std::vector<std::uint8_t> & command_data)
 {
   std::vector<std::uint8_t> msg;
   msg.push_back(command_id);
@@ -191,13 +195,13 @@ bool RobotManager::sendCommandAndWait(CommandID command_id,
   tcp_connection_->sendBytes(msg);
   std::unique_lock<std::mutex> lk(m_);
   cv_.wait(lk, [this]
-  { return answer_received_;});
+    {return answer_received_;});
   answer_received_ = false;
   answer_wanted_ = false;
   return assertLastCommandSuccess(command_id);
 }
 
-void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
+void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
 {
   if (data.size() == 0) {
     return;
@@ -218,7 +222,7 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
       break;
     case REJECTED:
       if (data.size() < 2) {
-         // TODO(resizoltan) error
+        // TODO(resizoltan) error
       }
       last_command_state_ = REJECTED;
       last_command_id_ = (CommandID)data[1];
@@ -237,12 +241,13 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
         cv_.notify_one();
       } else {
         pthread_create(
-            &handler_thread,
-            nullptr,
-            [](void *self) -> void* {
-              static_cast<RobotManager*>(self)->handleControlEndedError_();
-              return nullptr;},
-            this);
+          &handler_thread,
+          nullptr,
+          [](void * self) -> void * {
+            static_cast<RobotManager *>(self)->handleControlEndedError_();
+            return nullptr;
+          },
+          this);
         pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
       }
       break;
@@ -253,23 +258,23 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> &data)
         cv_.notify_one();
       } else {
         pthread_create(
-            &handler_thread,
-            nullptr,
-            [](void *self) -> void* {
-              static_cast<RobotManager*>(self)->handleFRIEndedError_();
-              return nullptr;},
-            this);
+          &handler_thread,
+          nullptr,
+          [](void * self) -> void * {
+            static_cast<RobotManager *>(self)->handleFRIEndedError_();
+            return nullptr;
+          },
+          this);
         pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
       }
       break;
   }
 }
 
-void RobotManager::connectionLostCallback(const char *server_addr, int server_port)
+void RobotManager::connectionLostCallback(const char * server_addr, int server_port)
 {
   printf("Connection lost, trying to reconnect");
   connect(server_addr, server_port);
 }
 
 }  // namespace kuka_sunrise
-

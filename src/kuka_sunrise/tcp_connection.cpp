@@ -22,24 +22,24 @@ namespace kuka_sunrise
 {
 
 TCPConnection::TCPConnection(
-    const char *server_addr, int server_port,
-    std::function<void(const std::vector<std::uint8_t>&)> data_received_callback,
-    std::function<void(const char *server_addr, const int server_port)> connection_lost_callback) :
-    dataReceivedCallback_(data_received_callback), connectionLostCallback_(
-        connection_lost_callback), socket_desc_(socket(AF_INET, SOCK_STREAM, 0)), cancelled_(false)
+  const char * server_addr, int server_port,
+  std::function<void(const std::vector<std::uint8_t> &)> data_received_callback,
+  std::function<void(const char * server_addr, const int server_port)> connection_lost_callback)
+: dataReceivedCallback_(data_received_callback), connectionLostCallback_(
+    connection_lost_callback), socket_desc_(socket(AF_INET, SOCK_STREAM, 0)), cancelled_(false)
 {
   if (socket_desc_ == -1) {
     throw std::runtime_error("Could not create socket");
   }
   if (inet_aton(server_addr, &server_.sin_addr) == 0) {
     close(socket_desc_);
-    std::string errormsg = std::string("Received invalid server IP address: ")
-        + std::string(server_addr);
+    std::string errormsg = std::string("Received invalid server IP address: ") +
+      std::string(server_addr);
     throw std::invalid_argument(errormsg.c_str());
   }
   server_.sin_family = AF_INET;
   server_.sin_port = htons(server_port);
-  if (connect(socket_desc_, (struct sockaddr*)&server_, sizeof(server_))) {
+  if (connect(socket_desc_, (struct sockaddr *)&server_, sizeof(server_))) {
     throw std::runtime_error("Could not connect to server");
   }
   pthread_create(&read_thread_, NULL, &TCPConnection::listen_helper, this);
@@ -54,7 +54,7 @@ bool TCPConnection::sendByte(std::uint8_t data)
   return true;
 }
 
-bool TCPConnection::sendBytes(const std::vector<std::uint8_t> &data)
+bool TCPConnection::sendBytes(const std::vector<std::uint8_t> & data)
 {
   int sent_length = write(socket_desc_, data.data(), data.size());
   if (sent_length < 0) {
@@ -79,9 +79,9 @@ TCPConnection::~TCPConnection()
   // TODO(resizoltan) handle errors of close?
 }
 
-void* TCPConnection::listen_helper(void *tcpConnection)
+void * TCPConnection::listen_helper(void * tcpConnection)
 {
-  reinterpret_cast<TCPConnection*>(tcpConnection)->listen();
+  reinterpret_cast<TCPConnection *>(tcpConnection)->listen();
   return NULL;
 }
 
@@ -106,4 +106,3 @@ void TCPConnection::listen()
 }
 
 }  // namespace kuka_sunrise
-

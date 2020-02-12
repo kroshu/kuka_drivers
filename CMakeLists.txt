@@ -110,6 +110,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_flake8 REQUIRED)
   find_package(ament_cmake_cpplint REQUIRED)
   find_package(ament_cmake_lint_cmake REQUIRED)
+  find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
   # install custom copyright name
@@ -144,6 +145,7 @@ if(BUILD_TESTING)
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
+  ament_uncrustify(--exclude ${fri_headers})
   ament_xmllint()
 endif()
 

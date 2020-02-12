@@ -53,18 +53,19 @@ template<typename FRIType, typename ROSType>
 class OutputSubscription : public OutputSubscriptionBase
 {
 public:
-  OutputSubscription(std::string name, std::function<void(std::string, FRIType)> output_setter_func,
-                     const bool &is_commanding_active_flag,
-                     rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node) :
-      name_(name), setOutput_(output_setter_func), is_commanding_active_(is_commanding_active_flag)
+  OutputSubscription(
+    std::string name, std::function<void(std::string, FRIType)> output_setter_func,
+    const bool & is_commanding_active_flag,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
+  : name_(name), setOutput_(output_setter_func), is_commanding_active_(is_commanding_active_flag)
   {
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
     qos.best_effort();
     auto msg_strategy = std::make_shared<MessagePoolMemoryStrategy<ROSType, 1>>();
     subscription_ = robot_control_node->create_subscription<ROSType>(
-        name_, qos, [this](typename ROSType::ConstSharedPtr msg)
-        { this->commandReceivedCallback(msg);},
-        rclcpp::SubscriptionOptions(), msg_strategy);
+      name_, qos, [this](typename ROSType::ConstSharedPtr msg)
+      {this->commandReceivedCallback(msg);},
+      rclcpp::SubscriptionOptions(), msg_strategy);
   }
 
   virtual void updateOutput()
@@ -76,7 +77,7 @@ public:
 private:
   std::string name_;
   std::function<void(std::string name, FRIType value)> setOutput_;
-  const bool &is_commanding_active_;
+  const bool & is_commanding_active_;
   typename ROSType::ConstSharedPtr output_msg_;
   typename rclcpp::Subscription<ROSType>::SharedPtr subscription_;
 
@@ -85,8 +86,7 @@ private:
   void commandReceivedCallback(typename ROSType::ConstSharedPtr msg)
   {
     std::lock_guard<std::mutex> lk(m_);
-    if (is_commanding_active_)
-    {
+    if (is_commanding_active_) {
       output_msg_ = msg;
     }
   }
@@ -95,20 +95,21 @@ private:
 class RobotCommander : public ActivatableInterface
 {
 public:
-  RobotCommander(KUKA::FRI::LBRCommand &robot_command, const KUKA::FRI::LBRState &robot_state_,
-                 rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
-  void addBooleanOutputCommander(const std::string &name);
-  void addDigitalOutputCommander(const std::string &name);
-  void addAnalogOutputCommander(const std::string &name);
+  RobotCommander(
+    KUKA::FRI::LBRCommand & robot_command, const KUKA::FRI::LBRState & robot_state_,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+  void addBooleanOutputCommander(const std::string & name);
+  void addDigitalOutputCommander(const std::string & name);
+  void addAnalogOutputCommander(const std::string & name);
   bool setTorqueCommanding(bool is_torque_mode_active);
-  void updateCommand(const rclcpp::Time &stamp);
+  void updateCommand(const rclcpp::Time & stamp);
   void isCommandReady();
-  const KUKA::FRI::LBRCommand& getCommand();
+  const KUKA::FRI::LBRCommand & getCommand();
   bool deactivate();
 
 private:
-  KUKA::FRI::LBRCommand &robot_command_;
-  const KUKA::FRI::LBRState &robot_state_;
+  KUKA::FRI::LBRCommand & robot_command_;
+  const KUKA::FRI::LBRState & robot_state_;
   bool torque_command_mode_;  // TODO(resizoltan) use atomic instead?
   sensor_msgs::msg::JointState::ConstSharedPtr joint_command_msg_;
 

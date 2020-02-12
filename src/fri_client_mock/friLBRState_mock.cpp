@@ -24,8 +24,8 @@ struct _FRIMonitoringMessage
 {
 };
 
-LBRState::LBRState() :
-    _message()
+LBRState::LBRState()
+: _message()
 {
 }
 
@@ -84,32 +84,32 @@ unsigned int LBRState::getTimestampNanoSec() const
   return 0;
 }
 
-const double* LBRState::getMeasuredJointPosition() const
+const double * LBRState::getMeasuredJointPosition() const
 {
   return nullptr;
 }
 
-const double* LBRState::getCommandedJointPosition() const
+const double * LBRState::getCommandedJointPosition() const
 {
   return nullptr;
 }
 
-const double* LBRState::getMeasuredTorque() const
+const double * LBRState::getMeasuredTorque() const
 {
   return nullptr;
 }
 
-const double* LBRState::getCommandedTorque() const
+const double * LBRState::getCommandedTorque() const
 {
   return nullptr;
 }
 
-const double* LBRState::getExternalTorque() const
+const double * LBRState::getExternalTorque() const
 {
   return nullptr;
 }
 
-const double* LBRState::getIpoJointPosition() const
+const double * LBRState::getIpoJointPosition() const
 {
   return nullptr;
 }
@@ -119,18 +119,18 @@ double LBRState::getTrackingPerformance() const
   return 0.0;
 }
 
-bool LBRState::getBooleanIOValue(const char *name) const
+bool LBRState::getBooleanIOValue(const char * name) const
 {
   (void)name;
   return false;
 }
-unsigned long long LBRState::getDigitalIOValue(const char *name) const
+unsigned long long LBRState::getDigitalIOValue(const char * name) const
 {
   (void)name;
   return 0;
 }
 
-double LBRState::getAnalogIOValue(const char *name) const
+double LBRState::getAnalogIOValue(const char * name) const
 {
   (void)name;
   return 0.0;

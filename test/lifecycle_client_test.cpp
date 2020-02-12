@@ -27,7 +27,7 @@
 using rclcpp::message_memory_strategy::MessageMemoryStrategy;
 
 template<typename FutureT, typename WaitTimeT>
-std::future_status wait_for_result(FutureT &future, WaitTimeT time_to_wait)
+std::future_status wait_for_result(FutureT & future, WaitTimeT time_to_wait)
 {
   auto end = std::chrono::steady_clock::now() + time_to_wait;
   std::chrono::milliseconds wait_period(100);
@@ -46,26 +46,26 @@ std::future_status wait_for_result(FutureT &future, WaitTimeT time_to_wait)
 class LifecycleClientTester : public rclcpp::Node
 {
 public:
-  LifecycleClientTester() :
-      Node("LifecycleClientTest")
+  LifecycleClientTester()
+  : Node("LifecycleClientTest")
   {
     auto qos = rclcpp::QoS(rclcpp::KeepAll());
     qos.reliable();
     service_cbg_ = this->create_callback_group(
-        rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+      rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     topic_cbg_ = this->create_callback_group(
-        rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+      rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     auto sub_opt = rclcpp::SubscriptionOptions();
     sub_opt.callback_group = topic_cbg_;
     client_ = this->create_client<lifecycle_msgs::srv::ChangeState>("/lc_talker/change_state",
-                                                                    qos.get_rmw_qos_profile(),
-                                                                    service_cbg_);
+        qos.get_rmw_qos_profile(),
+        service_cbg_);
     getter_client_ = this->create_client<lifecycle_msgs::srv::GetState>("/lc_talker/get_state");
     trigger_ = this->create_subscription<std_msgs::msg::Bool>(
-        "change_state", qos, [this](std_msgs::msg::Bool::SharedPtr) {
-          auto result = this->configure();
-          RCLCPP_INFO(get_logger(), "%u", result);
-        }/*,  sub_opt*/);
+      "change_state", qos, [this](std_msgs::msg::Bool::SharedPtr) {
+        auto result = this->configure();
+        RCLCPP_INFO(get_logger(), "%u", result);
+      } /*,  sub_opt*/);
   }
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn configure()
@@ -78,10 +78,10 @@ public:
       return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
     }
     auto future_result =
-        client_->async_send_request(
-            request,
-            [this](std::shared_future<lifecycle_msgs::srv::ChangeState::Response::SharedPtr>)
-            { RCLCPP_INFO(get_logger(), "callback called"); });
+      client_->async_send_request(
+      request,
+      [this](std::shared_future<lifecycle_msgs::srv::ChangeState::Response::SharedPtr>)
+      {RCLCPP_INFO(get_logger(), "callback called");});
     auto future_status2 = wait_for_result(future_result, std::chrono::milliseconds(10000));
     if (future_status2 != std::future_status::ready) {
       RCLCPP_ERROR(get_logger(), "Future status not ready");
@@ -101,7 +101,7 @@ public:
 
     if (!getter_client_->wait_for_service(time_out)) {
       RCLCPP_ERROR(get_logger(), "Service %s is not available.",
-                   getter_client_->get_service_name());
+        getter_client_->get_service_name());
       return lifecycle_msgs::msg::State::PRIMARY_STATE_UNKNOWN;
     }
 
@@ -121,13 +121,14 @@ public:
     // We have an succesful answer. So let's print the current state.
     if (future_result.get()) {
       RCLCPP_INFO(get_logger(), "current state %s.",
-                  future_result.get()->current_state.label.c_str());
+        future_result.get()->current_state.label.c_str());
       return future_result.get()->current_state.id;
     } else {
       RCLCPP_ERROR(get_logger(), "Failed to get current state");
       return lifecycle_msgs::msg::State::PRIMARY_STATE_UNKNOWN;
     }
   }
+
 private:
   rclcpp::callback_group::CallbackGroup::SharedPtr topic_cbg_;
   rclcpp::callback_group::CallbackGroup::SharedPtr service_cbg_;
@@ -136,11 +137,11 @@ private:
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr trigger_;
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor(
-      rclcpp::executor::create_default_executor_arguments(), 2);
+    rclcpp::executor::create_default_executor_arguments(), 2);
   auto node = std::make_shared<LifecycleClientTester>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();

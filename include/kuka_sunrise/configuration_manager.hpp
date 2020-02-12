@@ -39,8 +39,7 @@ struct ParameterSetAccessRights
   bool finalized;
   bool isSetAllowed(std::uint8_t current_state)
   {
-    switch (current_state)
-    {
+    switch (current_state) {
       case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
         return unconfigured;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
@@ -58,8 +57,9 @@ struct ParameterSetAccessRights
 class ConfigurationManager
 {
 public:
-  ConfigurationManager(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
-                       std::shared_ptr<RobotManager> robot_manager);
+  ConfigurationManager(
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
+    std::shared_ptr<RobotManager> robot_manager);
 
 private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
@@ -73,15 +73,15 @@ private:
   std::vector<double> joint_damping_temp_;
 
   rcl_interfaces::msg::SetParametersResult onParamChange(
-      const std::vector<rclcpp::Parameter> &parameters);
-  bool canSetParameter(const rclcpp::Parameter &param);
-  bool onCommandModeChangeRequest(const rclcpp::Parameter &param);
-  bool onControlModeChangeRequest(const rclcpp::Parameter &param);
-  bool onJointStiffnessChangeRequest(const rclcpp::Parameter &param);
-  bool onJointDampingChangeRequest(const rclcpp::Parameter &param);
-  bool onSendPeriodChangeRequest(const rclcpp::Parameter &param);
-  bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter &param);
-  bool setCommandMode(const std::string &control_mode);
+    const std::vector<rclcpp::Parameter> & parameters);
+  bool canSetParameter(const rclcpp::Parameter & param);
+  bool onCommandModeChangeRequest(const rclcpp::Parameter & param);
+  bool onControlModeChangeRequest(const rclcpp::Parameter & param);
+  bool onJointStiffnessChangeRequest(const rclcpp::Parameter & param);
+  bool onJointDampingChangeRequest(const rclcpp::Parameter & param);
+  bool onSendPeriodChangeRequest(const rclcpp::Parameter & param);
+  bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter & param);
+  bool setCommandMode(const std::string & control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
 };
 

@@ -58,18 +58,20 @@ static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = {0xAC, 0xED, 0x00, 
 class RobotManager
 {
 public:
-  RobotManager(std::function<void(void)> handle_control_ended_error_callback,
-               std::function<void(void)> handle_fri_ended_callback);
+  RobotManager(
+    std::function<void(void)> handle_control_ended_error_callback,
+    std::function<void(void)> handle_fri_ended_callback);
   ~RobotManager();
-  bool connect(const char *server_addr, int server_port);
+  bool connect(const char * server_addr, int server_port);
   bool disconnect();
   bool startFRI();
   bool endFRI();
   bool activateControl();
   bool deactivateControl();
   bool setPositionControlMode();
-  bool setJointImpedanceControlMode(const std::vector<double> &joint_stiffness,
-                                    const std::vector<double> &joint_damping);
+  bool setJointImpedanceControlMode(
+    const std::vector<double> & joint_stiffness,
+    const std::vector<double> & joint_damping);
   bool setClientCommandMode(ClientCommandModeID client_command_mode);
   // bool getControlMode();
   bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);
@@ -83,8 +85,8 @@ private:
   std::function<void(void)> handleControlEndedError_;
   std::function<void(void)> handleFRIEndedError_;
 
-  void handleReceivedTCPData(const std::vector<std::uint8_t> &data);
-  void connectionLostCallback(const char *server_addr, int server_port);
+  void handleReceivedTCPData(const std::vector<std::uint8_t> & data);
+  void connectionLostCallback(const char * server_addr, int server_port);
 
   CommandState last_command_state_;
   CommandID last_command_id_;
@@ -98,7 +100,7 @@ private:
   // void wait();
   bool assertLastCommandSuccess(CommandID command_id);
   bool sendCommandAndWait(CommandID command_id);
-  bool sendCommandAndWait(CommandID command_id, const std::vector<std::uint8_t> &command_data);
+  bool sendCommandAndWait(CommandID command_id, const std::vector<std::uint8_t> & command_data);
 };
 
 }  // namespace kuka_sunrise

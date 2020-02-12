@@ -26,7 +26,6 @@ public:
     is_active_ = true;
     return true;
   }
-  ;
   virtual bool deactivate()
   {
     is_active_ = false;
@@ -39,6 +38,7 @@ public:
   virtual ~ActivatableInterface()
   {
   }
+
 protected:
   bool is_active_;
 };

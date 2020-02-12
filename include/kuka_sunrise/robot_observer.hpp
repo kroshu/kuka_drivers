@@ -46,9 +46,10 @@ template<typename FRIType, typename ROSType>
 class InputPublisher : public InputPublisherBase, public ActivatableInterface
 {
 public:
-  InputPublisher(std::string name, std::function<FRIType(std::string)> input_getter_func,
-                 rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node) :
-      name_(name), getInput_(input_getter_func)
+  InputPublisher(
+    std::string name, std::function<FRIType(std::string)> input_getter_func,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
+  : name_(name), getInput_(input_getter_func)
   {
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
     qos.best_effort();
@@ -70,26 +71,27 @@ private:
 class RobotObserver : public ActivatableInterface
 {
 public:
-  RobotObserver(const KUKA::FRI::LBRState &robot_state,
-                rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+  RobotObserver(
+    const KUKA::FRI::LBRState & robot_state,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
-  void publishRobotState(const rclcpp::Time &stamp);
+  void publishRobotState(const rclcpp::Time & stamp);
   virtual bool activate();
   virtual bool deactivate();
 
 private:
-  const KUKA::FRI::LBRState &robot_state_;
+  const KUKA::FRI::LBRState & robot_state_;
   sensor_msgs::msg::JointState joint_state_msg_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-  joint_state_publisher_;
+    joint_state_publisher_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-  joint_state_publisher2_;
+    joint_state_publisher2_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>::SharedPtr
-  tracking_performance_publisher_;
+    tracking_performance_publisher_;
   std::list<std::unique_ptr<InputPublisherBase>> input_publishers_;
 
   int i = 0;
