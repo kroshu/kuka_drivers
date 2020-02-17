@@ -38,6 +38,8 @@ notifications:
 
 # clone and run industrial_ci
 install:
+  - git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+  - git fetch --unshallow --tags
   - git clone --quiet --depth 1 https://github.com/kroshu/industrial_ci.git .industrial_ci
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
