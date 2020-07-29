@@ -3,7 +3,7 @@
 
 language: cpp # optional, just removes the language badge
 compiler:
-  - gcc
+  - clang
 os:
   - linux
 dist: bionic
@@ -11,56 +11,7 @@ branches:
   only:
   - master
   - fixes
-
-matrix:
-  include:
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env:
-         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-      env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-    - eval "${MATRIX_EVAL}"
-
+  
 # include the following block if the C/C++ build artifacts should get cached by Travis,
 # CCACHE_DIR needs to get set as well to actually fill the cache
 #cache:
