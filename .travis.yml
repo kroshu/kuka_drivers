@@ -2,8 +2,7 @@
 # For troubleshooting, see readme (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
 
 language: cpp # optional, just removes the language badge
-compiler:
-  - clang
+compiler: clang
 os:
   - linux
 dist: bionic
@@ -11,13 +10,6 @@ branches:
   only:
   - master
   - fixes
-  
-addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-7.0
-          packages:
-            - clang-7.0
 
 # include the following block if the C/C++ build artifacts should get cached by Travis,
 # CCACHE_DIR needs to get set as well to actually fill the cache
@@ -53,3 +45,5 @@ install:
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
 - .industrial_ci/travis.sh
+- cmake --version
+- clang --version
