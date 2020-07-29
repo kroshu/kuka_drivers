@@ -34,8 +34,8 @@ env:
     - ROS_DISTRO='dashing'
     - CC=clang
     - CXX=clang++
-    -CMAKE_C_COMPILER=clang
-    -CMAKE_CXX_COMPILER=clang++
+    - CMAKE_C_COMPILER=clang
+    - CMAKE_CXX_COMPILER=clang++
    
 
 notifications:
