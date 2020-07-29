@@ -33,7 +33,9 @@ env:
     - CMAKE_ARGS='-DMOCK_FRI=ON'
     - ROS_DISTRO='dashing'
     - CC=clang
-    - CCX=clang++
+    - CXX=clang++
+    -CMAKE_C_COMPILER=clang
+    -CMAKE_CXX_COMPILER=clang++
    
 
 notifications:
