@@ -5,7 +5,6 @@ language: cpp # optional, just removes the language badge
 os:
   - linux
 dist: bionic
-compiler: gcc
 branches:
   only:
   - master
@@ -32,6 +31,10 @@ env:
     - TEST_COVERAGE='true'
     - CMAKE_ARGS='-DMOCK_FRI=ON -DCMAKE_C_COMPILER=/usr/bin/gcc  -DCMAKE_CXX_COMPILER=/usr/bin/g++
     - ROS_DISTRO='dashing'
+    - CC=/usr/bin/gcc
+    - CXX=/usr/bin/g++
+    - CMAKE_C_COMPILER=/usr/bin/gcc
+    - CMAKE_CXX_COMPILER=/usr/bin/g++
    
 
 notifications:
@@ -45,4 +48,3 @@ install:
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
 - .industrial_ci/travis.sh
-- ls /usr/bin/gcc
