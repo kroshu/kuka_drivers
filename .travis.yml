@@ -3,7 +3,7 @@
 
 language: cpp # optional, just removes the language badge
 compiler:
-  - gcc
+  - clang
 os:
   - linux
 dist: bionic
@@ -13,12 +13,11 @@ branches:
   - fixes
   
 addons:
-  apt:
-    sources:
-      - george-edison55-precise-backports
-    packages:
-      - cmake-data
-      - cmake
+        apt:
+          sources:
+            - llvm-toolchain-bionic-7.0
+          packages:
+            - clang-7.0
 
 # include the following block if the C/C++ build artifacts should get cached by Travis,
 # CCACHE_DIR needs to get set as well to actually fill the cache
