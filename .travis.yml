@@ -32,8 +32,8 @@ env:
     - TEST_COVERAGE='true'
     - CMAKE_ARGS='-DMOCK_FRI=ON'
     - ROS_DISTRO='dashing'
-    - CC=/usr/local/clang-7.0.0/bin
-    - CCX=/usr/local/clang-7.0.0/bin
+    - CC=clang
+    - CCX=clang++
    
 
 notifications:
@@ -47,4 +47,3 @@ install:
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
 - .industrial_ci/travis.sh
-- echo $PATH
