@@ -2,7 +2,6 @@
 # For troubleshooting, see readme (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
 
 language: cpp # optional, just removes the language badge
-compiler: clang
 os:
   - linux
 dist: bionic
@@ -32,10 +31,10 @@ env:
     - TEST_COVERAGE='true'
     - CMAKE_ARGS='-DMOCK_FRI=ON'
     - ROS_DISTRO='dashing'
-    - CC=clang
-    - CXX=clang++
-    - CMAKE_C_COMPILER=clang
-    - CMAKE_CXX_COMPILER=clang++
+    - CC=clang-7.0
+    - CXX=clang++-7.0
+    - CMAKE_C_COMPILER=clang-7.0
+    - CMAKE_CXX_COMPILER=clang++-7.0
    
 
 notifications:
