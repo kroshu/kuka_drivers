@@ -30,7 +30,7 @@ env:
     - BUILDER='colcon'
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
-    - CMAKE_ARGS='-DMOCK_FRI=ON '
+    - CMAKE_ARGS='-DMOCK_FRI=ON  -DCMAKE_C_COMPILER=/usr/local/clang-7.0.0/bin'
     - ROS_DISTRO='dashing'
    
 
