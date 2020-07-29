@@ -6,6 +6,7 @@ compiler:
   - gcc
 os:
   - linux
+dist: bionic
 branches:
   only:
   - master
