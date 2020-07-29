@@ -43,8 +43,9 @@ install:
   - git clone --quiet --depth 1 https://github.com/kroshu/industrial_ci.git .industrial_ci
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
+- unset CC CXX
+- export CC=/usr/bin/gcc
+- export CXX=/usr/bin/g++
 - export PATH="/usr/bin:$PATH"
 - echo $PATH
-- sudo apt-get install --reinstall gcc
-- sudo apt-get install --reinstall g++
 - .industrial_ci/travis.sh
