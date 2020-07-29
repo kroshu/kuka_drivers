@@ -13,6 +13,7 @@ branches:
   - fixes
 
 matrix:
+  - ROS_DISTRO='dashing'
   include:
     # works on Precise and Trusty
     - os: linux
@@ -81,8 +82,7 @@ env:
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
     - CMAKE_ARGS='-DMOCK_FRI=ON '
-  matrix: # each line is a job
-    - ROS_DISTRO='dashing'
+   
 
 notifications:
   email: false
