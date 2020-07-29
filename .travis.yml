@@ -29,7 +29,7 @@ env:
     - BUILDER='colcon'
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
-    - CMAKE_ARGS='-DMOCK_FRI=ON -DCMAKE_C_COMPILER=/usr/bin/gcc-7  -DCMAKE_CXX_COMPILER=/usr/bin/g++-7'
+    - CMAKE_ARGS='-DMOCK_FRI=ON -DCMAKE_C_COMPILER=/usr/bin/gcc  -DCMAKE_CXX_COMPILER=/usr/bin/g++'
     - ROS_DISTRO='dashing'
    
 
@@ -45,4 +45,6 @@ install:
 script:
 - export PATH="/usr/bin:$PATH"
 - echo $PATH
+- apt-get install --reinstall gcc
+- apt-get install --reinstall g++
 - .industrial_ci/travis.sh
