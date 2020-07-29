@@ -45,6 +45,6 @@ install:
 script:
 - export PATH="/usr/bin:$PATH"
 - echo $PATH
-- apt-get install --reinstall gcc
-- apt-get install --reinstall g++
+- sudo apt-get install --reinstall gcc
+- sudo apt-get install --reinstall g++
 - .industrial_ci/travis.sh
