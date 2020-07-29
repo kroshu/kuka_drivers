@@ -47,3 +47,4 @@ script:
 - .industrial_ci/travis.sh
 - cmake --version
 - clang --version
+- clang++ --version
