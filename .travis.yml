@@ -30,7 +30,7 @@ env:
     - BUILDER='colcon'
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
-    - CMAKE_ARGS='-DMOCK_FRI=ON  -DCMAKE_C_COMPILER=/usr/local/clang-7.0.0/bin'
+    - CMAKE_ARGS='-DMOCK_FRI=ON  -DCMAKE_C_COMPILER=/usr/local/clang-7.0.0/bin  -DCMAKE_CXX_COMPILER=/usr/local/clang-7.0.0/bin'
     - ROS_DISTRO='dashing'
    
 
@@ -45,6 +45,3 @@ install:
   - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
 script:
 - .industrial_ci/travis.sh
-- cmake --version
-- clang --version
-- clang++ --version
