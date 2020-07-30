@@ -49,6 +49,7 @@ ClientApplication::ClientApplication(
 
 ClientApplication::~ClientApplication()
 {
+
 }
 
 bool ClientApplication::connect(int port, const char * remoteHost)
@@ -60,6 +61,7 @@ bool ClientApplication::connect(int port, const char * remoteHost)
 
 void ClientApplication::disconnect()
 {
+	//only a mock
 }
 
 bool ClientApplication::step()

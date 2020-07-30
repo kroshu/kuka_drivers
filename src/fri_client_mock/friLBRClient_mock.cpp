@@ -40,14 +40,17 @@ void LBRClient::onStateChange(ESessionState oldState, ESessionState newState)
 
 void LBRClient::monitor()
 {
+	//only a mock
 }
 
 void LBRClient::waitForCommand()
 {
+	//only a mock
 }
 
 void LBRClient::command()
 {
+	//only a mock
 }
 
 ClientData * LBRClient::createData()

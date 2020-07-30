@@ -42,9 +42,11 @@ RobotManagerNode::RobotManagerNode()
       std_srvs::srv::SetBool::Response::SharedPtr response) {
       (void)request_header;
       if (request->data == true) {
-        response->success = this->activate();
+        response->success = this->RobotManagerNode::activate(); // TODO(kovacsge11) SonarCloud suggests this is
+																// acceptable, but poor design
       } else {
-        response->success = this->deactivate();
+        response->success = this->RobotManagerNode::deactivate(); // TODO(kovacsge11) SonarCloud suggests this is
+																  // acceptable, but poor design
       }
     };
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(

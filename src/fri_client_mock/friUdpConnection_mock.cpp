@@ -37,6 +37,7 @@ bool UdpConnection::open(int port, const char * controllerAddress)
 
 void UdpConnection::close()
 {
+	//only a mock
 }
 
 bool UdpConnection::isOpen() const
