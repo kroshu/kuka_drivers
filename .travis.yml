@@ -29,7 +29,7 @@ env:
     - BUILDER='colcon'
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
-    - CMAKE_ARGS='-DMOCK_FRI=ON -DCMAKE_C_COMPILER=/usr/bin/gcc  -DCMAKE_CXX_COMPILER=/usr/bin/g++'
+    - CMAKE_ARGS='-DMOCK_FRI=ON'
     - ROS_DISTRO='dashing'
    
 
@@ -41,16 +41,6 @@ install:
   - git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - git fetch --unshallow --tags
   - git clone --quiet --depth 1 https://github.com/kroshu/industrial_ci.git .industrial_ci
-  - curl "https://raw.githubusercontent.com/davetcoleman/roscpp_code_format/master/.clang-format" -o .clang-format
+  - curl "https://github.com/davetcoleman/roscpp_code_format/blob/master/.clang-format" -o .clang-format
 script:
-- sudo apt-get install build-essential
-- unset CC CXX
-- echo $CC
-- echo $CXX
-- export CC=/usr/bin/gcc
-- export CXX=/usr/bin/g++
-- echo $CC
-- echo $CXX
-- export PATH="/usr/bin:$PATH"
-- echo $PATH
 - .industrial_ci/travis.sh
