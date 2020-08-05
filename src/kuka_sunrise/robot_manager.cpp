@@ -269,10 +269,10 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
       }
       break;
     default:
-    	last_command_state_ = UNKNOWN;
-    	answer_received_ = true;
-    	cv_.notify_one();
-    	break;
+      last_command_state_ = UNKNOWN;
+      answer_received_ = true;
+      cv_.notify_one();
+      break;
   }
 }
 

@@ -60,7 +60,7 @@ bool ClientApplication::connect(int port, const char * remoteHost)
 
 void ClientApplication::disconnect()
 {
-	// only a mock
+  // only a mock
 }
 
 bool ClientApplication::step()
