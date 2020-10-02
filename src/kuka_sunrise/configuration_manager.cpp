@@ -38,11 +38,11 @@ ConfigurationManager::ConfigurationManager(
   }
   if (!robot_manager_node_->has_parameter("joint_stiffness")) {
     robot_manager_node_->declare_parameter(
-      "joint_stiffness", rclcpp::ParameterValue(new std::vector<double>(7, 1000.0)));
+      "joint_stiffness", rclcpp::ParameterValue(joint_stiffness_temp_));
   }
   if (!robot_manager_node_->has_parameter("joint_damping")) {
     robot_manager_node_->declare_parameter("joint_damping",
-      rclcpp::ParameterValue(new std::vector<double>(7, 0.7)));
+      rclcpp::ParameterValue(joint_damping_temp_));
   }
   if (!robot_manager_node_->has_parameter("send_period_ms")) {
     robot_manager_node_->declare_parameter("send_period_ms", rclcpp::ParameterValue(10));

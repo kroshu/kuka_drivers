@@ -101,8 +101,8 @@ bool RobotManager::setJointImpedanceControlMode(
   const std::vector<double> & joint_damping)
 {
   int msg_size = 0;
-  printf("Sizeof(double) = %u\n", sizeof(double));
-  printf("Joint_stiffness size: %u, joint damping size: %u\n", joint_stiffness.size(),
+  printf("Sizeof(double) = %lu\n", sizeof(double));
+  printf("Joint_stiffness size: %lu, joint damping size: %lu\n", joint_stiffness.size(),
     joint_damping.size());
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
@@ -267,6 +267,11 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
           this);
         pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
       }
+      break;
+    default:
+      last_command_state_ = UNKNOWN;
+      answer_received_ = true;
+      cv_.notify_one();
       break;
   }
 }

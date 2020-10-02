@@ -42,9 +42,13 @@ RobotManagerNode::RobotManagerNode()
       std_srvs::srv::SetBool::Response::SharedPtr response) {
       (void)request_header;
       if (request->data == true) {
-        response->success = this->activate();
+        response->success = this->RobotManagerNode::activate();
+        // TODO(kovacsge11) SonarCloud suggests this is
+        // acceptable, but poor design
       } else {
-        response->success = this->deactivate();
+        response->success = this->RobotManagerNode::deactivate();
+        // TODO(kovacsge11) SonarCloud suggests this is
+        // acceptable, but poor design
       }
     };
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
@@ -60,7 +64,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
   configuration_manager_ = std::make_unique<ConfigurationManager>(this->shared_from_this(),
       robot_manager_);
   if (!robot_manager_->isConnected()) {
-    if (!robot_manager_->connect("192.168.37.29", 30000)) {  // TODO(resizoltan) use ros params
+    if (!robot_manager_->connect("192.168.37.85", 30000)) {  // TODO(resizoltan) use ros params
       RCLCPP_ERROR(get_logger(), "could not connect");
       return FAILURE;
     }
