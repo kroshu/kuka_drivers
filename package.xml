@@ -3,9 +3,10 @@
 <package format="3">
 	<name>kuka_sunrise</name>
 	<version>0.0.0</version>
-	<description>TODO: Package description</description>
+	<description>ROS2 KUKA sunrise interface</description>
 	<maintainer email="resizoltan@gmail.com">Zoltan Resi</maintainer>
-	<license>TODO: License declaration</license>
+	<maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+	<license>Apache 2.0</license>
 
 	<buildtool_depend>ament_cmake</buildtool_depend>
 	<buildtool_depend>ament_cmake_python</buildtool_depend>

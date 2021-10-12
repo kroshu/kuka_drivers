@@ -73,7 +73,7 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
 
@@ -81,7 +81,7 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
   param.sched_priority = 90;
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
   client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
@@ -138,7 +138,7 @@ RobotControlNode::on_activate(const rclcpp_lifecycle::State & state)
 
   if (pthread_create(client_application_thread_.get(), nullptr, run_app, this)) {
     RCLCPP_ERROR(get_logger(), "pthread_create error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
 
