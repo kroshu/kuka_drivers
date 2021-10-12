@@ -27,7 +27,10 @@ int serializeNext(int integer_in, std::vector<std::uint8_t> & serialized_out)
   std::uint8_t * bytes = reinterpret_cast<std::uint8_t *>(&integer_in);
   auto it = serialized_out.end();
   serialized_out.insert(it, bytes, bytes + sizeof(int));
-  std::reverse(it, serialized_out.end());
+
+  // Redefine iterator because of possible invalidation
+  auto from_it = std::prev(serialized_out.end(), sizeof(int));
+  std::reverse(from_it, serialized_out.end());
   // TODO(resizoltan): assert that int is 4 bytes long
   // TODO(resizoltan): check endiannes
   return sizeof(int);
@@ -48,7 +51,10 @@ int serializeNext(double double_in, std::vector<std::uint8_t> & serialized_out)
   std::uint8_t * bytes = reinterpret_cast<std::uint8_t *>(&double_in);
   auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
-  std::reverse(it, serialized_out.end());
+
+  // Redefine iterator because of possible invalidation
+  auto from_it = std::prev(serialized_out.end(), sizeof(double));
+  std::reverse(from_it, serialized_out.end());
   // TODO(resizoltan): assert that int is 4 bytes long
   // TODO(resizoltan): check endiannes
   return sizeof(int);
