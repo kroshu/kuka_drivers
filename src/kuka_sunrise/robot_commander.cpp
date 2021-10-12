@@ -38,8 +38,9 @@ RobotCommander::RobotCommander(
   // TODO(resizoltan) use TLSFAllocator? implement static strategy for jointstatemsg?
   auto msg_strategy = std::make_shared<MessageMemoryStrategy<sensor_msgs::msg::JointState>>();
   joint_command_subscription_ = robot_control_node_->create_subscription<
-    sensor_msgs::msg::JointState>("lbr_joint_command", qos, callback,
-      rclcpp::SubscriptionOptions(), msg_strategy);
+    sensor_msgs::msg::JointState>(
+    "lbr_joint_command", qos, callback,
+    rclcpp::SubscriptionOptions(), msg_strategy);
 
   auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
       std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -64,9 +65,10 @@ void RobotCommander::addBooleanOutputCommander(const std::string & name)
       return this->robot_command_.setBooleanIOValue(name.c_str(), value);
     };
   output_subsciptions_.emplace_back(
-    std::make_unique<OutputSubscription<bool, std_msgs::msg::Bool>>(name, output_setter_func,
-    is_active_,
-    robot_control_node_));
+    std::make_unique<OutputSubscription<bool, std_msgs::msg::Bool>>(
+      name, output_setter_func,
+      is_active_,
+      robot_control_node_));
 }
 
 void RobotCommander::addDigitalOutputCommander(const std::string & name)
@@ -91,9 +93,10 @@ void RobotCommander::addAnalogOutputCommander(const std::string & name)
       return this->robot_command_.setAnalogIOValue(name.c_str(), value);
     };
   output_subsciptions_.emplace_back(
-    std::make_unique<OutputSubscription<double, std_msgs::msg::Float64>>(name, output_setter_func,
-    is_active_,
-    robot_control_node_));
+    std::make_unique<OutputSubscription<double, std_msgs::msg::Float64>>(
+      name, output_setter_func,
+      is_active_,
+      robot_control_node_));
 }
 
 bool RobotCommander::setTorqueCommanding(bool is_torque_mode_active)
@@ -111,14 +114,16 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   std::unique_lock<std::mutex> lk(m_);
   while (!joint_command_msg_ || joint_command_msg_->header.stamp != stamp) {
     if (!is_active_) {
-      RCLCPP_INFO(robot_control_node_->get_logger(),
+      RCLCPP_INFO(
+        robot_control_node_->get_logger(),
         "robot commander deactivated, exiting updatecommand");
       return;
     }
     cv_.wait(lk);
     // check if wait has been interrupted by the robot manager
     if (!is_active_) {
-      RCLCPP_INFO(robot_control_node_->get_logger(),
+      RCLCPP_INFO(
+        robot_control_node_->get_logger(),
         "robot commander deactivated, exiting updatecommand");
       return;
     }
@@ -128,7 +133,8 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   if (torque_command_mode_) {
     if (joint_command_msg_->effort.empty()) {
       // raise some error/warning
-      RCLCPP_ERROR(robot_control_node_->get_logger(),
+      RCLCPP_ERROR(
+        robot_control_node_->get_logger(),
         "Effort of joint command msg is empty in torque command mode");
       return;
     }
@@ -139,7 +145,8 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
     // RCLCPP_INFO(robot_control_node_->get_logger(), "updating positions");
     if (joint_command_msg_->position.empty()) {
       // raise some error/warning
-      RCLCPP_ERROR(robot_control_node_->get_logger(),
+      RCLCPP_ERROR(
+        robot_control_node_->get_logger(),
         "Position of joint command msg is empty in position command mode");
       return;
     }

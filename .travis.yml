@@ -8,7 +8,8 @@ compiler: gcc
 branches:
   only:
   - master
-  - fixes
+  - /^feature\/.*$/
+  - /^fix\/.*$/
 
 # include the following block if the C/C++ build artifacts should get cached by Travis,
 # CCACHE_DIR needs to get set as well to actually fill the cache
@@ -30,7 +31,7 @@ env:
     - SONARQUBE='true'
     - TEST_COVERAGE='true'
     - CMAKE_ARGS='-DMOCK_FRI=ON'
-    - ROS_DISTRO='dashing'
+    - ROS_DISTRO='foxy'
    
 
 notifications:

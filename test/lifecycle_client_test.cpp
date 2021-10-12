@@ -57,9 +57,10 @@ public:
       rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     auto sub_opt = rclcpp::SubscriptionOptions();
     sub_opt.callback_group = topic_cbg_;
-    client_ = this->create_client<lifecycle_msgs::srv::ChangeState>("/lc_talker/change_state",
-        qos.get_rmw_qos_profile(),
-        service_cbg_);
+    client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
+      "/lc_talker/change_state",
+      qos.get_rmw_qos_profile(),
+      service_cbg_);
     getter_client_ = this->create_client<lifecycle_msgs::srv::GetState>("/lc_talker/get_state");
     trigger_ = this->create_subscription<std_msgs::msg::Bool>(
       "change_state", qos, [this](std_msgs::msg::Bool::SharedPtr) {
@@ -100,7 +101,8 @@ public:
     auto request = std::make_shared<lifecycle_msgs::srv::GetState::Request>();
 
     if (!getter_client_->wait_for_service(time_out)) {
-      RCLCPP_ERROR(get_logger(), "Service %s is not available.",
+      RCLCPP_ERROR(
+        get_logger(), "Service %s is not available.",
         getter_client_->get_service_name());
       return lifecycle_msgs::msg::State::PRIMARY_STATE_UNKNOWN;
     }
@@ -120,7 +122,8 @@ public:
 
     // We have an succesful answer. So let's print the current state.
     if (future_result.get()) {
-      RCLCPP_INFO(get_logger(), "current state %s.",
+      RCLCPP_INFO(
+        get_logger(), "current state %s.",
         future_result.get()->current_state.label.c_str());
       return future_result.get()->current_state.id;
     } else {
