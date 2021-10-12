@@ -102,7 +102,8 @@ bool RobotManager::setJointImpedanceControlMode(
 {
   int msg_size = 0;
   printf("Sizeof(double) = %lu\n", sizeof(double));
-  printf("Joint_stiffness size: %lu, joint damping size: %lu\n", joint_stiffness.size(),
+  printf(
+    "Joint_stiffness size: %lu, joint damping size: %lu\n", joint_stiffness.size(),
     joint_damping.size());
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
@@ -177,7 +178,8 @@ bool RobotManager::sendCommandAndWait(CommandID command_id)
   answer_wanted_ = true;
   tcp_connection_->sendByte(command_id);
   std::unique_lock<std::mutex> lk(m_);
-  cv_.wait(lk, [this]
+  cv_.wait(
+    lk, [this]
     {return answer_received_;});
   answer_received_ = false;
   answer_wanted_ = false;
@@ -194,7 +196,8 @@ bool RobotManager::sendCommandAndWait(
   answer_wanted_ = true;
   tcp_connection_->sendBytes(msg);
   std::unique_lock<std::mutex> lk(m_);
-  cv_.wait(lk, [this]
+  cv_.wait(
+    lk, [this]
     {return answer_received_;});
   answer_received_ = false;
   answer_wanted_ = false;

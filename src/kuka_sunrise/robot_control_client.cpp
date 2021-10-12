@@ -26,8 +26,9 @@ RobotControlClient::RobotControlClient(
 : robot_control_node_(robot_control_node), receive_multiplier_(1), receive_counter_(0)
 {
   robot_observer_ = std::make_unique<RobotObserver>(robotState(), robot_control_node);
-  robot_commander_ = std::make_unique<RobotCommander>(robotCommand(), robotState(),
-      robot_control_node);
+  robot_commander_ = std::make_unique<RobotCommander>(
+    robotCommand(), robotState(),
+    robot_control_node);
   auto command_srv_callback = [this](
     const std::shared_ptr<rmw_request_id_t> request_header,
     kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,

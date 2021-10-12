@@ -27,9 +27,10 @@ RobotManagerNode::RobotManagerNode()
 : LifecycleNode("robot_manager")
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
-  robot_manager_ = std::make_shared<RobotManager>([this]
-      {this->handleControlEndedError();}, [this]
-      {this->handleFRIEndedError();});
+  robot_manager_ = std::make_shared<RobotManager>(
+    [this]
+    {this->handleControlEndedError();}, [this]
+    {this->handleFRIEndedError();});
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
@@ -61,8 +62,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
 {
   (void)state;
-  configuration_manager_ = std::make_unique<ConfigurationManager>(this->shared_from_this(),
-      robot_manager_);
+  configuration_manager_ = std::make_unique<ConfigurationManager>(
+    this->shared_from_this(),
+    robot_manager_);
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect("192.168.37.85", 30000)) {  // TODO(resizoltan) use ros params
       RCLCPP_ERROR(get_logger(), "could not connect");

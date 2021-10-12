@@ -31,8 +31,9 @@ void RobotObserver::addBooleanInputObserver(std::string name)
       return this->robot_state_.getBooleanIOValue(name.c_str());
     };
   input_publishers_.emplace_back(
-    std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(name, input_getter_func,
-    robot_control_node_));
+    std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(
+      name, input_getter_func,
+      robot_control_node_));
 }
 
 void RobotObserver::addDigitalInputObserver(std::string name)
@@ -57,8 +58,9 @@ void RobotObserver::addAnalogInputObserver(std::string name)
       return this->robot_state_.getDigitalIOValue(name.c_str());
     };
   input_publishers_.emplace_back(
-    std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(name, input_getter_func,
-    robot_control_node_));
+    std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(
+      name, input_getter_func,
+      robot_control_node_));
 }
 
 bool RobotObserver::activate()
@@ -123,9 +125,11 @@ void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
     // TODO(resizoltan) external vs measured torque?
     const double * joint_torques_external = robot_state_.getExternalTorque();
     joint_state_msg_.velocity.clear();
-    joint_state_msg_.position.assign(joint_positions_measured,
+    joint_state_msg_.position.assign(
+      joint_positions_measured,
       joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
-    joint_state_msg_.effort.assign(joint_torques_external,
+    joint_state_msg_.effort.assign(
+      joint_torques_external,
       joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
     // RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg updated");
     joint_state_publisher_->publish(joint_state_msg_);
