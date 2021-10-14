@@ -63,10 +63,11 @@ void RobotCommander::addBooleanOutputCommander(const std::string & name)
   auto output_setter_func = [this](std::string name, bool value) -> void {
       return this->robot_command_.setBooleanIOValue(name.c_str(), value);
     };
-  output_subsciptions_.emplace_back(
-    std::make_unique<OutputSubscription<bool, std_msgs::msg::Bool>>(name, output_setter_func,
-    is_active_,
-    robot_control_node_));
+  output_subscriptions_.emplace_back(
+    std::make_unique<OutputSubscription<bool, std_msgs::msg::Bool>>(
+      name, output_setter_func,
+      is_active_,
+      robot_control_node_));
 }
 
 void RobotCommander::addDigitalOutputCommander(const std::string & name)
@@ -77,7 +78,7 @@ void RobotCommander::addDigitalOutputCommander(const std::string & name)
   auto output_setter_func = [this](std::string name, uint64_t value) -> void {
       return this->robot_command_.setDigitalIOValue(name.c_str(), value);
     };
-  output_subsciptions_.emplace_back(
+  output_subscriptions_.emplace_back(
     std::make_unique<OutputSubscription<uint64_t, std_msgs::msg::UInt64>>(
       name, output_setter_func, is_active_, robot_control_node_));
 }
@@ -90,10 +91,11 @@ void RobotCommander::addAnalogOutputCommander(const std::string & name)
   auto output_setter_func = [this](std::string name, double value) -> void {
       return this->robot_command_.setAnalogIOValue(name.c_str(), value);
     };
-  output_subsciptions_.emplace_back(
-    std::make_unique<OutputSubscription<double, std_msgs::msg::Float64>>(name, output_setter_func,
-    is_active_,
-    robot_control_node_));
+  output_subscriptions_.emplace_back(
+    std::make_unique<OutputSubscription<double, std_msgs::msg::Float64>>(
+      name, output_setter_func,
+      is_active_,
+      robot_control_node_));
 }
 
 bool RobotCommander::setTorqueCommanding(bool is_torque_mode_active)
@@ -124,7 +126,6 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
     }
   }
 
-  // RCLCPP_INFO(robot_control_node_->get_logger(), "updating command");
   if (torque_command_mode_) {
     if (joint_command_msg_->effort.empty()) {
       // raise some error/warning
@@ -136,7 +137,6 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
     robot_command_.setJointPosition(robot_state_.getIpoJointPosition());
     robot_command_.setTorque(joint_torques_);
   } else {
-    // RCLCPP_INFO(robot_control_node_->get_logger(), "updating positions");
     if (joint_command_msg_->position.empty()) {
       // raise some error/warning
       RCLCPP_ERROR(robot_control_node_->get_logger(),
@@ -147,7 +147,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
     robot_command_.setJointPosition(joint_positions_);
   }
 
-  for (auto & output_subscription : output_subsciptions_) {
+  for (auto & output_subscription : output_subscriptions_) {
     output_subscription->updateOutput();
   }
 }

@@ -115,7 +115,7 @@ private:
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
-  std::list<std::unique_ptr<OutputSubscriptionBase>> output_subsciptions_;
+  std::list<std::unique_ptr<OutputSubscriptionBase>> output_subscriptions_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_mode_service_;
 
   rclcpp::Clock ros_clock_;

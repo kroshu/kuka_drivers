@@ -32,17 +32,25 @@ RobotControlNode::RobotControlNode()
       std_srvs::srv::SetBool::Response::SharedPtr response) {
       (void)request_header;
       if (request->data == true) {
-        response->success = this->RobotControlNode::activate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->activate();
       } else {
-        response->success = this->RobotControlNode::deactivate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->deactivate();
       }
     };
+
+
+  auto get_fri_state_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+		  const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
+		  kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
+	  (void)request_header;
+	  response->data=client_->robotState().getSessionState();
+    };
+
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", command_srv_callback);
+
+  get_fri_state_service_ = this->create_service<kuka_sunrise_interfaces::srv::GetState>(
+      "robot_control/get_fri_state", get_fri_state_callback);
 }
 
 RobotControlNode::~RobotControlNode()
@@ -73,7 +81,7 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
 
@@ -81,7 +89,7 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
   param.sched_priority = 90;
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
   client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
@@ -138,7 +146,7 @@ RobotControlNode::on_activate(const rclcpp_lifecycle::State & state)
 
   if (pthread_create(client_application_thread_.get(), nullptr, run_app, this)) {
     RCLCPP_ERROR(get_logger(), "pthread_create error");
-    RCLCPP_ERROR(get_logger(), std::strerror(errno));
+    RCLCPP_ERROR(get_logger(), strerror(errno));
     return ERROR;
   }
 
