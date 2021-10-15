@@ -52,7 +52,6 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
-
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -68,7 +67,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-  const char* controller_ip= this->get_parameter("controller_ip").as_string().c_str();
+  const char* controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");

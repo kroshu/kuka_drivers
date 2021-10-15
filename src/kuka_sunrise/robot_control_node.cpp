@@ -40,10 +40,10 @@ RobotControlNode::RobotControlNode()
 
 
   auto get_fri_state_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
-		  const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
-		  kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
-	  (void)request_header;
-	  response->data=client_->robotState().getSessionState();
+    const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
+      kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
+    (void)request_header;
+    response->data = client_->robotState().getSessionState();
     };
 
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(

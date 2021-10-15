@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "rclcpp/time.hpp"
 
@@ -87,7 +88,6 @@ RobotObserver::RobotObserver(const KUKA::FRI::LBRState &robot_state,
       std_msgs::msg::Float64>("tracking_performance", qos);
   // joint_state_publisher_ =
   //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
-
 }
 
 void RobotObserver::publishRobotState(const rclcpp::Time &stamp) {
