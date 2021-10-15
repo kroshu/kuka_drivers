@@ -62,12 +62,12 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     this->shared_from_this(),
     robot_manager_);
 
-  if (!this->has_parameter("controller_ip")){
+  if (!this->has_parameter("controller_ip")) {
     RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
     return FAILURE;
   }
 
-  const char* controller_ip = this->get_parameter("controller_ip").as_string().c_str();
+  const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
