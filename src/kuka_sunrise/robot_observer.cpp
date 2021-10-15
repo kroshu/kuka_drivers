@@ -19,91 +19,80 @@
 
 #include "kuka_sunrise/robot_observer.hpp"
 
-namespace kuka_sunrise
-{
+namespace kuka_sunrise {
 
-void RobotObserver::addBooleanInputObserver(std::string name)
-{
+void RobotObserver::addBooleanInputObserver(std::string name) {
   if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> bool {
-      return this->robot_state_.getBooleanIOValue(name.c_str());
-    };
+    return this->robot_state_.getBooleanIOValue(name.c_str());
+  };
   input_publishers_.emplace_back(
-    std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(
-      name, input_getter_func,
-      robot_control_node_));
+      std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(name,
+          input_getter_func, robot_control_node_));
 }
 
-void RobotObserver::addDigitalInputObserver(std::string name)
-{
+void RobotObserver::addDigitalInputObserver(std::string name) {
   if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> uint64_t {
-      return this->robot_state_.getDigitalIOValue(name.c_str());
-    };
+    return this->robot_state_.getDigitalIOValue(name.c_str());
+  };
   input_publishers_.emplace_back(
-    std::make_unique<InputPublisher<uint64_t, std_msgs::msg::UInt64>>(
-      name, input_getter_func, robot_control_node_));
+      std::make_unique<InputPublisher<uint64_t, std_msgs::msg::UInt64>>(name,
+          input_getter_func, robot_control_node_));
 }
 
-void RobotObserver::addAnalogInputObserver(std::string name)
-{
+void RobotObserver::addAnalogInputObserver(std::string name) {
   if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> double {
-      return this->robot_state_.getDigitalIOValue(name.c_str());
-    };
+    return this->robot_state_.getDigitalIOValue(name.c_str());
+  };
   input_publishers_.emplace_back(
-    std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(
-      name, input_getter_func,
-      robot_control_node_));
+      std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(name,
+          input_getter_func, robot_control_node_));
 }
 
-bool RobotObserver::activate()
-{
+bool RobotObserver::activate() {
   this->ActivatableInterface::activate();
   joint_state_publisher_->on_activate();
   tracking_performance_publisher_->on_activate();
   return true;
 }
 
-bool RobotObserver::deactivate()
-{
+bool RobotObserver::deactivate() {
   this->ActivatableInterface::deactivate();
   joint_state_publisher_->on_deactivate();
   tracking_performance_publisher_->on_deactivate();
   return true;
 }
 
-RobotObserver::RobotObserver(
-  const KUKA::FRI::LBRState & robot_state,
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
-: robot_state_(robot_state), robot_control_node_(robot_control_node)
-{
+RobotObserver::RobotObserver(const KUKA::FRI::LBRState &robot_state,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node) :
+    robot_state_(robot_state), robot_control_node_(robot_control_node) {
   joint_state_msg_.position.reserve(robot_state_.NUMBER_OF_JOINTS);
   joint_state_msg_.velocity.reserve(robot_state_.NUMBER_OF_JOINTS);
   joint_state_msg_.effort.reserve(robot_state_.NUMBER_OF_JOINTS);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
-  joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>(
-    "lbr_joint_state", qos);
+  joint_state_publisher_ = robot_control_node->create_publisher<
+      sensor_msgs::msg::JointState>("lbr_joint_state", 1);
   // joint_state_publisher2_ =
   //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state2", qos);
-  tracking_performance_publisher_ = robot_control_node->create_publisher<std_msgs::msg::Float64>(
-    "tracking_performance", qos);
+  tracking_performance_publisher_ = robot_control_node->create_publisher<
+      std_msgs::msg::Float64>("tracking_performance", qos);
   // joint_state_publisher_ =
   //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
+
 }
 
-void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
-{
-  if (robot_control_node_->get_current_state().label() != "inactive" &&
-    robot_control_node_->get_current_state().label() != "active")
-  {
+void RobotObserver::publishRobotState(const rclcpp::Time &stamp) {
+  if (robot_control_node_->get_current_state().label() != "inactive"
+      && robot_control_node_->get_current_state().label() != "active") {
     return;  // TODO(resizoltan) handle other states
   }
 
@@ -118,29 +107,30 @@ void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
    joint_state_msg_.effort.assign(joint_torques_measured, joint_torques_measured + robot_state_.NUMBER_OF_JOINTS);
    joint_state_publisher2_->publish(joint_state_msg_);*/
   // RCLCPP_INFO(robot_control_node_->get_logger(), "%u", robot_state_.getSessionState());
-  if (robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT ||
-    robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE)
-  {
-    const double * joint_positions_measured = robot_state_.getMeasuredJointPosition();
+  if (robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT
+      || robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE) {
+    joint_state_msg_.name = std::vector<std::string> { "URDFLBRiiwa14Joint1",
+        "URDFLBRiiwa14Joint2", "URDFLBRiiwaJoint3", "URDFLBRiiwaJoint4",
+        "URDFLBRiiwaJoint5", "URDFLBRiiwaJoint6", "URDFLBRiiwaJoint7" };
+    const double *joint_positions_measured =
+        robot_state_.getMeasuredJointPosition();
     // TODO(resizoltan) external vs measured torque?
-    const double * joint_torques_external = robot_state_.getExternalTorque();
+
+    const double *joint_torques_external = robot_state_.getExternalTorque();
     joint_state_msg_.velocity.clear();
-    joint_state_msg_.position.assign(
-      joint_positions_measured,
-      joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
-    joint_state_msg_.effort.assign(
-      joint_torques_external,
-      joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
-    // RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg updated");
+    joint_state_msg_.position.assign(joint_positions_measured,
+        joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
+    joint_state_msg_.effort.assign(joint_torques_external,
+        joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
     joint_state_publisher_->publish(joint_state_msg_);
-    // RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg sent");
-    const double & tracking_performance = robot_state_.getTrackingPerformance();
+    const double &tracking_performance = robot_state_.getTrackingPerformance();
     std_msgs::msg::Float64 tracking_perf_msg;
     tracking_perf_msg.data = tracking_performance;
     tracking_performance_publisher_->publish(tracking_perf_msg);
   }
   // TODO(resizoltan) double check this:
-  for (auto i = std::next(input_publishers_.begin()); i != input_publishers_.end(); i++) {
+  for (auto i = std::next(input_publishers_.begin());
+      i != input_publishers_.end(); i++) {
     (*i)->publishInputValue();
   }
 }
