@@ -32,17 +32,25 @@ RobotControlNode::RobotControlNode()
       std_srvs::srv::SetBool::Response::SharedPtr response) {
       (void)request_header;
       if (request->data == true) {
-        response->success = this->RobotControlNode::activate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->activate();
       } else {
-        response->success = this->RobotControlNode::deactivate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->deactivate();
       }
     };
+
+
+  auto get_fri_state_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+		  const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
+		  kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
+	  (void)request_header;
+	  response->data=client_->robotState().getSessionState();
+    };
+
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", command_srv_callback);
+
+  get_fri_state_service_ = this->create_service<kuka_sunrise_interfaces::srv::GetState>(
+      "robot_control/get_fri_state", get_fri_state_callback);
 }
 
 RobotControlNode::~RobotControlNode()
