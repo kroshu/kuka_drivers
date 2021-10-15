@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "rclcpp/time.hpp"
 
@@ -32,8 +33,8 @@ void RobotObserver::addBooleanInputObserver(std::string name)
     };
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(
-      name, input_getter_func,
-      robot_control_node_));
+      name,
+      input_getter_func, robot_control_node_));
 }
 
 void RobotObserver::addDigitalInputObserver(std::string name)
@@ -46,7 +47,8 @@ void RobotObserver::addDigitalInputObserver(std::string name)
     };
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<uint64_t, std_msgs::msg::UInt64>>(
-      name, input_getter_func, robot_control_node_));
+      name,
+      input_getter_func, robot_control_node_));
 }
 
 void RobotObserver::addAnalogInputObserver(std::string name)
@@ -59,8 +61,8 @@ void RobotObserver::addAnalogInputObserver(std::string name)
     };
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(
-      name, input_getter_func,
-      robot_control_node_));
+      name,
+      input_getter_func, robot_control_node_));
 }
 
 bool RobotObserver::activate()
@@ -89,12 +91,12 @@ RobotObserver::RobotObserver(
   joint_state_msg_.effort.reserve(robot_state_.NUMBER_OF_JOINTS);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
-  joint_state_publisher_ = robot_control_node->create_publisher<sensor_msgs::msg::JointState>(
-    "lbr_joint_state", qos);
+  joint_state_publisher_ = robot_control_node->create_publisher<
+    sensor_msgs::msg::JointState>("lbr_joint_state", 1);
   // joint_state_publisher2_ =
   //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state2", qos);
-  tracking_performance_publisher_ = robot_control_node->create_publisher<std_msgs::msg::Float64>(
-    "tracking_performance", qos);
+  tracking_performance_publisher_ = robot_control_node->create_publisher<
+    std_msgs::msg::Float64>("tracking_performance", qos);
   // joint_state_publisher_ =
   //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
@@ -121,8 +123,13 @@ void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
   if (robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT ||
     robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE)
   {
-    const double * joint_positions_measured = robot_state_.getMeasuredJointPosition();
+    joint_state_msg_.name = std::vector<std::string> {"URDFLBRiiwa14Joint1",
+      "URDFLBRiiwa14Joint2", "URDFLBRiiwaJoint3", "URDFLBRiiwaJoint4",
+      "URDFLBRiiwaJoint5", "URDFLBRiiwaJoint6", "URDFLBRiiwaJoint7"};
+    const double * joint_positions_measured =
+      robot_state_.getMeasuredJointPosition();
     // TODO(resizoltan) external vs measured torque?
+
     const double * joint_torques_external = robot_state_.getExternalTorque();
     joint_state_msg_.velocity.clear();
     joint_state_msg_.position.assign(
@@ -131,16 +138,16 @@ void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
     joint_state_msg_.effort.assign(
       joint_torques_external,
       joint_torques_external + robot_state_.NUMBER_OF_JOINTS);
-    // RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg updated");
     joint_state_publisher_->publish(joint_state_msg_);
-    // RCLCPP_INFO(robot_control_node_->get_logger(), "joint msg sent");
     const double & tracking_performance = robot_state_.getTrackingPerformance();
     std_msgs::msg::Float64 tracking_perf_msg;
     tracking_perf_msg.data = tracking_performance;
     tracking_performance_publisher_->publish(tracking_perf_msg);
   }
   // TODO(resizoltan) double check this:
-  for (auto i = std::next(input_publishers_.begin()); i != input_publishers_.end(); i++) {
+  for (auto i = std::next(input_publishers_.begin());
+    i != input_publishers_.end(); i++)
+  {
     (*i)->publishInputValue();
   }
 }

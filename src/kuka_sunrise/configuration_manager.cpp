@@ -51,6 +51,9 @@ ConfigurationManager::ConfigurationManager(
   if (!robot_manager_node_->has_parameter("receive_multiplier")) {
     robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
   }
+  if (!robot_manager_node_->has_parameter("controller_ip")) {
+    robot_manager_node_->declare_parameter("controller_ip", rclcpp::ParameterValue("192.168.38.8"));
+  }
   robot_manager_node_->set_on_parameters_set_callback(
     [this](
       const std::vector<rclcpp::Parameter> & parameters)

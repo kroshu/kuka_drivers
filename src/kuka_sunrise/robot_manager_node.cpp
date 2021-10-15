@@ -43,13 +43,9 @@ RobotManagerNode::RobotManagerNode()
       std_srvs::srv::SetBool::Response::SharedPtr response) {
       (void)request_header;
       if (request->data == true) {
-        response->success = this->RobotManagerNode::activate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->activate();
       } else {
-        response->success = this->RobotManagerNode::deactivate();
-        // TODO(kovacsge11) SonarCloud suggests this is
-        // acceptable, but poor design
+        response->success = this->deactivate();
       }
     };
   set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
@@ -65,8 +61,15 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
   configuration_manager_ = std::make_unique<ConfigurationManager>(
     this->shared_from_this(),
     robot_manager_);
+
+  if (!this->has_parameter("controller_ip")) {
+    RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
+    return FAILURE;
+  }
+
+  const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
-    if (!robot_manager_->connect("192.168.37.85", 30000)) {  // TODO(resizoltan) use ros params
+    if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
       return FAILURE;
     }
@@ -95,7 +98,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-  if (!robot_manager_->disconnect()) {  // TODO(resizoltan) use ros params
+  if (!robot_manager_->disconnect()) {
     RCLCPP_ERROR(get_logger(), "could not disconnect");
     return FAILURE;
   }

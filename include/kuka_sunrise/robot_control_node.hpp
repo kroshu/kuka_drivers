@@ -29,6 +29,7 @@
 #include "fri_client/friUdpConnection.h"
 #include "kuka_sunrise/robot_control_client.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "kuka_sunrise_interfaces/srv/get_state.hpp"
 
 
 namespace kuka_sunrise
@@ -71,6 +72,7 @@ private:
   std::atomic_bool close_requested_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_state_service_;
+  rclcpp::Service<kuka_sunrise_interfaces::srv::GetState>::SharedPtr get_fri_state_service_;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;

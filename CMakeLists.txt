@@ -99,6 +99,8 @@ install(TARGETS robot_manager robot_control_client robot_manager_node robot_cont
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
+install(DIRECTORY include/kuka_sunrise/internal DESTINATION include/kuka_sunrise)
+
 if(BUILD_TESTING)
 
   # _ament_cmake_python_register_environment_hook()

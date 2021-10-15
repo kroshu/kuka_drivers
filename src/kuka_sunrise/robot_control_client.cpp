@@ -79,7 +79,6 @@ void RobotControlClient::waitForCommand()
     robot_commander_->updateCommand(stamp);
     receive_counter_ = 0;
   }
-  // RCLCPP_INFO(robot_control_node_->get_logger(), "waitforcommand finished");
 }
 
 void RobotControlClient::command()
@@ -90,7 +89,6 @@ void RobotControlClient::command()
     robot_commander_->updateCommand(stamp);
     receive_counter_ = 0;
   }
-  // RCLCPP_INFO(robot_control_node_->get_logger(), "command finished");
 }
 
 bool RobotControlClient::setReceiveMultiplier(int receive_multiplier)
