@@ -68,7 +68,6 @@ private:
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
   std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;

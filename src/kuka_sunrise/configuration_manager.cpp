@@ -30,10 +30,6 @@ ConfigurationManager::ConfigurationManager(
   joint_stiffness_temp_(std::vector<double>(7, 1000.0)),
   joint_damping_temp_(std::vector<double>(7, 0.7))
 {
-  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
-      [this](
-        const std::vector<rclcpp::Parameter> & parameters)
-      {return this->onParamChange(parameters);});
   if (!robot_manager_node_->has_parameter("command_mode")) {
     robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
   }
@@ -58,6 +54,10 @@ ConfigurationManager::ConfigurationManager(
   if (!robot_manager_node_->has_parameter("controller_ip")) {
     robot_manager_node_->declare_parameter("controller_ip", rclcpp::ParameterValue("192.168.38.8"));
   }
+  robot_manager_node_->set_on_parameters_set_callback(
+    [this](
+      const std::vector<rclcpp::Parameter> & parameters)
+    {return this->onParamChange(parameters);});
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(
