@@ -86,6 +86,9 @@ ConfigurationManager::ConfigurationManager(
   parameter_set_access_rights_.emplace(
     "receive_multiplier", ParameterSetAccessRights {false, true,
       false, false});
+  parameter_set_access_rights_.emplace(
+    "controller_ip", ParameterSetAccessRights {true, false,
+      false, false});
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
@@ -106,6 +109,8 @@ rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
       result.successful = onSendPeriodChangeRequest(param);
     } else if (param.get_name() == "receive_multiplier") {
       result.successful = onReceiveMultiplierChangeRequest(param);
+    }else if (param.get_name() == "controller_ip") {
+      result.successful = onControllerIpChangeRequest(param);
     } else {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(), "Invalid parameter name %s",
@@ -322,6 +327,25 @@ bool ConfigurationManager::onReceiveMultiplierChangeRequest(const rclcpp::Parame
   return true;
 }
 
+bool ConfigurationManager::onControllerIpChangeRequest(const rclcpp::Parameter & param)
+{
+  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_STRING) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+  if (!canSetParameter(param)) {
+    return false;
+  }
+  if (!setControllerIp(param.as_string())) {
+    return false;
+  }
+
+  //TODO(Svastits): check ip validity
+  return true;
+}
+
 bool ConfigurationManager::setCommandMode(const std::string & control_mode)
 {
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
@@ -378,4 +402,11 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
   return true;
 }
 
+bool ConfigurationManager::setControllerIp(const std::string & controller_ip)
+{
+
+  //TODO(Svastits): create setString service and set ip so
+
+  return true;
+}
 }  // namespace kuka_sunrise

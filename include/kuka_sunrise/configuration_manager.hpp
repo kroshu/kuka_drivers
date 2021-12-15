@@ -81,8 +81,10 @@ private:
   bool onJointDampingChangeRequest(const rclcpp::Parameter & param);
   bool onSendPeriodChangeRequest(const rclcpp::Parameter & param);
   bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter & param);
+  bool onControllerIpChangeRequest(const rclcpp::Parameter & param);
   bool setCommandMode(const std::string & control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
+  bool setControllerIp(const std::string & controller_ip);
 };
 
 }  // namespace kuka_sunrise
