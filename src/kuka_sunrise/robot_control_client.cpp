@@ -93,7 +93,7 @@ void RobotControlClient::command()
 
 bool RobotControlClient::setReceiveMultiplier(int receive_multiplier)
 {
-  if (robot_control_node_->get_current_state().label() == "unconfigured") {
+  if (robot_control_node_->get_current_state().label() == "inactive") {
     receive_multiplier_ = receive_multiplier;
     return true;
   } else {

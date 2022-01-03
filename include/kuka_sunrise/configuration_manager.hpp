@@ -37,6 +37,7 @@ struct ParameterSetAccessRights
   bool inactive;
   bool active;
   bool finalized;
+  bool configuring;
   bool isSetAllowed(std::uint8_t current_state)
   {
     switch (current_state) {
@@ -48,6 +49,8 @@ struct ParameterSetAccessRights
         return active;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
         return finalized;
+      case lifecycle_msgs::msg::State::TRANSITION_STATE_CONFIGURING:
+        return configuring;
       default:
         return false;
     }
@@ -68,6 +71,7 @@ private:
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
   std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;
@@ -81,6 +85,7 @@ private:
   bool onJointDampingChangeRequest(const rclcpp::Parameter & param);
   bool onSendPeriodChangeRequest(const rclcpp::Parameter & param);
   bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter & param);
+  bool onControllerIpChangeRequest(const rclcpp::Parameter & param);
   bool setCommandMode(const std::string & control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
 };
