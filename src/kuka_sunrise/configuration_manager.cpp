@@ -74,7 +74,7 @@ ConfigurationManager::ConfigurationManager(
     robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
   }
 
-  robot_manager_node_->set_on_parameters_set_callback(
+  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
     [this](
       const std::vector<rclcpp::Parameter> & parameters)
     {return this->onParamChange(parameters);});
@@ -113,7 +113,7 @@ rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
       result.successful = onSendPeriodChangeRequest(param);
     } else if (param.get_name() == "receive_multiplier") {
       result.successful = onReceiveMultiplierChangeRequest(param);
-    }else if (param.get_name() == "controller_ip") {
+    } else if (param.get_name() == "controller_ip") {
       result.successful = onControllerIpChangeRequest(param);
     } else {
       RCLCPP_ERROR(
@@ -342,10 +342,6 @@ bool ConfigurationManager::onControllerIpChangeRequest(const rclcpp::Parameter &
   if (!canSetParameter(param)) {
     return false;
   }
-  if (!setControllerIp(param.as_string())) {
-    return false;
-  }
-
   // TODO(Svastits): check ip validity
   return true;
 }
@@ -402,13 +398,6 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future result not success");
     return false;
   }
-
-  return true;
-}
-
-bool ConfigurationManager::setControllerIp(const std::string & controller_ip)
-{
-  // TODO(Svastits): create setString service and set ip so
 
   return true;
 }
