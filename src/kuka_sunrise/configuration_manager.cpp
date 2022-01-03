@@ -30,6 +30,28 @@ ConfigurationManager::ConfigurationManager(
   joint_stiffness_temp_(std::vector<double>(7, 1000.0)),
   joint_damping_temp_(std::vector<double>(7, 0.7))
 {
+  parameter_set_access_rights_.emplace(
+    "command_mode", ParameterSetAccessRights {false, true, true,
+      false, false});
+  parameter_set_access_rights_.emplace(
+    "control_mode", ParameterSetAccessRights {false, true, true,
+      false, false});
+  parameter_set_access_rights_.emplace(
+    "joint_stiffness", ParameterSetAccessRights {false, true,
+      true, false, false});
+  parameter_set_access_rights_.emplace(
+    "joint_damping", ParameterSetAccessRights {false, true, true,
+      false, false});
+  parameter_set_access_rights_.emplace(
+    "send_period_ms", ParameterSetAccessRights {false, true,
+      false, false, false});
+  parameter_set_access_rights_.emplace(
+    "receive_multiplier", ParameterSetAccessRights {false, true,
+      false, false, false});
+  parameter_set_access_rights_.emplace(
+    "controller_ip", ParameterSetAccessRights {false, false,
+      false, false, true});
+
   if (!robot_manager_node_->has_parameter("command_mode")) {
     robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
   }
@@ -51,13 +73,16 @@ ConfigurationManager::ConfigurationManager(
   if (!robot_manager_node_->has_parameter("receive_multiplier")) {
     robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
   }
-  if (!robot_manager_node_->has_parameter("controller_ip")) {
-    robot_manager_node_->declare_parameter("controller_ip", rclcpp::ParameterValue("192.168.38.8"));
-  }
+
   robot_manager_node_->set_on_parameters_set_callback(
     [this](
       const std::vector<rclcpp::Parameter> & parameters)
     {return this->onParamChange(parameters);});
+
+  if (!robot_manager_node_->has_parameter("controller_ip")) {
+    robot_manager_node_->declare_parameter("controller_ip");
+  }
+
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(
@@ -68,27 +93,6 @@ ConfigurationManager::ConfigurationManager(
     kuka_sunrise_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
     cbg_);
-  parameter_set_access_rights_.emplace(
-    "command_mode", ParameterSetAccessRights {false, true, true,
-      false});
-  parameter_set_access_rights_.emplace(
-    "control_mode", ParameterSetAccessRights {false, true, true,
-      false});
-  parameter_set_access_rights_.emplace(
-    "joint_stiffness", ParameterSetAccessRights {false, true,
-      true, false});
-  parameter_set_access_rights_.emplace(
-    "joint_damping", ParameterSetAccessRights {false, true, true,
-      false});
-  parameter_set_access_rights_.emplace(
-    "send_period_ms", ParameterSetAccessRights {false, true,
-      false, false});
-  parameter_set_access_rights_.emplace(
-    "receive_multiplier", ParameterSetAccessRights {false, true,
-      false, false});
-  parameter_set_access_rights_.emplace(
-    "controller_ip", ParameterSetAccessRights {true, false,
-      false, false});
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
@@ -342,7 +346,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const rclcpp::Parameter &
     return false;
   }
 
-  //TODO(Svastits): check ip validity
+  // TODO(Svastits): check ip validity
   return true;
 }
 
@@ -404,8 +408,7 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 
 bool ConfigurationManager::setControllerIp(const std::string & controller_ip)
 {
-
-  //TODO(Svastits): create setString service and set ip so
+  // TODO(Svastits): create setString service and set ip so
 
   return true;
 }

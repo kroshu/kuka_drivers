@@ -37,6 +37,7 @@ struct ParameterSetAccessRights
   bool inactive;
   bool active;
   bool finalized;
+  bool configuring;
   bool isSetAllowed(std::uint8_t current_state)
   {
     switch (current_state) {
@@ -48,6 +49,8 @@ struct ParameterSetAccessRights
         return active;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
         return finalized;
+      case lifecycle_msgs::msg::State::TRANSITION_STATE_CONFIGURING:
+        return configuring;
       default:
         return false;
     }
