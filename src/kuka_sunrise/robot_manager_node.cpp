@@ -57,6 +57,13 @@ RobotManagerNode::RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
 {
+  if (!requestRobotControlNodeStateTransition(
+      lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
+  {
+    RCLCPP_ERROR(get_logger(), "could not configure robot control node");
+    return FAILURE;
+  }
+
   (void)state;
   configuration_manager_ = std::make_unique<ConfigurationManager>(
     this->shared_from_this(),
@@ -76,12 +83,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
   }
   // TODO(resizoltan) get IO configuration
 
-  if (!requestRobotControlNodeStateTransition(
-      lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
-  {
-    RCLCPP_ERROR(get_logger(), "could not configure robot control node");
-    return FAILURE;
-  }
 
   return SUCCESS;
 }
