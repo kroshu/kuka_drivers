@@ -381,7 +381,8 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
   auto future_result = command_mode_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future status not ready, could not set command mode");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Future status not ready, could not set command mode");
     return false;
   }
   if (future_result.get()->success) {
@@ -406,7 +407,9 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
   auto future_result = receive_multiplier_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future status not ready, could not set receive_multiplier");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not set receive_multiplier");
     return false;
   }
 

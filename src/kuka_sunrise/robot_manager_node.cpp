@@ -75,7 +75,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
     if (!requestRobotControlNodeStateTransition(
         lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+    {
       RCLCPP_ERROR(get_logger(), "Restart needed");
+    }
     return FAILURE;
   }
 
@@ -85,7 +87,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
       RCLCPP_ERROR(get_logger(), "could not connect");
       if (!requestRobotControlNodeStateTransition(
           lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+      {
         RCLCPP_ERROR(get_logger(), "Restart needed");
+      }
       return FAILURE;
     }
   }
