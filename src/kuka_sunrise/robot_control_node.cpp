@@ -25,8 +25,6 @@ RobotControlNode::RobotControlNode()
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
-  // cbg_ =
-  //   this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
       std_srvs::srv::SetBool::Request::SharedPtr request,
       std_srvs::srv::SetBool::Response::SharedPtr response) {

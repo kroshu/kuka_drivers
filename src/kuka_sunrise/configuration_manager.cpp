@@ -225,21 +225,6 @@ bool ConfigurationManager::onControlModeChangeRequest(const rclcpp::Parameter & 
     return robot_manager_->setPositionControlMode();
   } else if (param.as_string() == "joint_impedance") {
     try {
-      /*if(!robot_manager_node_->has_parameter("joint_stiffness") ||
-       !robot_manager_node_->has_parameter("joint_damping")){
-       RCLCPP_ERROR(robot_manager_node_->get_logger(), "Parameter joint stiffness or joint damping not available");
-       return false;
-       }
-       RCLCPP_INFO(robot_manager_node_->get_logger(), "Parameters joint stiffness or joint damping available");
-       rclcpp::Parameter joint_stiffness = robot_manager_node_->get_parameter("joint_stiffness");
-       rclcpp::Parameter joint_damping = robot_manager_node_->get_parameter("joint_damping");
-       if(joint_stiffness.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY ||
-       joint_damping.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY){
-       RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid parameter type for joint stiffness or joint damping");
-       return false;
-       }
-       RCLCPP_INFO(robot_manager_node_->get_logger(), "Parameters joint stiffness or joint damping valid");
-       return robot_manager_->setJointImpedanceControlMode(joint_stiffness.as_double_array(), joint_damping.as_double_array());*/
       return robot_manager_->setJointImpedanceControlMode(
         joint_stiffness_temp_,
         joint_damping_temp_);
