@@ -49,7 +49,6 @@ int deserializeNext(const std::vector<std::uint8_t> & serialized_in, int & integ
 int serializeNext(double double_in, std::vector<std::uint8_t> & serialized_out)
 {
   std::uint8_t * bytes = reinterpret_cast<std::uint8_t *>(&double_in);
-  auto it = serialized_out.end();
   serialized_out.insert(serialized_out.end(), bytes, bytes + sizeof(double));
 
   // Redefine iterator because of possible invalidation

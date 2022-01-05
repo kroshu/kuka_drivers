@@ -41,6 +41,7 @@ RobotControlNode::RobotControlNode()
       const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
       kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
       (void)request_header;
+      (void)request;
       response->data = client_->robotState().getSessionState();
     };
 

@@ -73,6 +73,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
 
   if (!this->has_parameter("controller_ip")) {
     RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
+    if (!requestRobotControlNodeStateTransition(
+        lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+      RCLCPP_ERROR(get_logger(), "Restart needed");
     return FAILURE;
   }
 
@@ -80,6 +83,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
+      if (!requestRobotControlNodeStateTransition(
+          lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+        RCLCPP_ERROR(get_logger(), "Restart needed");
       return FAILURE;
     }
   }
@@ -280,7 +286,7 @@ bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t trans
   auto future_result = change_robot_control_state_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready");
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not change robot control state");
     return false;
   }
   if (future_result.get()->success) {
@@ -299,7 +305,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   auto future_result = set_command_state_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready");
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set robot command state");
     return false;
   }
 
