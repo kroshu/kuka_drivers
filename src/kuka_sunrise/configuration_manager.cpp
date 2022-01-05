@@ -64,8 +64,8 @@ ConfigurationManager::ConfigurationManager(
     cbg_);
 
   if (!robot_manager_node_->has_parameter("control_mode")) {
-      robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
-    }
+    robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
+  }
 
   if (!robot_manager_node_->has_parameter("command_mode")) {
     robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
@@ -98,6 +98,34 @@ ConfigurationManager::ConfigurationManager(
   if (!robot_manager_node_->has_parameter("controller_ip")) {
     robot_manager_node_->declare_parameter("controller_ip");
   }
+
+  auto set_param_callback = [this](
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Response::SharedPtr response) {
+      (void) request_header;
+      (void) request;
+      response->success = true;
+      if (!onCommandModeChangeRequest(
+          robot_manager_node_->get_parameter("command_mode")))
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Could not set parameter command_mode");
+        response->success = false;
+      }
+      if (!onControlModeChangeRequest(
+          robot_manager_node_->get_parameter("control_mode")))
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Could not set parameter control_mode");
+        response->success = false;
+      }
+    };
+
+  set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params", set_param_callback);
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(

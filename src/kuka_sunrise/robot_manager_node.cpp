@@ -52,6 +52,8 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
+  set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params");
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -83,6 +85,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
   }
   // TODO(resizoltan) get IO configuration
 
+  auto trigger_request =
+    std::make_shared<std_srvs::srv::Trigger::Request>();
+  set_parameter_client_->async_send_request(trigger_request);
 
   return SUCCESS;
 }
