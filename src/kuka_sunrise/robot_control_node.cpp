@@ -26,8 +26,8 @@ RobotControlNode::RobotControlNode()
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
   auto command_srv_callback = [this](
-      std_srvs::srv::SetBool::Request::SharedPtr request,
-      std_srvs::srv::SetBool::Response::SharedPtr response) {
+    std_srvs::srv::SetBool::Request::SharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response) {
       if (request->data == true) {
         response->success = this->activate();
       } else {
@@ -37,8 +37,8 @@ RobotControlNode::RobotControlNode()
 
 
   auto get_fri_state_callback = [this](
-      const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr,
-      kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
+    const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr,
+    kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
       response->data = client_->robotState().getSessionState();
     };
 

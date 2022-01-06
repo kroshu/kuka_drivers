@@ -43,8 +43,8 @@ RobotCommander::RobotCommander(
     rclcpp::SubscriptionOptions(), msg_strategy);
 
   auto command_srv_callback = [this](
-      std_srvs::srv::SetBool::Request::SharedPtr request,
-      std_srvs::srv::SetBool::Response::SharedPtr response) {
+    std_srvs::srv::SetBool::Request::SharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response) {
       if (this->setTorqueCommanding(request->data)) {
         response->success = true;
       } else {

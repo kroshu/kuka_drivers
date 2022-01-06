@@ -39,8 +39,8 @@ RobotManagerNode::RobotManagerNode()
   set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](
-      std_srvs::srv::SetBool::Request::SharedPtr request,
-      std_srvs::srv::SetBool::Response::SharedPtr response) {
+    std_srvs::srv::SetBool::Request::SharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response) {
       if (request->data == true) {
         response->success = this->activate();
       } else {
