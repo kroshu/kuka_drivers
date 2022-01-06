@@ -42,10 +42,9 @@ RobotCommander::RobotCommander(
     "lbr_joint_command", qos, callback,
     rclcpp::SubscriptionOptions(), msg_strategy);
 
-  auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+  auto command_srv_callback = [this](
       std_srvs::srv::SetBool::Request::SharedPtr request,
       std_srvs::srv::SetBool::Response::SharedPtr response) {
-      (void)request_header;
       if (this->setTorqueCommanding(request->data)) {
         response->success = true;
       } else {

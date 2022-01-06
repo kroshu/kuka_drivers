@@ -30,10 +30,8 @@ RobotControlClient::RobotControlClient(
     robotCommand(), robotState(),
     robot_control_node);
   auto command_srv_callback = [this](
-    const std::shared_ptr<rmw_request_id_t> request_header,
     kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
     kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
-      (void)request_header;
       if (this->setReceiveMultiplier(request->data)) {
         response->success = true;
       } else {

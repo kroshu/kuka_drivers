@@ -25,10 +25,9 @@ RobotControlNode::RobotControlNode()
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
-  auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+  auto command_srv_callback = [this](
       std_srvs::srv::SetBool::Request::SharedPtr request,
       std_srvs::srv::SetBool::Response::SharedPtr response) {
-      (void)request_header;
       if (request->data == true) {
         response->success = this->activate();
       } else {
@@ -37,11 +36,9 @@ RobotControlNode::RobotControlNode()
     };
 
 
-  auto get_fri_state_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
-      const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr request,
+  auto get_fri_state_callback = [this](
+      const kuka_sunrise_interfaces::srv::GetState::Request::SharedPtr,
       kuka_sunrise_interfaces::srv::GetState::Response::SharedPtr response) {
-      (void)request_header;
-      (void)request;
       response->data = client_->robotState().getSessionState();
     };
 
@@ -74,9 +71,8 @@ void RobotControlNode::runClientApplication()
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
+RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
@@ -97,9 +93,8 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_cleanup(const rclcpp_lifecycle::State & state)
+RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   if (munlockall() == -1) {
     RCLCPP_ERROR(get_logger(), "munlockall error");
     return ERROR;
@@ -132,9 +127,8 @@ RobotControlNode::on_shutdown(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_activate(const rclcpp_lifecycle::State & state)
+RobotControlNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
@@ -153,9 +147,8 @@ RobotControlNode::on_activate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_deactivate(const rclcpp_lifecycle::State & state)
+RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   if (this->isActive()) {
     this->deactivate();
   }
@@ -169,9 +162,8 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_error(const rclcpp_lifecycle::State & state)
+RobotControlNode::on_error(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   RCLCPP_INFO(get_logger(), "An error occured");
   return SUCCESS;
 }

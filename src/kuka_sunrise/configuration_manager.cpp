@@ -100,11 +100,8 @@ ConfigurationManager::ConfigurationManager(
   }
 
   auto set_param_callback = [this](
-    const std::shared_ptr<rmw_request_id_t> request_header,
-    std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Request::SharedPtr,
     std_srvs::srv::Trigger::Response::SharedPtr response) {
-      (void) request_header;
-      (void) request;
       response->success = true;
       if (!onCommandModeChangeRequest(
           robot_manager_node_->get_parameter("command_mode")))

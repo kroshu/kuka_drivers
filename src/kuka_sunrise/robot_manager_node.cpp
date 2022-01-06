@@ -38,10 +38,9 @@ RobotManagerNode::RobotManagerNode()
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
   set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
-  auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+  auto command_srv_callback = [this](
       std_srvs::srv::SetBool::Request::SharedPtr request,
       std_srvs::srv::SetBool::Response::SharedPtr response) {
-      (void)request_header;
       if (request->data == true) {
         response->success = this->activate();
       } else {
@@ -57,7 +56,7 @@ RobotManagerNode::RobotManagerNode()
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
@@ -66,7 +65,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-  (void)state;
   configuration_manager_ = std::make_unique<ConfigurationManager>(
     this->shared_from_this(),
     robot_manager_);
@@ -103,10 +101,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  (void)state;
-
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
@@ -152,10 +148,8 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
-
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
@@ -198,9 +192,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
@@ -230,9 +223,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_error(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_error(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   RCLCPP_ERROR(get_logger(), "An error occured");
   return SUCCESS;
 }
