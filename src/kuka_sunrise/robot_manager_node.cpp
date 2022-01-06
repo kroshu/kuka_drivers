@@ -48,7 +48,7 @@ RobotManagerNode::RobotManagerNode()
         response->success = this->deactivate();
       }
     };
-  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  change_robot_manager_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
@@ -76,7 +76,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     if (!requestRobotControlNodeStateTransition(
         lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
     {
-      RCLCPP_ERROR(get_logger(), "Restart needed");
+      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
     }
     return FAILURE;
   }
@@ -88,7 +88,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
       if (!requestRobotControlNodeStateTransition(
           lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
       {
-        RCLCPP_ERROR(get_logger(), "Restart needed");
+        RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
       }
       return FAILURE;
     }
@@ -296,7 +296,7 @@ bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t trans
   if (future_result.get()->success) {
     return true;
   } else {
-    RCLCPP_ERROR(get_logger(), "Future result not success");
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not change robot control state");
     return false;
   }
 }
@@ -314,7 +314,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   }
 
   if (!future_result.get()->success) {
-    RCLCPP_ERROR(get_logger(), "Future result not success");
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not set robot command state");
     return false;
   }
 

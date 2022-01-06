@@ -67,7 +67,7 @@ private:
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_command_state_service_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_manager_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     command_state_changed_publisher_;
 

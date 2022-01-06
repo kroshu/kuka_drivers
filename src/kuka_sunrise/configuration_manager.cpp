@@ -111,7 +111,7 @@ ConfigurationManager::ConfigurationManager(
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
-          "Could not set parameter command_mode");
+          "Could not set parameter command_mode, using default");
         response->success = false;
       }
       if (!onControlModeChangeRequest(
@@ -119,7 +119,7 @@ ConfigurationManager::ConfigurationManager(
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
-          "Could not set parameter control_mode");
+          "Could not set parameter control_mode, using default");
         response->success = false;
       }
     };
@@ -393,7 +393,8 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
       return false;
     }
   } else {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future result not success");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Future result not success, could not set command mode");
     return false;
   }
 
@@ -414,7 +415,9 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
   }
 
   if (!future_result.get()->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future result not success");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not set receive_multiplier");
     return false;
   }
 

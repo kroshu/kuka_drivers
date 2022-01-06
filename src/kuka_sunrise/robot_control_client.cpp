@@ -59,9 +59,9 @@ bool RobotControlClient::activate()
 
 bool RobotControlClient::deactivate()
 {
-  this->ActivatableInterface::activate();
+  this->ActivatableInterface::deactivate();
   robot_commander_->deactivate();
-  robot_observer_->activate();
+  robot_observer_->deactivate();
   return true;  // TODO(resizoltan) check if successful
 }
 
