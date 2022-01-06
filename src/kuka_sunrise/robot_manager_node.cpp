@@ -182,6 +182,13 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
 
   if (!robot_manager_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "could not start fri");
+    if (!requestRobotControlNodeStateTransition(
+        lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Could not solve differing states, restart needed");
+    }
     return FAILURE;
   }
 
@@ -245,7 +252,7 @@ bool RobotManagerNode::activate()
 
   if (!robot_manager_->activateControl()) {
     // TODO(resizoltan) check robot control node state first
-    setRobotControlNodeCommandState(false);
+    this->ActivatableInterface::deactivate();
     RCLCPP_ERROR(get_logger(), "could not activate control");
     return false;
   }
@@ -257,16 +264,16 @@ bool RobotManagerNode::activate()
 
 bool RobotManagerNode::deactivate()
 {
-  this->ActivatableInterface::deactivate();
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return false;
   }
 
-  if (!robot_manager_->deactivateControl()) {
+  if (this->isActive() && !robot_manager_->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "could not deactivate control");
     return false;
   }
+  this->ActivatableInterface::deactivate();
 
   if (!setRobotControlNodeCommandState(false)) {
     // TODO(resizoltan) out of sync
