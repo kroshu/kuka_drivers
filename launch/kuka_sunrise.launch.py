@@ -28,7 +28,7 @@ def generate_launch_description():
         launch_ros.actions.LifecycleNode(
             package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'robot_manager'],
-            parameters=[{'controller_ip': '192.168.38.8'}, {'command_mode': 'torque'}]),
+            parameters=[{'controller_ip': '<insert ip here>'}]),
         launch_ros.actions.LifecycleNode(
             package='kuka_sunrise', executable='robot_control_node', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'robot_control'])
