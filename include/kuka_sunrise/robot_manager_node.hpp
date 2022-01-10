@@ -24,8 +24,8 @@
 #include "lifecycle_msgs/srv/change_state.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/empty.hpp"
 
 #include "kuka_sunrise/robot_manager.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
@@ -65,7 +65,7 @@ private:
   std::shared_ptr<RobotManager> robot_manager_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
-  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
+  rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr set_parameter_publisher_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_manager_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr

@@ -100,16 +100,13 @@ ConfigurationManager::ConfigurationManager(
   }
 
   auto set_param_callback = [this](
-    std_srvs::srv::Trigger::Request::SharedPtr,
-    std_srvs::srv::Trigger::Response::SharedPtr response) {
-      response->success = true;
+    std_msgs::msg::Empty::SharedPtr) {
       if (!onCommandModeChangeRequest(
           robot_manager_node_->get_parameter("command_mode")))
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
           "Could not set parameter command_mode, using default");
-        response->success = false;
       }
       if (!onControlModeChangeRequest(
           robot_manager_node_->get_parameter("control_mode")))
@@ -117,12 +114,11 @@ ConfigurationManager::ConfigurationManager(
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
           "Could not set parameter control_mode, using default");
-        response->success = false;
       }
     };
 
-  set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
-    "configuration_manager/set_params", set_param_callback);
+  set_parameter_sub_ = robot_manager_node->create_subscription<std_msgs::msg::Empty>(
+    "configuration_manager/set_params", 1, set_param_callback);
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(

@@ -24,7 +24,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include "std_msgs/msg/empty.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
 namespace kuka_sunrise
@@ -69,9 +69,9 @@ private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr set_parameter_sub_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
   std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
