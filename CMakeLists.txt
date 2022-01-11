@@ -26,9 +26,6 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kuka_sunrise_interfaces REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 
 include_directories(include)
 
@@ -49,6 +46,16 @@ else()
   message("Using mock fri lib")
 endif()
 
+
+add_library(internal SHARED
+  include/kuka_sunrise/internal/activatable_interface.hpp
+  include/kuka_sunrise/internal/serialization.hpp
+  include/kuka_sunrise/internal/service_tools.hpp)
+ament_target_dependencies(internal rclcpp)
+set_target_properties(internal PROPERTIES LINKER_LANGUAGE CXX)
+
+ament_export_targets(internal HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp)
 
 
 add_library(robot_manager SHARED
@@ -100,6 +107,12 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/kuka_sunrise/internal DESTINATION include/kuka_sunrise)
+install(
+  TARGETS internal
+  EXPORT internal
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include
+)
 
 if(BUILD_TESTING)
 
