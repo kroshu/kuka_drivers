@@ -51,14 +51,13 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
-  set_parameter_publisher_ = this->create_publisher<std_msgs::msg::Empty>(
-    "configuration_manager/set_params", 1);
+  set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params", ::rmw_qos_profile_default, cbg_);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  set_parameter_publisher_->on_activate();
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
@@ -94,8 +93,20 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   }
   // TODO(resizoltan) get IO configuration
 
-  std_msgs::msg::Empty trigger;
-  set_parameter_publisher_->publish(trigger);
+  auto trigger_request =
+    std::make_shared<std_srvs::srv::Trigger::Request>();
+  auto future_result = set_parameter_client_->async_send_request(trigger_request);
+  auto future_status = kuka_sunrise::wait_for_result(
+     future_result,
+     std::chrono::milliseconds(3000));
+   if (future_status != std::future_status::ready) {
+     RCLCPP_ERROR(get_logger(), "Future status not ready, could not set parameters");
+     return FAILURE;
+   }
+   if (!future_result.get()->success) {
+     RCLCPP_ERROR(get_logger(), "Future result not success, could not set parameters");
+     return FAILURE;
+   }
 
   return SUCCESS;
 }

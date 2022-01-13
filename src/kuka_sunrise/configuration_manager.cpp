@@ -32,10 +32,10 @@ ConfigurationManager::ConfigurationManager(
 {
   parameter_set_access_rights_.emplace(
     "command_mode", ParameterSetAccessRights {false, true, true,
-      false, false});
+      false, true});
   parameter_set_access_rights_.emplace(
     "control_mode", ParameterSetAccessRights {false, true, true,
-      false, false});
+      false, true});
   parameter_set_access_rights_.emplace(
     "joint_stiffness", ParameterSetAccessRights {false, true,
       true, false, true});
@@ -100,25 +100,29 @@ ConfigurationManager::ConfigurationManager(
   }
 
   auto set_param_callback = [this](
-    std_msgs::msg::Empty::SharedPtr) {
+    std_srvs::srv::Trigger::Request::SharedPtr,
+    std_srvs::srv::Trigger::Response::SharedPtr response) {
+      response->success = true;
       if (!onCommandModeChangeRequest(
           robot_manager_node_->get_parameter("command_mode")))
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
-          "Could not set parameter command_mode, using default");
+          "Could not set parameter command_mode");
+        response->success = false;
       }
       if (!onControlModeChangeRequest(
           robot_manager_node_->get_parameter("control_mode")))
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
-          "Could not set parameter control_mode, using default");
+          "Could not set parameter control_mode");
+        response->success = false;
       }
     };
 
-  set_parameter_sub_ = robot_manager_node->create_subscription<std_msgs::msg::Empty>(
-    "configuration_manager/set_params", 1, set_param_callback);
+  set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params", set_param_callback, ::rmw_qos_profile_default, cbg_);
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
