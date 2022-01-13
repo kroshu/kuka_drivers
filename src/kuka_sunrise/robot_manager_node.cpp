@@ -97,16 +97,16 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     std::make_shared<std_srvs::srv::Trigger::Request>();
   auto future_result = set_parameter_client_->async_send_request(trigger_request);
   auto future_status = kuka_sunrise::wait_for_result(
-     future_result,
-     std::chrono::milliseconds(3000));
-   if (future_status != std::future_status::ready) {
-     RCLCPP_ERROR(get_logger(), "Future status not ready, could not set parameters");
-     return FAILURE;
-   }
-   if (!future_result.get()->success) {
-     RCLCPP_ERROR(get_logger(), "Future result not success, could not set parameters");
-     return FAILURE;
-   }
+    future_result,
+    std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set parameters");
+    return FAILURE;
+  }
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not set parameters");
+    return FAILURE;
+  }
 
   return SUCCESS;
 }
