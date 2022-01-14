@@ -103,20 +103,21 @@ ConfigurationManager::ConfigurationManager(
     std_srvs::srv::Trigger::Request::SharedPtr,
     std_srvs::srv::Trigger::Response::SharedPtr response) {
       response->success = true;
-      if (!onCommandModeChangeRequest(
-          robot_manager_node_->get_parameter("command_mode")))
-      {
-        RCLCPP_ERROR(
-          robot_manager_node_->get_logger(),
-          "Could not set parameter command_mode");
-        response->success = false;
-      }
       if (!onControlModeChangeRequest(
           robot_manager_node_->get_parameter("control_mode")))
       {
         RCLCPP_ERROR(
           robot_manager_node_->get_logger(),
           "Could not set parameter control_mode");
+        response->success = false;
+      }
+
+      if (!onCommandModeChangeRequest(
+          robot_manager_node_->get_parameter("command_mode")))
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Could not set parameter command_mode");
         response->success = false;
       }
     };
@@ -194,6 +195,18 @@ bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & 
       return false;
     }
   } else if (param.as_string() == "torque") {
+    if (robot_manager_node_->get_parameter("control_mode") != "joint_impedance") {
+      RCLCPP_ERROR(
+        robot_manager_node_->get_logger(),
+        "Unable to set torque command mode, if control mode is not 'joint impedance'");
+      return false;
+    }
+    if (robot_manager_node_->get_parameter("send_period_ms") > 5) {
+      RCLCPP_ERROR(
+        robot_manager_node_->get_logger(),
+        "Unable to set torque command mode, if send periods is bigger than 5");
+      return false;
+    }
     if (!setCommandMode("torque")) {
       return false;
     }
