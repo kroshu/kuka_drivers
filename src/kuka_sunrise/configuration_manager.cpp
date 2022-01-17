@@ -195,13 +195,13 @@ bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & 
       return false;
     }
   } else if (param.as_string() == "torque") {
-    if (robot_manager_node_->get_parameter("control_mode") != "joint_impedance") {
+    if (robot_manager_node_->get_parameter("control_mode").as_string() != "joint_impedance") {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
         "Unable to set torque command mode, if control mode is not 'joint impedance'");
       return false;
     }
-    if (robot_manager_node_->get_parameter("send_period_ms") > 5) {
+    if (robot_manager_node_->get_parameter("send_period_ms").as_int() > 5) {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
         "Unable to set torque command mode, if send periods is bigger than 5");
