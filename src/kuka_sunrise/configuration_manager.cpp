@@ -62,6 +62,14 @@ ConfigurationManager::ConfigurationManager(
     kuka_sunrise_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
     cbg_);
+  sync_receive_multiplier_client_ = robot_manager_node->create_client<
+    kuka_sunrise_interfaces::srv::SetInt>(
+    "sync_receive_multiplier", qos.get_rmw_qos_profile(),
+    cbg_);
+  sync_send_period_client_ = robot_manager_node->create_client<
+    kuka_sunrise_interfaces::srv::SetInt>(
+    "sync_send_period", qos.get_rmw_qos_profile(),
+    cbg_);
 
   if (!robot_manager_node_->has_parameter("control_mode")) {
     robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
@@ -332,6 +340,9 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const rclcpp::Parameter & p
       "Send period milliseconds must be >=1 && <=100");
     return false;
   }
+  if (!setSendPeriod(param.as_int())) {
+    return false;
+  }
   return true;
 }
 
@@ -413,6 +424,7 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
 
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 {
+  // Set parameter of control client
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
   auto future_result = receive_multiplier_client_->async_send_request(request);
@@ -431,6 +443,46 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
     return false;
   }
 
+  // Sync with joint controller
+  future_result = sync_receive_multiplier_client_->async_send_request(request);
+  future_status = wait_for_result(
+    future_result,
+    std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not sync receive_multiplier");
+    return false;
+  }
+
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not sync receive_multiplier");
+    return false;
+  }
+  return true;
+}
+
+bool ConfigurationManager::setSendPeriod(int send_period)
+{
+  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
+  request->data = send_period;
+  auto future_result = sync_send_period_client_->async_send_request(request);
+  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not sync send_period");
+    return false;
+  }
+
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not sync send_period");
+    return false;
+  }
   return true;
 }
 }  // namespace kuka_sunrise
