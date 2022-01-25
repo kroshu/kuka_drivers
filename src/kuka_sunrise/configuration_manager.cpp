@@ -32,56 +32,25 @@ ConfigurationManager::ConfigurationManager(
 {
   parameter_set_access_rights_.emplace(
     "command_mode", ParameterSetAccessRights {false, true, true,
-      false, false});
+      false, true});
   parameter_set_access_rights_.emplace(
     "control_mode", ParameterSetAccessRights {false, true, true,
-      false, false});
+      false, true});
   parameter_set_access_rights_.emplace(
     "joint_stiffness", ParameterSetAccessRights {false, true,
-      true, false, false});
+      true, false, true});
   parameter_set_access_rights_.emplace(
     "joint_damping", ParameterSetAccessRights {false, true, true,
-      false, false});
+      false, true});
   parameter_set_access_rights_.emplace(
     "send_period_ms", ParameterSetAccessRights {false, true,
-      false, false, false});
+      false, false, true});
   parameter_set_access_rights_.emplace(
     "receive_multiplier", ParameterSetAccessRights {false, true,
-      false, false, false});
+      false, false, true});
   parameter_set_access_rights_.emplace(
     "controller_ip", ParameterSetAccessRights {false, false,
       false, false, true});
-
-  if (!robot_manager_node_->has_parameter("command_mode")) {
-    robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
-  }
-  if (!robot_manager_node_->has_parameter("control_mode")) {
-    robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
-  }
-  if (!robot_manager_node_->has_parameter("joint_stiffness")) {
-    robot_manager_node_->declare_parameter(
-      "joint_stiffness", rclcpp::ParameterValue(joint_stiffness_temp_));
-  }
-  if (!robot_manager_node_->has_parameter("joint_damping")) {
-    robot_manager_node_->declare_parameter(
-      "joint_damping",
-      rclcpp::ParameterValue(joint_damping_temp_));
-  }
-  if (!robot_manager_node_->has_parameter("send_period_ms")) {
-    robot_manager_node_->declare_parameter("send_period_ms", rclcpp::ParameterValue(10));
-  }
-  if (!robot_manager_node_->has_parameter("receive_multiplier")) {
-    robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
-  }
-
-  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
-    [this](
-      const std::vector<rclcpp::Parameter> & parameters)
-    {return this->onParamChange(parameters);});
-
-  if (!robot_manager_node_->has_parameter("controller_ip")) {
-    robot_manager_node_->declare_parameter("controller_ip");
-  }
 
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -93,6 +62,76 @@ ConfigurationManager::ConfigurationManager(
     kuka_sunrise_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
     cbg_);
+  sync_receive_multiplier_client_ = robot_manager_node->create_client<
+    kuka_sunrise_interfaces::srv::SetInt>(
+    "sync_receive_multiplier", qos.get_rmw_qos_profile(),
+    cbg_);
+  sync_send_period_client_ = robot_manager_node->create_client<
+    kuka_sunrise_interfaces::srv::SetInt>(
+    "sync_send_period", qos.get_rmw_qos_profile(),
+    cbg_);
+
+  if (!robot_manager_node_->has_parameter("control_mode")) {
+    robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
+  }
+
+  if (!robot_manager_node_->has_parameter("command_mode")) {
+    robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
+  }
+
+  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
+    [this](
+      const std::vector<rclcpp::Parameter> & parameters)
+    {return this->onParamChange(parameters);});
+
+  if (!robot_manager_node_->has_parameter("receive_multiplier")) {
+    robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
+  }
+
+  if (!robot_manager_node_->has_parameter("send_period_ms")) {
+    robot_manager_node_->declare_parameter("send_period_ms", rclcpp::ParameterValue(10));
+  }
+
+  if (!robot_manager_node_->has_parameter("joint_stiffness")) {
+    robot_manager_node_->declare_parameter(
+      "joint_stiffness", rclcpp::ParameterValue(joint_stiffness_temp_));
+  }
+
+  if (!robot_manager_node_->has_parameter("joint_damping")) {
+    robot_manager_node_->declare_parameter(
+      "joint_damping",
+      rclcpp::ParameterValue(joint_damping_temp_));
+  }
+
+  if (!robot_manager_node_->has_parameter("controller_ip")) {
+    robot_manager_node_->declare_parameter("controller_ip");
+  }
+
+  auto set_param_callback = [this](
+    std_srvs::srv::Trigger::Request::SharedPtr,
+    std_srvs::srv::Trigger::Response::SharedPtr response) {
+      response->success = true;
+      if (!onControlModeChangeRequest(
+          robot_manager_node_->get_parameter("control_mode")))
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Could not set parameter control_mode");
+        response->success = false;
+      }
+
+      if (!onCommandModeChangeRequest(
+          robot_manager_node_->get_parameter("command_mode")))
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Could not set parameter command_mode");
+        response->success = false;
+      }
+    };
+
+  set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params", set_param_callback, ::rmw_qos_profile_default, cbg_);
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
@@ -164,6 +203,18 @@ bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & 
       return false;
     }
   } else if (param.as_string() == "torque") {
+    if (robot_manager_node_->get_parameter("control_mode").as_string() != "joint_impedance") {
+      RCLCPP_ERROR(
+        robot_manager_node_->get_logger(),
+        "Unable to set torque command mode, if control mode is not 'joint impedance'");
+      return false;
+    }
+    if (robot_manager_node_->get_parameter("send_period_ms").as_int() > 5) {
+      RCLCPP_ERROR(
+        robot_manager_node_->get_logger(),
+        "Unable to set torque command mode, if send periods is bigger than 5");
+      return false;
+    }
     if (!setCommandMode("torque")) {
       return false;
     }
@@ -192,21 +243,6 @@ bool ConfigurationManager::onControlModeChangeRequest(const rclcpp::Parameter & 
     return robot_manager_->setPositionControlMode();
   } else if (param.as_string() == "joint_impedance") {
     try {
-      /*if(!robot_manager_node_->has_parameter("joint_stiffness") ||
-       !robot_manager_node_->has_parameter("joint_damping")){
-       RCLCPP_ERROR(robot_manager_node_->get_logger(), "Parameter joint stiffness or joint damping not available");
-       return false;
-       }
-       RCLCPP_INFO(robot_manager_node_->get_logger(), "Parameters joint stiffness or joint damping available");
-       rclcpp::Parameter joint_stiffness = robot_manager_node_->get_parameter("joint_stiffness");
-       rclcpp::Parameter joint_damping = robot_manager_node_->get_parameter("joint_damping");
-       if(joint_stiffness.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY ||
-       joint_damping.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY){
-       RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid parameter type for joint stiffness or joint damping");
-       return false;
-       }
-       RCLCPP_INFO(robot_manager_node_->get_logger(), "Parameters joint stiffness or joint damping valid");
-       return robot_manager_->setJointImpedanceControlMode(joint_stiffness.as_double_array(), joint_damping.as_double_array());*/
       return robot_manager_->setJointImpedanceControlMode(
         joint_stiffness_temp_,
         joint_damping_temp_);
@@ -304,6 +340,9 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const rclcpp::Parameter & p
       "Send period milliseconds must be >=1 && <=100");
     return false;
   }
+  if (!setSendPeriod(param.as_int())) {
+    return false;
+  }
   return true;
 }
 
@@ -360,14 +399,13 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
     return false;
   }
-
   auto future_result = command_mode_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future status not ready");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Future status not ready, could not set command mode");
     return false;
   }
-
   if (future_result.get()->success) {
     if (robot_manager_) {
       robot_manager_->setClientCommandMode(client_command_mode);
@@ -376,7 +414,8 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
       return false;
     }
   } else {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future result not success");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Future result not success, could not set command mode");
     return false;
   }
 
@@ -385,20 +424,65 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
 
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 {
+  // Set parameter of control client
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
   auto future_result = receive_multiplier_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future status not ready");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not set receive_multiplier");
     return false;
   }
 
   if (!future_result.get()->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Future result not success");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not set receive_multiplier");
     return false;
   }
 
+  // Sync with joint controller
+  future_result = sync_receive_multiplier_client_->async_send_request(request);
+  future_status = wait_for_result(
+    future_result,
+    std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not sync receive_multiplier");
+    return false;
+  }
+
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not sync receive_multiplier");
+    return false;
+  }
+  return true;
+}
+
+bool ConfigurationManager::setSendPeriod(int send_period)
+{
+  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
+  request->data = send_period;
+  auto future_result = sync_send_period_client_->async_send_request(request);
+  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future status not ready, could not sync send_period");
+    return false;
+  }
+
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Future result not success, could not sync send_period");
+    return false;
+  }
   return true;
 }
 }  // namespace kuka_sunrise

@@ -38,44 +38,26 @@ RobotManagerNode::RobotManagerNode()
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
   set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
-  auto command_srv_callback = [this](const std::shared_ptr<rmw_request_id_t> request_header,
-      std_srvs::srv::SetBool::Request::SharedPtr request,
-      std_srvs::srv::SetBool::Response::SharedPtr response) {
-      (void)request_header;
+  auto command_srv_callback = [this](
+    std_srvs::srv::SetBool::Request::SharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response) {
       if (request->data == true) {
         response->success = this->activate();
       } else {
         response->success = this->deactivate();
       }
     };
-  set_command_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  change_robot_manager_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
+  set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
+    "configuration_manager/set_params", ::rmw_qos_profile_default, cbg_);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  (void)state;
-  configuration_manager_ = std::make_unique<ConfigurationManager>(
-    this->shared_from_this(),
-    robot_manager_);
-
-  if (!this->has_parameter("controller_ip")) {
-    RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
-    return FAILURE;
-  }
-
-  const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
-  if (!robot_manager_->isConnected()) {
-    if (!robot_manager_->connect(controller_ip, 30000)) {
-      RCLCPP_ERROR(get_logger(), "could not connect");
-      return FAILURE;
-    }
-  }
-  // TODO(resizoltan) get IO configuration
-
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
@@ -83,14 +65,55 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
+  configuration_manager_ = std::make_unique<ConfigurationManager>(
+    this->shared_from_this(),
+    robot_manager_);
+
+  if (!this->has_parameter("controller_ip")) {
+    RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
+    if (!requestRobotControlNodeStateTransition(
+        lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
+    }
+    return FAILURE;
+  }
+
+  const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
+  if (!robot_manager_->isConnected()) {
+    if (!robot_manager_->connect(controller_ip, 30000)) {
+      RCLCPP_ERROR(get_logger(), "could not connect");
+      if (!requestRobotControlNodeStateTransition(
+          lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+      {
+        RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
+      }
+      return FAILURE;
+    }
+  }
+  // TODO(resizoltan) get IO configuration
+
+  auto trigger_request =
+    std::make_shared<std_srvs::srv::Trigger::Request>();
+  auto future_result = set_parameter_client_->async_send_request(trigger_request);
+  auto future_status = kuka_sunrise::wait_for_result(
+    future_result,
+    std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set parameters");
+    return FAILURE;
+  }
+  if (!future_result.get()->success) {
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not set parameters");
+    return FAILURE;
+  }
+
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  (void)state;
-
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
@@ -136,10 +159,8 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
-
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
@@ -166,6 +187,13 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
 
   if (!robot_manager_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "could not start fri");
+    if (!requestRobotControlNodeStateTransition(
+        lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Could not solve differing states, restart needed");
+    }
     return FAILURE;
   }
 
@@ -175,9 +203,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
@@ -207,9 +234,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State & state)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_error(const rclcpp_lifecycle::State & state)
+RobotManagerNode::on_error(const rclcpp_lifecycle::State &)
 {
-  (void)state;
   RCLCPP_ERROR(get_logger(), "An error occured");
   return SUCCESS;
 }
@@ -229,7 +255,7 @@ bool RobotManagerNode::activate()
 
   if (!robot_manager_->activateControl()) {
     // TODO(resizoltan) check robot control node state first
-    setRobotControlNodeCommandState(false);
+    this->ActivatableInterface::deactivate();
     RCLCPP_ERROR(get_logger(), "could not activate control");
     return false;
   }
@@ -241,16 +267,16 @@ bool RobotManagerNode::activate()
 
 bool RobotManagerNode::deactivate()
 {
-  this->ActivatableInterface::deactivate();
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return false;
   }
 
-  if (!robot_manager_->deactivateControl()) {
+  if (this->isActive() && !robot_manager_->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "could not deactivate control");
     return false;
   }
+  this->ActivatableInterface::deactivate();
 
   if (!setRobotControlNodeCommandState(false)) {
     // TODO(resizoltan) out of sync
@@ -274,13 +300,13 @@ bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t trans
   auto future_result = change_robot_control_state_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready");
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not change robot control state");
     return false;
   }
   if (future_result.get()->success) {
     return true;
   } else {
-    RCLCPP_ERROR(get_logger(), "Future result not success");
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not change robot control state");
     return false;
   }
 }
@@ -293,12 +319,12 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   auto future_result = set_command_state_client_->async_send_request(request);
   auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
   if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready");
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set robot command state");
     return false;
   }
 
   if (!future_result.get()->success) {
-    RCLCPP_ERROR(get_logger(), "Future result not success");
+    RCLCPP_ERROR(get_logger(), "Future result not success, could not set robot command state");
     return false;
   }
 
@@ -307,6 +333,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
 
 void RobotManagerNode::handleControlEndedError()
 {
+  // TODO(Svastits): deactivate managers by internal control ended error
   RCLCPP_INFO(get_logger(), "control ended");
   deactivate();
 }

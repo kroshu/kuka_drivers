@@ -93,12 +93,8 @@ RobotObserver::RobotObserver(
   qos.best_effort();
   joint_state_publisher_ = robot_control_node->create_publisher<
     sensor_msgs::msg::JointState>("lbr_joint_state", 1);
-  // joint_state_publisher2_ =
-  //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state2", qos);
   tracking_performance_publisher_ = robot_control_node->create_publisher<
     std_msgs::msg::Float64>("tracking_performance", qos);
-  // joint_state_publisher_ =
-  //    robot_control_node->create_publisher<sensor_msgs::msg::JointState>("lbr_joint_state", qos);
 }
 
 void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
@@ -112,14 +108,6 @@ void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
   joint_state_msg_.header.frame_id = "world";
   joint_state_msg_.header.stamp = stamp;  // TODO(resizoltan) catch exceptions
 
-  /*const double *joint_positions_measured = robot_state_.getMeasuredJointPosition();
-   const double *joint_torques_measured = robot_state_.getMeasuredTorque();
-
-   joint_state_msg_.velocity.clear();
-   joint_state_msg_.position.assign(joint_positions_measured, joint_positions_measured + robot_state_.NUMBER_OF_JOINTS);
-   joint_state_msg_.effort.assign(joint_torques_measured, joint_torques_measured + robot_state_.NUMBER_OF_JOINTS);
-   joint_state_publisher2_->publish(joint_state_msg_);*/
-  // RCLCPP_INFO(robot_control_node_->get_logger(), "%u", robot_state_.getSessionState());
   if (robot_state_.getSessionState() == KUKA::FRI::COMMANDING_WAIT ||
     robot_state_.getSessionState() == KUKA::FRI::COMMANDING_ACTIVE)
   {
