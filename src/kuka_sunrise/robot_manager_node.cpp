@@ -65,9 +65,11 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  configuration_manager_ = std::make_unique<ConfigurationManager>(
-    this->shared_from_this(),
-    robot_manager_);
+  if (!configuration_manager_) {
+    configuration_manager_ = std::make_unique<ConfigurationManager>(
+      this->shared_from_this(),
+      robot_manager_);
+  }
 
   if (!this->has_parameter("controller_ip")) {
     RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
