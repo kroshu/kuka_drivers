@@ -55,9 +55,9 @@ ConfigurationManager::ConfigurationManager(
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(
-    rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+    rclcpp::CallbackGroupType::MutuallyExclusive);
   param_cbg_ = robot_manager_node->create_callback_group(
-    rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
+    rclcpp::CallbackGroupType::MutuallyExclusive);
   command_mode_client_ = robot_manager_node->create_client<std_srvs::srv::SetBool>(
     "set_command_mode", qos.get_rmw_qos_profile(), cbg_);
   receive_multiplier_client_ = robot_manager_node->create_client<
