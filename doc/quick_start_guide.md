@@ -32,7 +32,7 @@
    
    Set the variable `_remoteIP` in the file serialization/FRIConfigurationParams of the Sunrise Project to the IP adress of your client machine.
 
-3. **Set IP adress of Sunrise Cabinet in the ROS2 sunrise driver*
+3. **Set IP adress of Sunrise Cabinet in the ROS2 sunrise driver**
    
    Open the file kuka_sunrise/robot_,manager_node.cpp and set the IP adress at line 56 to the IP adress of the Sunrise Cabinet. (TODO: use rosparam)
 
@@ -40,7 +40,7 @@ Then continue with one of the following options:
 
 #### Starting the robot driver only
 
-2. **On the client machine run `ros2 launch kuka_sunrise kuka_sunrise.launch.py`**
+4. **On the client machine run `ros2 launch kuka_sunrise kuka_sunrise.launch.py`**
    
    This launch file starts 2 nodes:
    
@@ -52,7 +52,7 @@ Then continue with one of the following options:
      
      Real-time monitoring and commanding of robot states through FRI
 
-3. **Activate robot state monitoring with ROS2 lifecycle CLI**
+5. **Activate robot state monitoring with ROS2 lifecycle CLI**
    
    1. **`ros2 lifecycle configure robot_manager`**
    
@@ -74,20 +74,20 @@ Then continue with one of the following options:
    
    should appear on the smartPAD log. If the second message is missing, there was an error and the FRI session could not be started. In this case the command `ros2 lifecycle activate robot_manager` also returns with a failure message on the client machine. The most likely issue is that the ports for the FRI were configured incorrectly, or they are not allowed through the firewall of the client machine.  Refer to the Sunrise FRI documentation for more info on how to set up FRI.
 
-4. **Monitor the robot state by running `ros2 topic echo /lbr_joint_state`**
+6. **Monitor the robot state by running `ros2 topic echo /lbr_joint_state`**
 
 #### Starting the example application teleop_guided_robot
 
-2. **On the client machine run `ros2 launch teleop_guided_robot teleop_guided_robot.launch.py`**
+4. **On the client machine run `ros2 launch teleop_guided_robot teleop_guided_robot.launch.py`**
    
    This launch file starts the driver, a joint position controller and a system manager.
 
-3. **Activate robot state control with the ROS2 lifecycl CLI**
+5. **Activate robot state control with the ROS2 lifecycl CLI**
    
    1. **`ros2 lifecycle configure system_manager`**
    
    2. **`ros2 lifecycle activate system_manager`**
 
-4. **In a new terminal run `ros2 run key_teleop key_teleop`**
+6. **In a new terminal run `ros2 run key_teleop key_teleop`**
    
    You should now be able to operate the robot joint position from this window. You can increment/decrement the position of the active joint with the horizontal arrows and change the active joint with the vertical arrows.
