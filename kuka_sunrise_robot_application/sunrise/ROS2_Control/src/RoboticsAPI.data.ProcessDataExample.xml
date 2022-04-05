@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<RoboticsAPIData version="3">
+   <world>
+      <gravitation x="0.0" y="0.0" z="9.81"/>
+   </world>
+   <tools/>
+   <userDatas/>
+   <objectTemplates/>
+   <!-- 
+    This file contains examples for generating process data elements. 
+    Please copy the processDataContainer and its content into the RoboticsAPI.data.xml and modify the processData as needed.
+    
+    To use this process data elements in your application use getApplicationData().getProcessData(<id>).
+    e.g.
+    getApplicationData().getProcessData("counter").setValue(3);
+    
+    -->
+   <processDataContainer>
+      <processData displayName="Example Integer" dataType="java.lang.Integer" defaultValue="0" id="counter" min="0" max="100" value="82"/>
+      <processData displayName="Example Double" dataType="java.lang.Double" defaultValue="13.37" id="itemCount" min="0.01" max="200.7" value="12" unit="Objects" comment="already produced"/>
+      <processData displayName="Example String" dataType="java.lang.String" defaultValue="0" id="someName" value="HelloWorld"/>
+      <processData displayName="Example Boolean" dataType="java.lang.Boolean" defaultValue="false" id="isTrue"  value="true"/>
+      <processData displayName="Example InvisibleOnHmi" dataType="java.lang.Boolean" defaultValue="false" id="invisibleOnHmi" value="true" visibleOnHmi="false"/>
+      <processData displayName="Example NotEditableOnHmi" dataType="java.lang.Boolean" defaultValue="false" id="notEditableOnHmi" value="true" editableOnHmi="false"/>
+   </processDataContainer>
+</RoboticsAPIData>
