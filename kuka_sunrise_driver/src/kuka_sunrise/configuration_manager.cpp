@@ -55,9 +55,7 @@ ConfigurationManager::ConfigurationManager(
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(
-    rclcpp::CallbackGroupType::MutuallyExclusive);
-  param_cbg_ = robot_manager_node->create_callback_group(
-    rclcpp::CallbackGroupType::MutuallyExclusive);
+    rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   command_mode_client_ = robot_manager_node->create_client<std_srvs::srv::SetBool>(
     "set_command_mode", qos.get_rmw_qos_profile(), cbg_);
   receive_multiplier_client_ = robot_manager_node->create_client<
@@ -133,7 +131,7 @@ ConfigurationManager::ConfigurationManager(
     };
 
   set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
-    "configuration_manager/set_params", set_param_callback, ::rmw_qos_profile_default, param_cbg_);
+    "configuration_manager/set_params", set_param_callback, ::rmw_qos_profile_default, cbg_);
 }
 
 rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
@@ -226,9 +224,6 @@ bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & 
       param.get_name().c_str());
     return false;
   }
-  RCLCPP_INFO(
-    robot_manager_node_->get_logger(), "Successfully set parameter %s",
-    param.get_name().c_str());
   return true;
 }
 
@@ -243,7 +238,7 @@ bool ConfigurationManager::onControlModeChangeRequest(const rclcpp::Parameter & 
   if (!canSetParameter(param)) {
     return false;
   }
-  RCLCPP_INFO(robot_manager_node_->get_logger(), "Setting parameter %s", param.get_name().c_str());
+  RCLCPP_INFO(robot_manager_node_->get_logger(), "Can set parameter %s", param.get_name().c_str());
   if (param.as_string() == "position") {
     return robot_manager_->setPositionControlMode();
   } else if (param.as_string() == "joint_impedance") {
@@ -423,6 +418,7 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
       robot_manager_node_->get_logger(), "Future result not success, could not set command mode");
     return false;
   }
+
   return true;
 }
 

@@ -1,0 +1,4 @@
+float64 data
+---
+bool success
+string reason

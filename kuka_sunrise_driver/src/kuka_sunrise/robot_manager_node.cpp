@@ -33,7 +33,7 @@ RobotManagerNode::RobotManagerNode()
     {this->handleFRIEndedError();});
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
-  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbg_ = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
   change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
   set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
@@ -65,11 +65,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (!configuration_manager_) {
-    configuration_manager_ = std::make_unique<ConfigurationManager>(
-      this->shared_from_this(),
-      robot_manager_);
-  }
+  configuration_manager_ = std::make_unique<ConfigurationManager>(
+    this->shared_from_this(),
+    robot_manager_);
 
   if (!this->has_parameter("controller_ip")) {
     RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");

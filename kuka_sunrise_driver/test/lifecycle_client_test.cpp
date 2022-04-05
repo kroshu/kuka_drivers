@@ -52,9 +52,9 @@ public:
     auto qos = rclcpp::QoS(rclcpp::KeepAll());
     qos.reliable();
     service_cbg_ = this->create_callback_group(
-      rclcpp::CallbackGroupType::MutuallyExclusive);
+      rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     topic_cbg_ = this->create_callback_group(
-      rclcpp::CallbackGroupType::MutuallyExclusive);
+      rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     auto sub_opt = rclcpp::SubscriptionOptions();
     sub_opt.callback_group = topic_cbg_;
     client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
@@ -133,8 +133,8 @@ public:
   }
 
 private:
-  rclcpp::CallbackGroup::SharedPtr topic_cbg_;
-  rclcpp::CallbackGroup::SharedPtr service_cbg_;
+  rclcpp::callback_group::CallbackGroup::SharedPtr topic_cbg_;
+  rclcpp::callback_group::CallbackGroup::SharedPtr service_cbg_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr client_;
   rclcpp::Client<lifecycle_msgs::srv::GetState>::SharedPtr getter_client_;
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr trigger_;
@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor(
-    rclcpp::ExecutorOptions(), 2);
+    rclcpp::executor::create_default_executor_arguments(), 2);
   auto node = std::make_shared<LifecycleClientTester>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
