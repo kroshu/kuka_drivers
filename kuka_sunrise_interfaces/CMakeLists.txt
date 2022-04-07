@@ -22,12 +22,12 @@ find_package(rosidl_default_generators REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-	
+
 rosidl_generate_interfaces(${PROJECT_NAME}
-	"srv/SetInt.srv"
-	"srv/GetState.srv"
-	"srv/SetDouble.srv"
-	)
+  "srv/SetInt.srv"
+  "srv/GetState.srv"
+  "srv/SetDouble.srv"
+)
 
 
 if(BUILD_TESTING)
