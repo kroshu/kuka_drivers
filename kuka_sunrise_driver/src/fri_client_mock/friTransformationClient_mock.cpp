@@ -43,7 +43,7 @@ EConnectionQuality TransformationClient::getConnectionQuality() const
 
 const std::vector<const char *> & TransformationClient::getRequestedTransformationIDs() const
 {
-  return nullptr;
+  return std::vector<const char *>();
 }
 
 const unsigned int TransformationClient::getTimestampSec() const
