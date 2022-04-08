@@ -68,7 +68,8 @@ public:
 private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
-  rclcpp::callback_group::CallbackGroup::SharedPtr cbg_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
+  rclcpp::CallbackGroup::SharedPtr param_cbg_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_client_;

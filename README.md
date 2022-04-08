@@ -1,6 +1,6 @@
-# ROS2 KUKA Sunrise Driver  
+# ROS2 KUKA Sunrise Project
 
-Experimental ROS2 driver for KUKA LBR iiwa robots.
+Experimental ROS2 project for KUKA LBR iiwa robots.
 
 
 Travis CI | SonarCloud
