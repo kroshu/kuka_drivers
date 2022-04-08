@@ -119,7 +119,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
       return;
     }
     bool pending_work_copy = cv_pending_work_;
-    cv_.wait(lk, [pending_work_copy]{ return pending_work_copy; });
+    cv_.wait(lk, [pending_work_copy] {return pending_work_copy;});
     // check if wait has been interrupted by the robot manager
     if (!is_active_) {
       RCLCPP_INFO(
