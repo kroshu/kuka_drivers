@@ -31,6 +31,11 @@ jobs:
           ROS_DISTRO: foxy
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      EVENT_NAME: ${{ github.event_name }}
+      BRANCH: ${{ github.event.ref##*/ }}
+      PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PR_BASE: ${{ github.event.pul_request.base.ref }}
+      PR_NUMBER: ${{ github.event.number }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
