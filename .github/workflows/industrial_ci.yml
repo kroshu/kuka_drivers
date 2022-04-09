@@ -8,15 +8,23 @@ on:
   # When master or melodic-devel branch is pushed to
   push:
     branches:
-    - master
-    - feature/**
-    - fix/**
+      - master
+      - feature/**
+      - fix/**
+    paths-ignore:
+      - doc/**
+      - **.md
+      - LICENSE
   # When there is a pull request against master
   pull_request:
     branches:
-    - master
-    - feature/**
-    - fix/**
+      - master
+      - feature/**
+      - fix/**
+    paths-ignore:
+      - doc/**
+      - **.md
+      - LICENSE
 
 jobs:
   industrial_ci:
