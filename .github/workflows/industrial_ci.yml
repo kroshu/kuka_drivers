@@ -9,14 +9,14 @@ on:
   push:
     branches:
     - master
-    - /^feature\/.*$/
-    - /^fix\/.*$/
+    - feature/**
+    - fix/**
   # When there is a pull request against master
   pull_request:
     branches:
     - master
-    - /^feature\/.*$/
-    - /^fix\/.*$/
+    - feature/**
+    - fix/**
 
 jobs:
   industrial_ci:
