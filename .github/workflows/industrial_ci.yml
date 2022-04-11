@@ -1,0 +1,57 @@
+name: CI
+
+# This determines when this workflow is run
+# on: [push, pull_request] # on all pushes and PRs
+
+# or more fine-grained
+on:
+  # When master or melodic-devel branch is pushed to
+  push:
+    branches:
+      - master
+      - feature/**
+      - fix/**
+    paths-ignore:
+      - doc/**
+      - '**.md'
+      - LICENSE
+  # When there is a pull request against master
+  pull_request:
+    branches:
+      - master
+      - feature/**
+      - fix/**
+    paths-ignore:
+      - doc/**
+      - '**.md'
+      - LICENSE
+
+jobs:
+  industrial_ci:
+    strategy:
+      matrix:
+        env:
+        - ROS_REPO: ros
+          BUILDER: colcon
+          SONARQUBE: true
+          TEST_COVERAGE: true
+          CMAKE_ARGS: '-DMOCK_FRI=ON'
+          ROS_DISTRO: foxy
+    env:
+      CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      EVENT_NAME: ${{ github.event_name }}
+      BRANCH: ${{ github.event.ref }}
+      PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PR_BASE: ${{ github.event.pul_request.base.ref }}
+      PR_NUMBER: ${{ github.event.number }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # This step will fetch/store the directory used by ccache before/after the ci run
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
+      # Run industrial_ci
+      - uses: 'kroshu/industrial_ci@update'
+        env: ${{ matrix.env }}
