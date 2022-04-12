@@ -23,23 +23,25 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(kuka_sunrise REQUIRED)
 
 include_directories(include)
 
 add_executable(keyboard_control
-	src/control_logic/keyboard_control.cpp)
+  src/control_logic/keyboard_control.cpp)
 ament_target_dependencies(keyboard_control rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs)
-  
+
 add_executable(system_manager
-	src/control_system/system_manager.cpp)
-ament_target_dependencies(system_manager rclcpp rclcpp_lifecycle std_msgs std_srvs)  
+  src/control_system/system_manager.cpp)
+ament_target_dependencies(system_manager rclcpp rclcpp_lifecycle std_msgs std_srvs)
+target_link_libraries(system_manager kuka_sunrise::internal)
 
 install(TARGETS keyboard_control system_manager
-	DESTINATION lib/${PROJECT_NAME})
-	
+  DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY launch
-  	DESTINATION share/${PROJECT_NAME})
-  	
+  DESTINATION share/${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
