@@ -33,7 +33,7 @@ jobs:
         env:
         - ROS_REPO: ros
           BUILDER: colcon
-          SONARQUBE: true
+          ANALYZER: sonarqube
           TEST_COVERAGE: true
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: foxy
