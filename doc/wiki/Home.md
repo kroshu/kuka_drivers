@@ -1,4 +1,4 @@
-# Welcome to the ROS2 KUKA Sunrise project!
+# Welcome to the ROS2 KUKA Sunrise driver project!
 
 ## Project description
 
@@ -66,4 +66,8 @@ The following features of the FRI are exposed to ROS2:
 
 If you have questions, suggestions or want to contribute, feel free to open an [issue](https://github.com/kroshu/ros2_kuka_sunrise/issues), start a [discussion](https://github.com/kroshu/ros2_kuka_sunrise/discussions) or drop an email to:
 
-**Zoltán Rési** - resizoltan@gmail.com
+**Zoltán Rési** 
+
+GitHub: https://github.com/resizoltan
+
+Email: resizoltan@gmail.com
