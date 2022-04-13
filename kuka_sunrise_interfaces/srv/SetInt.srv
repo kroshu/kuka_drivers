@@ -1,3 +1,4 @@
+# Attempt to set a double value and indicate and explain if RPC failed
 int64 data
 ---
 bool success
