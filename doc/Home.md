@@ -1,4 +1,4 @@
-# Welcome to the ROS2 KUKA Sunrise project!
+# Welcome to the ROS2 KUKA Sunrise driver project!
 
 ## Project description
 
