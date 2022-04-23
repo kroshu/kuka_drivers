@@ -34,7 +34,6 @@ jobs:
         - ROS_REPO: ros
           BUILDER: colcon
           ANALYZER: sonarqube
-          ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
           TEST_COVERAGE: true
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: foxy
@@ -45,6 +44,7 @@ jobs:
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
       PR_BASE: ${{ github.event.pull_request.base.ref }}
       PR_NUMBER: ${{ github.event.number }}
+      ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
