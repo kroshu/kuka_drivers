@@ -21,6 +21,6 @@ jobs:
         # Make sure you have that / at the end. We use rsync
         # WIKI_DIR's default is wiki/
         WIKI_DIR: doc/wiki/
-        GH_TOKEN: ${{ secrets.WIKI_UPDATE_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_MAIL: resizoltan@gmail.com
         GH_NAME: resizoltan
