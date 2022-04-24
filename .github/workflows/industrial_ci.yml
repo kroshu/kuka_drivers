@@ -45,6 +45,7 @@ jobs:
       PR_BASE: ${{ github.event.pull_request.base.ref }}
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
+      DEBUG_BASH: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
