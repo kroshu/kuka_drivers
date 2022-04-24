@@ -123,6 +123,7 @@ private:
 
   std::mutex m_;
   std::condition_variable cv_;
+  bool cv_pending_work_ = false;
 };
 
 }  // namespace kuka_sunrise
