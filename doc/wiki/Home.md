@@ -8,7 +8,7 @@ This project centers on the development of a comprehensive ROS2 driver for exter
    
    - Parameter configuration
    
-   - Start/stop of external monitoring and commanding
+   - Start/stop of external monitoring and commanding 
    
    - Reacting to application errors
 
