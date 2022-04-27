@@ -21,6 +21,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kuka_sunrise_interfaces REQUIRED)
+find_package(kroshu_ros2_core REQUIRED)
 
 include_directories(include)
 
