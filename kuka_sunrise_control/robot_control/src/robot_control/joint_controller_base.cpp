@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "robot_control/joint_controller.hpp"
+#include "robot_control/joint_controller_base.hpp"
 
 #include <sys/mman.h>
 #include <string>
