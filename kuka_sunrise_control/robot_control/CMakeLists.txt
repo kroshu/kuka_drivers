@@ -31,12 +31,26 @@ add_library(joint_controller_base
 ament_target_dependencies(joint_controller_base rclcpp sensor_msgs kuka_sunrise_interfaces kroshu_ros2_core)
 target_link_libraries(joint_controller_base ${kroshu_ros2_core_LIBRARIES})
 
-add_executable(joint_controller
-    src/robot_control/joint_controller.cpp)
-ament_target_dependencies(joint_controller rclcpp sensor_msgs kuka_sunrise_interfaces)
-target_link_libraries(joint_controller joint_controller_base)
+add_library(interpolating_controller_lib
+  include/robot_control/interpolating_controller.hpp
+  src/robot_control/interpolating_controller.cpp)
+ament_target_dependencies(interpolating_controller_lib rclcpp sensor_msgs kuka_sunrise_interfaces)
+target_link_libraries(interpolating_controller_lib joint_controller_base)
 
-install(TARGETS joint_controller
+add_executable(interpolating_controller
+    src/robot_control/interpolating_controller_executable.cpp)
+ament_target_dependencies(interpolating_controller rclcpp sensor_msgs kuka_sunrise_interfaces)
+target_link_libraries(interpolating_controller interpolating_controller_lib)
+
+add_executable(rate_scaled_controller
+    src/robot_control/rate_scaled_controller.cpp)
+ament_target_dependencies(rate_scaled_controller rclcpp sensor_msgs kuka_sunrise_interfaces)
+target_link_libraries(rate_scaled_controller interpolating_controller_lib)
+
+install(TARGETS interpolating_controller
+    DESTINATION lib/${PROJECT_NAME})
+    
+install(TARGETS rate_scaled_controller
     DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

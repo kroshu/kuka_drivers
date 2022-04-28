@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROBOT_CONTROL__JOINT_CONTROLLER__BASE_HPP_
-#define ROBOT_CONTROL__JOINT_CONTROLLER__BASE_HPP_
+#ifndef ROBOT_CONTROL__JOINT_CONTROLLER_BASE_HPP_
+#define ROBOT_CONTROL__JOINT_CONTROLLER_BASE_HPP_
 
 #include <string>
 #include <vector>
@@ -35,7 +35,7 @@ public:
   JointControllerBase(
     const std::string & node_name,
     const rclcpp::NodeOptions & options);
-  
+
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State &);
 
@@ -50,9 +50,10 @@ public:
 
 protected:
   void jointStateMeasurementsCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
-  virtual void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state) = 0;
+  virtual void controlLoopCallback(
+    sensor_msgs::msg::JointState::SharedPtr measured_joint_state) = 0;
   void updateMaxPositionDifference();
-  
+
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;
@@ -64,13 +65,13 @@ protected:
   sensor_msgs::msg::JointState::SharedPtr reference_joint_state_;
   sensor_msgs::msg::JointState::SharedPtr joint_command_;
   std_msgs::msg::Bool::SharedPtr joint_controller_is_active_;
-  
+
   std::vector<double> lower_limits_rad_ = std::vector<double>(7);
   std::vector<double> upper_limits_rad_ = std::vector<double>(7);
   // TODO(Svastits): maybe these 2 are not needed here
   std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
   std::vector<double> max_position_difference_ = std::vector<double>(7);
-  
+
   int send_period_ms_ = 10;
   int receive_multiplier_ = 1;
   int loop_period_ms_ = 10;
@@ -80,4 +81,4 @@ protected:
 }  // namespace robot_control
 
 
-#endif  // ROBOT_CONTROL__JOINT_CONTROLLER__BASE_HPP_
+#endif  // ROBOT_CONTROL__JOINT_CONTROLLER_BASE_HPP_
