@@ -30,11 +30,17 @@ double d2r(double degrees)
 JointController::JointController(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
-: ROS2BaseNode(node_name, options)
+: JointControllerBase(node_name, options)
 {
 
 }
 
+void JointController::controlLoopCallback(
+  sensor_msgs::msg::JointState::SharedPtr measured_joint_state)
+{
+  joint_command_->header = measured_joint_state->header;
+  joint_command_publisher_->publish(*joint_command_);
+}
 
 }  // namespace robot_control
 

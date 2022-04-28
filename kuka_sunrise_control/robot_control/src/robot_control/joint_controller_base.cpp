@@ -25,7 +25,7 @@ namespace robot_control
 JointControllerBase::JointControllerBase(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
-: LifecycleNode(node_name, options)
+: kroshu_ros2_core::ROS2BaseNode(node_name, options)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
@@ -161,10 +161,10 @@ on_deactivate(
   return SUCCESS;
 }
 
-void JointController::updateMaxPositionDifference()
+void JointControllerBase::updateMaxPositionDifference()
 {
   auto calc_pos_diff = [ & loop_period_ms_ = loop_period_ms_](double v) {
-      return v * loop_period_ms_ / JointController::ms_in_sec_;
+      return v * loop_period_ms_ / JointControllerBase::ms_in_sec_;
     };
   std::transform(
     max_velocities_radPs_.begin(), max_velocities_radPs_.end(),

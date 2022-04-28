@@ -32,19 +32,15 @@ namespace robot_control
 class JointControllerBase : public kroshu_ros2_core::ROS2BaseNode
 {
 public:
-  JointController(
+  JointControllerBase(
     const std::string & node_name,
     const rclcpp::NodeOptions & options);
-  ~JointController() override = default;
   
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State &);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_cleanup(const rclcpp_lifecycle::State &);
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State &);
@@ -79,6 +75,7 @@ protected:
   int receive_multiplier_ = 1;
   int loop_period_ms_ = 10;
   int loop_count_ = 0;
+  static constexpr int ms_in_sec_ = 1000;
 };
 }  // namespace robot_control
 

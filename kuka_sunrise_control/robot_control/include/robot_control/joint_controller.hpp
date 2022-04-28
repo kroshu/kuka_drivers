@@ -20,8 +20,15 @@
 
 namespace robot_control
 {
-class JointController : public robot_control::JointControllerBase
+class JointController : public JointControllerBase
 {
+public:
+  JointController(
+    const std::string & node_name,
+    const rclcpp::NodeOptions & options);
+    
+private:
+  void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
 
 };
 }  // namespace robot_control
