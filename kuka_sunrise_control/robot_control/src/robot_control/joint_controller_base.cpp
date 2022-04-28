@@ -43,6 +43,12 @@ JointControllerBase::JointControllerBase(
     std_msgs::msg::Bool>("joint_controller_is_active", qos);
 
   this->declare_parameter(
+    "max_velocities_degPs",
+    rclcpp::ParameterValue(
+      std::vector<double>(
+        {300, 300, 400, 300, 160,
+          160, 400})));
+  this->declare_parameter(
     "lower_limits_deg",
     rclcpp::ParameterValue(
       std::vector<double>(
