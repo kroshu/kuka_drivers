@@ -118,8 +118,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
         "robot commander deactivated, exiting updatecommand");
       return;
     }
-    bool pending_work_copy = cv_pending_work_;
-    cv_.wait(lk, [pending_work_copy] {return pending_work_copy;});
+    cv_.wait(lk);
     // check if wait has been interrupted by the robot manager
     if (!is_active_) {
       RCLCPP_INFO(
@@ -159,10 +158,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
 
 void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg)
 {
-  {
-    std::lock_guard<std::mutex> lck(m_);
-    cv_pending_work_ = true;
-  }
+  std::lock_guard<std::mutex> lk(m_);
   if (!is_active_) {
     RCLCPP_INFO(robot_control_node_->get_logger(), "commander not activated");
     return;
@@ -173,10 +169,7 @@ void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::Const
 
 bool RobotCommander::deactivate()
 {
-  {
-    std::lock_guard<std::mutex> lck(m_);
-    cv_pending_work_ = true;
-  }
+  std::lock_guard<std::mutex> lk(m_);
   is_active_ = false;
   cv_.notify_one();  // interrupt updateCommand()
   return true;
