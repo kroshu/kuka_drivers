@@ -40,12 +40,13 @@ public:
   ~InterpolatingController() override = default;
 
 protected:
-  virtual void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
+  void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state) override;
   virtual void referenceUpdateCallback(
     sensor_msgs::msg::JointState::SharedPtr reference_joint_state);
   virtual void setJointCommandPosition(const std::vector<double> & measured_joint_position);
   virtual void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
 
+private:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr reference_joint_state_listener_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
 };

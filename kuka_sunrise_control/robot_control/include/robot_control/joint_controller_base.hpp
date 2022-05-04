@@ -61,16 +61,16 @@ public:
     const rclcpp::NodeOptions & options);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &);
+  on_configure(const rclcpp_lifecycle::State &) override;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &);
+  on_cleanup(const rclcpp_lifecycle::State &) override;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &);
+  on_activate(const rclcpp_lifecycle::State &) override;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &);
+  on_deactivate(const rclcpp_lifecycle::State &) override;
 
 protected:
   void jointStateMeasurementsCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
@@ -81,6 +81,7 @@ protected:
   bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
   bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
 
+private:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;

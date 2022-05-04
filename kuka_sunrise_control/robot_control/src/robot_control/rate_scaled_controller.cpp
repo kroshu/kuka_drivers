@@ -153,6 +153,8 @@ void ScaledJointController::referenceUpdateCallback(
         get_logger(),
         "Reference for joint %i exceeded upper limit", i + 1);
     }
+
+    // TODO(Svastits): move this block to new function to avoid overriden method in constr
     // if the change of reference changes sign, mark that axis to be slowed down
     if ((p_reference_joint_positions[i] - prev_ref_joint_pos_[i]) *
       (reference_joint_positions[i] - p_reference_joint_positions[i]) > 0)

@@ -54,28 +54,30 @@ JointControllerBase::JointControllerBase(
   // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs,
   //  as that is const
   // same could be done to limits, factor must be <=1
-  std::shared_ptr<Parameter<std::vector<double>>> max_vel =
+  auto max_vel =
     std::make_shared<Parameter<std::vector<double>>>(
     "max_velocities_degPs", std::vector<double>({300, 300, 400, 300, 160, 160, 400}),
-    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> max_v) {
+    ParameterSetAccessRights {true, true, false, false}, [this](const std::vector<double> & max_v) {
       return this->onMaxVelocitiesChangeRequest(max_v);
     }, *this);
   registerParameter(max_vel);
 
 
-  std::shared_ptr<Parameter<std::vector<double>>> lower_limits =
+  auto lower_limits =
     std::make_shared<Parameter<std::vector<double>>>(
     "lower_limits_deg", std::vector<double>({-170, -120, -170, -120, -170, -120, -175}),
-    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> lower_lim) {
+    ParameterSetAccessRights {true, true, false, false},
+    [this](const std::vector<double> & lower_lim) {
       return this->onLowerLimitsChangeRequest(lower_lim);
     }, *this);
   registerParameter(lower_limits);
 
 
-  std::shared_ptr<Parameter<std::vector<double>>> upper_limits =
+  auto upper_limits =
     std::make_shared<Parameter<std::vector<double>>>(
     "upper_limits_deg", std::vector<double>({170, 120, 170, 120, 170, 120, 175}),
-    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> upper_lim) {
+    ParameterSetAccessRights {true, true, false, false},
+    [this](const std::vector<double> & upper_lim) {
       return this->onUpperLimitsChangeRequest(upper_lim);
     }, *this);
   registerParameter(upper_limits);
