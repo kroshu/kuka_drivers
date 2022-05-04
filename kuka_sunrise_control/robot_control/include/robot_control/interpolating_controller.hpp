@@ -31,30 +31,6 @@
 
 namespace robot_control
 {
-
-struct ParameterSetAccessRights
-{
-  bool unconfigured;
-  bool inactive;
-  bool active;
-  bool finalized;
-  bool isSetAllowed(std::uint8_t current_state) const
-  {
-    switch (current_state) {
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-        return unconfigured;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-        return inactive;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-        return active;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
-        return finalized;
-      default:
-        return false;
-    }
-  }
-};
-
 class InterpolatingController : public JointControllerBase
 {
 public:
@@ -71,18 +47,9 @@ protected:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr reference_joint_state_listener_;
 
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
-  rcl_interfaces::msg::SetParametersResult onParamChange(
-    const std::vector<rclcpp::Parameter> & parameters);
-  bool canSetParameter(const rclcpp::Parameter & param);
-  bool onMaxVelocitiesChangeRequest(const rclcpp::Parameter & param);
-  bool onLowerLimitsChangeRequest(const rclcpp::Parameter & param);
-  bool onUpperLimitsChangeRequest(const rclcpp::Parameter & param);
   virtual void setJointCommandPosition(const std::vector<double> & measured_joint_position);
   virtual void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
-
-  std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
 };
 }  // namespace robot_control
 

@@ -21,12 +21,25 @@
 
 namespace robot_control
 {
+double d2r(double degrees)
+{
+  return degrees / 180 * M_PI;
+}
 
 JointControllerBase::JointControllerBase(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
 : kroshu_ros2_core::ROS2BaseNode(node_name, options)
 {
+  parameter_set_access_rights_.emplace(
+    "max_velocities_degPs",
+	ParameterSetAccessRights {true, true, false, false});
+  parameter_set_access_rights_.emplace(
+	"lower_limits_deg",
+	ParameterSetAccessRights {true, true, false, false});
+  parameter_set_access_rights_.emplace(
+	"upper_limits_deg",
+	ParameterSetAccessRights {true, true, false, false});
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
 
@@ -41,6 +54,11 @@ JointControllerBase::JointControllerBase(
     sensor_msgs::msg::JointState>("joint_command", qos);
   joint_controller_is_active_publisher_ = this->create_publisher<
     std_msgs::msg::Bool>("joint_controller_is_active", qos);
+
+  param_callback_ = this->add_on_set_parameters_callback(
+    [this](const std::vector<rclcpp::Parameter> & parameters) {
+      return this->onParamChange(parameters);
+    });
 
   this->declare_parameter(
     "max_velocities_degPs",
@@ -165,6 +183,141 @@ on_deactivate(
     *joint_controller_is_active_);
   joint_controller_is_active_publisher_->on_deactivate();
   return SUCCESS;
+}
+
+
+rcl_interfaces::msg::SetParametersResult JointControllerBase::onParamChange(
+  const std::vector<rclcpp::Parameter> & parameters)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+  for (const rclcpp::Parameter & param : parameters) {
+    if (param.get_name() == "max_velocities_degPs" && canSetParameter(param)) {
+      result.successful = onMaxVelocitiesChangeRequest(param);
+    } else if (param.get_name() == "lower_limits_deg" &&  // NOLINT
+      canSetParameter(param))
+    {
+      result.successful = onLowerLimitsChangeRequest(param);
+    } else if (param.get_name() == "upper_limits_deg" &&  // NOLINT
+      canSetParameter(param))
+    {
+      result.successful = onUpperLimitsChangeRequest(param);
+    } else {
+      RCLCPP_ERROR(
+        this->get_logger(), "Invalid parameter name %s",
+        param.get_name().c_str());
+      result.successful = false;
+    }
+  }
+  return result;
+}
+
+bool JointControllerBase::canSetParameter(const rclcpp::Parameter & param)
+{
+  try {
+    if (!parameter_set_access_rights_.at(param.get_name()).isSetAllowed(
+        this->get_current_state().id()))
+    {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Parameter %s cannot be changed while in state %s",
+        param.get_name().c_str(),
+        this->get_current_state().label().c_str());
+      return false;
+    }
+  } catch (const std::out_of_range & e) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Parameter set access rights for parameter %s couldn't be determined",
+      param.get_name().c_str());
+    return false;
+  }
+  return true;
+}
+
+bool JointControllerBase::onMaxVelocitiesChangeRequest(
+  const rclcpp::Parameter & param)
+{
+  if (param.get_type() !=
+    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter type for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+
+  if (param.as_double_array().size() != 7) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter array length for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+  std::transform(
+    param.as_double_array().begin(), param.as_double_array().end(),
+    max_velocities_radPs_.begin(), [](double v) {
+      return d2r(v * 0.9);
+    });
+  updateMaxPositionDifference();
+  return true;
+}
+
+bool JointControllerBase::onLowerLimitsChangeRequest(
+  const rclcpp::Parameter & param)
+{
+  if (param.get_type() !=
+    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter type for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+
+  if (param.as_double_array().size() != 7) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter array length for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+  std::transform(
+    param.as_double_array().begin(),
+    param.as_double_array().end(), lower_limits_rad_.begin(), [](double v) {
+      return d2r(v * 0.9);
+    });
+  return true;
+}
+
+bool JointControllerBase::onUpperLimitsChangeRequest(
+  const rclcpp::Parameter & param)
+{
+  if (param.get_type() !=
+    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter type for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+
+  if (param.as_double_array().size() != 7) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Invalid parameter array length for parameter %s",
+      param.get_name().c_str());
+    return false;
+  }
+  std::transform(
+    param.as_double_array().begin(),
+    param.as_double_array().end(), upper_limits_rad_.begin(), [](double v) {
+      return d2r(v * 0.9);
+    });
+  return true;
 }
 
 void JointControllerBase::updateMaxPositionDifference()
