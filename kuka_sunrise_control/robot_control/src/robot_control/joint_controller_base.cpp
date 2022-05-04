@@ -51,7 +51,8 @@ JointControllerBase::JointControllerBase(
       return this->onParamChange(parameters);
     });
 
-  // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs, as that should be const
+  // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs,
+  //  as that is const
   // same could be done to limits, factor must be <=1
   std::shared_ptr<Parameter<std::vector<double>>> max_vel =
     std::make_shared<Parameter<std::vector<double>>>(
