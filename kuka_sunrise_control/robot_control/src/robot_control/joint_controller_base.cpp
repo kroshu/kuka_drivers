@@ -31,15 +31,6 @@ JointControllerBase::JointControllerBase(
   const rclcpp::NodeOptions & options)
 : kroshu_ros2_core::ROS2BaseNode(node_name, options)
 {
-  parameter_set_access_rights_.emplace(
-    "max_velocities_degPs",
-	ParameterSetAccessRights {true, true, false, false});
-  parameter_set_access_rights_.emplace(
-	"lower_limits_deg",
-	ParameterSetAccessRights {true, true, false, false});
-  parameter_set_access_rights_.emplace(
-	"upper_limits_deg",
-	ParameterSetAccessRights {true, true, false, false});
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
 
@@ -60,24 +51,33 @@ JointControllerBase::JointControllerBase(
       return this->onParamChange(parameters);
     });
 
-  this->declare_parameter(
-    "max_velocities_degPs",
-    rclcpp::ParameterValue(
-      std::vector<double>(
-        {300, 300, 400, 300, 160,
-          160, 400})));
-  this->declare_parameter(
-    "lower_limits_deg",
-    rclcpp::ParameterValue(
-      std::vector<double>(
-        {-170, -120, -170,
-          -120, -170, -120, -175})));
-  this->declare_parameter(
-    "upper_limits_deg",
-    rclcpp::ParameterValue(
-      std::vector<double>(
-        {170, 120, 170, 120,
-          170, 120, 175})));
+  // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs, as that should be const
+  // same could be done to limits, factor must be <=1
+  std::shared_ptr<Parameter<std::vector<double>>> max_vel =
+    std::make_shared<Parameter<std::vector<double>>>(
+    "max_velocities_degPs", std::vector<double>({300, 300, 400, 300, 160, 160, 400}),
+    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> max_v) {
+      return this->onMaxVelocitiesChangeRequest(max_v);
+    }, *this);
+  registerParameter(max_vel);
+
+
+  std::shared_ptr<Parameter<std::vector<double>>> lower_limits =
+    std::make_shared<Parameter<std::vector<double>>>(
+    "lower_limits_deg", std::vector<double>({-170, -120, -170, -120, -170, -120, -175}),
+    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> lower_lim) {
+      return this->onLowerLimitsChangeRequest(lower_lim);
+    }, *this);
+  registerParameter(lower_limits);
+
+
+  std::shared_ptr<Parameter<std::vector<double>>> upper_limits =
+    std::make_shared<Parameter<std::vector<double>>>(
+    "upper_limits_deg", std::vector<double>({170, 120, 170, 120, 170, 120, 175}),
+    ParameterSetAccessRights {true, true, false, false}, [this](std::vector<double> upper_lim) {
+      return this->onUpperLimitsChangeRequest(upper_lim);
+    }, *this);
+  registerParameter(upper_limits);
 
   auto send_period_callback = [this](
     kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
@@ -185,78 +185,17 @@ on_deactivate(
   return SUCCESS;
 }
 
-
-rcl_interfaces::msg::SetParametersResult JointControllerBase::onParamChange(
-  const std::vector<rclcpp::Parameter> & parameters)
-{
-  rcl_interfaces::msg::SetParametersResult result;
-  result.successful = true;
-  for (const rclcpp::Parameter & param : parameters) {
-    if (param.get_name() == "max_velocities_degPs" && canSetParameter(param)) {
-      result.successful = onMaxVelocitiesChangeRequest(param);
-    } else if (param.get_name() == "lower_limits_deg" &&  // NOLINT
-      canSetParameter(param))
-    {
-      result.successful = onLowerLimitsChangeRequest(param);
-    } else if (param.get_name() == "upper_limits_deg" &&  // NOLINT
-      canSetParameter(param))
-    {
-      result.successful = onUpperLimitsChangeRequest(param);
-    } else {
-      RCLCPP_ERROR(
-        this->get_logger(), "Invalid parameter name %s",
-        param.get_name().c_str());
-      result.successful = false;
-    }
-  }
-  return result;
-}
-
-bool JointControllerBase::canSetParameter(const rclcpp::Parameter & param)
-{
-  try {
-    if (!parameter_set_access_rights_.at(param.get_name()).isSetAllowed(
-        this->get_current_state().id()))
-    {
-      RCLCPP_ERROR(
-        this->get_logger(),
-        "Parameter %s cannot be changed while in state %s",
-        param.get_name().c_str(),
-        this->get_current_state().label().c_str());
-      return false;
-    }
-  } catch (const std::out_of_range & e) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Parameter set access rights for parameter %s couldn't be determined",
-      param.get_name().c_str());
-    return false;
-  }
-  return true;
-}
-
 bool JointControllerBase::onMaxVelocitiesChangeRequest(
-  const rclcpp::Parameter & param)
+  const std::vector<double> & max_vel)
 {
-  if (param.get_type() !=
-    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
-  {
+  if (max_vel.size() != 7) {
     RCLCPP_ERROR(
       this->get_logger(),
-      "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-
-  if (param.as_double_array().size() != 7) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Invalid parameter array length for parameter %s",
-      param.get_name().c_str());
+      "Invalid parameter array length for max velocities ");
     return false;
   }
   std::transform(
-    param.as_double_array().begin(), param.as_double_array().end(),
+    max_vel.begin(), max_vel.end(),
     max_velocities_radPs_.begin(), [](double v) {
       return d2r(v * 0.9);
     });
@@ -265,56 +204,34 @@ bool JointControllerBase::onMaxVelocitiesChangeRequest(
 }
 
 bool JointControllerBase::onLowerLimitsChangeRequest(
-  const rclcpp::Parameter & param)
+  const std::vector<double> & lower_limits)
 {
-  if (param.get_type() !=
-    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
-  {
+  if (lower_limits.size() != 7) {
     RCLCPP_ERROR(
       this->get_logger(),
-      "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-
-  if (param.as_double_array().size() != 7) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Invalid parameter array length for parameter %s",
-      param.get_name().c_str());
+      "Invalid parameter array length for lower limits");
     return false;
   }
   std::transform(
-    param.as_double_array().begin(),
-    param.as_double_array().end(), lower_limits_rad_.begin(), [](double v) {
+    lower_limits.begin(),
+    lower_limits.end(), lower_limits_rad_.begin(), [](double v) {
       return d2r(v * 0.9);
     });
   return true;
 }
 
 bool JointControllerBase::onUpperLimitsChangeRequest(
-  const rclcpp::Parameter & param)
+  const std::vector<double> & upper_limits)
 {
-  if (param.get_type() !=
-    rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY)
-  {
+  if (upper_limits.size() != 7) {
     RCLCPP_ERROR(
       this->get_logger(),
-      "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-
-  if (param.as_double_array().size() != 7) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Invalid parameter array length for parameter %s",
-      param.get_name().c_str());
+      "Invalid parameter array length for upper limits");
     return false;
   }
   std::transform(
-    param.as_double_array().begin(),
-    param.as_double_array().end(), upper_limits_rad_.begin(), [](double v) {
+    upper_limits.begin(),
+    upper_limits.end(), upper_limits_rad_.begin(), [](double v) {
       return d2r(v * 0.9);
     });
   return true;

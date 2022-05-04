@@ -77,14 +77,9 @@ protected:
   virtual void controlLoopCallback(
     sensor_msgs::msg::JointState::SharedPtr measured_joint_state) = 0;
   void updateMaxPositionDifference();
-  rcl_interfaces::msg::SetParametersResult onParamChange(
-    const std::vector<rclcpp::Parameter> & parameters);
-  bool canSetParameter(const rclcpp::Parameter & param);
-  bool onMaxVelocitiesChangeRequest(const rclcpp::Parameter & param);
-  bool onLowerLimitsChangeRequest(const rclcpp::Parameter & param);
-  bool onUpperLimitsChangeRequest(const rclcpp::Parameter & param);
-
-  std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
+  bool onMaxVelocitiesChangeRequest(const std::vector<double> & max_vel);
+  bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
+  bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
