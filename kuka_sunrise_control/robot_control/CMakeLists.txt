@@ -49,7 +49,7 @@ target_link_libraries(rate_scaled_controller interpolating_controller_lib)
 
 install(TARGETS interpolating_controller
     DESTINATION lib/${PROJECT_NAME})
-    
+
 install(TARGETS rate_scaled_controller
     DESTINATION lib/${PROJECT_NAME})
 
