@@ -41,16 +41,13 @@ public:
   ~ScaledJointController() override = default;
 
 protected:
-  void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
   void referenceUpdateCallback(
     sensor_msgs::msg::JointState::SharedPtr reference_joint_state);
-
-  rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
-
-  rclcpp::CallbackGroup::SharedPtr cbg_;
-
   void setJointCommandPosition(const std::vector<double> & measured_joint_position);
   void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
+
+  rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
 
   std::vector<double> prev_ref_joint_pos_ = std::vector<double>(7);
   std::vector<bool> slow_start_ = std::vector<bool>(7, true);
@@ -59,7 +56,6 @@ protected:
   int cmd_per_frame_temp_ = 0;  // for syncing changing with commands
   int cmd_per_frame_ = 13;  // default for 8Hz frequency of camera
   bool start_flag_ = true;
-  bool velocity_scaling_ = true;
 };
 }  // namespace robot_control
 

@@ -96,7 +96,6 @@ protected:
 
   std::vector<double> lower_limits_rad_ = std::vector<double>(7);
   std::vector<double> upper_limits_rad_ = std::vector<double>(7);
-  // TODO(Svastits): maybe these 2 are not needed here
   std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
   std::vector<double> max_position_difference_ = std::vector<double>(7);
 

@@ -43,13 +43,11 @@ protected:
   virtual void controlLoopCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
   virtual void referenceUpdateCallback(
     sensor_msgs::msg::JointState::SharedPtr reference_joint_state);
-
-  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr reference_joint_state_listener_;
-
-  rclcpp::CallbackGroup::SharedPtr cbg_;
-
   virtual void setJointCommandPosition(const std::vector<double> & measured_joint_position);
   virtual void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
+
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr reference_joint_state_listener_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
 };
 }  // namespace robot_control
 

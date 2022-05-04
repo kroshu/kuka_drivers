@@ -51,31 +51,6 @@ ScaledJointController::ScaledJointController(
     "joint_controller/set_rate", set_rate_callback);
 }
 
-void ScaledJointController::controlLoopCallback(
-  sensor_msgs::msg::JointState::SharedPtr measured_joint_state)
-{
-  if (!reference_joint_state_) {
-    reference_joint_state_ = measured_joint_state;
-  }
-  if (reference_joint_state_->position.size() == 7) {
-    if (velocity_scaling_) {
-      setJointCommandPosition(measured_joint_state->position);
-    } else {
-      joint_command_->position = reference_joint_state_->position;
-    }
-    enforceSpeedLimits(measured_joint_state->position);
-    cmd_count_++;
-  }
-  if (reference_joint_state_->velocity.size() == 7) {
-    joint_command_->velocity = reference_joint_state_->velocity;
-  }
-  if (reference_joint_state_->effort.size() == 7) {
-    joint_command_->effort = reference_joint_state_->effort;
-  }
-  joint_command_->header = measured_joint_state->header;
-  joint_command_publisher_->publish(*joint_command_);
-}
-
 void ScaledJointController::setJointCommandPosition(
   const std::vector<double> & measured_joint_position)
 {
@@ -144,16 +119,15 @@ void ScaledJointController::enforceSpeedLimits(
       joint_command_position[i] = measured_joint_position[i] +
         max_position_difference_[i] * vel_factor;
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
-
     } else if (joint_command_position[i] < measured_joint_position[i]) {
       joint_command_position[i] = measured_joint_position[i] -
         max_position_difference_[i] * vel_factor;
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
-
     } else {
       RCLCPP_ERROR(get_logger(), "Reference or measured joint state is NaN");
     }
   }
+  cmd_count_++;
 }
 
 void ScaledJointController::referenceUpdateCallback(
