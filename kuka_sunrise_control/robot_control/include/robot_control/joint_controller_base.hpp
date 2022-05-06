@@ -81,30 +81,32 @@ protected:
   bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
   bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
 
+  sensor_msgs::msg::JointState::SharedPtr joint_command_;
+  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
+  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
+  std::vector<double> max_position_difference_ = std::vector<double>(7);
+
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+    joint_command_publisher_;
+
+  int loop_period_ms_ = 10;
+  static constexpr int ms_in_sec_ = 1000;
+
 private:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-    joint_command_publisher_;
+
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     joint_controller_is_active_publisher_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
-
-  sensor_msgs::msg::JointState::SharedPtr reference_joint_state_;
-  sensor_msgs::msg::JointState::SharedPtr joint_command_;
   std_msgs::msg::Bool::SharedPtr joint_controller_is_active_;
 
-  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
-  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
   std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
-  std::vector<double> max_position_difference_ = std::vector<double>(7);
-
   int send_period_ms_ = 10;
   int receive_multiplier_ = 1;
-  int loop_period_ms_ = 10;
   int loop_count_ = 0;
-  static constexpr int ms_in_sec_ = 1000;
+
 };
 }  // namespace robot_control
 

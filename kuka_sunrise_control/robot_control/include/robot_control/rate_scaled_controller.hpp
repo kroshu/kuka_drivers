@@ -40,15 +40,15 @@ public:
     const rclcpp::NodeOptions & options);
   ~ScaledJointController() override = default;
 
-protected:
-  void referenceUpdateCallback(
-    sensor_msgs::msg::JointState::SharedPtr reference_joint_state);
+private:
   void setJointCommandPosition(const std::vector<double> & measured_joint_position);
   void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
+  void setSlowStart();
 
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
 
   std::vector<double> prev_ref_joint_pos_ = std::vector<double>(7);
+  std::vector<double> pprev_ref_joint_pos_ = std::vector<double>(7);
   std::vector<bool> slow_start_ = std::vector<bool>(7, true);
 
   int cmd_count_ = 0;

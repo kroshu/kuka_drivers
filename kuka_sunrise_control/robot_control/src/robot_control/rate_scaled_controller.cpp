@@ -54,6 +54,11 @@ ScaledJointController::ScaledJointController(
 void ScaledJointController::setJointCommandPosition(
   const std::vector<double> & measured_joint_position)
 {
+  // referenceUpdateCallback is called is base class constructor, so it cannot be ovverriden
+  // as a workaround, set velocity scaling here, if reference has changed
+  if (reference_joint_state_->position != prev_ref_joint_pos_) {
+    setSlowStart();
+  }
   const std::vector<double> & reference_joint_position =
     reference_joint_state_->position;
   std::vector<double> & joint_command_position = joint_command_->position;
@@ -67,7 +72,7 @@ void ScaledJointController::setJointCommandPosition(
       joint_command_position[i];
 
     // Set speed so, that the motion finishes when the next reference is received
-    if (cmd_count_ >= ScaledJointController::cmd_per_frame_) {
+    if (cmd_count_ >= cmd_per_frame_) {
       joint_command_position[i] = reference_joint_position[i];
       if (i == 0) {
         RCLCPP_DEBUG(
@@ -77,7 +82,7 @@ void ScaledJointController::setJointCommandPosition(
       }
     } else if (start_flag_) {  // First command: based on measured
       joint_command_position[i] = measured_joint_position[i] +
-        position_error / (ScaledJointController::cmd_per_frame_ - cmd_count_);
+        position_error / (cmd_per_frame_ - cmd_count_);
       if (i == 6) {
         start_flag_ = false;
         prev_ref_joint_pos_ = reference_joint_position;
@@ -85,7 +90,7 @@ void ScaledJointController::setJointCommandPosition(
       RCLCPP_DEBUG(get_logger(), "First command");
     } else {  // Not first command: based on previous command
       joint_command_position[i] += reference_error /
-        (ScaledJointController::cmd_per_frame_ - cmd_count_);
+        (cmd_per_frame_ - cmd_count_);
       RCLCPP_DEBUG(get_logger(), "Command calculated relative to previous");
     }
   }
@@ -130,43 +135,22 @@ void ScaledJointController::enforceSpeedLimits(
   cmd_count_++;
 }
 
-void ScaledJointController::referenceUpdateCallback(
-  sensor_msgs::msg::JointState::SharedPtr reference_joint_state)
+void ScaledJointController::setSlowStart()
 {
-  if (this->get_current_state().label() != "active") {
-    return;
-  }
-  auto & reference_joint_positions = reference_joint_state->position;
-  if (!reference_joint_state_) {
-    reference_joint_state_ = reference_joint_state;
-  }
-  auto & p_reference_joint_positions = reference_joint_state_->position;
+  auto & reference_joint_positions = reference_joint_state_->position;
+  // if the change of reference changes sign, mark that axis to be slowed down
   for (int i = 0; i < 7; i++) {
-    if (reference_joint_positions[i] < lower_limits_rad_[i]) {
-      reference_joint_positions[i] = lower_limits_rad_[i];
-      RCLCPP_WARN(
-        get_logger(),
-        "Reference for joint %i exceeded lower limit", i + 1);
-    } else if (reference_joint_positions[i] > upper_limits_rad_[i]) {
-      reference_joint_positions[i] = upper_limits_rad_[i];
-      RCLCPP_WARN(
-        get_logger(),
-        "Reference for joint %i exceeded upper limit", i + 1);
-    }
-
-    // TODO(Svastits): move this block to new function to avoid overriden method in constr
-    // if the change of reference changes sign, mark that axis to be slowed down
-    if ((p_reference_joint_positions[i] - prev_ref_joint_pos_[i]) *
-      (reference_joint_positions[i] - p_reference_joint_positions[i]) > 0)
+    if ((prev_ref_joint_pos_[i] - pprev_ref_joint_pos_[i]) *
+      (reference_joint_positions[i] - prev_ref_joint_pos_[i]) > 0)
     {
       slow_start_[i] = false;
-    } else if (reference_joint_positions[i] == p_reference_joint_positions[i]) {
+    } else if (reference_joint_positions[i] == prev_ref_joint_pos_[i]) {
       slow_start_[i] = false;
-    } else if (reference_joint_positions[i] > p_reference_joint_positions[i] &&  // NOLINT
+    } else if (reference_joint_positions[i] > prev_ref_joint_pos_[i] &&     // NOLINT
       joint_command_->position[i] > reference_joint_positions[i])
     {
       slow_start_[i] = false;
-    } else if (reference_joint_positions[i] < p_reference_joint_positions[i] &&  // NOLINT
+    } else if (reference_joint_positions[i] < prev_ref_joint_pos_[i] &&     // NOLINT
       joint_command_->position[i] < reference_joint_positions[i])
     {
       slow_start_[i] = false;
@@ -181,7 +165,6 @@ void ScaledJointController::referenceUpdateCallback(
     cmd_per_frame_temp_ = 0;
   }
   prev_ref_joint_pos_ = reference_joint_state_->position;
-  reference_joint_state_ = reference_joint_state;
 }
 
 }  // namespace robot_control

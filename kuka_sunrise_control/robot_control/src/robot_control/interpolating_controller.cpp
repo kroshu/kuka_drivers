@@ -59,9 +59,8 @@ void InterpolatingController::controlLoopCallback(
 
 
 void InterpolatingController::setJointCommandPosition(
-  const std::vector<double> & measured_joint_position)
+  const std::vector<double> &)
 {
-  (void) measured_joint_position;
   joint_command_->position = reference_joint_state_->position;
 }
 
@@ -99,9 +98,6 @@ void InterpolatingController::referenceUpdateCallback(
     return;
   }
   auto & reference_joint_positions = reference_joint_state->position;
-  if (!reference_joint_state_) {
-    reference_joint_state_ = reference_joint_state;
-  }
   for (int i = 0; i < 7; i++) {
     if (reference_joint_positions[i] < lower_limits_rad_[i]) {
       reference_joint_positions[i] = lower_limits_rad_[i];
