@@ -45,12 +45,12 @@ protected:
     sensor_msgs::msg::JointState::SharedPtr reference_joint_state);
   virtual void setJointCommandPosition(const std::vector<double> &);
   virtual void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
-
-  sensor_msgs::msg::JointState::SharedPtr reference_joint_state_;
+  const sensor_msgs::msg::JointState::ConstSharedPtr refJointState() const;
 
 private:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr reference_joint_state_listener_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  sensor_msgs::msg::JointState::SharedPtr reference_joint_state_;
 };
 }  // namespace robot_control
 

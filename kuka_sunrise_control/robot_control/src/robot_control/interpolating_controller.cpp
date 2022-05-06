@@ -114,4 +114,9 @@ void InterpolatingController::referenceUpdateCallback(
   reference_joint_state_ = reference_joint_state;
 }
 
+const sensor_msgs::msg::JointState::ConstSharedPtr InterpolatingController::refJointState() const
+{
+  return reference_joint_state_;
+}
+
 }  // namespace robot_control

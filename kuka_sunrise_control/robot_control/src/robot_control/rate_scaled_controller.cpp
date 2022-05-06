@@ -56,11 +56,11 @@ void ScaledJointController::setJointCommandPosition(
 {
   // referenceUpdateCallback is called is base class constructor, so it cannot be ovverriden
   // as a workaround, set velocity scaling here, if reference has changed
-  if (reference_joint_state_->position != prev_ref_joint_pos_) {
+  if (refJointState()->position != prev_ref_joint_pos_) {
     setSlowStart();
   }
   const std::vector<double> & reference_joint_position =
-    reference_joint_state_->position;
+    refJointState()->position;
   std::vector<double> & joint_command_position = joint_command_->position;
   for (int i = 0; i < 7; i++) {
     if (maxPosDiff()[i] < 0) {
@@ -137,7 +137,7 @@ void ScaledJointController::enforceSpeedLimits(
 
 void ScaledJointController::setSlowStart()
 {
-  auto & reference_joint_positions = reference_joint_state_->position;
+  auto & reference_joint_positions = refJointState()->position;
   // if the change of reference changes sign, mark that axis to be slowed down
   for (int i = 0; i < 7; i++) {
     if ((prev_ref_joint_pos_[i] - pprev_ref_joint_pos_[i]) *
@@ -164,7 +164,7 @@ void ScaledJointController::setSlowStart()
     cmd_per_frame_ = cmd_per_frame_temp_;
     cmd_per_frame_temp_ = 0;
   }
-  prev_ref_joint_pos_ = reference_joint_state_->position;
+  prev_ref_joint_pos_ = refJointState()->position;
 }
 
 }  // namespace robot_control
