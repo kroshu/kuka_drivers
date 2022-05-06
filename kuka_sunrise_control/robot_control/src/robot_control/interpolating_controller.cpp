@@ -70,19 +70,19 @@ void InterpolatingController::enforceSpeedLimits(
   std::vector<double> & joint_command_position = joint_command_->position;
   for (int i = 0; i < 7; i++) {
     if (abs(measured_joint_position[i] - joint_command_position[i]) <=
-      max_position_difference_[i])
+      maxPosDiff()[i])
     {
       RCLCPP_DEBUG(
         get_logger(),
         "Successfully set step size to the speed of movement");
     } else if (joint_command_position[i] > measured_joint_position[i]) {
       joint_command_position[i] = measured_joint_position[i] +
-        max_position_difference_[i];
+        maxPosDiff()[i];
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
 
     } else if (joint_command_position[i] < measured_joint_position[i]) {
       joint_command_position[i] = measured_joint_position[i] -
-        max_position_difference_[i];
+        maxPosDiff()[i];
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
 
     } else {
@@ -99,13 +99,13 @@ void InterpolatingController::referenceUpdateCallback(
   }
   auto & reference_joint_positions = reference_joint_state->position;
   for (int i = 0; i < 7; i++) {
-    if (reference_joint_positions[i] < lower_limits_rad_[i]) {
-      reference_joint_positions[i] = lower_limits_rad_[i];
+    if (reference_joint_positions[i] < lowerLimitsRad()[i]) {
+      reference_joint_positions[i] = lowerLimitsRad()[i];
       RCLCPP_WARN(
         get_logger(),
         "Reference for joint %i exceeded lower limit", i + 1);
-    } else if (reference_joint_positions[i] > upper_limits_rad_[i]) {
-      reference_joint_positions[i] = upper_limits_rad_[i];
+    } else if (reference_joint_positions[i] > upperLimitsRad()[i]) {
+      reference_joint_positions[i] = upperLimitsRad()[i];
       RCLCPP_WARN(
         get_logger(),
         "Reference for joint %i exceeded upper limit", i + 1);

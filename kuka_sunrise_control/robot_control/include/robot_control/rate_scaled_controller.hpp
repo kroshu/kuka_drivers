@@ -41,8 +41,8 @@ public:
   ~ScaledJointController() override = default;
 
 private:
-  void setJointCommandPosition(const std::vector<double> & measured_joint_position);
-  void enforceSpeedLimits(const std::vector<double> & measured_joint_position);
+  void setJointCommandPosition(const std::vector<double> & measured_joint_position) final;
+  void enforceSpeedLimits(const std::vector<double> & measured_joint_position) final;
   void setSlowStart();
 
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;

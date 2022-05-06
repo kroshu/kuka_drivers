@@ -81,15 +81,16 @@ protected:
   bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
   bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
 
+  const std::vector<double> & maxPosDiff() const;
+  const std::vector<double> & lowerLimitsRad() const;
+  const std::vector<double> & upperLimitsRad() const;
+  const int & loopPeriod() const;
+
   sensor_msgs::msg::JointState::SharedPtr joint_command_;
-  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
-  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
-  std::vector<double> max_position_difference_ = std::vector<double>(7);
 
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     joint_command_publisher_;
 
-  int loop_period_ms_ = 10;
   static constexpr int ms_in_sec_ = 1000;
 
 private:
@@ -103,9 +104,14 @@ private:
   std_msgs::msg::Bool::SharedPtr joint_controller_is_active_;
 
   std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
+  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
+  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
+  std::vector<double> max_position_difference_ = std::vector<double>(7);
+
   int send_period_ms_ = 10;
   int receive_multiplier_ = 1;
   int loop_count_ = 0;
+  int loop_period_ms_ = 10;
 };
 }  // namespace robot_control
 

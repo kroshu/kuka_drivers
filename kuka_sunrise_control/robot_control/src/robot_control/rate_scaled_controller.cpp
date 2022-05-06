@@ -31,7 +31,7 @@ ScaledJointController::ScaledJointController(
     kuka_sunrise_interfaces::srv::SetDouble::Request::SharedPtr request,
     kuka_sunrise_interfaces::srv::SetDouble::Response::SharedPtr response) {
       int cmd_per_frame = static_cast<int>(JointControllerBase::ms_in_sec_ /
-        loop_period_ms_ / (8 * request->data)) + 1;
+        loopPeriod() / (8 * request->data)) + 1;
       if (cmd_per_frame > 2) {
         cmd_per_frame_temp_ = cmd_per_frame;
         RCLCPP_INFO(
@@ -63,7 +63,7 @@ void ScaledJointController::setJointCommandPosition(
     reference_joint_state_->position;
   std::vector<double> & joint_command_position = joint_command_->position;
   for (int i = 0; i < 7; i++) {
-    if (max_position_difference_[i] < 0) {
+    if (maxPosDiff()[i] < 0) {
       RCLCPP_WARN(get_logger(), "max position difference is not positive");
     }
     double position_error = reference_joint_position[i] -
@@ -115,18 +115,18 @@ void ScaledJointController::enforceSpeedLimits(
       vel_factor = 1;
     }
     if (abs(measured_joint_position[i] - joint_command_position[i]) <=
-      max_position_difference_[i] * vel_factor)
+      maxPosDiff()[i] * vel_factor)
     {
       RCLCPP_DEBUG(
         get_logger(),
         "Successfully set step size to the speed of movement");
     } else if (joint_command_position[i] > measured_joint_position[i]) {
       joint_command_position[i] = measured_joint_position[i] +
-        max_position_difference_[i] * vel_factor;
+        maxPosDiff()[i] * vel_factor;
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
     } else if (joint_command_position[i] < measured_joint_position[i]) {
       joint_command_position[i] = measured_joint_position[i] -
-        max_position_difference_[i] * vel_factor;
+        maxPosDiff()[i] * vel_factor;
       RCLCPP_DEBUG(get_logger(), "Movement was too fast around joint %i", i + 1);
     } else {
       RCLCPP_ERROR(get_logger(), "Reference or measured joint state is NaN");

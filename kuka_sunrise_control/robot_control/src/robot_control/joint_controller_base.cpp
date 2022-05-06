@@ -258,4 +258,24 @@ void JointControllerBase::jointStateMeasurementsCallback(
     controlLoopCallback(measured_joint_state);
   }
 }
+
+const std::vector<double> & JointControllerBase::maxPosDiff() const
+{
+  return max_position_difference_;
+}
+
+const std::vector<double> & JointControllerBase::lowerLimitsRad() const
+{
+  return lower_limits_rad_;
+}
+
+const std::vector<double> & JointControllerBase::upperLimitsRad() const
+{
+  return upper_limits_rad_;
+}
+
+const int & JointControllerBase::loopPeriod() const
+{
+  return loop_period_ms_;
+}
 }  // namespace robot_control
