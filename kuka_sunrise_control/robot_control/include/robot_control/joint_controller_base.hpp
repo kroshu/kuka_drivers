@@ -106,7 +106,6 @@ private:
   int send_period_ms_ = 10;
   int receive_multiplier_ = 1;
   int loop_count_ = 0;
-
 };
 }  // namespace robot_control
 
