@@ -85,15 +85,16 @@ protected:
   const std::vector<double> & lowerLimitsRad() const;
   const std::vector<double> & upperLimitsRad() const;
   const int & loopPeriod() const;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr jointCommandPub()
+  const;
 
   sensor_msgs::msg::JointState::SharedPtr joint_command_;
-
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-    joint_command_publisher_;
 
   static constexpr int ms_in_sec_ = 1000;
 
 private:
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+    joint_command_publisher_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;

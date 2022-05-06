@@ -278,4 +278,10 @@ const int & JointControllerBase::loopPeriod() const
 {
   return loop_period_ms_;
 }
+
+rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr JointControllerBase::
+jointCommandPub() const
+{
+  return joint_command_publisher_;
+}
 }  // namespace robot_control

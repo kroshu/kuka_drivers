@@ -54,7 +54,7 @@ void InterpolatingController::controlLoopCallback(
     joint_command_->effort = reference_joint_state_->effort;
   }
   joint_command_->header = measured_joint_state->header;
-  joint_command_publisher_->publish(*joint_command_);
+  jointCommandPub()->publish(*joint_command_);
 }
 
 
@@ -114,7 +114,7 @@ void InterpolatingController::referenceUpdateCallback(
   reference_joint_state_ = reference_joint_state;
 }
 
-const sensor_msgs::msg::JointState::ConstSharedPtr InterpolatingController::refJointState() const
+sensor_msgs::msg::JointState::ConstSharedPtr InterpolatingController::refJointState() const
 {
   return reference_joint_state_;
 }
