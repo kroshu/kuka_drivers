@@ -32,13 +32,13 @@
 namespace robot_control
 {
 
-class ScaledJointController : public InterpolatingController
+class RateScaledJointController : public InterpolatingController
 {
 public:
-  ScaledJointController(
+  RateScaledJointController(
     const std::string & node_name,
     const rclcpp::NodeOptions & options);
-  ~ScaledJointController() override = default;
+  ~RateScaledJointController() override = default;
 
 private:
   void setJointCommandPosition(const std::vector<double> & measured_joint_position) final;

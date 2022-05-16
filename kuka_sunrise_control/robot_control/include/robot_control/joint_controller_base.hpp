@@ -25,35 +25,11 @@
 #include "kuka_sunrise_interfaces/srv/set_double.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
-#include "kroshu_ros2_core/ROS2BaseNode.hpp"
+#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
 namespace robot_control
 {
-
-struct ParameterSetAccessRights
-{
-  bool unconfigured;
-  bool inactive;
-  bool active;
-  bool finalized;
-  bool isSetAllowed(std::uint8_t current_state) const
-  {
-    switch (current_state) {
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-        return unconfigured;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-        return inactive;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-        return active;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
-        return finalized;
-      default:
-        return false;
-    }
-  }
-};
-
-class JointControllerBase : public kroshu_ros2_core::ROS2BaseNode
+class JointControllerBase : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   JointControllerBase(
@@ -85,7 +61,8 @@ protected:
   const std::vector<double> & lowerLimitsRad() const;
   const std::vector<double> & upperLimitsRad() const;
   const int & loopPeriod() const;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr jointCommandPub()
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+  jointCommandPublisher()
   const;
 
   sensor_msgs::msg::JointState::SharedPtr joint_command_;
@@ -102,7 +79,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     joint_controller_is_active_publisher_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
-  std_msgs::msg::Bool::SharedPtr joint_controller_is_active_;
+  std_msgs::msg::Bool joint_controller_is_active_;
 
   std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
   std::vector<double> lower_limits_rad_ = std::vector<double>(7);

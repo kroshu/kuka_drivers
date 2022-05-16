@@ -29,7 +29,7 @@ double d2r(double degrees)
 JointControllerBase::JointControllerBase(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
-: kroshu_ros2_core::ROS2BaseNode(node_name, options)
+: kroshu_ros2_core::ROS2BaseLCNode(node_name, options)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
@@ -48,39 +48,35 @@ JointControllerBase::JointControllerBase(
 
   param_callback_ = this->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return this->onParamChange(parameters);
+      return getParameterHandler().onParamChange(parameters);
     });
 
   // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs,
   //  as that is const
   // same could be done to limits, factor must be <=1
-  auto max_vel =
-    std::make_shared<Parameter<std::vector<double>>>(
-    "max_velocities_degPs", std::vector<double>({300, 300, 400, 300, 160, 160, 400}),
-    ParameterSetAccessRights {true, true, false, false}, [this](const std::vector<double> & max_v) {
+
+  registerParameter<std::vector<double>>(
+    "max_velocities_degPs", std::vector<double>(
+      {300, 300, 400, 300, 160, 160,
+        400}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false}, [this](const std::vector<double> & max_v) {
       return this->onMaxVelocitiesChangeRequest(max_v);
-    }, *this);
-  registerParameter(max_vel);
+    });
 
-
-  auto lower_limits =
-    std::make_shared<Parameter<std::vector<double>>>(
-    "lower_limits_deg", std::vector<double>({-170, -120, -170, -120, -170, -120, -175}),
-    ParameterSetAccessRights {true, true, false, false},
-    [this](const std::vector<double> & lower_lim) {
+  registerParameter<std::vector<double>>(
+    "lower_limits_deg", std::vector<double>(
+      {-170, -120, -170, -120, -170, -120,
+        -175}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false}, [this](const std::vector<double> & lower_lim) {
       return this->onLowerLimitsChangeRequest(lower_lim);
-    }, *this);
-  registerParameter(lower_limits);
+    });
 
-
-  auto upper_limits =
-    std::make_shared<Parameter<std::vector<double>>>(
-    "upper_limits_deg", std::vector<double>({170, 120, 170, 120, 170, 120, 175}),
-    ParameterSetAccessRights {true, true, false, false},
-    [this](const std::vector<double> & upper_lim) {
+  registerParameter<std::vector<double>>(
+    "upper_limits_deg", std::vector<double>(
+      {170, 120, 170, 120, 170, 120, 175}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false}, [this](const std::vector<double> & upper_lim) {
       return this->onUpperLimitsChangeRequest(upper_lim);
-    }, *this);
-  registerParameter(upper_limits);
+    });
 
   auto send_period_callback = [this](
     kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
@@ -131,8 +127,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn JointC
 on_configure(
   const rclcpp_lifecycle::State &)
 {
-  joint_controller_is_active_ = std::make_shared<std_msgs::msg::Bool>();
-
   joint_command_ = std::make_shared<sensor_msgs::msg::JointState>();
   joint_command_->position.resize(7);
   joint_command_->velocity.resize(7);
@@ -170,9 +164,8 @@ on_activate(
 {
   joint_command_publisher_->on_activate();
   joint_controller_is_active_publisher_->on_activate();
-  joint_controller_is_active_->data = true;
-  joint_controller_is_active_publisher_->publish(
-    *joint_controller_is_active_);
+  joint_controller_is_active_.data = true;
+  joint_controller_is_active_publisher_->publish(joint_controller_is_active_);
   return SUCCESS;
 }
 
@@ -181,9 +174,8 @@ on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   joint_command_publisher_->on_deactivate();
-  joint_controller_is_active_->data = false;
-  joint_controller_is_active_publisher_->publish(
-    *joint_controller_is_active_);
+  joint_controller_is_active_.data = false;
+  joint_controller_is_active_publisher_->publish(joint_controller_is_active_);
   joint_controller_is_active_publisher_->on_deactivate();
   return SUCCESS;
 }
@@ -280,7 +272,7 @@ const int & JointControllerBase::loopPeriod() const
 }
 
 rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr JointControllerBase::
-jointCommandPub() const
+jointCommandPublisher() const
 {
   return joint_command_publisher_;
 }

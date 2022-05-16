@@ -22,7 +22,7 @@
 namespace robot_control
 {
 
-ScaledJointController::ScaledJointController(
+RateScaledJointController::RateScaledJointController(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
 : InterpolatingController(node_name, options)
@@ -51,7 +51,7 @@ ScaledJointController::ScaledJointController(
     "joint_controller/set_rate", set_rate_callback);
 }
 
-void ScaledJointController::setJointCommandPosition(
+void RateScaledJointController::setJointCommandPosition(
   const std::vector<double> & measured_joint_position)
 {
   // referenceUpdateCallback is called is base class constructor, so it cannot be ovverriden
@@ -96,7 +96,7 @@ void ScaledJointController::setJointCommandPosition(
   }
 }
 
-void ScaledJointController::enforceSpeedLimits(
+void RateScaledJointController::enforceSpeedLimits(
   const std::vector<double> & measured_joint_position)
 {
   std::vector<double> & joint_command_position = joint_command_->position;
@@ -135,7 +135,7 @@ void ScaledJointController::enforceSpeedLimits(
   cmd_count_++;
 }
 
-void ScaledJointController::setSlowStart()
+void RateScaledJointController::setSlowStart()
 {
   auto & reference_joint_positions = refJointState()->position;
   // if the change of reference changes sign, mark that axis to be slowed down
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
-  auto node = std::make_shared<robot_control::ScaledJointController>(
+  auto node = std::make_shared<robot_control::RateScaledJointController>(
     "joint_controller", rclcpp::NodeOptions());
   executor.add_node(node->get_node_base_interface());
   executor.spin();

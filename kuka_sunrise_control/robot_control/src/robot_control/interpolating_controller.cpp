@@ -54,7 +54,7 @@ void InterpolatingController::controlLoopCallback(
     joint_command_->effort = reference_joint_state_->effort;
   }
   joint_command_->header = measured_joint_state->header;
-  jointCommandPub()->publish(*joint_command_);
+  jointCommandPublisher()->publish(*joint_command_);
 }
 
 
