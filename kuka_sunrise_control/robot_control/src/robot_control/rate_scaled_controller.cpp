@@ -27,6 +27,13 @@ RateScaledJointController::RateScaledJointController(
   const rclcpp::NodeOptions & options)
 : InterpolatingController(node_name, options)
 {
+  // Enforce setting parameter by giving invalid value as default
+  registerParameter<double>(
+    "reference_rate", 0, kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false}, [this](const double & ref_rate) {
+      return this->OnReferenceRateChangeRequest(ref_rate);
+    });
+/*
   auto set_rate_callback = [this](
     kuka_sunrise_interfaces::srv::SetDouble::Request::SharedPtr request,
     kuka_sunrise_interfaces::srv::SetDouble::Response::SharedPtr response) {
@@ -48,7 +55,7 @@ RateScaledJointController::RateScaledJointController(
     };
 
   set_rate_service_ = this->create_service<kuka_sunrise_interfaces::srv::SetDouble>(
-    "joint_controller/set_rate", set_rate_callback);
+    "joint_controller/set_rate", set_rate_callback);*/
 }
 
 void RateScaledJointController::setJointCommandPosition(
@@ -166,6 +173,32 @@ void RateScaledJointController::setSlowStart()
   }
   prev_ref_joint_pos_ = refJointState()->position;
 }
+
+bool RateScaledJointController::OnReferenceRateChangeRequest(const double & reference_rate)
+{
+  if (reference_rate < 1) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Reference rate should be at least 1 [Hz]");
+    return false;
+  }
+  int cmd_per_frame = static_cast<int>(JointControllerBase::ms_in_sec_ /
+    loopPeriod() / reference_rate) + 1;
+
+  if (cmd_per_frame < 2) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Control loop frequency should be bigger than command receive frequency");
+    return false;
+  }
+  cmd_per_frame_temp_ = cmd_per_frame;
+  RCLCPP_INFO(
+    get_logger(),
+    "Successfully changed rate, receiving commands in every %i. frame",
+    cmd_per_frame);
+  return true;
+}
+
 
 }  // namespace robot_control
 

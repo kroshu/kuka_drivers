@@ -44,6 +44,7 @@ private:
   void setJointCommandPosition(const std::vector<double> & measured_joint_position) final;
   void enforceSpeedLimits(const std::vector<double> & measured_joint_position) final;
   void setSlowStart();
+  bool OnReferenceRateChangeRequest(const double & reference_rate);
 
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
 
@@ -53,7 +54,7 @@ private:
 
   int cmd_count_ = 0;
   int cmd_per_frame_temp_ = 0;  // for syncing changing with commands
-  int cmd_per_frame_ = 13;  // default for 8Hz frequency of camera
+  int cmd_per_frame_;
   bool start_flag_ = true;
 };
 }  // namespace robot_control
