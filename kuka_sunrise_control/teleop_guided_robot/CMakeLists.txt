@@ -24,6 +24,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(kuka_sunrise REQUIRED)
+find_package(kuka_sunrise_interfaces REQUIRED)
 
 include_directories(include)
 
@@ -33,7 +34,7 @@ ament_target_dependencies(keyboard_control rclcpp rclcpp_lifecycle sensor_msgs g
 
 add_executable(system_manager
   src/control_system/system_manager.cpp)
-ament_target_dependencies(system_manager rclcpp rclcpp_lifecycle std_msgs std_srvs)
+ament_target_dependencies(system_manager rclcpp rclcpp_lifecycle std_msgs std_srvs kuka_sunrise_interfaces)
 target_link_libraries(system_manager kuka_sunrise::internal)
 
 install(TARGETS keyboard_control system_manager

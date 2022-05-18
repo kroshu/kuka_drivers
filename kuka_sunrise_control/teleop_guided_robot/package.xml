@@ -3,30 +3,23 @@
 <package format="3">
   <name>teleop_guided_robot</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Package for managing the connection between ROS and KUKA Sunrise FRI</description>
   <maintainer email="resizoltan@gmail.com">rosdeveloper</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>rclcpp</build_depend>
-  <build_depend>rclcpp_lifecycle</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_depend>kuka_sunrise</build_depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>kuka_sunrise_interfaces</depend>
+  <depend>kuka_sunrise</depend>
   
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rclcpp_lifecycle</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>std_srvs</exec_depend>
-  
-  <exec_depend>kuka_sunrise</exec_depend>
   <exec_depend>robot_control</exec_depend>
-  <exec_depend>key_teleop</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
