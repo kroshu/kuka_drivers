@@ -107,7 +107,9 @@ on_configure(
     return ERROR;
   }
 
-  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE)) {
+  if (control_logic_ &&
+    !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
+  {
     return FAILURE;
   }
   return SUCCESS;
@@ -129,7 +131,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn System
   {
     return FAILURE;
   }
-  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP)) {
+  if (control_logic_ &&
+    !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
+  {
     return FAILURE;
   }
 
@@ -171,7 +175,9 @@ SystemManager::on_activate(const rclcpp_lifecycle::State &)
     }
     return FAILURE;
   }
-  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE)) {
+  if (control_logic_ &&
+    !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
+  {
     return FAILURE;
   }
 
@@ -205,7 +211,9 @@ on_deactivate(
     return FAILURE;
   }
 
-  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE)) {
+  if (control_logic_ &&
+    !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
+  {
     return FAILURE;
   }
 
