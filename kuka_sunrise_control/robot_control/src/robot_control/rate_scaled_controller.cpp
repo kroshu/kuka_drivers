@@ -33,29 +33,6 @@ RateScaledJointController::RateScaledJointController(
       false, false}, [this](const double & ref_rate) {
       return this->OnReferenceRateChangeRequest(ref_rate);
     });
-/*
-  auto set_rate_callback = [this](
-    kuka_sunrise_interfaces::srv::SetDouble::Request::SharedPtr request,
-    kuka_sunrise_interfaces::srv::SetDouble::Response::SharedPtr response) {
-      int cmd_per_frame = static_cast<int>(JointControllerBase::ms_in_sec_ /
-        loopPeriod() / (8 * request->data)) + 1;
-      if (cmd_per_frame > 2) {
-        cmd_per_frame_temp_ = cmd_per_frame;
-        RCLCPP_INFO(
-          get_logger(),
-          "Successfully changed rate, receiving commands in every %i. frame",
-          cmd_per_frame);
-        response->success = true;
-      } else {
-        RCLCPP_ERROR(
-          get_logger(),
-          "Control loop frequency should be bigger than command receive frequency");
-        response->success = false;
-      }
-    };
-
-  set_rate_service_ = this->create_service<kuka_sunrise_interfaces::srv::SetDouble>(
-    "joint_controller/set_rate", set_rate_callback);*/
 }
 
 void RateScaledJointController::setJointCommandPosition(

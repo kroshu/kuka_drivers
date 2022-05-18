@@ -214,12 +214,12 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   if (this->isActive() && !this->deactivate()) {
     RCLCPP_ERROR(get_logger(), "could not deactivate control");
-    return FAILURE;
+    return ERROR;
   }
 
   if (!robot_manager_->endFRI()) {
     RCLCPP_ERROR(get_logger(), "could not end fri");
-    return FAILURE;
+    return ERROR;
   }
 
   if (!requestRobotControlNodeStateTransition(

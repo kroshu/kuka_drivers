@@ -194,7 +194,7 @@ on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   if (robot_control_active_ && !changeRobotCommandingState(false)) {
-    return FAILURE;
+    return ERROR;
   }
   robot_control_active_ = false;
   if (polling_thread_.joinable()) {polling_thread_.join();}
@@ -202,19 +202,19 @@ on_deactivate(
       ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
-    return FAILURE;
+    return ERROR;
   }
   if (!changeState(
       JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
-    return FAILURE;
+    return ERROR;
   }
 
   if (control_logic_ &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
-    return FAILURE;
+    return ERROR;
   }
 
   return SUCCESS;
