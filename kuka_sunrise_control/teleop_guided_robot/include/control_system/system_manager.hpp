@@ -22,6 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/srv/change_state.hpp"
+#include "lifecycle_msgs/srv/get_state.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_srvs/srv/set_bool.hpp"
@@ -58,12 +59,15 @@ private:
   bool changeRobotCommandingState(bool is_active);
   void robotCommandingStateChanged(bool is_active);
   void getFRIState();
+  lifecycle_msgs::msg::State getState(
+    const std::string & node_name);
   void monitoringLoop();
   bool robot_control_active_ = false;
   bool stop_ = false;
   int lbr_state_ = 0;
   const std::chrono::milliseconds sleeping_time_ms_ = std::chrono::milliseconds(
     200);
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::thread polling_thread_;
 

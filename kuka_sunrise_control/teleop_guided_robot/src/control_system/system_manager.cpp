@@ -88,53 +88,55 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn System
 on_configure(
   const rclcpp_lifecycle::State &)
 {
+  auto result = SUCCESS;
   if (!changeState(
       ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
-    return FAILURE;
+    result = FAILURE;
   }
-  if (!changeState(
+  if (result == SUCCESS && !changeState(
       JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
-    if (!changeState(
-        ROBOT_INTERFACE,
-        lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-    }
-    return ERROR;
+    result = FAILURE;
   }
 
-  if (control_logic_ &&
+  if (control_logic_ && result == SUCCESS &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
-    return FAILURE;
+    result = FAILURE;
   }
-  return SUCCESS;
+  if (result != SUCCESS) {
+    this->on_cleanup(get_current_state());
+  }
+
+  return result;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SystemManager::on_cleanup(
   const rclcpp_lifecycle::State &)
 {
-  if (!changeState(
+  if (getState(ROBOT_INTERFACE).id != lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED &&
+    !changeState(
       ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
-    return FAILURE;
+    return ERROR;
   }
 
-  if (!changeState(
+  if (getState(JOINT_CONTROLLER).id != lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED &&
+    !changeState(
       JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
-    return FAILURE;
+    return ERROR;
   }
   if (control_logic_ &&
+    getState(CONTROL_LOGIC).id != lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
-    return FAILURE;
+    return ERROR;
   }
 
   return SUCCESS;
@@ -143,50 +145,38 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn System
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 SystemManager::on_activate(const rclcpp_lifecycle::State &)
 {
+  auto result = SUCCESS;
   if (!changeState(
       ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
-    return FAILURE;
+    result = FAILURE;
   }
-  if (!changeState(
+  if (result == SUCCESS && !changeState(
       JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
-    if (!changeState(
-        ROBOT_INTERFACE,
-        lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-      return ERROR;
-    }
-    return FAILURE;
+    result = FAILURE;
   }
-  if (!robot_control_active_ && !changeRobotCommandingState(true)) {
-    if (!changeState(
-        ROBOT_INTERFACE,
-        lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE) ||
-      !changeState(
-        JOINT_CONTROLLER,
-        lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-      return ERROR;
-    }
-    return FAILURE;
+  if (result == SUCCESS && !robot_control_active_ && !changeRobotCommandingState(true)) {
+    result = FAILURE;
   }
-  if (control_logic_ &&
+  if (control_logic_ && result == SUCCESS &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
-    return FAILURE;
+    result = FAILURE;
   }
 
-  polling_thread_ = std::thread(&SystemManager::monitoringLoop, this);
-  robot_control_active_ = true;
-  std_msgs::msg::Bool activate;
-  activate.data = true;
-  manage_processing_publisher_->publish(activate);
-  return SUCCESS;
+  if (result != SUCCESS) {
+    this->on_deactivate(get_current_state());
+  } else {
+    polling_thread_ = std::thread(&SystemManager::monitoringLoop, this);
+    robot_control_active_ = true;
+    std_msgs::msg::Bool activate;
+    activate.data = true;
+    manage_processing_publisher_->publish(activate);
+  }
+  return result;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SystemManager::
@@ -198,13 +188,15 @@ on_deactivate(
   }
   robot_control_active_ = false;
   if (polling_thread_.joinable()) {polling_thread_.join();}
-  if (!changeState(
+  if (getState(ROBOT_INTERFACE).id != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE &&
+    !changeState(
       ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
     return ERROR;
   }
-  if (!changeState(
+  if (getState(JOINT_CONTROLLER).id != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE &&
+    !changeState(
       JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
@@ -212,6 +204,7 @@ on_deactivate(
   }
 
   if (control_logic_ &&
+    getState(CONTROL_LOGIC).id != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
     return ERROR;
@@ -300,6 +293,27 @@ bool SystemManager::changeState(
     RCLCPP_ERROR(get_logger(), "Future result not success, could not change state of " + node_name);
     return false;
   }
+}
+
+lifecycle_msgs::msg::State SystemManager::getState(
+  const std::string & node_name)
+{
+  auto client = this->create_client<lifecycle_msgs::srv::GetState>(
+    node_name + "/get_state", qos_.get_rmw_qos_profile(), cbg_);
+  auto request = std::make_shared<lifecycle_msgs::srv::GetState::Request>();
+  if (!client->wait_for_service(std::chrono::milliseconds(2000))) {
+    RCLCPP_ERROR(get_logger(), "Wait for service failed");
+    return lifecycle_msgs::msg::State();
+  }
+  auto future_result = client->async_send_request(request);
+  auto future_status = kuka_sunrise::wait_for_result(
+    future_result,
+    std::chrono::milliseconds(3000));
+  if (future_status != std::future_status::ready) {
+    RCLCPP_ERROR(get_logger(), "Future status not ready, could not get state of " + node_name);
+    return lifecycle_msgs::msg::State();
+  }
+  return future_result.get()->current_state;
 }
 
 void SystemManager::getFRIState()
