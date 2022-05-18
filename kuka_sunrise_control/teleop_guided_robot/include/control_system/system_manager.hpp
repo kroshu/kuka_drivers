@@ -78,8 +78,9 @@ private:
   rclcpp::QoS qos_ = rclcpp::QoS(rclcpp::KeepLast(10));
 
   const std::string JOINT_CONTROLLER = "joint_controller";
-  const std::string CONTROL_LOGIC = "keyboard_control";
   const std::string ROBOT_INTERFACE = "robot_manager";
+  const std::string CONTROL_LOGIC = "keyboard_control";
+  bool control_logic_;
 };
 }  // namespace control_system
 

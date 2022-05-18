@@ -69,6 +69,19 @@ SystemManager::SystemManager(
     };
   trigger_change_service_ = this->create_service<std_srvs::srv::Trigger>(
     "system_manager/trigger_change", trigger_change_callback);
+
+  param_callback_ = this->add_on_set_parameters_callback(
+    [this](const std::vector<rclcpp::Parameter> & parameters) {
+      return getParameterHandler().onParamChange(parameters);
+    });
+
+  // If node is in unconfigured state, parameter can be always set
+  registerParameter<bool>(
+    "control_logic", false, kroshu_ros2_core::ParameterSetAccessRights {true, false,
+      false, false}, [this](bool control_logic) {
+      control_logic_ = control_logic;
+      return true;
+    });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SystemManager::
@@ -94,7 +107,7 @@ on_configure(
     return ERROR;
   }
 
-  if (!changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE)) {
+  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE)) {
     return FAILURE;
   }
   return SUCCESS;
@@ -116,7 +129,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn System
   {
     return FAILURE;
   }
-  if (!changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP)) {
+  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP)) {
     return FAILURE;
   }
 
@@ -158,7 +171,7 @@ SystemManager::on_activate(const rclcpp_lifecycle::State &)
     }
     return FAILURE;
   }
-  if (!changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE)) {
+  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE)) {
     return FAILURE;
   }
 
@@ -192,7 +205,7 @@ on_deactivate(
     return FAILURE;
   }
 
-  if (!changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE)) {
+  if (control_logic_ && !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE)) {
     return FAILURE;
   }
 
@@ -233,7 +246,7 @@ SystemManager::on_shutdown(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-  if (!changeState(
+  if (control_logic_ && !changeState(
       CONTROL_LOGIC,
       lifecycle_msgs::msg::Transition::TRANSITION_UNCONFIGURED_SHUTDOWN))
   {
