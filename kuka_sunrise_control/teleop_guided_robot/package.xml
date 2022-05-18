@@ -17,6 +17,7 @@
   <depend>std_srvs</depend>
   <depend>kuka_sunrise_interfaces</depend>
   <depend>kuka_sunrise</depend>
+  <depend>kroshu_ros2_core</depend>
   
   <exec_depend>robot_control</exec_depend>
   <exec_depend>pluginlib</exec_depend>

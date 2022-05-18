@@ -30,11 +30,11 @@
 #include "kuka_sunrise_interfaces/srv/get_state.hpp"
 #include "kuka_sunrise/internal/service_tools.hpp"
 
+#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+
 namespace control_system
 {
-
-// TODO(kovacsge11) maybe derive from ROS2BaseNode
-class SystemManager : public rclcpp_lifecycle::LifecycleNode
+class SystemManager : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   SystemManager(const std::string & node_name, const rclcpp::NodeOptions & options);
@@ -52,8 +52,6 @@ public:
   on_activate(const rclcpp_lifecycle::State &) final;
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) final;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_error(const rclcpp_lifecycle::State &) final;
 
 private:
   bool changeState(const std::string & node_name, std::uint8_t transition);
@@ -78,13 +76,6 @@ private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr trigger_change_service_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::QoS qos_ = rclcpp::QoS(rclcpp::KeepLast(10));
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ERROR =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 
   const std::string JOINT_CONTROLLER = "joint_controller";
   const std::string CONTROL_LOGIC = "keyboard_control";

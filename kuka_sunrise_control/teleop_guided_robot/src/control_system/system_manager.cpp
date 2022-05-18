@@ -24,7 +24,7 @@ namespace control_system
 SystemManager::SystemManager(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
-: LifecycleNode(node_name, options)
+: ROS2BaseLCNode(node_name, options)
 {
   qos_.reliable();
   cbg_ = this->create_callback_group(
@@ -242,13 +242,6 @@ SystemManager::on_shutdown(const rclcpp_lifecycle::State & state)
 
 
   return result;
-}
-
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SystemManager::on_error(
-  const rclcpp_lifecycle::State &)
-{
-  RCLCPP_INFO(get_logger(), "An error occured");
-  return SUCCESS;
 }
 
 void SystemManager::monitoringLoop()
