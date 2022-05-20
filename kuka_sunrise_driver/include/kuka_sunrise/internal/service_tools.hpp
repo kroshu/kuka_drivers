@@ -16,6 +16,7 @@
 #define KUKA_SUNRISE__INTERNAL__SERVICE_TOOLS_HPP_
 
 #include <future>
+#include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 
