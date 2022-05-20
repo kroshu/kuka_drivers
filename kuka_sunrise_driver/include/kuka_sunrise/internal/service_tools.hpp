@@ -39,6 +39,29 @@ std::future_status wait_for_result(FutureT & future, WaitTimeT time_to_wait)
   return status;
 }
 
+template<typename ResponseT, typename RequestT, typename ClientT>
+std::shared_ptr<ResponseT>
+sendRequest(
+  ClientT client, RequestT request, const uint32_t & service_timeout_ms = 2000,
+  const uint32_t & response_timeout_ms = 100)
+{
+  if (service_timeout_ms) {
+    if (!client->wait_for_service(
+        std::chrono::milliseconds(service_timeout_ms)))
+    {
+      printf("Wait for service failed\n");
+      return nullptr;
+    }
+  }
+  auto future_result = client->async_send_request(request);
+  auto future_status = wait_for_result(
+    future_result, std::chrono::milliseconds(response_timeout_ms));
+  if (future_status != std::future_status::ready) {
+    printf("Request timed out\n");
+    return nullptr;
+  }
+  return future_result.get();
+}
 }  // namespace kuka_sunrise
 
 #endif  // KUKA_SUNRISE__INTERNAL__SERVICE_TOOLS_HPP_
