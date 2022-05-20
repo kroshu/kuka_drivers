@@ -15,7 +15,6 @@
 #ifndef CONTROL_SYSTEM__SYSTEM_MANAGER_HPP_
 #define CONTROL_SYSTEM__SYSTEM_MANAGER_HPP_
 
-#include <vector>
 #include <memory>
 #include <string>
 

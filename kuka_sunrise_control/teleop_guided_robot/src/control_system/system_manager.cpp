@@ -15,6 +15,7 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <vector>
 
 #include "control_system/system_manager.hpp"
 
