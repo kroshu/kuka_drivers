@@ -276,24 +276,15 @@ bool SystemManager::changeState(
     node_name + "/change_state", qos_.get_rmw_qos_profile(), cbg_);
   auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
   request->transition.id = transition;
-  if (!client->wait_for_service(std::chrono::milliseconds(2000))) {
-    RCLCPP_ERROR(get_logger(), "Wait for service failed");
+
+  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Response>(
+    client, request, 2000, 1000);
+
+  if (!response || response->success) {
+    RCLCPP_ERROR(get_logger(), "Could not change state of %s", node_name.c_str());
     return false;
   }
-  auto future_result = client->async_send_request(request);
-  auto future_status = kuka_sunrise::wait_for_result(
-    future_result,
-    std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not change state of " + node_name);
-    return false;
-  }
-  if (future_result.get()->success) {
-    return true;
-  } else {
-    RCLCPP_ERROR(get_logger(), "Future result not success, could not change state of " + node_name);
-    return false;
-  }
+  return true;
 }
 
 lifecycle_msgs::msg::State SystemManager::getState(
@@ -302,19 +293,17 @@ lifecycle_msgs::msg::State SystemManager::getState(
   auto client = this->create_client<lifecycle_msgs::srv::GetState>(
     node_name + "/get_state", qos_.get_rmw_qos_profile(), cbg_);
   auto request = std::make_shared<lifecycle_msgs::srv::GetState::Request>();
-  if (!client->wait_for_service(std::chrono::milliseconds(2000))) {
-    RCLCPP_ERROR(get_logger(), "Wait for service failed");
+
+  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::GetState::Response>(
+    client, request, 2000, 1000);
+
+  if (!response) {
+    RCLCPP_ERROR(
+      get_logger(), "Future status not ready, could not get state of %s",
+      node_name.c_str());
     return lifecycle_msgs::msg::State();
   }
-  auto future_result = client->async_send_request(request);
-  auto future_status = kuka_sunrise::wait_for_result(
-    future_result,
-    std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not get state of " + node_name);
-    return lifecycle_msgs::msg::State();
-  }
-  return future_result.get()->current_state;
+  return response->current_state;
 }
 
 void SystemManager::getFRIState()
@@ -360,30 +349,16 @@ bool SystemManager::changeRobotCommandingState(bool is_active)
 {
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
   request->data = is_active;
-  if (!change_robot_manager_state_client_->wait_for_service(
-      std::chrono::milliseconds(2000)))
-  {
-    RCLCPP_ERROR(get_logger(), "Wait for service failed");
+
+  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::GetState::Response>(
+    change_robot_manager_state_client_, request, 2000, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(get_logger(), "Could not change robot commanding state");
     return false;
   }
-  auto future_result =
-    change_robot_manager_state_client_->async_send_request(request);
-  auto future_status = kuka_sunrise::wait_for_result(
-    future_result,
-    std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not change robot commanding state");
-    return false;
-  }
-  if (future_result.get()->success) {
-    robot_control_active_ = true;
-    return true;
-  } else {
-    RCLCPP_ERROR(
-      get_logger(),
-      "Future result not success, could not change robot commanding state");
-    return false;
-  }
+  robot_control_active_ = true;
+  return true;
 }
 
 void SystemManager::robotCommandingStateChanged(bool is_active)
