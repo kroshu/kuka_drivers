@@ -98,7 +98,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   auto trigger_request =
     std::make_shared<std_srvs::srv::Trigger::Request>();
 
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Request>(
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
     set_parameter_client_, trigger_request, 0, 1000);
 
   if (!response || !response->success) {
@@ -291,7 +291,7 @@ bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t trans
   auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
   request->transition.id = transition;
 
-  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Request>(
+  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Response>(
     change_robot_control_state_client_, request, 2000, 3000);
 
   if (!response || !response->success) {
@@ -306,7 +306,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
   request->data = active;
 
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Request>(
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
     set_command_state_client_, request, 0, 1000);
 
   if (!response || !response->success) {
