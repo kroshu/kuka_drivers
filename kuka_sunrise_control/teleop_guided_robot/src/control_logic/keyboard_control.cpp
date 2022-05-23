@@ -138,7 +138,6 @@ void KeyboardControl::messageReceivedCallback(geometry_msgs::msg::Twist::SharedP
   } else {
     RCLCPP_WARN(get_logger(), "Joint limit reached!");
   }
-
 }
 
 bool KeyboardControl::onLowerLimitsChangeRequest(
