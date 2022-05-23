@@ -38,8 +38,7 @@ KeyboardControl::KeyboardControl(const std::string & node_name, const rclcpp::No
     });
   reference_joint_state_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>(
     "reference_joint_state", qos);
-  reference_joint_state_ = std::make_shared<sensor_msgs::msg::JointState>();
-  reference_joint_state_->position.resize(7);
+  reference_joint_state_.position.resize(7);
 
   param_callback_ = this->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> & parameters) {
@@ -66,7 +65,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Keyboa
 on_cleanup(
   const rclcpp_lifecycle::State &)
 {
-  reference_joint_state_->position.assign(7, 0);
+  reference_joint_state_.position.assign(7, 0);
   active_joint_ = 0;
   return SUCCESS;
 }
@@ -77,7 +76,7 @@ on_activate(
 {
   reference_joint_state_publisher_->on_activate();
   last_time_ = this->now();
-  reference_joint_state_publisher_->publish(*reference_joint_state_);
+  reference_joint_state_publisher_->publish(reference_joint_state_);
   return SUCCESS;
 }
 
@@ -127,14 +126,14 @@ void KeyboardControl::messageReceivedCallback(geometry_msgs::msg::Twist::SharedP
 
   double x = msg->linear.x;
   double x_dir = x > 0 ? x * WEIGHTS.X_POS : x * WEIGHTS.X_NEG;
-  double new_reference_joint_state = reference_joint_state_->position[active_joint_] + x_dir *
+  double new_reference_joint_state = reference_joint_state_.position[active_joint_] + x_dir *
     turning_velocity_increment_;
   if (lower_limits_rad_[active_joint_] < new_reference_joint_state &&
     new_reference_joint_state < upper_limits_rad_[active_joint_])
   {
-    reference_joint_state_->position[active_joint_] = new_reference_joint_state;
+    reference_joint_state_.position[active_joint_] = new_reference_joint_state;
     last_time_ = current_time;
-    reference_joint_state_publisher_->publish(*reference_joint_state_);
+    reference_joint_state_publisher_->publish(reference_joint_state_);
   } else {
     RCLCPP_WARN(get_logger(), "Joint limit reached!");
   }
