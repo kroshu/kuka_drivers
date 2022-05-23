@@ -97,19 +97,14 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   auto trigger_request =
     std::make_shared<std_srvs::srv::Trigger::Request>();
-  auto future_result = set_parameter_client_->async_send_request(trigger_request);
-  auto future_status = kuka_sunrise::wait_for_result(
-    future_result,
-    std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set parameters");
-    return FAILURE;
-  }
-  if (!future_result.get()->success) {
-    RCLCPP_ERROR(get_logger(), "Future result not success, could not set parameters");
-    return FAILURE;
-  }
 
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Request>(
+    set_parameter_client_, trigger_request, 0, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(get_logger(), "Could not set parameters");
+    return FAILURE;
+  }
   return SUCCESS;
 }
 
@@ -295,22 +290,15 @@ bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t trans
 {
   auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
   request->transition.id = transition;
-  if (!change_robot_control_state_client_->wait_for_service(std::chrono::milliseconds(2000))) {
-    RCLCPP_ERROR(get_logger(), "Wait for service failed");
+
+  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Request>(
+    change_robot_control_state_client_, request, 2000, 3000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(get_logger(), "Could not change robot control state");
     return false;
   }
-  auto future_result = change_robot_control_state_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not change robot control state");
-    return false;
-  }
-  if (future_result.get()->success) {
-    return true;
-  } else {
-    RCLCPP_ERROR(get_logger(), "Future result not success, could not change robot control state");
-    return false;
-  }
+  return true;
 }
 
 bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
@@ -318,18 +306,13 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
   request->data = active;
 
-  auto future_result = set_command_state_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(get_logger(), "Future status not ready, could not set robot command state");
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Request>(
+    set_command_state_client_, request, 0, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(get_logger(), "Could not set robot command state");
     return false;
   }
-
-  if (!future_result.get()->success) {
-    RCLCPP_ERROR(get_logger(), "Future result not success, could not set robot command state");
-    return false;
-  }
-
   return true;
 }
 

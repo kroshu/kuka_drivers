@@ -404,23 +404,17 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
     return false;
   }
-  auto future_result = command_mode_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Future status not ready, could not set command mode");
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
+    command_mode_client_, request, 0, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set command mode");
     return false;
   }
-  if (future_result.get()->success) {
-    if (robot_manager_) {
-      robot_manager_->setClientCommandMode(client_command_mode);
-    } else {
-      RCLCPP_ERROR(robot_manager_node_->get_logger(), "Robot Manager not available");
-      return false;
-    }
+  if (robot_manager_) {
+    robot_manager_->setClientCommandMode(client_command_mode);
   } else {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Future result not success, could not set command mode");
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Robot Manager not available");
     return false;
   }
   return true;
@@ -431,38 +425,23 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
   // Set parameter of control client
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
-  auto future_result = receive_multiplier_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future status not ready, could not set receive_multiplier");
+  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
+    receive_multiplier_client_, request, 0, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set receive_multiplier");
     return false;
   }
 
-  if (!future_result.get()->success) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future result not success, could not set receive_multiplier");
-    return false;
-  }
+  // TODO(Svastits): if monitoring mode is intended, no joint_controller is necessary
+  // syncing these parameters should be optional (applies also for send_period)
 
   // Sync with joint controller
-  future_result = sync_receive_multiplier_client_->async_send_request(request);
-  future_status = wait_for_result(
-    future_result,
-    std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future status not ready, could not sync receive_multiplier");
-    return false;
-  }
+  response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
+    sync_receive_multiplier_client_, request, 0, 1000);
 
-  if (!future_result.get()->success) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future result not success, could not sync receive_multiplier");
+  if (!response || !response->success) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync receive_multiplier");
     return false;
   }
   return true;
@@ -470,21 +449,15 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 
 bool ConfigurationManager::setSendPeriod(int send_period)
 {
+  // Sync with joint controller
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
   request->data = send_period;
-  auto future_result = sync_send_period_client_->async_send_request(request);
-  auto future_status = wait_for_result(future_result, std::chrono::milliseconds(3000));
-  if (future_status != std::future_status::ready) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future status not ready, could not sync send_period");
-    return false;
-  }
 
-  if (!future_result.get()->success) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Future result not success, could not sync send_period");
+  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
+    sync_send_period_client_, request, 0, 1000);
+
+  if (!response || !response->success) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync send_period");
     return false;
   }
   return true;
