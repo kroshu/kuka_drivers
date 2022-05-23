@@ -278,9 +278,9 @@ bool SystemManager::changeState(
   request->transition.id = transition;
 
   auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Response>(
-    client, request, 2000, 1000);
+    client, request, 2000, 3000);
 
-  if (!response || response->success) {
+  if (!response || !response->success) {
     RCLCPP_ERROR(get_logger(), "Could not change state of %s", node_name.c_str());
     return false;
   }
