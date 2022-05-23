@@ -97,42 +97,48 @@ void KeyboardControl::messageReceivedCallback(geometry_msgs::msg::Twist::SharedP
 
   rclcpp::Time current_time = this->now();
   rclcpp::Duration elapsed_time = current_time - last_time_;
-  if (elapsed_time > elapsed_time_treshold_) {
-    double z = -msg->angular.z;
-    if (z > 0) {
-      if (!changing_joint_) {
-        changing_joint_ = true;
-        if (++active_joint_ > 6) {
-          active_joint_ = 0;
-        }
-        RCLCPP_INFO(get_logger(), "Active joint: %i", active_joint_ + 1);
-      }
-    } else if (z < 0) {
-      if (!changing_joint_) {
-        changing_joint_ = true;
-        if (--active_joint_ < 0) {
-          active_joint_ = 6;
-        }
-        RCLCPP_INFO(get_logger(), "Active joint: %i", active_joint_ + 1);
-      }
-    } else if (changing_joint_) {
-      changing_joint_ = false;
-    }
 
-    double x = msg->linear.x;
-    double x_dir = x > 0 ? x * WEIGHTS.X_POS : x * WEIGHTS.X_NEG;
-    double new_reference_joint_state = reference_joint_state_->position[active_joint_] + x_dir *
-      turning_velocity_increment_;
-    if (lower_limits_rad_[active_joint_] * 0.9 < new_reference_joint_state &&
-      new_reference_joint_state < upper_limits_rad_[active_joint_] * 0.9)
-    {
-      reference_joint_state_->position[active_joint_] = new_reference_joint_state;
-      last_time_ = current_time;
-      reference_joint_state_publisher_->publish(*reference_joint_state_);
-    } else {
-      RCLCPP_WARN(get_logger(), "Joint limit reached!");
-    }
+
+  // Update reference only with a max rate of 10 Hz
+  if (elapsed_time < elapsed_time_treshold_) {
+    return;
   }
+
+  double z = -msg->angular.z;
+  if (z > 0) {
+    if (!changing_joint_) {
+      changing_joint_ = true;
+      if (++active_joint_ > 6) {
+        active_joint_ = 0;
+      }
+      RCLCPP_INFO(get_logger(), "Active joint: %i", active_joint_ + 1);
+    }
+  } else if (z < 0) {
+    if (!changing_joint_) {
+      changing_joint_ = true;
+      if (--active_joint_ < 0) {
+        active_joint_ = 6;
+      }
+      RCLCPP_INFO(get_logger(), "Active joint: %i", active_joint_ + 1);
+    }
+  } else if (changing_joint_) {
+    changing_joint_ = false;
+  }
+
+  double x = msg->linear.x;
+  double x_dir = x > 0 ? x * WEIGHTS.X_POS : x * WEIGHTS.X_NEG;
+  double new_reference_joint_state = reference_joint_state_->position[active_joint_] + x_dir *
+    turning_velocity_increment_;
+  if (lower_limits_rad_[active_joint_] < new_reference_joint_state &&
+    new_reference_joint_state < upper_limits_rad_[active_joint_])
+  {
+    reference_joint_state_->position[active_joint_] = new_reference_joint_state;
+    last_time_ = current_time;
+    reference_joint_state_publisher_->publish(*reference_joint_state_);
+  } else {
+    RCLCPP_WARN(get_logger(), "Joint limit reached!");
+  }
+
 }
 
 bool KeyboardControl::onLowerLimitsChangeRequest(
