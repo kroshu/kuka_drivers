@@ -298,9 +298,7 @@ lifecycle_msgs::msg::State SystemManager::getState(
     client, request, 2000, 1000);
 
   if (!response) {
-    RCLCPP_ERROR(
-      get_logger(), "Future status not ready, could not get state of %s",
-      node_name.c_str());
+    RCLCPP_ERROR(get_logger(), "Could not get state of %s", node_name.c_str());
     return lifecycle_msgs::msg::State();
   }
   return response->current_state;
@@ -350,7 +348,7 @@ bool SystemManager::changeRobotCommandingState(bool is_active)
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
   request->data = is_active;
 
-  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::GetState::Response>(
+  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
     change_robot_manager_state_client_, request, 2000, 1000);
 
   if (!response || !response->success) {
