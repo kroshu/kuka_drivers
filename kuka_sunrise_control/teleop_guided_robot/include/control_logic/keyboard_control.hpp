@@ -25,74 +25,43 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 
+#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+
 namespace teleop_guided_robot
 {
-
-struct ParameterSetAccessRights
-{
-  bool unconfigured;
-  bool inactive;
-  bool active;
-  bool finalized;
-  bool isSetAllowed(std::uint8_t current_state) const
-  {
-    switch (current_state) {
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-        return unconfigured;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-        return inactive;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-        return active;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
-        return finalized;
-      default:
-        return false;
-    }
-  }
-};
-
-class KeyboardControl : public rclcpp_lifecycle::LifecycleNode
+class KeyboardControl : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   KeyboardControl(const std::string & node_name, const rclcpp::NodeOptions & options);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &);
+  on_cleanup(const rclcpp_lifecycle::State &) final;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &);
+  on_activate(const rclcpp_lifecycle::State &) final;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &);
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &);
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_error(const rclcpp_lifecycle::State &);
+  on_deactivate(const rclcpp_lifecycle::State &) final;
 
 private:
+  void messageReceivedCallback(geometry_msgs::msg::Twist::SharedPtr msg);
+  bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
+  bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
+
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     reference_joint_state_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr key_teleop_subscription_;
-  void messageReceivedCallback(geometry_msgs::msg::Twist::SharedPtr msg);
-
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
+  sensor_msgs::msg::JointState reference_joint_state_;
+  const rclcpp::Duration elapsed_time_treshold_ = rclcpp::Duration(100000000);
+  rclcpp::Time last_time_ = rclcpp::Time(RCL_ROS_TIME);
 
-  rcl_interfaces::msg::SetParametersResult onParamChange(
-    const std::vector<rclcpp::Parameter> & parameters);
-  bool canSetParameter(const rclcpp::Parameter & param);
-  bool onLowerLimitsChangeRequest(const rclcpp::Parameter & param);
-  bool onUpperLimitsChangeRequest(const rclcpp::Parameter & param);
-  std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
-  std::vector<double> lower_limits_rad_;
-  std::vector<double> upper_limits_rad_;
-  sensor_msgs::msg::JointState::SharedPtr reference_joint_state_;
+  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
+  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
+
   int active_joint_;
-  bool changing_joint_;
+  bool changing_joint_ = false;
+  const double turning_velocity_increment_ = 3.0 * M_PI / 180;
 
   const struct
   {
@@ -100,17 +69,6 @@ private:
     double X_NEG = 2;
     double Z = 1;
   } WEIGHTS;
-
-  const double turning_velocity_increment_;
-  const rclcpp::Duration elapsed_time_treshold_;
-  rclcpp::Time last_time_;
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ERROR =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 };
 
 }  // namespace teleop_guided_robot

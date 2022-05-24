@@ -24,12 +24,13 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(kuka_sunrise REQUIRED)
+find_package(kroshu_ros2_core REQUIRED)
 
 include_directories(include)
 
 add_executable(keyboard_control
   src/control_logic/keyboard_control.cpp)
-ament_target_dependencies(keyboard_control rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs)
+ament_target_dependencies(keyboard_control rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs kroshu_ros2_core)
 
 add_executable(system_manager
   src/control_system/system_manager.cpp)
