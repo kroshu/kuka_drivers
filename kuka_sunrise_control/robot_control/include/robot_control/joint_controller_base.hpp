@@ -65,7 +65,7 @@ protected:
   jointCommandPublisher()
   const;
 
-  sensor_msgs::msg::JointState::SharedPtr joint_command_;
+  sensor_msgs::msg::JointState joint_command_;
 
   static constexpr int ms_in_sec_ = 1000;
 

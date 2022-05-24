@@ -127,10 +127,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn JointC
 on_configure(
   const rclcpp_lifecycle::State &)
 {
-  joint_command_ = std::make_shared<sensor_msgs::msg::JointState>();
-  joint_command_->position.resize(7);
-  joint_command_->velocity.resize(7);
-  joint_command_->effort.resize(7);
+  joint_command_.position.resize(7);
+  joint_command_.velocity.resize(7);
+  joint_command_.effort.resize(7);
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
     RCLCPP_ERROR(get_logger(), strerror(errno));
