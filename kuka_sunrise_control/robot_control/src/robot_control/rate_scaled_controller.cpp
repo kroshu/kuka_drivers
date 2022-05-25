@@ -45,7 +45,7 @@ void RateScaledJointController::setJointCommandPosition(
   }
   const std::vector<double> & reference_joint_position =
     refJointState()->position;
-  std::vector<double> & joint_command_position = joint_command_->position;
+  std::vector<double> & joint_command_position = joint_command_.position;
   for (int i = 0; i < 7; i++) {
     if (maxPosDiff()[i] < 0) {
       RCLCPP_WARN(get_logger(), "max position difference is not positive");
@@ -83,7 +83,7 @@ void RateScaledJointController::setJointCommandPosition(
 void RateScaledJointController::enforceSpeedLimits(
   const std::vector<double> & measured_joint_position)
 {
-  std::vector<double> & joint_command_position = joint_command_->position;
+  std::vector<double> & joint_command_position = joint_command_.position;
   for (int i = 0; i < 7; i++) {
     // If axis is marked, slow down motion at new reference
     double vel_factor;
@@ -131,11 +131,11 @@ void RateScaledJointController::setSlowStart()
     } else if (reference_joint_positions[i] == prev_ref_joint_pos_[i]) {
       slow_start_[i] = false;
     } else if (reference_joint_positions[i] > prev_ref_joint_pos_[i] &&     // NOLINT
-      joint_command_->position[i] > reference_joint_positions[i])
+      joint_command_.position[i] > reference_joint_positions[i])
     {
       slow_start_[i] = false;
     } else if (reference_joint_positions[i] < prev_ref_joint_pos_[i] &&     // NOLINT
-      joint_command_->position[i] < reference_joint_positions[i])
+      joint_command_.position[i] < reference_joint_positions[i])
     {
       slow_start_[i] = false;
     } else {

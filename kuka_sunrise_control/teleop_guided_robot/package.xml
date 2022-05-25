@@ -21,6 +21,7 @@
   
   <exec_depend>robot_control</exec_depend>
   <exec_depend>pluginlib</exec_depend>
+  <exec_depend>key_teleop</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

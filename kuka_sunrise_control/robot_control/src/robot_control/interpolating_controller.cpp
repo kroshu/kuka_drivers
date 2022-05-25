@@ -48,26 +48,26 @@ void InterpolatingController::controlLoopCallback(
     enforceSpeedLimits(measured_joint_state->position);
   }
   if (reference_joint_state_->velocity.size() == 7) {
-    joint_command_->velocity = reference_joint_state_->velocity;
+    joint_command_.velocity = reference_joint_state_->velocity;
   }
   if (reference_joint_state_->effort.size() == 7) {
-    joint_command_->effort = reference_joint_state_->effort;
+    joint_command_.effort = reference_joint_state_->effort;
   }
-  joint_command_->header = measured_joint_state->header;
-  jointCommandPublisher()->publish(*joint_command_);
+  joint_command_.header = measured_joint_state->header;
+  jointCommandPublisher()->publish(joint_command_);
 }
 
 
 void InterpolatingController::setJointCommandPosition(
   const std::vector<double> &)
 {
-  joint_command_->position = reference_joint_state_->position;
+  joint_command_.position = reference_joint_state_->position;
 }
 
 void InterpolatingController::enforceSpeedLimits(
   const std::vector<double> & measured_joint_position)
 {
-  std::vector<double> & joint_command_position = joint_command_->position;
+  std::vector<double> & joint_command_position = joint_command_.position;
   for (int i = 0; i < 7; i++) {
     if (abs(measured_joint_position[i] - joint_command_position[i]) <=
       maxPosDiff()[i])
