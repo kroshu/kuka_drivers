@@ -3,7 +3,7 @@
 <package format="3">
   <name>teleop_guided_robot</name>
   <version>0.0.0</version>
-  <description>Package for managing the connection between ROS and KUKA Sunrise FRI</description>
+  <description>Package for starting keyboard-controlled motion and synchronising the necessary nodes</description>
   <maintainer email="resizoltan@gmail.com">rosdeveloper</maintainer>
   <license>Apache 2.0</license>
 
