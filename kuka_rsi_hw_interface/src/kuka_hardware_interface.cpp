@@ -47,26 +47,20 @@ KukaHardwareInterface::KukaHardwareInterface(
 
 void KukaHardwareInterface::commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg)
 {
-  RCLCPP_INFO(control_node_->get_logger(), "got cmd");
   std::lock_guard<std::mutex> lock(m_);
   joint_command_msg_ = msg;
-  for (size_t i = 0; i < n_dof_; i++) {
-    RCLCPP_ERROR(control_node_->get_logger(), "command%i: %lf", i, joint_command_msg_->position[i]);
-  }
   cv_.notify_one();
 }
 
 bool KukaHardwareInterface::read()
 {
-  RCLCPP_INFO(control_node_->get_logger(), "read function");
+  std::unique_lock<std::mutex> lock(m_);
+  if (!is_active_) return false;
   in_buffer_.resize(1024);
 
   if (server_->recv(in_buffer_) == 0) {
     return false;
   }
-
-  RCLCPP_INFO(control_node_->get_logger(), "got msg");
-
   rsi_state_ = RSIState(in_buffer_);
   for (std::size_t i = 0; i < n_dof_; ++i) {
     joint_state_msg_.position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
@@ -79,7 +73,6 @@ bool KukaHardwareInterface::read()
 
 void KukaHardwareInterface::write()
 {
-  RCLCPP_INFO(control_node_->get_logger(), "write func");
   out_buffer_.resize(1024);  //TODO(Svastits): is this necessary?
   std::unique_lock<std::mutex> lock(m_);
   //cv_.wait(lock);
@@ -89,7 +82,6 @@ void KukaHardwareInterface::write()
   }
   for (size_t i = 0; i < n_dof_; i++) {
       joint_pos_correction_deg_[i] = (joint_command_msg_->position[i] - initial_joint_pos_[i]) * KukaHardwareInterface::R2D;
-    //RCLCPP_INFO(control_node_->get_logger(), "command%i: %lf", i, joint_pos_correction_deg_);
   }
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
   server_->send(out_buffer_);
@@ -114,8 +106,6 @@ void KukaHardwareInterface::start()
     joint_state_msg_.position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
     joint_command_msg_->position[i] = joint_state_msg_.position[i];
     initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaHardwareInterface::D2R;
-    //RCLCPP_INFO(control_node_->get_logger(), "initial%i: %lf", i, initial_joint_pos_[i]);
-    //RCLCPP_INFO(control_node_->get_logger(), "actual%i: %lf", i, joint_state_msg_.position[i]);
   }
   ipoc_ = rsi_state_.ipoc;
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
@@ -155,6 +145,11 @@ void KukaHardwareInterface::cleanup()
   local_host_ = "";
   local_port_ = 0;
   const std::string param_port = "";
+}
+
+const bool & KukaHardwareInterface::isActive() const
+{
+  return is_active_;
 }
 
 }  // namespace namespace kuka_rsi_hw_interface

@@ -71,7 +71,7 @@ on_cleanup(
 
 void RobotControlNode::Controlloop()
 {
-  while (this->get_current_state().label() == "active") {
+  while (kuka_rsi_hw_interface_->isActive()) {
     if (!kuka_rsi_hw_interface_->read()) {
       RCLCPP_ERROR(get_logger(), "Failed to read state from robot. Shutting down!");
       rclcpp::shutdown();

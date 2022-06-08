@@ -44,6 +44,8 @@ public:
   bool read();
   void write();
 
+  const bool & isActive() const;
+
 private:
   unsigned int n_dof_ = 6;
 

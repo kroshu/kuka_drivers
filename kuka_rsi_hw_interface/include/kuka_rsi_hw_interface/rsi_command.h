@@ -63,10 +63,12 @@ public:
       el->SetAttribute("A4", std::to_string(joint_position_correction[3]));
       el->SetAttribute("A5", std::to_string(joint_position_correction[4]));
       el->SetAttribute("A6", std::to_string(joint_position_correction[5]));
+      if (!stop) root->LinkEndChild(el);
 
+      el = new TiXmlElement("Stop");
+      el->LinkEndChild(new TiXmlText(std::to_string(static_cast<int>(stop))));
       root->LinkEndChild(el);
-      //el = new TiXmlElement("Stop");
-      //el->LinkEndChild(new TiXmlText(std::to_string(static_cast<int>(stop))));
+
       el = new TiXmlElement("IPOC");
       el->LinkEndChild(new TiXmlText(std::to_string(ipoc)));
       root->LinkEndChild(el);
