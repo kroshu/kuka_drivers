@@ -57,7 +57,7 @@ if(BUILD_TESTING)
   ament_cpplint()
   ament_lint_cmake()
   ament_uncrustify()
-  ament_xmllint()
+  ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
 
 ament_package()
