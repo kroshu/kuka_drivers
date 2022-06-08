@@ -22,35 +22,18 @@
 
 namespace kuka_sunrise
 {
-
 ConfigurationManager::ConfigurationManager(
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
+  kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node,
   std::shared_ptr<RobotManager> robot_manager)
 : robot_manager_node_(robot_manager_node), robot_manager_(robot_manager),
   joint_stiffness_temp_(std::vector<double>(7, 1000.0)),
   joint_damping_temp_(std::vector<double>(7, 0.7))
 {
-  parameter_set_access_rights_.emplace(
-    "command_mode", ParameterSetAccessRights {false, true, true,
-      false, true});
-  parameter_set_access_rights_.emplace(
-    "control_mode", ParameterSetAccessRights {false, true, true,
-      false, true});
-  parameter_set_access_rights_.emplace(
-    "joint_stiffness", ParameterSetAccessRights {false, true,
-      true, false, true});
-  parameter_set_access_rights_.emplace(
-    "joint_damping", ParameterSetAccessRights {false, true, true,
-      false, true});
-  parameter_set_access_rights_.emplace(
-    "send_period_ms", ParameterSetAccessRights {false, true,
-      false, false, true});
-  parameter_set_access_rights_.emplace(
-    "receive_multiplier", ParameterSetAccessRights {false, true,
-      false, false, true});
-  parameter_set_access_rights_.emplace(
-    "controller_ip", ParameterSetAccessRights {false, false,
-      false, false, true});
+  base_ptr_ = std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(robot_manager_node);
+  param_callback_ = robot_manager_node->add_on_set_parameters_callback(
+    [this](const std::vector<rclcpp::Parameter> & parameters) {
+      return base_ptr_->getParameterHandler().onParamChange(parameters);
+    });
 
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -73,138 +56,27 @@ ConfigurationManager::ConfigurationManager(
     "sync_send_period", qos.get_rmw_qos_profile(),
     cbg_);
 
-  if (!robot_manager_node_->has_parameter("control_mode")) {
-    robot_manager_node_->declare_parameter("control_mode", rclcpp::ParameterValue("position"));
-  }
-
-  if (!robot_manager_node_->has_parameter("command_mode")) {
-    robot_manager_node_->declare_parameter("command_mode", rclcpp::ParameterValue("position"));
-  }
-
-  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
-    [this](
-      const std::vector<rclcpp::Parameter> & parameters)
-    {return this->onParamChange(parameters);});
-
-  if (!robot_manager_node_->has_parameter("receive_multiplier")) {
-    robot_manager_node_->declare_parameter("receive_multiplier", rclcpp::ParameterValue(1));
-  }
-
-  if (!robot_manager_node_->has_parameter("send_period_ms")) {
-    robot_manager_node_->declare_parameter("send_period_ms", rclcpp::ParameterValue(10));
-  }
-
-  if (!robot_manager_node_->has_parameter("joint_stiffness")) {
-    robot_manager_node_->declare_parameter(
-      "joint_stiffness", rclcpp::ParameterValue(joint_stiffness_temp_));
-  }
-
-  if (!robot_manager_node_->has_parameter("joint_damping")) {
-    robot_manager_node_->declare_parameter(
-      "joint_damping",
-      rclcpp::ParameterValue(joint_damping_temp_));
-  }
-
-  if (!robot_manager_node_->has_parameter("controller_ip")) {
-    robot_manager_node_->declare_parameter("controller_ip");
-  }
-
-  auto set_param_callback = [this](
-    std_srvs::srv::Trigger::Request::SharedPtr,
-    std_srvs::srv::Trigger::Response::SharedPtr response) {
-      response->success = true;
-      if (!onControlModeChangeRequest(
-          robot_manager_node_->get_parameter("control_mode")))
-      {
-        RCLCPP_ERROR(
-          robot_manager_node_->get_logger(),
-          "Could not set parameter control_mode");
-        response->success = false;
-      }
-
-      if (!onCommandModeChangeRequest(
-          robot_manager_node_->get_parameter("command_mode")))
-      {
-        RCLCPP_ERROR(
-          robot_manager_node_->get_logger(),
-          "Could not set parameter command_mode");
-        response->success = false;
-      }
-    };
+  base_ptr_->registerParameter<std::string>(
+    "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {false, false,
+      false, false, true}, [this](const std::string & controller_ip) {
+      return this->onControllerIpChangeRequest(controller_ip);
+    });
 
   set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
-    "configuration_manager/set_params", set_param_callback, ::rmw_qos_profile_default, param_cbg_);
+    "configuration_manager/set_params", [this](
+      std_srvs::srv::Trigger::Request::SharedPtr,
+      std_srvs::srv::Trigger::Response::SharedPtr response) {
+      this->setParameters();
+    }, ::rmw_qos_profile_default, param_cbg_);
 }
 
-rcl_interfaces::msg::SetParametersResult ConfigurationManager::onParamChange(
-  const std::vector<rclcpp::Parameter> & parameters)
+bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode)
 {
-  rcl_interfaces::msg::SetParametersResult result;
-  result.successful = true;
-  for (const rclcpp::Parameter & param : parameters) {
-    if (param.get_name() == "command_mode") {
-      result.successful = onCommandModeChangeRequest(param);
-    } else if (param.get_name() == "control_mode") {
-      result.successful = onControlModeChangeRequest(param);
-    } else if (param.get_name() == "joint_stiffness") {
-      result.successful = onJointStiffnessChangeRequest(param);
-    } else if (param.get_name() == "joint_damping") {
-      result.successful = onJointDampingChangeRequest(param);
-    } else if (param.get_name() == "send_period_ms") {
-      result.successful = onSendPeriodChangeRequest(param);
-    } else if (param.get_name() == "receive_multiplier") {
-      result.successful = onReceiveMultiplierChangeRequest(param);
-    } else if (param.get_name() == "controller_ip") {
-      result.successful = onControllerIpChangeRequest(param);
-    } else {
-      RCLCPP_ERROR(
-        robot_manager_node_->get_logger(), "Invalid parameter name %s",
-        param.get_name().c_str());
-      result.successful = false;
-    }
-  }
-  return result;
-}
-
-bool ConfigurationManager::canSetParameter(const rclcpp::Parameter & param)
-{
-  try {
-    if (!parameter_set_access_rights_.at(param.get_name()).isSetAllowed(
-        robot_manager_node_->get_current_state().id()))
-    {
-      RCLCPP_ERROR(
-        robot_manager_node_->get_logger(),
-        "Parameter %s cannot be changed while in state %s", param.get_name().c_str(),
-        robot_manager_node_->get_current_state().label().c_str());
-      return false;
-    }
-  } catch (const std::out_of_range & e) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Parameter set access rights for parameter %s couldn't be determined",
-      param.get_name().c_str());
-    return false;
-  }
-  return true;
-}
-
-bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & param)
-{
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_STRING) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  if (param.as_string() == "position") {
+  if (command_mode == "position") {
     if (!setCommandMode("position")) {
       return false;
     }
-  } else if (param.as_string() == "torque") {
+  } else if (command_mode == "torque") {
     if (robot_manager_node_->get_parameter("control_mode").as_string() != "joint_impedance") {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
@@ -222,31 +94,18 @@ bool ConfigurationManager::onCommandModeChangeRequest(const rclcpp::Parameter & 
     }
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-      param.get_name().c_str());
+      robot_manager_node_->get_logger(), "Command mode should be 'position' or 'torque'");
     return false;
   }
-  RCLCPP_INFO(
-    robot_manager_node_->get_logger(), "Successfully set parameter %s",
-    param.get_name().c_str());
+  RCLCPP_INFO(robot_manager_node_->get_logger(), "Successfully set command mode");
   return true;
 }
 
-bool ConfigurationManager::onControlModeChangeRequest(const rclcpp::Parameter & param)
+bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode)
 {
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_STRING) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  RCLCPP_INFO(robot_manager_node_->get_logger(), "Setting parameter %s", param.get_name().c_str());
-  if (param.as_string() == "position") {
+  if (control_mode == "position") {
     return robot_manager_->setPositionControlMode();
-  } else if (param.as_string() == "joint_impedance") {
+  } else if (control_mode == "joint_impedance") {
     try {
       return robot_manager_->setJointImpedanceControlMode(
         joint_stiffness_temp_,
@@ -257,135 +116,78 @@ bool ConfigurationManager::onControlModeChangeRequest(const rclcpp::Parameter & 
     return false;
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-      param.get_name().c_str());
+      robot_manager_node_->get_logger(), "Control mode should be 'position' or 'joint_impedance'");
     return false;
   }
-}
-
-bool ConfigurationManager::onJointStiffnessChangeRequest(const rclcpp::Parameter & param)
-{
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  if (param.as_double_array().size() != 7) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Invalid parameter array length for parameter %s", param.get_name().c_str());
-    return false;
-  }
-  for (double js : param.as_double_array()) {
-    if (js < 0) {
-      RCLCPP_ERROR(
-        robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-        param.get_name().c_str());
-      RCLCPP_ERROR(
-        robot_manager_node_->get_logger(), "Joint stiffness values must be >=0",
-        param.get_name().c_str());
-      return false;
-    }
-  }
-  joint_stiffness_temp_ = param.as_double_array();
   return true;
 }
 
-bool ConfigurationManager::onJointDampingChangeRequest(const rclcpp::Parameter & param)
+bool ConfigurationManager::onJointStiffnessChangeRequest(
+  const std::vector<double> & joint_stiffness)
 {
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE_ARRAY) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  if (param.as_double_array().size() != 7) {
+  if (joint_stiffness.size() != 7) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
-      "Invalid parameter array length for parameter %s", param.get_name().c_str());
+      "Invalid parameter array length for parameter joint stiffness");
     return false;
   }
-  for (double jd : param.as_double_array()) {
-    if (jd < 0 || jd > 1) {
+  for (double js : joint_stiffness) {
+    if (js < 0) {
       RCLCPP_ERROR(
-        robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-        param.get_name().c_str());
+        robot_manager_node_->get_logger(), "Joint stiffness values must be >=0");
+      return false;
+    }
+  }
+  joint_stiffness_temp_ = joint_stiffness;
+  return true;
+}
+
+bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
+{
+  if (joint_damping.size() != 7) {
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(),
+      "Invalid parameter array length for parameter joint damping");
+    return false;
+  }
+  for (double jd : joint_damping) {
+    if (jd < 0 || jd > 1) {
       RCLCPP_ERROR(robot_manager_node_->get_logger(), "Joint damping values must be >=0 && <=1");
       return false;
     }
   }
-  joint_damping_temp_ = param.as_double_array();
+  joint_damping_temp_ = joint_damping;
   return true;
 }
 
-bool ConfigurationManager::onSendPeriodChangeRequest(const rclcpp::Parameter & param)
+bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period)
 {
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  if (param.as_int() < 1 || param.as_int() > 100) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-      param.get_name().c_str());
+  if (send_period < 1 || send_period > 100) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
       "Send period milliseconds must be >=1 && <=100");
     return false;
   }
-  if (!setSendPeriod(param.as_int())) {
+  if (!setSendPeriod(send_period)) {
     return false;
   }
   return true;
 }
 
-bool ConfigurationManager::onReceiveMultiplierChangeRequest(const rclcpp::Parameter & param)
+bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier)
 {
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
-  if (param.as_int() < 1) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter value for parameter %s",
-      param.get_name().c_str());
+  if (receive_multiplier < 1) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
     return false;
   }
-  if (!setReceiveMultiplier(param.as_int())) {
+  if (!setReceiveMultiplier(receive_multiplier)) {
     return false;
   }
   return true;
 }
 
-bool ConfigurationManager::onControllerIpChangeRequest(const rclcpp::Parameter & param)
+bool ConfigurationManager::onControllerIpChangeRequest(const std::string & controller_ip)
 {
-  if (param.get_type() != rcl_interfaces::msg::ParameterType::PARAMETER_STRING) {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Invalid parameter type for parameter %s",
-      param.get_name().c_str());
-    return false;
-  }
-  if (!canSetParameter(param)) {
-    return false;
-  }
   // TODO(Svastits): check ip validity
   return true;
 }
@@ -461,5 +263,46 @@ bool ConfigurationManager::setSendPeriod(int send_period)
     return false;
   }
   return true;
+}
+
+void ConfigurationManager::setParameters()
+{
+  // TODO(Svastits): wait for results
+  base_ptr_->registerParameter<std::string>(
+    "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+      false, true}, [this](const std::string & control_mode) {
+      return this->onControlModeChangeRequest(control_mode);
+    });
+
+  base_ptr_->registerParameter<std::string>(
+    "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+      false, true}, [this](const std::string & command_mode) {
+      return this->onCommandModeChangeRequest(command_mode);
+    });
+
+  base_ptr_->registerParameter<int>(
+    "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const int & receive_multiplier) {
+      return this->onReceiveMultiplierChangeRequest(receive_multiplier);
+    });
+
+  base_ptr_->registerParameter<int>(
+    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const int & send_period) {
+      return this->onSendPeriodChangeRequest(send_period);
+    });
+
+  base_ptr_->registerParameter<std::vector<double>>(
+    "joint_stiffness", joint_stiffness_temp_, kroshu_ros2_core::ParameterSetAccessRights {false,
+      true,
+      true, false, true}, [this](const std::vector<double> & joint_stiffness) {
+      return this->onJointStiffnessChangeRequest(joint_stiffness);
+    });
+
+  base_ptr_->registerParameter<std::vector<double>>(
+    "joint_damping", joint_damping_temp_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      true, false, true}, [this](const std::vector<double> & joint_damping) {
+      return this->onJointDampingChangeRequest(joint_damping);
+    });
 }
 }  // namespace kuka_sunrise

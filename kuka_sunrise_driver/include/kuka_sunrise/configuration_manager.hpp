@@ -27,6 +27,8 @@
 #include "std_srvs/srv/trigger.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
+#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+
 namespace kuka_sunrise
 {
 
@@ -62,11 +64,11 @@ class ConfigurationManager
 {
 public:
   ConfigurationManager(
-    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node,
+    kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node,
     std::shared_ptr<RobotManager> robot_manager);
 
 private:
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_manager_node_;
+  kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
@@ -78,24 +80,23 @@ private:
   std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
+  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> base_ptr_;
+
   std::vector<double> joint_stiffness_temp_;
   std::vector<double> joint_damping_temp_;
 
-  rcl_interfaces::msg::SetParametersResult onParamChange(
-    const std::vector<rclcpp::Parameter> & parameters);
-  bool canSetParameter(const rclcpp::Parameter & param);
-  bool onCommandModeChangeRequest(const rclcpp::Parameter & param);
-  bool onControlModeChangeRequest(const rclcpp::Parameter & param);
-  bool onJointStiffnessChangeRequest(const rclcpp::Parameter & param);
-  bool onJointDampingChangeRequest(const rclcpp::Parameter & param);
-  bool onSendPeriodChangeRequest(const rclcpp::Parameter & param);
-  bool onReceiveMultiplierChangeRequest(const rclcpp::Parameter & param);
-  bool onControllerIpChangeRequest(const rclcpp::Parameter & param);
+  bool onCommandModeChangeRequest(const std::string & command_mode);
+  bool onControlModeChangeRequest(const std::string & control_mode);
+  bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
+  bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
+  bool onSendPeriodChangeRequest(const int & send_period);
+  bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
+  bool onControllerIpChangeRequest(const std::string & controller_i);
   bool setCommandMode(const std::string & control_mode);
   bool setReceiveMultiplier(int receive_multiplier);
   bool setSendPeriod(int send_period);
+  void setParameters();
 };
-
 }  // namespace kuka_sunrise
 
 #endif  // KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_

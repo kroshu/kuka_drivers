@@ -24,7 +24,7 @@ namespace kuka_sunrise
 {
 
 RobotManagerNode::RobotManagerNode()
-: LifecycleNode("robot_manager")
+: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   robot_manager_ = std::make_shared<RobotManager>(

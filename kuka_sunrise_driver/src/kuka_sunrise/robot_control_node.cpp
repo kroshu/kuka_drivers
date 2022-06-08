@@ -21,7 +21,7 @@ namespace kuka_sunrise
 {
 
 RobotControlNode::RobotControlNode()
-: LifecycleNode("robot_control"), close_requested_(false)
+: kroshu_ros2_core::ROS2BaseLCNode("robot_control"), close_requested_(false)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
