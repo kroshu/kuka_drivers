@@ -34,7 +34,7 @@ namespace kuka_rsi_hw_interface
 class KukaHardwareInterface
 {
 public:
-  KukaHardwareInterface(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+  explicit KukaHardwareInterface(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
 
   void start();
   void stop();

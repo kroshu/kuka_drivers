@@ -21,8 +21,8 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 
-find_package(tinyxml2_vendor REQUIRED)
-find_package(TinyXML2 REQUIRED)
+find_package(tinyxml_vendor REQUIRED)
+find_package(TinyXML REQUIRED)
 
 include_directories(include ${TinyXML2_INCLUDE_DIRS})
 

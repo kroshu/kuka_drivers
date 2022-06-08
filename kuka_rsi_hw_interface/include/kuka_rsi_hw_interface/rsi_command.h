@@ -45,42 +45,43 @@
 
 namespace kuka_rsi_hw_interface
 {
-  class RSICommand
-  {
+class RSICommand
+{
 public:
-    RSICommand() {
-    }
-    RSICommand(std::vector < double > joint_position_correction, uint64_t ipoc, bool stop = false)
-    {
-      TiXmlDocument doc;
-      TiXmlElement * root = new TiXmlElement("Sen");
-      root->SetAttribute("Type", "ImFree");
-      TiXmlElement * el = new TiXmlElement("AK");
-      // Add string attribute
-      el->SetAttribute("A1", std::to_string(joint_position_correction[0]));
-      el->SetAttribute("A2", std::to_string(joint_position_correction[1]));
-      el->SetAttribute("A3", std::to_string(joint_position_correction[2]));
-      el->SetAttribute("A4", std::to_string(joint_position_correction[3]));
-      el->SetAttribute("A5", std::to_string(joint_position_correction[4]));
-      el->SetAttribute("A6", std::to_string(joint_position_correction[5]));
-      if (!stop) root->LinkEndChild(el);
+  RSICommand()
+  {
+  }
+  RSICommand(std::vector<double> joint_position_correction, uint64_t ipoc, bool stop = false)
+  {
+    TiXmlDocument doc;
+    TiXmlElement * root = new TiXmlElement("Sen");
+    root->SetAttribute("Type", "ImFree");
+    TiXmlElement * el = new TiXmlElement("AK");
+    // Add string attribute
+    el->SetAttribute("A1", std::to_string(joint_position_correction[0]));
+    el->SetAttribute("A2", std::to_string(joint_position_correction[1]));
+    el->SetAttribute("A3", std::to_string(joint_position_correction[2]));
+    el->SetAttribute("A4", std::to_string(joint_position_correction[3]));
+    el->SetAttribute("A5", std::to_string(joint_position_correction[4]));
+    el->SetAttribute("A6", std::to_string(joint_position_correction[5]));
+    if (!stop) {root->LinkEndChild(el);}
 
-      el = new TiXmlElement("Stop");
-      el->LinkEndChild(new TiXmlText(std::to_string(static_cast<int>(stop))));
-      root->LinkEndChild(el);
+    el = new TiXmlElement("Stop");
+    el->LinkEndChild(new TiXmlText(std::to_string(static_cast<int>(stop))));
+    root->LinkEndChild(el);
 
-      el = new TiXmlElement("IPOC");
-      el->LinkEndChild(new TiXmlText(std::to_string(ipoc)));
-      root->LinkEndChild(el);
-      doc.LinkEndChild(root);
-      TiXmlPrinter printer;
-      printer.SetStreamPrinting();
-      doc.Accept(&printer);
+    el = new TiXmlElement("IPOC");
+    el->LinkEndChild(new TiXmlText(std::to_string(ipoc)));
+    root->LinkEndChild(el);
+    doc.LinkEndChild(root);
+    TiXmlPrinter printer;
+    printer.SetStreamPrinting();
+    doc.Accept(&printer);
 
-      xml_doc = printer.Str();
-    }
-    std::string xml_doc;
-  };
+    xml_doc = printer.Str();
+  }
+  std::string xml_doc;
+};
 }  // namespace kuka_rsi_hw_interface
 
 #endif  // KUKA_RSI_HW_INTERFACE__RSI_COMMAND_H_

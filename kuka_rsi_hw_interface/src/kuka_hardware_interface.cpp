@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <stdexcept>
 #include <string>
+#include <memory>
 
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
 
@@ -55,7 +56,7 @@ void KukaHardwareInterface::commandReceivedCallback(sensor_msgs::msg::JointState
 bool KukaHardwareInterface::read()
 {
   std::unique_lock<std::mutex> lock(m_);
-  if (!is_active_) return false;
+  if (!is_active_) {return false;}
   in_buffer_.resize(1024);
 
   if (server_->recv(in_buffer_) == 0) {
@@ -73,15 +74,16 @@ bool KukaHardwareInterface::read()
 
 void KukaHardwareInterface::write()
 {
-  out_buffer_.resize(1024);  //TODO(Svastits): is this necessary?
+  out_buffer_.resize(1024);  // TODO(Svastits): is this necessary?
   std::unique_lock<std::mutex> lock(m_);
-  //cv_.wait(lock);
+  // cv_.wait(lock);
   if (!is_active_) {
     RCLCPP_INFO(control_node_->get_logger(), "Controller deactivated");
     return;
   }
   for (size_t i = 0; i < n_dof_; i++) {
-      joint_pos_correction_deg_[i] = (joint_command_msg_->position[i] - initial_joint_pos_[i]) * KukaHardwareInterface::R2D;
+    joint_pos_correction_deg_[i] = (joint_command_msg_->position[i] - initial_joint_pos_[i]) *
+      KukaHardwareInterface::R2D;
   }
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
   server_->send(out_buffer_);
@@ -127,7 +129,7 @@ void KukaHardwareInterface::stop()
   server_.reset();
   is_active_ = false;
   RCLCPP_INFO(control_node_->get_logger(), "Connection to robot terminated");
-  //cv_.notify_one();
+  // cv_.notify_one();
 }
 
 void KukaHardwareInterface::configure()

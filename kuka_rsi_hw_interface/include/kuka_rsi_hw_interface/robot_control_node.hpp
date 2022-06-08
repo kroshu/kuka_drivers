@@ -16,6 +16,7 @@
 #define KUKA_RSI_HW_INTERFACE__ROBOT_CONTROL_NODE_HPP_
 
 #include <string>
+#include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"

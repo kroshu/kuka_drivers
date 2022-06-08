@@ -62,7 +62,8 @@
 class UDPServer
 {
 public:
-  UDPServer(std::string host, unsigned short port) : local_host_(host), local_port_(port), timeout_(
+  UDPServer(std::string host, unsigned short port)
+  : local_host_(host), local_port_(port), timeout_(
       false)
   {
     printf("%s: %i\n", local_host_.c_str(), local_port_);
