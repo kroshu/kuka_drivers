@@ -33,7 +33,6 @@ namespace kuka_rsi_hw_interface
 {
 class KukaHardwareInterface
 {
-
 public:
   KukaHardwareInterface(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
 
@@ -47,11 +46,13 @@ public:
   const bool & isActive() const;
 
 private:
+  void commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg);
+
   unsigned int n_dof_ = 6;
+  bool is_active_ = false;
 
   std::vector<std::string> joint_names_ = std::vector<std::string>(6);
 
-  // RSI
   RSIState rsi_state_;
   RSICommand rsi_command_;
   std::vector<double> initial_joint_pos_ = std::vector<double>(6, 0.0);
@@ -63,11 +64,11 @@ private:
   int local_port_ = 0;
   std::string in_buffer_;
   std::string out_buffer_;
+
   rclcpp_lifecycle::LifecycleNode::SharedPtr control_node_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     joint_state_publisher_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
-
   rclcpp::CallbackGroup::SharedPtr cbg_;
   sensor_msgs::msg::JointState::SharedPtr joint_command_msg_;
   sensor_msgs::msg::JointState joint_state_msg_;
@@ -75,12 +76,8 @@ private:
   std::mutex m_;
   std::condition_variable cv_;
 
-  bool is_active_ = false;
-
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
-
-  void commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg);
 };
 }  // namespace kuka_rsi_hw_interface
 

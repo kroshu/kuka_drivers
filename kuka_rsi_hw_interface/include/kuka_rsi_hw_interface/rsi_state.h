@@ -52,20 +52,12 @@ private:
 
 public:
     RSIState()
-      : positions(6, 0.0),
-      initial_positions(6, 0.0),
-      cart_position(6, 0.0),
-      initial_cart_position(6, 0.0)
     {
       xml_doc_.resize(1024);
     }
 
     explicit RSIState(std::string xml_doc)
-    : xml_doc_(xml_doc),
-      positions(6, 0.0),
-      initial_positions(6, 0.0),
-      cart_position(6, 0.0),
-      initial_cart_position(6, 0.0)
+    : xml_doc_(xml_doc)
     {
       // Parse message from robot
       TiXmlDocument bufferdoc;
@@ -108,16 +100,12 @@ public:
       TiXmlElement * ipoc_el = rob->FirstChildElement("IPOC");
       ipoc = std::stoull(ipoc_el->FirstChild()->Value());
     }
-    // AIPOS
-    std::vector < double > positions;
-    // ASPos
-    std::vector < double > initial_positions;
-    // RIst
-    std::vector < double > cart_position;
-    // RSol
-    std::vector < double > initial_cart_position;
-    // IPOC
-    uint64_t ipoc;
+
+    std::vector<double> positions = std::vector<double>(6, 0.0);
+    std::vector<double> initial_positions = std::vector<double>(6, 0.0);
+    std::vector<double> cart_position = std::vector<double>(6, 0.0);
+    std::vector<double> initial_cart_position = std::vector<double>(6, 0.0);
+    uint64_t ipoc = 0;
   };
 }  // namespace kuka_rsi_hw_interface
 

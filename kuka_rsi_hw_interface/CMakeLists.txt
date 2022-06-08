@@ -24,7 +24,7 @@ find_package(kroshu_ros2_core REQUIRED)
 find_package(tinyxml2_vendor REQUIRED)
 find_package(TinyXML2 REQUIRED)
 
-include_directories(include)
+include_directories(include ${TinyXML2_INCLUDE_DIRS})
 
 add_library(kuka_hardware_interface
   src/kuka_hardware_interface.cpp
