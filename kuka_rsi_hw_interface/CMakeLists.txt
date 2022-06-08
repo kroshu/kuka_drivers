@@ -56,7 +56,7 @@ if(BUILD_TESTING)
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify()
+  ament_uncrustify(--language=C++)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
 
