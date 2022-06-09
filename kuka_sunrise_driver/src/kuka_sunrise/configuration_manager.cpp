@@ -63,7 +63,7 @@ ConfigurationManager::ConfigurationManager(
     "configuration_manager/set_params", [this](
       std_srvs::srv::Trigger::Request::SharedPtr,
       std_srvs::srv::Trigger::Response::SharedPtr response) {
-      this->setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);
+      this->setParameters(response);
     }, ::rmw_qos_profile_default, param_cbg_);
 }
 
