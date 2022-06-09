@@ -70,10 +70,10 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
       }
       return FAILURE;
-    } else {
-      RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
-      return ERROR;
     }
+  } else {
+    RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
+    return ERROR;
   }
   // TODO(resizoltan) get IO configuration
 
@@ -172,8 +172,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (!this->activate()) {return FAILURE;}
   command_state_changed_publisher_->on_activate();
+  if (!this->activate()) {return FAILURE;}
 
   return SUCCESS;
 }
