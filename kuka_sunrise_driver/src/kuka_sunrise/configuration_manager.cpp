@@ -63,7 +63,7 @@ ConfigurationManager::ConfigurationManager(
     "configuration_manager/set_params", [this](
       std_srvs::srv::Trigger::Request::SharedPtr,
       std_srvs::srv::Trigger::Response::SharedPtr response) {
-      this->setParameters();
+      this->setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);
     }, ::rmw_qos_profile_default, param_cbg_);
 }
 
@@ -83,7 +83,7 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
     if (robot_manager_node_->get_parameter("send_period_ms").as_int() > 5) {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
-        "Unable to set torque command mode, if send periods is bigger than 5");
+        "Unable to set torque command mode, if send period is bigger than 5 [ms]");
       return false;
     }
     if (!setCommandMode("torque")) {
@@ -105,8 +105,8 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
   } else if (control_mode == "joint_impedance") {
     try {
       return robot_manager_->setJointImpedanceControlMode(
-        joint_stiffness_temp_,
-        joint_damping_temp_);
+        joint_stiffness_,
+        joint_damping_);
     } catch (const std::exception & e) {
       RCLCPP_ERROR(robot_manager_node_->get_logger(), e.what());
     }
@@ -135,7 +135,7 @@ bool ConfigurationManager::onJointStiffnessChangeRequest(
       return false;
     }
   }
-  joint_stiffness_temp_ = joint_stiffness;
+  joint_stiffness_ = joint_stiffness;
   return true;
 }
 
@@ -153,7 +153,7 @@ bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double>
       return false;
     }
   }
-  joint_damping_temp_ = joint_damping;
+  joint_damping_ = joint_damping;
   return true;
 }
 
@@ -287,8 +287,13 @@ bool ConfigurationManager::setSendPeriod(int send_period) const
   return true;
 }
 
-void ConfigurationManager::setParameters()
+void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::SharedPtr response)
 {
+  if (configured_) {
+    RCLCPP_WARN(robot_manager_node_->get_logger(), "Parameters already registered");
+    response->success = true;
+    return;
+  }
   // TODO(Svastits): wait for results
   robot_manager_node_->registerParameter<std::string>(
     "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
@@ -315,15 +320,18 @@ void ConfigurationManager::setParameters()
     });
 
   robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_temp_, kroshu_ros2_core::ParameterSetAccessRights {false,
+    "joint_stiffness", joint_stiffness_, kroshu_ros2_core::ParameterSetAccessRights {false,
       true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
       return this->onJointStiffnessChangeRequest(joint_stiffness);
     });
 
   robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_temp_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+    "joint_damping", joint_damping_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
       true, false, true}, [this](const std::vector<double> & joint_damping) {
       return this->onJointDampingChangeRequest(joint_damping);
     });
+
+  configured_ = true;
+  response->success = true;
 }
 }  // namespace kuka_sunrise

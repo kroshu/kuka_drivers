@@ -42,6 +42,7 @@ public:
     std::shared_ptr<RobotManager> robot_manager);
 
 private:
+  bool configured_ = false;
   std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
@@ -53,8 +54,8 @@ private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
-  std::vector<double> joint_stiffness_temp_ = std::vector<double>(7, 1000.0);
-  std::vector<double> joint_damping_temp_ =std::vector<double>(7, 0.7);
+  std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);
+  std::vector<double> joint_damping_ =std::vector<double>(7, 0.7);
 
   bool onCommandModeChangeRequest(const std::string & command_mode);
   bool onControlModeChangeRequest(const std::string & control_mode);
@@ -62,11 +63,11 @@ private:
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
   bool onSendPeriodChangeRequest(const int & send_period);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
-  bool onControllerIpChangeRequest(const std::string & controller_i);
+  bool onControllerIpChangeRequest(const std::string & controller_ip);
   bool setCommandMode(const std::string & control_mode) const;
   bool setReceiveMultiplier(int receive_multiplier) const;
   bool setSendPeriod(int send_period) const;
-  void setParameters();
+  void setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);
 };
 }  // namespace kuka_sunrise
 

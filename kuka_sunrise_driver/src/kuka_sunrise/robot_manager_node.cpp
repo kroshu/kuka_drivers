@@ -166,10 +166,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Parameter send_period_ms or receive_multiplier not available");
     return FAILURE;
   }
-  rclcpp::Parameter send_period_ms = this->get_parameter("send_period_ms");
-  rclcpp::Parameter receive_multiplier = this->get_parameter("receive_multiplier");
+  int send_period_ms = this->get_parameter("send_period_ms").as_int();
+  int receive_multiplier = this->get_parameter("receive_multiplier").as_int();
 
-  if (!robot_manager_->setFRIConfig(30200, send_period_ms.as_int(), receive_multiplier.as_int())) {
+  if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
     RCLCPP_ERROR(get_logger(), "could not set fri config");
     return FAILURE;
   }
