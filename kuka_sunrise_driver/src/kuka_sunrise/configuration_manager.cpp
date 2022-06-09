@@ -23,14 +23,13 @@
 namespace kuka_sunrise
 {
 ConfigurationManager::ConfigurationManager(
-  kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node,
+  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
   std::shared_ptr<RobotManager> robot_manager)
 : robot_manager_node_(robot_manager_node), robot_manager_(robot_manager)
 {
-  base_ptr_ = std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(robot_manager_node);
   param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return base_ptr_->getParameterHandler().onParamChange(parameters);
+      return robot_manager_node_->getParameterHandler().onParamChange(parameters);
     });
 
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
@@ -54,7 +53,7 @@ ConfigurationManager::ConfigurationManager(
     "sync_send_period", qos.get_rmw_qos_profile(),
     cbg_);
 
-  base_ptr_->registerParameter<std::string>(
+  robot_manager_node_->registerParameter<std::string>(
     "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {false, false,
       false, false, true}, [this](const std::string & controller_ip) {
       return this->onControllerIpChangeRequest(controller_ip);
@@ -291,37 +290,37 @@ bool ConfigurationManager::setSendPeriod(int send_period) const
 void ConfigurationManager::setParameters()
 {
   // TODO(Svastits): wait for results
-  base_ptr_->registerParameter<std::string>(
+  robot_manager_node_->registerParameter<std::string>(
     "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
 
-  base_ptr_->registerParameter<std::string>(
+  robot_manager_node_->registerParameter<std::string>(
     "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & command_mode) {
       return this->onCommandModeChangeRequest(command_mode);
     });
 
-  base_ptr_->registerParameter<int>(
+  robot_manager_node_->registerParameter<int>(
     "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
       true}, [this](const int & receive_multiplier) {
       return this->onReceiveMultiplierChangeRequest(receive_multiplier);
     });
 
-  base_ptr_->registerParameter<int>(
+  robot_manager_node_->registerParameter<int>(
     "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
       true}, [this](const int & send_period) {
       return this->onSendPeriodChangeRequest(send_period);
     });
 
-  base_ptr_->registerParameter<std::vector<double>>(
+  robot_manager_node_->registerParameter<std::vector<double>>(
     "joint_stiffness", joint_stiffness_temp_, kroshu_ros2_core::ParameterSetAccessRights {false,
       true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
       return this->onJointStiffnessChangeRequest(joint_stiffness);
     });
 
-  base_ptr_->registerParameter<std::vector<double>>(
+  robot_manager_node_->registerParameter<std::vector<double>>(
     "joint_damping", joint_damping_temp_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
       true, false, true}, [this](const std::vector<double> & joint_damping) {
       return this->onJointDampingChangeRequest(joint_damping);

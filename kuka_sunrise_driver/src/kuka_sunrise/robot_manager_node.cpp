@@ -66,8 +66,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   if (!configuration_manager_) {
     configuration_manager_ = std::make_unique<ConfigurationManager>(
-      this->shared_from_this(),
-      robot_manager_);
+      std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
+        this->shared_from_this()), robot_manager_);
   }
 
   if (!this->has_parameter("controller_ip")) {

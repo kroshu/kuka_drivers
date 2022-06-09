@@ -38,11 +38,11 @@ class ConfigurationManager
 {
 public:
   ConfigurationManager(
-    kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node,
+    std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
     std::shared_ptr<RobotManager> robot_manager);
 
 private:
-  kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node_;
+  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
@@ -52,8 +52,6 @@ private:
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
-
-  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> base_ptr_;
 
   std::vector<double> joint_stiffness_temp_ = std::vector<double>(7, 1000.0);
   std::vector<double> joint_damping_temp_ =std::vector<double>(7, 0.7);
