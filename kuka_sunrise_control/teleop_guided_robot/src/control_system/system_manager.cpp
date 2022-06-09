@@ -30,10 +30,6 @@ SystemManager::SystemManager(
   qos_.reliable();
   cbg_ = this->create_callback_group(
     rclcpp::CallbackGroupType::MutuallyExclusive);
-  change_robot_manager_state_client_ = this->create_client<
-    std_srvs::srv::SetBool>(
-    ROBOT_INTERFACE + "/set_commanding_state",
-    qos_.get_rmw_qos_profile(), cbg_);
   robot_commanding_state_subscription_ = this->create_subscription<
     std_msgs::msg::Bool>(
     ROBOT_INTERFACE + "/commanding_state_changed", qos_,
@@ -159,9 +155,7 @@ SystemManager::on_activate(const rclcpp_lifecycle::State &)
   {
     result = FAILURE;
   }
-  if (result == SUCCESS && !robot_control_active_ && !changeRobotCommandingState(true)) {
-    result = FAILURE;
-  }
+
   if (control_logic_ && result == SUCCESS &&
     !changeState(CONTROL_LOGIC, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
@@ -184,11 +178,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn System
 on_deactivate(
   const rclcpp_lifecycle::State &)
 {
-  if (robot_control_active_ && !changeRobotCommandingState(false)) {
-    return ERROR;
-  }
-  robot_control_active_ = false;
-  if (polling_thread_.joinable()) {polling_thread_.join();}
   if (getState(ROBOT_INTERFACE).id != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE &&
     !changeState(
       ROBOT_INTERFACE,
@@ -196,6 +185,7 @@ on_deactivate(
   {
     return ERROR;
   }
+  robot_control_active_ = false;
   if (getState(JOINT_CONTROLLER).id != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE &&
     !changeState(
       JOINT_CONTROLLER,
@@ -210,6 +200,7 @@ on_deactivate(
   {
     return ERROR;
   }
+  if (polling_thread_.joinable()) {polling_thread_.join();}
 
   return SUCCESS;
 }
@@ -340,23 +331,6 @@ void SystemManager::getFRIState()
   auto future_result = get_state_client_->async_send_request(
     request,
     response_received_callback);
-}
-
-// Activate the ActivatableInterface of robot_manager_node
-bool SystemManager::changeRobotCommandingState(bool is_active)
-{
-  auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
-  request->data = is_active;
-
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    change_robot_manager_state_client_, request, 2000, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(get_logger(), "Could not change robot commanding state");
-    return false;
-  }
-  robot_control_active_ = true;
-  return true;
 }
 
 void SystemManager::robotCommandingStateChanged(bool is_active)
