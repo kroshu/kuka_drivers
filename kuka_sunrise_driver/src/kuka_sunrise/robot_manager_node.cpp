@@ -60,16 +60,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         this->shared_from_this()), robot_manager_);
   }
 
-  if (!this->has_parameter("controller_ip")) {
-    RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
-    if (!requestRobotControlNodeStateTransition(
-        lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-    }
-    return FAILURE;
-  }
-
   const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
@@ -80,6 +70,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
       }
       return FAILURE;
+    } else {
+      RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
+      return ERROR;
     }
   }
   // TODO(resizoltan) get IO configuration
@@ -152,10 +145,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (!this->has_parameter("send_period_ms") || !this->has_parameter("receive_multiplier")) {
-    RCLCPP_ERROR(get_logger(), "Parameter send_period_ms or receive_multiplier not available");
-    return FAILURE;
-  }
   int send_period_ms = this->get_parameter("send_period_ms").as_int();
   int receive_multiplier = this->get_parameter("receive_multiplier").as_int();
 

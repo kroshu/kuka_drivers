@@ -202,7 +202,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   }
 
   for (auto & ip : split_ip) {
-    if (ip.empty() || (ip.find_first_not_of("[0123456789]") == std::string::npos) ||
+    if (ip.empty() || (ip.find_first_not_of("[0123456789]") != std::string::npos) ||
       stoi(ip) > 255 || stoi(ip) < 0)
     {
       RCLCPP_ERROR(
@@ -294,44 +294,49 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     response->success = true;
     return;
   }
-  // TODO(Svastits): wait for results
-  robot_manager_node_->registerParameter<std::string>(
-    "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
-      false, true}, [this](const std::string & control_mode) {
-      return this->onControlModeChangeRequest(control_mode);
-    });
+  try {
+    // TODO(Svastits): wait for results
+    robot_manager_node_->registerParameter<std::string>(
+      "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+        false, true}, [this](const std::string & control_mode) {
+        return this->onControlModeChangeRequest(control_mode);
+      });
 
-  robot_manager_node_->registerParameter<std::string>(
-    "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
-      false, true}, [this](const std::string & command_mode) {
-      return this->onCommandModeChangeRequest(command_mode);
-    });
+    robot_manager_node_->registerParameter<std::string>(
+      "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+        false, true}, [this](const std::string & command_mode) {
+        return this->onCommandModeChangeRequest(command_mode);
+      });
 
-  robot_manager_node_->registerParameter<int>(
-    "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
-      true}, [this](const int & receive_multiplier) {
-      return this->onReceiveMultiplierChangeRequest(receive_multiplier);
-    });
+    robot_manager_node_->registerParameter<int>(
+      "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true, false,
+        false,
+        true}, [this](const int & receive_multiplier) {
+        return this->onReceiveMultiplierChangeRequest(receive_multiplier);
+      });
 
-  robot_manager_node_->registerParameter<int>(
-    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
-      true}, [this](const int & send_period) {
-      return this->onSendPeriodChangeRequest(send_period);
-    });
+    robot_manager_node_->registerParameter<int>(
+      "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
+        true}, [this](const int & send_period) {
+        return this->onSendPeriodChangeRequest(send_period);
+      });
 
-  robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_, kroshu_ros2_core::ParameterSetAccessRights {false,
-      true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
-      return this->onJointStiffnessChangeRequest(joint_stiffness);
-    });
+    robot_manager_node_->registerParameter<std::vector<double>>(
+      "joint_stiffness", joint_stiffness_, kroshu_ros2_core::ParameterSetAccessRights {false,
+        true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
+        return this->onJointStiffnessChangeRequest(joint_stiffness);
+      });
 
-  robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      true, false, true}, [this](const std::vector<double> & joint_damping) {
-      return this->onJointDampingChangeRequest(joint_damping);
-    });
+    robot_manager_node_->registerParameter<std::vector<double>>(
+      "joint_damping", joint_damping_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+        true, false, true}, [this](const std::vector<double> & joint_damping) {
+        return this->onJointDampingChangeRequest(joint_damping);
+      });
 
-  configured_ = true;
-  response->success = true;
+    configured_ = true;
+    response->success = true;
+  } catch (const std::exception & e) {
+    RCLCPP_WARN(robot_manager_node_->get_logger(), "Parameterchange not success");
+  }
 }
 }  // namespace kuka_sunrise
