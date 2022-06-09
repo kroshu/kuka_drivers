@@ -19,7 +19,6 @@
 #include "kuka_sunrise/robot_manager_node.hpp"
 #include "kuka_sunrise/internal/service_tools.hpp"
 
-
 namespace kuka_sunrise
 {
 

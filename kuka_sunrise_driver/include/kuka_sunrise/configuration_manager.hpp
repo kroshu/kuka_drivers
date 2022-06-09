@@ -34,32 +34,6 @@ namespace kuka_sunrise
 
 class RobotManager;
 
-struct ParameterSetAccessRights
-{
-  bool unconfigured;
-  bool inactive;
-  bool active;
-  bool finalized;
-  bool configuring;
-  bool isSetAllowed(std::uint8_t current_state)
-  {
-    switch (current_state) {
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-        return unconfigured;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-        return inactive;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-        return active;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
-        return finalized;
-      case lifecycle_msgs::msg::State::TRANSITION_STATE_CONFIGURING:
-        return configuring;
-      default:
-        return false;
-    }
-  }
-};
-
 class ConfigurationManager
 {
 public:
@@ -77,13 +51,12 @@ private:
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
-  std::map<std::string, struct ParameterSetAccessRights> parameter_set_access_rights_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> base_ptr_;
 
-  std::vector<double> joint_stiffness_temp_;
-  std::vector<double> joint_damping_temp_;
+  std::vector<double> joint_stiffness_temp_ = std::vector<double>(7, 1000.0);
+  std::vector<double> joint_damping_temp_ =std::vector<double>(7, 0.7);
 
   bool onCommandModeChangeRequest(const std::string & command_mode);
   bool onControlModeChangeRequest(const std::string & control_mode);
@@ -92,9 +65,9 @@ private:
   bool onSendPeriodChangeRequest(const int & send_period);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
   bool onControllerIpChangeRequest(const std::string & controller_i);
-  bool setCommandMode(const std::string & control_mode);
-  bool setReceiveMultiplier(int receive_multiplier);
-  bool setSendPeriod(int send_period);
+  bool setCommandMode(const std::string & control_mode) const;
+  bool setReceiveMultiplier(int receive_multiplier) const;
+  bool setSendPeriod(int send_period) const;
   void setParameters();
 };
 }  // namespace kuka_sunrise

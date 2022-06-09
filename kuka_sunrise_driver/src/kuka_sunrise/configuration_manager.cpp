@@ -25,12 +25,10 @@ namespace kuka_sunrise
 ConfigurationManager::ConfigurationManager(
   kroshu_ros2_core::ROS2BaseLCNode::SharedPtr robot_manager_node,
   std::shared_ptr<RobotManager> robot_manager)
-: robot_manager_node_(robot_manager_node), robot_manager_(robot_manager),
-  joint_stiffness_temp_(std::vector<double>(7, 1000.0)),
-  joint_damping_temp_(std::vector<double>(7, 0.7))
+: robot_manager_node_(robot_manager_node), robot_manager_(robot_manager)
 {
   base_ptr_ = std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(robot_manager_node);
-  param_callback_ = robot_manager_node->add_on_set_parameters_callback(
+  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> & parameters) {
       return base_ptr_->getParameterHandler().onParamChange(parameters);
     });
@@ -188,11 +186,36 @@ bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_
 
 bool ConfigurationManager::onControllerIpChangeRequest(const std::string & controller_ip)
 {
-  // TODO(Svastits): check ip validity
+  // Check IP validity
+  size_t i = 0;
+  std::vector<std::string> split_ip;
+  auto pos = controller_ip.find('.');
+  while (pos != std::string::npos) {
+    split_ip.push_back(controller_ip.substr(i, pos - i));
+    i = ++pos;
+    pos = controller_ip.find('.', pos);
+  }
+  split_ip.push_back(controller_ip.substr(i, controller_ip.length()));
+
+  if (split_ip.size() != 4) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Valid ip must have 3 '.' delimiters");
+    return false;
+  }
+
+  for (auto & ip : split_ip) {
+    if (ip.empty() || (ip.find_first_not_of("[0123456789]") == std::string::npos) ||
+      stoi(ip) > 255 || stoi(ip) < 0)
+    {
+      RCLCPP_ERROR(
+        robot_manager_node_->get_logger(),
+        "Valid IP must contain only numbers between 0 and 255");
+      return false;
+    }
+  }
   return true;
 }
 
-bool ConfigurationManager::setCommandMode(const std::string & control_mode)
+bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
 {
   auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
   ClientCommandModeID client_command_mode;
@@ -222,7 +245,7 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode)
   return true;
 }
 
-bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
+bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
 {
   // Set parameter of control client
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
@@ -249,7 +272,7 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
   return true;
 }
 
-bool ConfigurationManager::setSendPeriod(int send_period)
+bool ConfigurationManager::setSendPeriod(int send_period) const
 {
   // Sync with joint controller
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
@@ -281,21 +304,20 @@ void ConfigurationManager::setParameters()
     });
 
   base_ptr_->registerParameter<int>(
-    "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      false, false, true}, [this](const int & receive_multiplier) {
+    "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
+      true}, [this](const int & receive_multiplier) {
       return this->onReceiveMultiplierChangeRequest(receive_multiplier);
     });
 
   base_ptr_->registerParameter<int>(
-    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      false, false, true}, [this](const int & send_period) {
+    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
+      true}, [this](const int & send_period) {
       return this->onSendPeriodChangeRequest(send_period);
     });
 
   base_ptr_->registerParameter<std::vector<double>>(
     "joint_stiffness", joint_stiffness_temp_, kroshu_ros2_core::ParameterSetAccessRights {false,
-      true,
-      true, false, true}, [this](const std::vector<double> & joint_stiffness) {
+      true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
       return this->onJointStiffnessChangeRequest(joint_stiffness);
     });
 
