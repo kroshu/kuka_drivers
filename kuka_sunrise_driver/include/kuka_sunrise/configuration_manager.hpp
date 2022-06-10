@@ -57,13 +57,13 @@ private:
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);
   std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
 
-  bool onCommandModeChangeRequest(const std::string & command_mode);
-  bool onControlModeChangeRequest(const std::string & control_mode);
+  bool onCommandModeChangeRequest(const std::string & command_mode) const;
+  bool onControlModeChangeRequest(const std::string & control_mode) const;
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
-  bool onSendPeriodChangeRequest(const int & send_period);
-  bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
-  bool onControllerIpChangeRequest(const std::string & controller_ip);
+  bool onSendPeriodChangeRequest(const int & send_period) const;
+  bool onReceiveMultiplierChangeRequest(const int & receive_multiplier) const;
+  bool onControllerIpChangeRequest(const std::string & controller_ip) const;
   bool setCommandMode(const std::string & control_mode) const;
   bool setReceiveMultiplier(int receive_multiplier) const;
   bool setSendPeriod(int send_period) const;

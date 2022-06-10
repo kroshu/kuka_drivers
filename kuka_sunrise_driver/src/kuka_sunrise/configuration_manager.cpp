@@ -67,7 +67,7 @@ ConfigurationManager::ConfigurationManager(
     }, ::rmw_qos_profile_default, param_cbg_);
 }
 
-bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode)
+bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
 {
   if (command_mode == "position") {
     if (!setCommandMode("position")) {
@@ -98,7 +98,7 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
   return true;
 }
 
-bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode)
+bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
   if (control_mode == "position") {
     return robot_manager_->setPositionControlMode();
@@ -156,7 +156,7 @@ bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double>
   return true;
 }
 
-bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period)
+bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) const
 {
   if (send_period < 1 || send_period > 100) {
     RCLCPP_ERROR(
@@ -170,7 +170,7 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period)
   return true;
 }
 
-bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier)
+bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier) const
 {
   if (receive_multiplier < 1) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
@@ -182,7 +182,7 @@ bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_
   return true;
 }
 
-bool ConfigurationManager::onControllerIpChangeRequest(const std::string & controller_ip)
+bool ConfigurationManager::onControllerIpChangeRequest(const std::string & controller_ip) const
 {
   // Check IP validity
   size_t i = 0;
@@ -200,7 +200,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
     return false;
   }
 
-  for (auto & ip : split_ip) {
+  for (const auto & ip : split_ip) {
     if (ip.empty() || (ip.find_first_not_of("[0123456789]") != std::string::npos) ||
       stoi(ip) > 255 || stoi(ip) < 0)
     {

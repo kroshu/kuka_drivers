@@ -157,8 +157,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  int send_period_ms = this->get_parameter("send_period_ms").as_int();
-  int receive_multiplier = this->get_parameter("receive_multiplier").as_int();
+  int send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
+  int receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
 
   if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
     RCLCPP_ERROR(get_logger(), "could not set fri config");
