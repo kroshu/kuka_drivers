@@ -37,7 +37,17 @@ RobotManagerNode::RobotManagerNode()
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
   set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
-
+  auto command_srv_callback = [this](
+    std_srvs::srv::SetBool::Request::SharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response) {
+      if (request->data == true) {
+        response->success = this->activate();
+      } else {
+        response->success = this->deactivate();
+      }
+    };
+  change_robot_manager_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+    "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
   set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
@@ -173,7 +183,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
 
   command_state_changed_publisher_->on_activate();
-  if (!this->activate()) {return FAILURE;}
 
   return SUCCESS;
 }
@@ -181,7 +190,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  if (!this->deactivate()) {return ERROR;}
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;

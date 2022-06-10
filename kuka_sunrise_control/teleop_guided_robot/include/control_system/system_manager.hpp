@@ -55,6 +55,7 @@ public:
 
 private:
   bool changeState(const std::string & node_name, std::uint8_t transition);
+  bool changeRobotCommandingState(bool is_active);
   void robotCommandingStateChanged(bool is_active);
   void getFRIState();
   lifecycle_msgs::msg::State getState(
@@ -73,6 +74,7 @@ private:
     reference_joint_state_publisher_;
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr robot_commanding_state_subscription_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr manage_processing_publisher_;
+  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr change_robot_manager_state_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::GetState>::SharedPtr get_state_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr trigger_change_service_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
