@@ -255,7 +255,6 @@ SystemManager::on_shutdown(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-
   return result;
 }
 
