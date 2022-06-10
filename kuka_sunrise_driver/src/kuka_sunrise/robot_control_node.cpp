@@ -68,6 +68,8 @@ void RobotControlNode::runClientApplication()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
+
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
@@ -80,10 +82,12 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
     RCLCPP_ERROR(get_logger(), strerror(errno));
+
+    if (munlockall() == -1) {
+      RCLCPP_ERROR(get_logger(), "munlockall error");
+    }
     return ERROR;
   }
-  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
-
   return SUCCESS;
 }
 
