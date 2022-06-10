@@ -49,11 +49,6 @@ RobotControlNode::RobotControlNode()
     "robot_control/get_fri_state", get_fri_state_callback);
 }
 
-RobotControlNode::~RobotControlNode()
-{
-  printf("in destructor");
-}
-
 void RobotControlNode::runClientApplication()
 {
   client_application_->connect(30200, NULL);
@@ -103,28 +98,6 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_shutdown(const rclcpp_lifecycle::State & state)
-{
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn result = SUCCESS;
-  switch (state.id()) {
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      result = this->on_deactivate(get_current_state());
-      if (result != SUCCESS) {
-        break;
-      }
-      result = this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      result = this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      break;
-    default:
-      break;
-  }
-  return result;
-}
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State &)
@@ -158,13 +131,6 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &)
   client_application_->disconnect();
   client_application_.reset();
   client_application_thread_.reset();
-  return SUCCESS;
-}
-
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_error(const rclcpp_lifecycle::State &)
-{
-  RCLCPP_INFO(get_logger(), "An error occured");
   return SUCCESS;
 }
 

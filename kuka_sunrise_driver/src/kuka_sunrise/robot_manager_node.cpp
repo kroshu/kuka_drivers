@@ -218,13 +218,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_error(const rclcpp_lifecycle::State &)
-{
-  RCLCPP_ERROR(get_logger(), "An error occured");
-  return SUCCESS;
-}
-
 bool RobotManagerNode::activate()
 {
   this->ActivatableInterface::activate();
