@@ -57,6 +57,7 @@ RobotManagerNode::RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  auto result = SUCCESS;
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
@@ -64,6 +65,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  // If this fails, the node should be restarted, with different parameter values
+  // Therefore exceptions are not caught
   if (!configuration_manager_) {
     configuration_manager_ = std::make_unique<ConfigurationManager>(
       std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
@@ -74,12 +77,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
-      if (!requestRobotControlNodeStateTransition(
-          lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
-      {
-        RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-      }
-      return FAILURE;
+      result = FAILURE;
     }
   } else {
     RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
@@ -87,17 +85,21 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   }
   // TODO(resizoltan) get IO configuration
 
-  auto trigger_request =
-    std::make_shared<std_srvs::srv::Trigger::Request>();
+  if (result == SUCCESS) {
+    auto trigger_request =
+      std::make_shared<std_srvs::srv::Trigger::Request>();
+    auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
+      set_parameter_client_, trigger_request, 0, 1000);
 
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
-    set_parameter_client_, trigger_request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(get_logger(), "Could not set parameters");
-    return FAILURE;
+    if (!response || !response->success) {
+      RCLCPP_ERROR(get_logger(), "Could not set parameters");
+      result = FAILURE;
+    }
   }
-  return SUCCESS;
+  if (result != SUCCESS) {
+    this->on_cleanup(get_current_state());
+  }
+  return result;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -107,12 +109,12 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
     RCLCPP_ERROR(get_logger(), "could not clean up robot control node");
-    return FAILURE;
+    return ERROR;
   }
 
-  if (!robot_manager_->disconnect()) {
+  if (robot_manager_->isConnected() && !robot_manager_->disconnect()) {
     RCLCPP_ERROR(get_logger(), "could not disconnect");
-    return FAILURE;
+    return ERROR;
   }
 
   return SUCCESS;
@@ -177,7 +179,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     {
       RCLCPP_ERROR(
         get_logger(),
-        "Could not solve differing states, restart needed");
+        "Control node remained active, restart is needed");
+      return ERROR;
     }
     return FAILURE;
   }
