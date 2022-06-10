@@ -116,7 +116,6 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
       robot_manager_node_->get_logger(), "Control mode should be 'position' or 'joint_impedance'");
     return false;
   }
-  return true;
 }
 
 bool ConfigurationManager::onJointStiffnessChangeRequest(
