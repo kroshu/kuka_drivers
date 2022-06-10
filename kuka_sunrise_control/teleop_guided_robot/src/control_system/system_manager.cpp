@@ -148,13 +148,13 @@ SystemManager::on_activate(const rclcpp_lifecycle::State &)
 {
   auto result = SUCCESS;
   if (!changeState(
-      JOINT_CONTROLLER,
+      ROBOT_INTERFACE,
       lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
     result = FAILURE;
   }
   if (result == SUCCESS && !changeState(
-      ROBOT_INTERFACE,
+      JOINT_CONTROLLER,
       lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
     result = FAILURE;
