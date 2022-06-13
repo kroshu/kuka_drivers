@@ -30,43 +30,40 @@
 
 namespace kuka_rsi_hw_interface
 {
-class KukaHardwareInterface
-{
-public:
-  explicit KukaHardwareInterface(
-    const std::string & rsi_ip_address, int rsi_port,
-    unsigned int n_dof);
+  class KukaHardwareInterface
+  {
+  public:
+    explicit KukaHardwareInterface(const std::string &rsi_ip_address, int rsi_port, unsigned int n_dof);
 
-  void start(
-    std::vector<double> & joint_state_msg_position,
-    std::vector<double> & joint_command_msg_position,
-    std::vector<double> & initial_joint_position);
-  void stop(const std::vector<double> & joint_pos_correction_deg_);
-  bool read(std::vector<double> & joint_state_msg_position);
-  bool write(const std::vector<double> & joint_pos_correction_deg_);
+    void start(std::vector<double> &joint_state_msg_position,
+               std::vector<double> &joint_command_msg_position,
+               std::vector<double> &initial_joint_position);
+    void stop(const std::vector<double> &joint_pos_correction_deg_);
+    bool read(std::vector<double> &joint_state_msg_position);
+    bool write(const std::vector<double> &joint_pos_correction_deg_);
 
-  bool isActive() const;
+    bool isActive() const;
 
-private:
-  unsigned int n_dof_ = 6;
-  bool is_active_ = false;
+  private:
+    unsigned int n_dof_ = 6;
+    bool is_active_ = false;
 
-  std::vector<std::string> joint_names_ = std::vector<std::string>(6);
+    std::vector<std::string> joint_names_ = std::vector<std::string>(6);
 
-  std::string rsi_ip_address_ = "";
-  int rsi_port_ = 0;
-  RSIState rsi_state_;
-  RSICommand rsi_command_;
-  uint64_t ipoc_ = 0;
+    std::string rsi_ip_address_ = "";
+    int rsi_port_ = 0;
+    RSIState rsi_state_;
+    RSICommand rsi_command_;
+    uint64_t ipoc_ = 0;
 
-  std::unique_ptr<UDPServer> server_;
-  std::string in_buffer_;
-  std::string out_buffer_;
-  std::mutex m_;
+    std::unique_ptr<UDPServer> server_;
+    std::string in_buffer_;
+    std::string out_buffer_;
+    std::mutex m_;
 
-  static constexpr double R2D = 180 / M_PI;
-  static constexpr double D2R = M_PI / 180;
-};
-}  // namespace kuka_rsi_hw_interface
+    static constexpr double R2D = 180 / M_PI;
+    static constexpr double D2R = M_PI / 180;
+  };
+} // namespace kuka_rsi_hw_interface
 
-#endif  // KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#endif // KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
