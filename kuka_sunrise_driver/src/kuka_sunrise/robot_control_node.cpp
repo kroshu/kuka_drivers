@@ -42,7 +42,7 @@ RobotControlNode::RobotControlNode()
       response->data = client_->robotState().getSessionState();
     };
 
-  change_robot_control_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  set_commanding_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", command_srv_callback);
 
   get_fri_state_service_ = this->create_service<kuka_sunrise_interfaces::srv::GetState>(

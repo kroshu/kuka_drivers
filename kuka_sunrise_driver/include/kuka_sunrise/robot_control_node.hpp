@@ -64,7 +64,7 @@ private:
   std::unique_ptr<pthread_t> client_application_thread_;
   std::atomic_bool close_requested_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_control_state_service_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_commanding_state_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::GetState>::SharedPtr get_fri_state_service_;
 };
 

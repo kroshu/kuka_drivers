@@ -35,7 +35,7 @@ RobotManagerNode::RobotManagerNode()
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
-  set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
+  set_commanding_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](
     std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -46,7 +46,7 @@ RobotManagerNode::RobotManagerNode()
         response->success = this->deactivate();
       }
     };
-  change_robot_manager_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  change_robot_commanding_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
@@ -291,7 +291,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   request->data = active;
 
   auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    set_command_state_client_, request, 0, 1000);
+    set_commanding_state_client_, request, 0, 1000);
 
   if (!response || !response->success) {
     RCLCPP_ERROR(get_logger(), "Could not set robot command state");
