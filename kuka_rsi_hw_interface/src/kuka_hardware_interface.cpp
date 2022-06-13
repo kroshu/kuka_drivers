@@ -66,7 +66,7 @@ bool KukaHardwareInterface::read(std::vector<double> & joint_state_msg_position)
   if (!is_active_) {
     return false;
   }
-  
+
   if (server_->recv(in_buffer_) == 0) {
     return false;
   }
