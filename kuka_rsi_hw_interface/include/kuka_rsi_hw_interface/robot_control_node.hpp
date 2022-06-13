@@ -17,6 +17,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
@@ -25,50 +26,48 @@
 
 namespace kuka_rsi_hw_interface
 {
-  using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-  class RobotControlNode : public kroshu_ros2_core::ROS2BaseLCNode
-  {
+class RobotControlNode : public kroshu_ros2_core::ROS2BaseLCNode
+{
+public:
+  RobotControlNode(const std::string & node_name, const rclcpp::NodeOptions & options);
 
-  public:
-    RobotControlNode(const std::string &node_name, const rclcpp::NodeOptions &options);
+private:
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  private:
-    CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
-    CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+  std::unique_ptr<KukaHardwareInterface> kuka_rsi_hw_interface_;
 
-    std::unique_ptr<KukaHardwareInterface> kuka_rsi_hw_interface_;
+  void commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg);
+  bool onRSIIPAddressChange(const std::string & rsi_ip_address);
+  bool onRSIPortAddressChange(int rsi_port);
+  bool onNDOFChange(int n_dof);
 
-    void commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg);
-    bool onRSIIPAddressChange(const std::string &rsi_ip_address);
-    bool onRSIPortAddressChange(int rsi_port);
-    bool onNDOFChange(int n_dof);
+  void ControlLoop();
 
-    void ControlLoop();
+  std::thread control_thread_;
 
-    std::thread control_thread_;
+  std::string rsi_ip_address_ = "";
+  int rsi_port_ = 0;
+  unsigned int n_dof_ = 6;
 
-    std::string rsi_ip_address_ = "";
-    int rsi_port_ = 0;
-    unsigned int n_dof_ = 6;
+  std::vector<double> initial_joint_pos_ = std::vector<double>(6, 0.0);
+  std::vector<double> joint_pos_correction_deg_ = std::vector<double>(6, 0.0);
 
-    std::vector<double> initial_joint_pos_ = std::vector<double>(6, 0.0);
-    std::vector<double> joint_pos_correction_deg_ = std::vector<double>(6, 0.0);
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
+    joint_state_publisher_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
+  sensor_msgs::msg::JointState::SharedPtr joint_command_msg_;
+  sensor_msgs::msg::JointState joint_state_msg_;
+  std::mutex m_;
+  std::condition_variable cv_;
 
-    rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-        joint_state_publisher_;
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
-    rclcpp::CallbackGroup::SharedPtr cbg_;
-    sensor_msgs::msg::JointState::SharedPtr joint_command_msg_;
-    sensor_msgs::msg::JointState joint_state_msg_;
-    std::mutex m_;
-    std::condition_variable cv_;
-
-    static constexpr double R2D = 180 / M_PI;
-    static constexpr double D2R = M_PI / 180;
-  };
-
-} // namespace kuka_rsi_hw_interface
-#endif // KUKA_RSI_HW_INTERFACE__ROBOT_CONTROL_NODE_HPP_
+  static constexpr double R2D = 180 / M_PI;
+  static constexpr double D2R = M_PI / 180;
+};
+}  // namespace kuka_rsi_hw_interface
+#endif  // KUKA_RSI_HW_INTERFACE__ROBOT_CONTROL_NODE_HPP_
