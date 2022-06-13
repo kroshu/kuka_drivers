@@ -30,7 +30,6 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 
 class RobotControlNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
-
 public:
   RobotControlNode(const std::string & node_name, const rclcpp::NodeOptions & options);
 
@@ -65,5 +64,5 @@ private:
   std::condition_variable cv_;
 };
 
-} // namespace kuka_rsi_hw_interface
-#endif // KUKA_RSI_HW_INTERFACE__ROBOT_CONTROL_NODE_HPP_
+}  // namespace kuka_rsi_hw_interface
+#endif  // KUKA_RSI_HW_INTERFACE__ROBOT_CONTROL_NODE_HPP_

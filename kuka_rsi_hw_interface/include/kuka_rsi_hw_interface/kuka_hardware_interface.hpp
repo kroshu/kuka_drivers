@@ -62,6 +62,6 @@ private:
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
 };
-} // namespace kuka_rsi_hw_interface
+}  // namespace kuka_rsi_hw_interface
 
-#endif // KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_

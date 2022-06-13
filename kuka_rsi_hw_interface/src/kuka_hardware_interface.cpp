@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
 
@@ -65,7 +66,7 @@ bool KukaHardwareInterface::read(std::vector<double> & joint_state_msg_position)
   if (!is_active_) {
     return false;
   }
-  in_buffer_.resize(1024);
+  
   if (server_->recv(in_buffer_) == 0) {
     return false;
   }
@@ -79,7 +80,6 @@ bool KukaHardwareInterface::read(std::vector<double> & joint_state_msg_position)
 
 bool KukaHardwareInterface::write(const std::vector<double> & joint_command_position_msg_)
 {
-  out_buffer_.resize(1024);   // TODO(Svastits): is this necessary?
   std::lock_guard<std::mutex> lock(m_);
   if (!is_active_) {
     std::cout << "Controller deactivated\n";
@@ -111,4 +111,4 @@ bool KukaHardwareInterface::isActive() const
   return is_active_;
 }
 
-} // namespace namespace kuka_rsi_hw_interface
+}  // namespace namespace kuka_rsi_hw_interface
