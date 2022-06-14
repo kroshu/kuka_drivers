@@ -51,7 +51,6 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     reference_joint_state_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr key_teleop_subscription_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
   sensor_msgs::msg::JointState reference_joint_state_;
   const rclcpp::Duration elapsed_time_treshold_ = rclcpp::Duration(100000000);
   rclcpp::Time last_time_ = rclcpp::Time(RCL_ROS_TIME);
