@@ -27,11 +27,6 @@ ConfigurationManager::ConfigurationManager(
   std::shared_ptr<RobotManager> robot_manager)
 : robot_manager_node_(robot_manager_node), robot_manager_(robot_manager)
 {
-  param_callback_ = robot_manager_node_->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return robot_manager_node_->getParameterHandler().onParamChange(parameters);
-    });
-
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(

@@ -52,7 +52,6 @@ private:
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);
   std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
