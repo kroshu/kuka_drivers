@@ -77,7 +77,6 @@ private:
 
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     joint_controller_is_active_publisher_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
   std_msgs::msg::Bool joint_controller_is_active_;
 
   std::vector<double> max_velocities_radPs_ = std::vector<double>(n_dof_);

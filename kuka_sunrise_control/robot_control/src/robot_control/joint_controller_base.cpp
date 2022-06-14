@@ -46,29 +46,56 @@ JointControllerBase::JointControllerBase(
   joint_controller_is_active_publisher_ = this->create_publisher<
     std_msgs::msg::Bool>("joint_controller_is_active", qos);
 
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return getParameterHandler().onParamChange(parameters);
-    });
-
-  // TODO(Svastits): disable changes for parameters from yaml files
-  registerParameter<uint8_t>(
-    "n_dof", n_dof_, kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+  registerArgument<uint8_t>(
+    "n_dof", 0, kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
     [this](const uint8_t & n_dof) {
+      if (n_dof == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
       n_dof_ = n_dof;
       return true;
     });
 
-  registerParameter<std::vector<double>>(
-    "velocity_limits_deg", std::vector<double>(
-      n_dof_,
-      1.0), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
-    [this](const std::vector<double> & max_vel) {
+  registerArgument<std::vector<double>>(
+    "lower_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+    [this](const std::vector<double> & lower_lim) {
+      if (lower_lim.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
       std::transform(
-        max_vel.begin(), max_vel.end(),
-        max_velocities_radPs_.begin(), [](double v) {
-          return d2r(v * 0.9);
-        });
+        lower_lim.begin(), lower_lim.end(), lower_limits_rad_.begin(), [](double l)
+        {return d2r(l * 0.9);});
+      return true;
+    });
+
+  registerArgument<std::vector<double>>(
+    "upper_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false,
+      false, false}, [this](const std::vector<double> & upper_lim) {
+      if (upper_lim.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      std::transform(
+        upper_lim.begin(), upper_lim.end(), upper_limits_rad_.begin(), [](double l)
+        {return d2r(l * 0.9);});
+      return true;
+    });
+
+  registerArgument<std::vector<double>>(
+    "velocity_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+    [this](const std::vector<double> & max_vel) {
+      if (max_vel.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      std::transform(
+        max_vel.begin(), max_vel.end(), max_velocities_radPs_.begin(), [](double v)
+        {return d2r(v * 0.9);});
       return true;
     });
 
@@ -77,31 +104,6 @@ JointControllerBase::JointControllerBase(
     kroshu_ros2_core::ParameterSetAccessRights {true, true, false, false},
     [this](const std::vector<double> & vel_factor) {
       return this->onVelocityFactorsChangeRequest(vel_factor);
-    });
-
-  registerParameter<std::vector<double>>(
-    "lower_limits_deg", std::vector<double>(
-      {-170, -120, -170, -120, -170, -120,
-        -175}), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
-    [this](const std::vector<double> & lower_lim) {
-      std::transform(
-        lower_lim.begin(), lower_lim.end(),
-        lower_limits_rad_.begin(), [](double l) {
-          return d2r(l * 0.9);
-        });
-      return true;
-    });
-
-  registerParameter<std::vector<double>>(
-    "upper_limits_deg", std::vector<double>(
-      {170, 120, 170, 120, 170, 120, 175}), kroshu_ros2_core::ParameterSetAccessRights {true, false,
-      false, false}, [this](const std::vector<double> & upper_lim) {
-      std::transform(
-        upper_lim.begin(), upper_lim.end(),
-        upper_limits_rad_.begin(), [](double l) {
-          return d2r(l * 0.9);
-        });
-      return true;
     });
 
   auto send_period_callback = [this](
