@@ -32,7 +32,7 @@ def load_file(package_name, file_path):
         with open(absolute_file_path, 'r') as file:
             return file.read()
     except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
-        print('Couldnt load file ' + absolute_file_path)
+        print('Couldn\'t load file ' + absolute_file_path)
         return None
 
 
@@ -45,34 +45,21 @@ def load_yaml(package_name, file_path):
         with open(absolute_file_path, 'r') as file:
             return yaml.safe_load(file)
     except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
-        print('Couldnt load yaml ' + absolute_file_path)
+        print('Couldn\'t load yaml ' + absolute_file_path)
         return None
 
 
 def generate_launch_description():
 
-    robot_config_file = get_package_share_directory('robot_control') + "/config/lbr_iiwa.yaml"
-    kuka_sunrise_dir = get_package_share_directory('kuka_sunrise')
-
-    kuka_sunrise_interface = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([kuka_sunrise_dir, '/launch/kuka_sunrise.launch.py'])
-        )
+    robot_config_file = get_package_share_directory('robot_control') + "/config/kr6.yaml"
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        package='robot_control', executable='rate_scaled_controller', output='both',
-        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file,
-                                                                     {'reference_rate': 12.0}],
-        name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
-                                             ('joint_command', 'lbr_joint_command')]
-        )
-
-    system_manager = launch_ros.actions.LifecycleNode(
-        package='teleop_guided_robot', executable='system_manager', output='screen',
-        name='system_manager'
+        package='robot_control', executable='interpolating_controller', output='both',
+        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file],
+        name='joint_controller', remappings=[('measured_joint_state', 'rsi_joint_state'),
+                                             ('joint_command', 'rsi_joint_command')]
         )
 
     return LaunchDescription([
-        kuka_sunrise_interface,
-        system_manager,
         joint_controller
         ])

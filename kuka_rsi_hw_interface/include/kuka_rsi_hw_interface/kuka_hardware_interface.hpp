@@ -28,53 +28,36 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
-
 namespace kuka_rsi_hw_interface
 {
 class KukaHardwareInterface
 {
 public:
-  explicit KukaHardwareInterface(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+  explicit KukaHardwareInterface(const std::string & rsi_ip_address, int rsi_port, uint8_t n_dof);
 
-  void start();
+  void start(std::vector<double> & joint_state_msg_position);
   void stop();
-  void configure();
-  void cleanup();
-  bool read();
-  void write();
+  bool read(std::vector<double> & joint_state_msg_position);
+  bool write(const std::vector<double> & joint_pos_correction_deg_);
 
-  const bool & isActive() const;
+  bool isActive() const;
 
 private:
-  void commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg);
-
-  unsigned int n_dof_ = 6;
   bool is_active_ = false;
+  const uint8_t n_dof_ = 6;
+  std::string rsi_ip_address_ = "";
+  int rsi_port_ = 0;
 
-  std::vector<std::string> joint_names_ = std::vector<std::string>(6);
+  std::vector<double> initial_joint_pos_ = std::vector<double>(n_dof_, 0.0);
+  std::vector<double> joint_pos_correction_deg_ = std::vector<double>(n_dof_, 0.0);
 
+  uint64_t ipoc_ = 0;
   RSIState rsi_state_;
   RSICommand rsi_command_;
-  std::vector<double> initial_joint_pos_ = std::vector<double>(6, 0.0);
-  std::vector<double> joint_pos_correction_deg_ = std::vector<double>(6, 0.0);
-  uint64_t ipoc_ = 0;
-
   std::unique_ptr<UDPServer> server_;
-  std::string local_host_ = "";
-  int local_port_ = 0;
   std::string in_buffer_;
   std::string out_buffer_;
-
-  rclcpp_lifecycle::LifecycleNode::SharedPtr control_node_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
-    joint_state_publisher_;
-  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_command_subscription_;
-  rclcpp::CallbackGroup::SharedPtr cbg_;
-  sensor_msgs::msg::JointState::SharedPtr joint_command_msg_;
-  sensor_msgs::msg::JointState joint_state_msg_;
-
   std::mutex m_;
-  std::condition_variable cv_;
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;

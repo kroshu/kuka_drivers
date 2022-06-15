@@ -49,13 +49,12 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
 protected:
+  uint8_t n_dof_ = 7;
   void jointStateMeasurementsCallback(sensor_msgs::msg::JointState::SharedPtr measured_joint_state);
   virtual void controlLoopCallback(
     sensor_msgs::msg::JointState::SharedPtr measured_joint_state) = 0;
   void updateMaxPositionDifference();
-  bool onMaxVelocitiesChangeRequest(const std::vector<double> & max_vel);
-  bool onLowerLimitsChangeRequest(const std::vector<double> & lower_limits);
-  bool onUpperLimitsChangeRequest(const std::vector<double> & upper_limits);
+  bool onVelocityFactorsChangeRequest(const std::vector<double> & vel_factor);
 
   const std::vector<double> & maxPosDiff() const;
   const std::vector<double> & lowerLimitsRad() const;
@@ -78,13 +77,13 @@ private:
 
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     joint_controller_is_active_publisher_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
   std_msgs::msg::Bool joint_controller_is_active_;
 
-  std::vector<double> max_velocities_radPs_ = std::vector<double>(7);
-  std::vector<double> lower_limits_rad_ = std::vector<double>(7);
-  std::vector<double> upper_limits_rad_ = std::vector<double>(7);
-  std::vector<double> max_position_difference_ = std::vector<double>(7);
+  std::vector<double> max_velocities_radPs_ = std::vector<double>(n_dof_);
+  std::vector<double> velocity_limits_radPs_ = std::vector<double>(n_dof_);
+  std::vector<double> lower_limits_rad_ = std::vector<double>(n_dof_);
+  std::vector<double> upper_limits_rad_ = std::vector<double>(n_dof_);
+  std::vector<double> max_position_difference_ = std::vector<double>(n_dof_);
 
   int send_period_ms_ = 10;
   int receive_multiplier_ = 1;

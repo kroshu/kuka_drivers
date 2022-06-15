@@ -14,88 +14,30 @@
 #include <stdexcept>
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
-
 
 namespace kuka_rsi_hw_interface
 {
 
 KukaHardwareInterface::KukaHardwareInterface(
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
-: control_node_(robot_control_node)
+  const std::string & rsi_ip_address, int rsi_port, uint8_t n_dof)
+: rsi_ip_address_(rsi_ip_address),
+  rsi_port_(rsi_port),
+  n_dof_(n_dof)
 {
   in_buffer_.resize(1024);
   out_buffer_.resize(1024);
-
-  auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
-  auto callback =
-    [this](sensor_msgs::msg::JointState::SharedPtr msg)
-    {this->commandReceivedCallback(msg);};
-
-  cbg_ = control_node_->create_callback_group(
-    rclcpp::CallbackGroupType::MutuallyExclusive);
-  rclcpp::SubscriptionOptions options;
-  options.callback_group = cbg_;
-  joint_command_subscription_ = control_node_->create_subscription<
-    sensor_msgs::msg::JointState>(
-    "rsi_joint_command", qos, callback, options);
-
-  joint_state_publisher_ = control_node_->create_publisher<
-    sensor_msgs::msg::JointState>("rsi_joint_state", 1);
-  joint_command_msg_ = std::make_shared<sensor_msgs::msg::JointState>();
 }
 
-void KukaHardwareInterface::commandReceivedCallback(sensor_msgs::msg::JointState::SharedPtr msg)
+void KukaHardwareInterface::start(std::vector<double> & joint_state_msg_position)
 {
   std::lock_guard<std::mutex> lock(m_);
-  joint_command_msg_ = msg;
-  cv_.notify_one();
-}
-
-bool KukaHardwareInterface::read()
-{
-  std::unique_lock<std::mutex> lock(m_);
-  if (!is_active_) {return false;}
-  in_buffer_.resize(1024);
-
-  if (server_->recv(in_buffer_) == 0) {
-    return false;
-  }
-  rsi_state_ = RSIState(in_buffer_);
-  for (std::size_t i = 0; i < n_dof_; ++i) {
-    joint_state_msg_.position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
-  }
-  joint_state_publisher_->publish(joint_state_msg_);
-  ipoc_ = rsi_state_.ipoc;
-
-  return true;
-}
-
-void KukaHardwareInterface::write()
-{
-  out_buffer_.resize(1024);  // TODO(Svastits): is this necessary?
-  std::unique_lock<std::mutex> lock(m_);
-  // cv_.wait(lock);
-  if (!is_active_) {
-    RCLCPP_INFO(control_node_->get_logger(), "Controller deactivated");
-    return;
-  }
-  for (size_t i = 0; i < n_dof_; i++) {
-    joint_pos_correction_deg_[i] = (joint_command_msg_->position[i] - initial_joint_pos_[i]) *
-      KukaHardwareInterface::R2D;
-  }
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
-  server_->send(out_buffer_);
-}
-
-void KukaHardwareInterface::start()
-{
   // Wait for connection from robot
-  server_.reset(new UDPServer(local_host_, local_port_));
-
-  RCLCPP_INFO(control_node_->get_logger(), "Waiting for robot!");
-
+  server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
+  // TODO(Marton): use any logger
+  std::cout << "Waiting for robot connection\n";
   int bytes = server_->recv(in_buffer_);
 
   // Drop empty <rob> frame with RSI <= 2.3
@@ -105,19 +47,53 @@ void KukaHardwareInterface::start()
 
   rsi_state_ = RSIState(in_buffer_);
   for (std::size_t i = 0; i < n_dof_; ++i) {
-    joint_state_msg_.position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
-    joint_command_msg_->position[i] = joint_state_msg_.position[i];
+    joint_state_msg_position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
     initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaHardwareInterface::D2R;
   }
   ipoc_ = rsi_state_.ipoc;
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
+  out_buffer_ = RSICommand(std::vector<double>(n_dof_, 0), ipoc_).xml_doc;
   server_->send(out_buffer_);
   // Set receive timeout to 1 second
   server_->set_timeout(1000);
-  RCLCPP_INFO(control_node_->get_logger(), "Got connection from robot");
+  // TODO(Marton): use any logger
+  std::cout << "Got connection from robot\n";
   is_active_ = true;
-  joint_state_publisher_->on_activate();
-  joint_state_publisher_->publish(joint_state_msg_);
+}
+
+bool KukaHardwareInterface::read(std::vector<double> & joint_state_msg_position)
+{
+  std::lock_guard<std::mutex> lock(m_);
+  if (!is_active_) {
+    return false;
+  }
+
+  if (server_->recv(in_buffer_) == 0) {
+    return false;
+  }
+  rsi_state_ = RSIState(in_buffer_);
+  for (std::size_t i = 0; i < n_dof_; ++i) {
+    joint_state_msg_position[i] = rsi_state_.positions[i] * KukaHardwareInterface::D2R;
+  }
+  ipoc_ = rsi_state_.ipoc;
+  return true;
+}
+
+bool KukaHardwareInterface::write(const std::vector<double> & joint_command_position_msg_)
+{
+  std::lock_guard<std::mutex> lock(m_);
+  if (!is_active_) {
+    std::cout << "Controller deactivated\n";
+    return false;
+  }
+
+  for (size_t i = 0; i < n_dof_; i++) {
+    joint_pos_correction_deg_[i] = (joint_command_position_msg_[i] - initial_joint_pos_[i]) *
+      KukaHardwareInterface::R2D;
+  }
+
+  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
+  server_->send(out_buffer_);
+  return true;
 }
 
 void KukaHardwareInterface::stop()
@@ -125,31 +101,12 @@ void KukaHardwareInterface::stop()
   std::lock_guard<std::mutex> lock(m_);
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
   server_->send(out_buffer_);
-  joint_state_publisher_->on_deactivate();
   server_.reset();
   is_active_ = false;
-  RCLCPP_INFO(control_node_->get_logger(), "Connection to robot terminated");
-  // cv_.notify_one();
+  std::cout << "Connection to robot terminated\n";
 }
 
-void KukaHardwareInterface::configure()
-{
-  // TODO(Svastits): ip and port parameters
-  local_host_ = "172.32.20.20";
-  local_port_ = 59152;
-
-  joint_state_msg_.position.resize(n_dof_);
-  joint_command_msg_->position.resize(n_dof_);
-}
-
-void KukaHardwareInterface::cleanup()
-{
-  local_host_ = "";
-  local_port_ = 0;
-  const std::string param_port = "";
-}
-
-const bool & KukaHardwareInterface::isActive() const
+bool KukaHardwareInterface::isActive() const
 {
   return is_active_;
 }
