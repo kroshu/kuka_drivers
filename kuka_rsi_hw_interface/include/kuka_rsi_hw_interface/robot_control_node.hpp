@@ -53,6 +53,7 @@ private:
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;
   uint8_t n_dof_ = DEFAULT_N_DOF;
+  std::vector<std::string> controller_joint_names_;
 
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     joint_state_publisher_;
