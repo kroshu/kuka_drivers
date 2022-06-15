@@ -17,6 +17,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
