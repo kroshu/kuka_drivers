@@ -51,6 +51,7 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
 
+    robot_config_file = get_package_share_directory('robot_control') + "/config/lbr_iiwa.yaml"
     kuka_sunrise_dir = get_package_share_directory('kuka_sunrise')
 
     kuka_sunrise_interface = IncludeLaunchDescription(
@@ -59,7 +60,8 @@ def generate_launch_description():
 
     joint_controller = launch_ros.actions.LifecycleNode(
         package='robot_control', executable='rate_scaled_controller', output='both',
-        arguments=['--ros-args', '--log-level', 'info'], parameters=[{'reference_rate': 12.0}],
+        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file,
+                                                                     {'reference_rate': 12.0}],
         name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
                                              ('joint_command', 'lbr_joint_command')]
         )
