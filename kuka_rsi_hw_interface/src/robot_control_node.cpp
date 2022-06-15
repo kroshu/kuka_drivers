@@ -36,6 +36,8 @@ RobotControlNode::RobotControlNode(
       this->commandReceivedCallback(msg);
     };
 
+  joint_command_msg_ = std::make_shared<sensor_msgs::msg::JointState>();
+
   registerParameter<std::string>(
     "rsi_ip_address_", "127.0.0.1",
     kroshu_ros2_core::ParameterSetAccessRights{true, false, false, false},
@@ -71,8 +73,7 @@ RobotControlNode::RobotControlNode(
 CallbackReturn RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
 {
   kuka_rsi_hw_interface_ = std::make_unique<KukaHardwareInterface>(
-    rsi_ip_address_, rsi_port_,
-    n_dof_);
+    rsi_ip_address_, rsi_port_, n_dof_);
   return SUCCESS;
 }
 
