@@ -46,7 +46,7 @@ JointControllerBase::JointControllerBase(
   joint_controller_is_active_publisher_ = this->create_publisher<
     std_msgs::msg::Bool>("joint_controller_is_active", qos);
 
-  registerArgument<uint8_t>(
+  registerStaticParameter<uint8_t>(
     "n_dof", 0, kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
     [this](const uint8_t & n_dof) {
       if (n_dof == 0) {
@@ -57,7 +57,7 @@ JointControllerBase::JointControllerBase(
       return true;
     });
 
-  registerArgument<std::vector<double>>(
+  registerStaticParameter<std::vector<double>>(
     "lower_limits_deg",
     std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
     [this](const std::vector<double> & lower_lim) {
@@ -71,7 +71,7 @@ JointControllerBase::JointControllerBase(
       return true;
     });
 
-  registerArgument<std::vector<double>>(
+  registerStaticParameter<std::vector<double>>(
     "upper_limits_deg",
     std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false,
       false, false}, [this](const std::vector<double> & upper_lim) {
@@ -85,7 +85,7 @@ JointControllerBase::JointControllerBase(
       return true;
     });
 
-  registerArgument<std::vector<double>>(
+  registerStaticParameter<std::vector<double>>(
     "velocity_limits_deg",
     std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
     [this](const std::vector<double> & max_vel) {
