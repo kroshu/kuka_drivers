@@ -21,7 +21,7 @@ namespace kuka_sunrise
 {
 
 RobotControlNode::RobotControlNode()
-: LifecycleNode("robot_control"), close_requested_(false)
+: kroshu_ros2_core::ROS2BaseLCNode("robot_control"), close_requested_(false)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.reliable();
@@ -42,16 +42,11 @@ RobotControlNode::RobotControlNode()
       response->data = client_->robotState().getSessionState();
     };
 
-  change_robot_control_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  set_commanding_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", command_srv_callback);
 
   get_fri_state_service_ = this->create_service<kuka_sunrise_interfaces::srv::GetState>(
     "robot_control/get_fri_state", get_fri_state_callback);
-}
-
-RobotControlNode::~RobotControlNode()
-{
-  printf("in destructor");
 }
 
 void RobotControlNode::runClientApplication()
@@ -73,6 +68,8 @@ void RobotControlNode::runClientApplication()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
+
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
@@ -85,10 +82,12 @@ RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(get_logger(), "setscheduler error");
     RCLCPP_ERROR(get_logger(), strerror(errno));
+
+    if (munlockall() == -1) {
+      RCLCPP_ERROR(get_logger(), "munlockall error");
+    }
     return ERROR;
   }
-  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
-
   return SUCCESS;
 }
 
@@ -103,28 +102,6 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_shutdown(const rclcpp_lifecycle::State & state)
-{
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn result = SUCCESS;
-  switch (state.id()) {
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      result = this->on_deactivate(get_current_state());
-      if (result != SUCCESS) {
-        break;
-      }
-      result = this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      result = this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      break;
-    default:
-      break;
-  }
-  return result;
-}
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State &)
@@ -158,13 +135,6 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &)
   client_application_->disconnect();
   client_application_.reset();
   client_application_thread_.reset();
-  return SUCCESS;
-}
-
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotControlNode::on_error(const rclcpp_lifecycle::State &)
-{
-  RCLCPP_INFO(get_logger(), "An error occured");
   return SUCCESS;
 }
 

@@ -26,6 +26,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kuka_sunrise_interfaces REQUIRED)
+find_package(kroshu_ros2_core REQUIRED)
 
 include_directories(include)
 
@@ -70,19 +71,19 @@ ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rc
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs)
+ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core)
 
 
 add_executable(robot_manager_node
   src/kuka_sunrise/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle)
+ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core)
 target_link_libraries(robot_manager_node
   robot_manager
   configuration_manager)
 
 add_executable(robot_control_node
   src/kuka_sunrise/robot_control_node.cpp)
-ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
+ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs kroshu_ros2_core)
 target_link_libraries(robot_control_node
   robot_control_client
   ${fri_client_library})

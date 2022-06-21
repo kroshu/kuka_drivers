@@ -22,7 +22,6 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "fri_client/friClientApplication.h"
@@ -31,15 +30,15 @@
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 #include "kuka_sunrise_interfaces/srv/get_state.hpp"
 
+#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
 namespace kuka_sunrise
 {
 
-class RobotControlNode : public rclcpp_lifecycle::LifecycleNode, public ActivatableInterface
+class RobotControlNode : public kroshu_ros2_core::ROS2BaseLCNode, public ActivatableInterface
 {
 public:
   RobotControlNode();
-  ~RobotControlNode();
   void runClientApplication();
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -49,16 +48,10 @@ public:
   on_cleanup(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
-
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &);
-
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_error(const rclcpp_lifecycle::State &);
 
   virtual bool activate();
   virtual bool deactivate();
@@ -71,15 +64,8 @@ private:
   std::unique_ptr<pthread_t> client_application_thread_;
   std::atomic_bool close_requested_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_control_state_service_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_commanding_state_service_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::GetState>::SharedPtr get_fri_state_service_;
-
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SUCCESS =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ERROR =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn FAILURE =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
 };
 
 }  // namespace kuka_sunrise
