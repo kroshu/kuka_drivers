@@ -30,7 +30,7 @@ SystemManager::SystemManager(
   qos_.reliable();
   cbg_ = this->create_callback_group(
     rclcpp::CallbackGroupType::MutuallyExclusive);
-  change_robot_manager_state_client_ = this->create_client<
+  change_robot_commanding_state_client_ = this->create_client<
     std_srvs::srv::SetBool>(
     ROBOT_INTERFACE + "/set_commanding_state",
     qos_.get_rmw_qos_profile(), cbg_);
@@ -251,7 +251,6 @@ SystemManager::on_shutdown(const rclcpp_lifecycle::State & state)
     return FAILURE;
   }
 
-
   return result;
 }
 
@@ -345,7 +344,7 @@ bool SystemManager::changeRobotCommandingState(bool is_active)
   request->data = is_active;
 
   auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    change_robot_manager_state_client_, request, 2000, 1000);
+    change_robot_commanding_state_client_, request, 2000, 1000);
 
   if (!response || !response->success) {
     RCLCPP_ERROR(get_logger(), "Could not change robot commanding state");

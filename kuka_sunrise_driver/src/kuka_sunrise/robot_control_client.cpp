@@ -49,6 +49,10 @@ RobotControlClient::~RobotControlClient()
 
 bool RobotControlClient::activate()
 {
+  // TODO(Svastits): activating the robot_observer should be moved to the on_activate function
+  //   of the node! As of now, activating the driver nodes in themselves do not activate
+  //   the observer, and the monitoring mode is not working on the ROS2 side
+  //   (the publisher is not active, joint states are not sent)
   this->ActivatableInterface::activate();
   robot_commander_->activate();
   robot_observer_->activate();
