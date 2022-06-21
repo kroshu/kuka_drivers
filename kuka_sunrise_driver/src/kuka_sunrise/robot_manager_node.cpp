@@ -19,12 +19,11 @@
 #include "kuka_sunrise/robot_manager_node.hpp"
 #include "kuka_sunrise/internal/service_tools.hpp"
 
-
 namespace kuka_sunrise
 {
 
 RobotManagerNode::RobotManagerNode()
-: LifecycleNode("robot_manager")
+: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   robot_manager_ = std::make_shared<RobotManager>(
@@ -36,7 +35,7 @@ RobotManagerNode::RobotManagerNode()
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
-  set_command_state_client_ = this->create_client<std_srvs::srv::SetBool>(
+  set_commanding_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](
     std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -47,7 +46,7 @@ RobotManagerNode::RobotManagerNode()
         response->success = this->deactivate();
       }
     };
-  change_robot_manager_state_service_ = this->create_service<std_srvs::srv::SetBool>(
+  change_robot_commanding_state_service_ = this->create_service<std_srvs::srv::SetBool>(
     "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
@@ -58,6 +57,7 @@ RobotManagerNode::RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  auto result = SUCCESS;
   if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
@@ -65,47 +65,41 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  // If this fails, the node should be restarted, with different parameter values
+  // Therefore exceptions are not caught
   if (!configuration_manager_) {
     configuration_manager_ = std::make_unique<ConfigurationManager>(
-      this->shared_from_this(),
-      robot_manager_);
-  }
-
-  if (!this->has_parameter("controller_ip")) {
-    RCLCPP_ERROR(get_logger(), "Parameter controller_ip not available");
-    if (!requestRobotControlNodeStateTransition(
-        lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-    }
-    return FAILURE;
+      std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
+        this->shared_from_this()), robot_manager_);
   }
 
   const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
-      if (!requestRobotControlNodeStateTransition(
-          lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
-      {
-        RCLCPP_ERROR(get_logger(), "Could not solve differing states, restart needed");
-      }
-      return FAILURE;
+      result = FAILURE;
     }
+  } else {
+    RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
+    return ERROR;
   }
   // TODO(resizoltan) get IO configuration
 
-  auto trigger_request =
-    std::make_shared<std_srvs::srv::Trigger::Request>();
+  if (result == SUCCESS) {
+    auto trigger_request =
+      std::make_shared<std_srvs::srv::Trigger::Request>();
+    auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
+      set_parameter_client_, trigger_request, 0, 1000);
 
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
-    set_parameter_client_, trigger_request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(get_logger(), "Could not set parameters");
-    return FAILURE;
+    if (!response || !response->success) {
+      RCLCPP_ERROR(get_logger(), "Could not set parameters");
+      result = FAILURE;
+    }
   }
-  return SUCCESS;
+  if (result != SUCCESS) {
+    this->on_cleanup(get_current_state());
+  }
+  return result;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -115,12 +109,12 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
     RCLCPP_ERROR(get_logger(), "could not clean up robot control node");
-    return FAILURE;
+    return ERROR;
   }
 
-  if (!robot_manager_->disconnect()) {
+  if (robot_manager_->isConnected() && !robot_manager_->disconnect()) {
     RCLCPP_ERROR(get_logger(), "could not disconnect");
-    return FAILURE;
+    return ERROR;
   }
 
   return SUCCESS;
@@ -163,14 +157,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (!this->has_parameter("send_period_ms") || !this->has_parameter("receive_multiplier")) {
-    RCLCPP_ERROR(get_logger(), "Parameter send_period_ms or receive_multiplier not available");
-    return FAILURE;
-  }
-  rclcpp::Parameter send_period_ms = this->get_parameter("send_period_ms");
-  rclcpp::Parameter receive_multiplier = this->get_parameter("receive_multiplier");
+  auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
+  auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
 
-  if (!robot_manager_->setFRIConfig(30200, send_period_ms.as_int(), receive_multiplier.as_int())) {
+  if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
     RCLCPP_ERROR(get_logger(), "could not set fri config");
     return FAILURE;
   }
@@ -189,7 +179,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     {
       RCLCPP_ERROR(
         get_logger(),
-        "Could not solve differing states, restart needed");
+        "Control node remained active, restart is needed");
+      return ERROR;
     }
     return FAILURE;
   }
@@ -227,13 +218,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   command_state_changed_publisher_->on_deactivate();
 
-  return SUCCESS;
-}
-
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_error(const rclcpp_lifecycle::State &)
-{
-  RCLCPP_ERROR(get_logger(), "An error occured");
   return SUCCESS;
 }
 
@@ -307,7 +291,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
   request->data = active;
 
   auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    set_command_state_client_, request, 0, 1000);
+    set_commanding_state_client_, request, 0, 1000);
 
   if (!response || !response->success) {
     RCLCPP_ERROR(get_logger(), "Could not set robot command state");
