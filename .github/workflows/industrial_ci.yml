@@ -39,7 +39,7 @@ jobs:
           TEST_COVERAGE: true
           UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
-          ROS_DISTRO: humble
+          ROS_DISTRO: foxy
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
