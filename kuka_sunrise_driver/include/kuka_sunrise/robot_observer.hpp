@@ -27,7 +27,7 @@
 #include "std_msgs/msg/float64.hpp"
 
 #include "kuka_sunrise/internal/activatable_interface.hpp"
-#include "fri_client/friLBRClient.h"
+#include "fri/friLBRClient.h"
 
 namespace kuka_sunrise
 {

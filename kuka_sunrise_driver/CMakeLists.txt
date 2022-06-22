@@ -15,8 +15,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-option(MOCK_FRI "Use mock classes instead of the FRI Client Library" OFF)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -27,25 +25,9 @@ find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kuka_sunrise_interfaces REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
+find_package(fri REQUIRED)
 
-include_directories(include)
-
-if(NOT MOCK_FRI)
-  find_library(fri_client_library
-    libFRIClient.a
-    PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
-  message("Using real fri lib")
-else()
-  add_library(fri_client
-    src/fri_client_mock/friClientApplication_mock.cpp
-    src/fri_client_mock/friLBRClient_mock.cpp
-    src/fri_client_mock/friLBRCommand_mock.cpp
-    src/fri_client_mock/friLBRState_mock.cpp
-    src/fri_client_mock/friTransformationClient_mock.cpp
-    src/fri_client_mock/friUdpConnection_mock.cpp)
-  set(fri_client_library fri_client)
-  message("Using mock fri lib")
-endif()
+include_directories(include /home/rosdeveloper/ros2_ws/src/ros2_kuka_drivers/fri_client/include)
 
 
 add_library(internal SHARED
@@ -85,8 +67,7 @@ add_executable(robot_control_node
   src/kuka_sunrise/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs kroshu_ros2_core)
 target_link_libraries(robot_control_node
-  robot_control_client
-  ${fri_client_library})
+  robot_control_client fri::fri_client)
 
 add_executable(position_controller_node
   test/position_controller.cpp)
@@ -116,10 +97,6 @@ install(
 )
 
 if(BUILD_TESTING)
-
-  # _ament_cmake_python_register_environment_hook()
-
-
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
@@ -141,27 +118,14 @@ if(BUILD_TESTING)
         \"--single-version-externally-managed\"
       WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
   )
-  file(GLOB fri_headers
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}/include/fri_client"
-    include/fri_client/*)
 
-  ament_copyright(--exclude ${fri_headers})
-#    friClientApplication.h
-#    friClientIf.h
-#    friConnectionIf.h
-#    friException.h
-#    friLBRClient.h
-#    friLBRCommand.h
-#    friLBRState.h
-#    friTransformationClient.h
-#    friUdpConnection.h)
+  ament_copyright()
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify(--exclude ${fri_headers})
+  ament_uncrustify()
   ament_xmllint()
 endif()
 

@@ -23,7 +23,7 @@
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
 #include "kuka_sunrise/internal/activatable_interface.hpp"
-#include "fri_client/friLBRClient.h"
+#include "fri/friLBRClient.h"
 
 
 namespace kuka_sunrise
