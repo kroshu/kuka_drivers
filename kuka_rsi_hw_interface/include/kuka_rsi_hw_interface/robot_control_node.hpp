@@ -23,6 +23,7 @@
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
+
 #define DEFAULT_N_DOF 6
 
 namespace kuka_rsi_hw_interface
