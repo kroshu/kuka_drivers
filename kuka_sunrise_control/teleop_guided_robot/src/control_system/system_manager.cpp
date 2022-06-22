@@ -71,10 +71,6 @@ SystemManager::SystemManager(
   trigger_change_service_ = this->create_service<std_srvs::srv::Trigger>(
     "system_manager/trigger_change", trigger_change_callback);
 
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return getParameterHandler().onParamChange(parameters);
-    });
 
   // If node is in unconfigured state, parameter can be always set
   registerParameter<bool>(

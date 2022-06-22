@@ -46,36 +46,64 @@ JointControllerBase::JointControllerBase(
   joint_controller_is_active_publisher_ = this->create_publisher<
     std_msgs::msg::Bool>("joint_controller_is_active", qos);
 
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return getParameterHandler().onParamChange(parameters);
+  registerStaticParameter<uint8_t>(
+    "n_dof", 0, kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+    [this](const uint8_t & n_dof) {
+      if (n_dof == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      n_dof_ = n_dof;
+      return true;
     });
 
-  // TODO(Svastits): declare velocity_factor parameter instead of max_velocities_degPs,
-  //  as that is const
-  // same could be done to limits, factor must be <=1
-
-  registerParameter<std::vector<double>>(
-    "max_velocities_degPs", std::vector<double>(
-      {300, 300, 400, 300, 160, 160,
-        400}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
-      false, false}, [this](const std::vector<double> & max_v) {
-      return this->onMaxVelocitiesChangeRequest(max_v);
+  registerStaticParameter<std::vector<double>>(
+    "lower_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+    [this](const std::vector<double> & lower_lim) {
+      if (lower_lim.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      std::transform(
+        lower_lim.begin(), lower_lim.end(), lower_limits_rad_.begin(), [](double l)
+        {return d2r(l * 0.9);});
+      return true;
     });
 
-  registerParameter<std::vector<double>>(
-    "lower_limits_deg", std::vector<double>(
-      {-170, -120, -170, -120, -170, -120,
-        -175}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
-      false, false}, [this](const std::vector<double> & lower_lim) {
-      return this->onLowerLimitsChangeRequest(lower_lim);
-    });
-
-  registerParameter<std::vector<double>>(
-    "upper_limits_deg", std::vector<double>(
-      {170, 120, 170, 120, 170, 120, 175}), kroshu_ros2_core::ParameterSetAccessRights {true, true,
+  registerStaticParameter<std::vector<double>>(
+    "upper_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false,
       false, false}, [this](const std::vector<double> & upper_lim) {
-      return this->onUpperLimitsChangeRequest(upper_lim);
+      if (upper_lim.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      std::transform(
+        upper_lim.begin(), upper_lim.end(), upper_limits_rad_.begin(), [](double l)
+        {return d2r(l * 0.9);});
+      return true;
+    });
+
+  registerStaticParameter<std::vector<double>>(
+    "velocity_limits_deg",
+    std::vector<double>(), kroshu_ros2_core::ParameterSetAccessRights {true, false, false, false},
+    [this](const std::vector<double> & max_vel) {
+      if (max_vel.size() == 0) {
+        RCLCPP_ERROR(get_logger(), "Invalid config file");
+        return false;
+      }
+      std::transform(
+        max_vel.begin(), max_vel.end(), max_velocities_radPs_.begin(), [](double v)
+        {return d2r(v * 0.9);});
+      return true;
+    });
+
+  registerParameter<std::vector<double>>(
+    "velocity_factors", std::vector<double>(n_dof_, 1.0),
+    kroshu_ros2_core::ParameterSetAccessRights {true, true, false, false},
+    [this](const std::vector<double> & vel_factor) {
+      return this->onVelocityFactorsChangeRequest(vel_factor);
     });
 
   auto send_period_callback = [this](
@@ -127,9 +155,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn JointC
 on_configure(
   const rclcpp_lifecycle::State &)
 {
-  joint_command_.position.resize(7);
-  joint_command_.velocity.resize(7);
-  joint_command_.effort.resize(7);
+  joint_command_.position.resize(n_dof_);
+  joint_command_.velocity.resize(n_dof_);
+  joint_command_.effort.resize(n_dof_);
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     RCLCPP_ERROR(get_logger(), "mlockall error");
     RCLCPP_ERROR(get_logger(), strerror(errno));
@@ -179,55 +207,27 @@ on_deactivate(
   return SUCCESS;
 }
 
-bool JointControllerBase::onMaxVelocitiesChangeRequest(
-  const std::vector<double> & max_vel)
+bool JointControllerBase::onVelocityFactorsChangeRequest(
+  const std::vector<double> & vel_factor)
 {
-  if (max_vel.size() != 7) {
+  if (vel_factor.size() != n_dof_) {
     RCLCPP_ERROR(
       this->get_logger(),
-      "Invalid parameter array length for max velocities ");
+      "Invalid parameter array length for velocity factors ");
     return false;
   }
-  std::transform(
-    max_vel.begin(), max_vel.end(),
-    max_velocities_radPs_.begin(), [](double v) {
-      return d2r(v * 0.9);
-    });
+  for (const auto & v : vel_factor) {
+    if (v > 1) {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Factor should be <= 1");
+      return false;
+    }
+  }
+  for (int i = 0; i < n_dof_; i++) {
+    velocity_limits_radPs_[i] = max_velocities_radPs_[i] * vel_factor[i];
+  }
   updateMaxPositionDifference();
-  return true;
-}
-
-bool JointControllerBase::onLowerLimitsChangeRequest(
-  const std::vector<double> & lower_limits)
-{
-  if (lower_limits.size() != 7) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Invalid parameter array length for lower limits");
-    return false;
-  }
-  std::transform(
-    lower_limits.begin(),
-    lower_limits.end(), lower_limits_rad_.begin(), [](double v) {
-      return d2r(v * 0.9);
-    });
-  return true;
-}
-
-bool JointControllerBase::onUpperLimitsChangeRequest(
-  const std::vector<double> & upper_limits)
-{
-  if (upper_limits.size() != 7) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Invalid parameter array length for upper limits");
-    return false;
-  }
-  std::transform(
-    upper_limits.begin(),
-    upper_limits.end(), upper_limits_rad_.begin(), [](double v) {
-      return d2r(v * 0.9);
-    });
   return true;
 }
 
@@ -237,7 +237,7 @@ void JointControllerBase::updateMaxPositionDifference()
       return v * loop_period_ms_ / JointControllerBase::ms_in_sec_;
     };
   std::transform(
-    max_velocities_radPs_.begin(), max_velocities_radPs_.end(),
+    velocity_limits_radPs_.begin(), velocity_limits_radPs_.end(),
     max_position_difference_.begin(), calc_pos_diff);
 }
 
