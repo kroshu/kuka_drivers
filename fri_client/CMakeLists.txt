@@ -66,9 +66,24 @@ else()
     ) 
 endif()
 
+file(GLOB private_headers
+  LIST_DIRECTORIES FALSE
+  RELATIVE "${PROJECT_SOURCE_DIR}"
+  src/friClientData.h
+  src/friCommandMessageEncoder.h
+  src/FRIMessages.pb.h
+  src/friMonitoringMessageDecoder.h
+  src/pb_frimessages_callbacks.h
+  )
+
 target_link_libraries(fri_client PRIVATE NanoPB::nanopb)
 
+message(WARNING ${private_headers})
+
 ament_export_targets(fri_client HAS_LIBRARY_TARGET)
+
+install(DIRECTORY include/fri DESTINATION include)
+install(FILES ${private_headers} DESTINATION include)
 
 install(
   TARGETS fri_client

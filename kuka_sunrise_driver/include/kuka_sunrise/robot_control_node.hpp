@@ -24,7 +24,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
-#include "fri/friClientApplication.h"
+#include "fri/HWIFClientApplication.hpp"
 #include "fri/friUdpConnection.h"
 #include "kuka_sunrise/robot_control_client.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"

@@ -106,7 +106,7 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  client_application_ = std::make_unique<KUKA::FRI::ClientApplication>(udp_connection_, *client_);
+  client_application_ = std::make_unique<KUKA::FRI::HWIFClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
   auto run_app = [](void * robot_control_node) -> void * {
