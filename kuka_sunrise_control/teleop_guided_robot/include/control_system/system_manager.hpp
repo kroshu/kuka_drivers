@@ -66,7 +66,6 @@ private:
   int lbr_state_ = 0;
   const std::chrono::milliseconds sleeping_time_ms_ = std::chrono::milliseconds(
     200);
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_;
 
   std::thread polling_thread_;
 

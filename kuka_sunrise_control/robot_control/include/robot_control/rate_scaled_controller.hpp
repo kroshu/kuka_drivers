@@ -48,9 +48,9 @@ private:
 
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
 
-  std::vector<double> prev_ref_joint_pos_ = std::vector<double>(7);
-  std::vector<double> pprev_ref_joint_pos_ = std::vector<double>(7);
-  std::vector<bool> slow_start_ = std::vector<bool>(7, true);
+  std::vector<double> prev_ref_joint_pos_ = std::vector<double>(n_dof_);
+  std::vector<double> pprev_ref_joint_pos_ = std::vector<double>(n_dof_);
+  std::vector<bool> slow_start_ = std::vector<bool>(n_dof_, true);
 
   int cmd_count_ = 0;
   int cmd_per_frame_temp_ = 0;  // for syncing changing with commands

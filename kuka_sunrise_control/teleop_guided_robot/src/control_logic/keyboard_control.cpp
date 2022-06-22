@@ -40,11 +40,6 @@ KeyboardControl::KeyboardControl(const std::string & node_name, const rclcpp::No
     "reference_joint_state", qos);
   reference_joint_state_.position.resize(7);
 
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return getParameterHandler().onParamChange(parameters);
-    });
-
   registerParameter<std::vector<double>>(
     "lower_limits_deg", std::vector<double>(
       {-170, -120, -170, -120, -170, -120,

@@ -43,14 +43,14 @@ void InterpolatingController::controlLoopCallback(
   if (!reference_joint_state_) {
     reference_joint_state_ = measured_joint_state;
   }
-  if (reference_joint_state_->position.size() == 7) {
+  if (reference_joint_state_->position.size() == n_dof_) {
     setJointCommandPosition(measured_joint_state->position);
     enforceSpeedLimits(measured_joint_state->position);
   }
-  if (reference_joint_state_->velocity.size() == 7) {
+  if (reference_joint_state_->velocity.size() == n_dof_) {
     joint_command_.velocity = reference_joint_state_->velocity;
   }
-  if (reference_joint_state_->effort.size() == 7) {
+  if (reference_joint_state_->effort.size() == n_dof_) {
     joint_command_.effort = reference_joint_state_->effort;
   }
   joint_command_.header = measured_joint_state->header;
@@ -68,7 +68,7 @@ void InterpolatingController::enforceSpeedLimits(
   const std::vector<double> & measured_joint_position)
 {
   std::vector<double> & joint_command_position = joint_command_.position;
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < n_dof_; i++) {
     if (abs(measured_joint_position[i] - joint_command_position[i]) <=
       maxPosDiff()[i])
     {
@@ -98,7 +98,7 @@ void InterpolatingController::referenceUpdateCallback(
     return;
   }
   auto & reference_joint_positions = reference_joint_state->position;
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < n_dof_; i++) {
     if (reference_joint_positions[i] < lowerLimitsRad()[i]) {
       reference_joint_positions[i] = lowerLimitsRad()[i];
       RCLCPP_WARN(
