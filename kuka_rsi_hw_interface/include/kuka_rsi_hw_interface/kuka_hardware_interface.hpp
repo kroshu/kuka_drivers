@@ -52,17 +52,53 @@
 #include <cmath>
 #include <mutex>
 
+#include "rclcpp/macros.hpp"
+
+#include "kuka_rsi_hw_interface/visibility_control.h"
+#include "hardware_interface/handle.hpp"
+#include "hardware_interface/hardware_info.hpp"
+#include "hardware_interface/system_interface.hpp"
+#include "hardware_interface/types/hardware_interface_return_values.hpp"
+
+
+
+using hardware_interface::return_type;
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
 namespace kuka_rsi_hw_interface
 {
-class KukaHardwareInterface
+  
+class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  explicit KukaHardwareInterface(const std::string & rsi_ip_address, int rsi_port, uint8_t n_dof);
 
-  void start(std::vector<double> & joint_state_msg_position);
-  void stop();
-  bool read(std::vector<double> & joint_state_msg_position);
-  bool write(const std::vector<double> & joint_pos_correction_deg_);
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface);
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+	// return_type start() override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+	// return_type stop() override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+
+	KUKA_RSI_HW_INTERFACE_PUBLIC
+	return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   bool isActive() const;
 
@@ -75,6 +111,11 @@ private:
   std::vector<double> initial_joint_pos_ = std::vector<double>(n_dof_, 0.0);
   std::vector<double> joint_pos_correction_deg_ = std::vector<double>(n_dof_, 0.0);
 
+	// Dummy parameters
+	double hw_start_sec_, hw_stop_sec_, hw_slowdown_;
+	// Store the command for the simulated robot
+	std::vector<double> hw_commands_, hw_states_;
+
   uint64_t ipoc_ = 0;
   RSIState rsi_state_;
   RSICommand rsi_command_;
@@ -82,6 +123,10 @@ private:
   std::string in_buffer_;
   std::string out_buffer_;
   std::mutex m_;
+
+	double loop_hz_;
+	std::chrono::steady_clock::time_point time_now_, time_last_;
+	std::chrono::duration<double> control_period_, elapsed_time_;
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;

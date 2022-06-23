@@ -20,6 +20,8 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(pluginlib REQUIRED)
 
 find_package(tinyxml_vendor REQUIRED)
 find_package(TinyXML REQUIRED)
@@ -29,7 +31,7 @@ include_directories(include ${TinyXML2_INCLUDE_DIRS})
 add_library(kuka_hardware_interface
   src/kuka_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_hardware_interface rclcpp sensor_msgs)
+ament_target_dependencies(kuka_hardware_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_hardware_interface tinyxml)
 
 add_executable(robot_control_node
