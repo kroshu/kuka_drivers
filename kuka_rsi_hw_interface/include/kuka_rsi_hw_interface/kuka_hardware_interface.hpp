@@ -49,10 +49,8 @@
 #include <string>
 #include <memory>
 #include <chrono>
-
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "sensor_msgs/msg/joint_state.hpp"
+#include <cmath>
+#include <mutex>
 
 namespace kuka_rsi_hw_interface
 {
