@@ -78,8 +78,6 @@ file(GLOB private_headers
 
 target_link_libraries(fri_client PRIVATE NanoPB::nanopb)
 
-message(WARNING ${private_headers})
-
 ament_export_targets(fri_client HAS_LIBRARY_TARGET)
 
 install(DIRECTORY include/fri DESTINATION include)
