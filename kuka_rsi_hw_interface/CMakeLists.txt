@@ -22,6 +22,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(controller_manager REQUIRED)
 
 find_package(tinyxml_vendor REQUIRED)
 find_package(TinyXML REQUIRED)
@@ -39,6 +40,7 @@ add_executable(robot_control_node
 ament_target_dependencies(robot_control_node rclcpp kroshu_ros2_core sensor_msgs)
 target_link_libraries(robot_control_node kuka_hardware_interface)
 
+pluginlib_export_plugin_description_file(hardware_interface kuka_rsi_hw_interface.xml)
 
 install(TARGETS kuka_hardware_interface robot_control_node
   DESTINATION lib/${PROJECT_NAME})
@@ -61,5 +63,8 @@ if(BUILD_TESTING)
   ament_uncrustify(--language=C++)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
+
+install(DIRECTORY config test 
+  DESTINATION share/${PROJECT_NAME})
 
 ament_package()

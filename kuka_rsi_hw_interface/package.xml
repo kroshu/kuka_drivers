@@ -19,6 +19,7 @@
   <depend>tinyxml_vendor</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
+  <depend>controller_manager</depend>
 
   <test_depend>ament_cmake_copyright</test_depend>
   <test_depend>ament_cmake_cppcheck</test_depend>
