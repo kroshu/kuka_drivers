@@ -29,20 +29,27 @@ find_package(TinyXML REQUIRED)
 
 include_directories(include ${TinyXML2_INCLUDE_DIRS})
 
-add_library(kuka_hardware_interface
+add_library(${PROJECT_NAME}
   src/kuka_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_hardware_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_hardware_interface tinyxml)
+
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUILDING_DLL")
+# prevent pluginlib from using boost
+target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
+target_link_libraries(${PROJECT_NAME} tinyxml)
 
 add_executable(robot_control_node
   src/robot_control_node.cpp)
 ament_target_dependencies(robot_control_node rclcpp kroshu_ros2_core sensor_msgs)
-target_link_libraries(robot_control_node kuka_hardware_interface)
+target_link_libraries(robot_control_node ${PROJECT_NAME})
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rsi_hw_interface.xml)
 
-install(TARGETS kuka_hardware_interface robot_control_node
+install(TARGETS ${PROJECT_NAME} robot_control_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
@@ -63,6 +70,20 @@ if(BUILD_TESTING)
   ament_uncrustify(--language=C++)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
+
+## EXPORTS
+ament_export_include_directories(
+  include
+)
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
+ament_export_dependencies(
+  hardware_interface
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+)
 
 install(DIRECTORY config test 
   DESTINATION share/${PROJECT_NAME})
