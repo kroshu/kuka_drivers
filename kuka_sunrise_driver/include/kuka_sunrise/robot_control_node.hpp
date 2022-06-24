@@ -59,7 +59,6 @@ public:
 private:
   KUKA::FRI::UdpConnection udp_connection_;
   std::unique_ptr<RobotControlClient> client_;
-  std::unique_ptr<KUKA::FRI::ClientApplication> client_application_;
 
   std::unique_ptr<pthread_t> client_application_thread_;
   std::atomic_bool close_requested_;

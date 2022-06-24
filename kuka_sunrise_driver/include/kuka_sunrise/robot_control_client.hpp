@@ -20,11 +20,17 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include <hardware_interface/system_interface.hpp>
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
 
+#include "kuka_sunrise_interfaces/srv/set_int.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 #include "fri/friLBRClient.h"
+#include "fri/HWIFClientApplication.hpp"
+#include "fri/friUdpConnection.h"
 
+
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_sunrise
 {
@@ -32,10 +38,11 @@ namespace kuka_sunrise
 class RobotObserver;
 class RobotCommander;
 
-class RobotControlClient : public KUKA::FRI::LBRClient, public ActivatableInterface
+class RobotControlClient : public hardware_interface::SystemInterface, public KUKA::FRI::LBRClient,
+  public ActivatableInterface
 {
 public:
-  explicit RobotControlClient(rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_);
+  //explicit RobotControlClient();
   ~RobotControlClient();
   bool activate();
   bool deactivate();
@@ -45,15 +52,41 @@ public:
   virtual void waitForCommand();
   virtual void command();
 
+  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+
+  hardware_interface::return_type read(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
+  hardware_interface::return_type write(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
+
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+
 private:
   std::unique_ptr<RobotObserver> robot_observer_;
   std::unique_ptr<RobotCommander> robot_commander_;
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
+  // rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
   int receive_multiplier_;
   int receive_counter_;
+
+
+  // Dummy parameters
+  double hw_start_sec_, hw_stop_sec_, hw_slowdown_;
+  // Store the command for the simulated robot
+  std::vector<double> hw_commands_, hw_states_;
+  std::vector<double> hw_torques_, hw_effort_command_;
+
+  KUKA::FRI::HWIFClientApplication client_application_;
+  KUKA::FRI::UdpConnection udp_connection_;
+
 };
 
 }  // namespace kuka_sunrise

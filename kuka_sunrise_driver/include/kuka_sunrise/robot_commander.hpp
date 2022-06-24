@@ -96,8 +96,7 @@ class RobotCommander : public ActivatableInterface
 {
 public:
   RobotCommander(
-    KUKA::FRI::LBRCommand & robot_command, const KUKA::FRI::LBRState & robot_state_,
-    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+    KUKA::FRI::LBRCommand & robot_command, const KUKA::FRI::LBRState & robot_state_);
   void addBooleanOutputCommander(const std::string & name);
   void addDigitalOutputCommander(const std::string & name);
   void addAnalogOutputCommander(const std::string & name);

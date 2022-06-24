@@ -51,10 +51,10 @@ RobotControlNode::RobotControlNode()
 
 void RobotControlNode::runClientApplication()
 {
-  client_application_->connect(30200, NULL);
+  //client_application_->connect(30200, NULL);
   bool success = true;
   while (success && !close_requested_.load()) {
-    success = client_application_->step();
+    //success = client_application_->step();
 
     if (client_->robotState().getSessionState() == KUKA::FRI::IDLE) {
       break;
@@ -68,7 +68,7 @@ void RobotControlNode::runClientApplication()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  client_ = std::make_unique<RobotControlClient>(this->shared_from_this());
+  //client_ = std::make_unique<RobotControlClient>();
 
   // TODO(resizoltan) change stack size with setrlimit rlimit_stack?
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
@@ -98,7 +98,7 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "munlockall error");
     return ERROR;
   }
-  client_.reset();
+  //client_.reset();
   return SUCCESS;
 }
 
@@ -106,7 +106,7 @@ RobotControlNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotControlNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  client_application_ = std::make_unique<KUKA::FRI::HWIFClientApplication>(udp_connection_, *client_);
+  //client_application_ = std::make_unique<KUKA::FRI::HWIFClientApplication>(udp_connection_, *client_);
   client_application_thread_ = std::make_unique<pthread_t>();
 
   auto run_app = [](void * robot_control_node) -> void * {
@@ -132,8 +132,8 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &)
   close_requested_.store(true);
   pthread_join(*client_application_thread_, NULL);  // TODO(resizoltan) can hang here, apply timeout
   close_requested_.store(false);
-  client_application_->disconnect();
-  client_application_.reset();
+  //client_application_->disconnect();
+  //client_application_.reset();
   client_application_thread_.reset();
   return SUCCESS;
 }
@@ -141,13 +141,13 @@ RobotControlNode::on_deactivate(const rclcpp_lifecycle::State &)
 bool RobotControlNode::activate()
 {
   this->ActivatableInterface::activate();
-  return client_->activate();
+  //return client_->activate();
 }
 
 bool RobotControlNode::deactivate()
 {
   this->ActivatableInterface::deactivate();
-  return client_->deactivate();
+  //return client_->deactivate();
 }
 
 }  // namespace kuka_sunrise

@@ -72,8 +72,7 @@ class RobotObserver : public ActivatableInterface
 {
 public:
   RobotObserver(
-    const KUKA::FRI::LBRState & robot_state,
-    rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node);
+    const KUKA::FRI::LBRState & robot_state);
   void addBooleanInputObserver(std::string name);
   void addDigitalInputObserver(std::string name);
   void addAnalogInputObserver(std::string name);
@@ -85,7 +84,7 @@ private:
   const KUKA::FRI::LBRState & robot_state_;
   sensor_msgs::msg::JointState joint_state_msg_;
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
+  //rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     joint_state_publisher_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr

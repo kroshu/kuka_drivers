@@ -26,6 +26,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(kuka_sunrise_interfaces REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(fri REQUIRED)
+find_package(hardware_interface REQUIRED)
 
 include_directories(include /home/rosdeveloper/ros2_ws/src/ros2_kuka_drivers/fri_client/include)
 
@@ -49,7 +50,8 @@ add_library(robot_control_client SHARED
   src/kuka_sunrise/robot_control_client.cpp
   src/kuka_sunrise/robot_observer.cpp
   src/kuka_sunrise/robot_commander.cpp)
-ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
+ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs hardware_interface)
+target_link_libraries(robot_control_client fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)

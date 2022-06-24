@@ -25,10 +25,9 @@ namespace kuka_sunrise
 
 RobotCommander::RobotCommander(
   KUKA::FRI::LBRCommand & robot_command,
-  const KUKA::FRI::LBRState & robot_state,
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
+  const KUKA::FRI::LBRState & robot_state)
 : robot_command_(robot_command), robot_state_(robot_state), torque_command_mode_(false),
-  robot_control_node_(robot_control_node), ros_clock_(RCL_ROS_TIME)
+  ros_clock_(RCL_ROS_TIME)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
@@ -37,10 +36,6 @@ RobotCommander::RobotCommander(
     {this->commandReceivedCallback(msg);};
   // TODO(resizoltan) use TLSFAllocator? implement static strategy for jointstatemsg?
   auto msg_strategy = std::make_shared<MessageMemoryStrategy<sensor_msgs::msg::JointState>>();
-  joint_command_subscription_ = robot_control_node_->create_subscription<
-    sensor_msgs::msg::JointState>(
-    "lbr_joint_command", qos, callback,
-    rclcpp::SubscriptionOptions(), msg_strategy);
 
   auto command_srv_callback = [this](
     std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -51,13 +46,17 @@ RobotCommander::RobotCommander(
         response->success = false;
       }
     };
-  set_command_mode_service_ = robot_control_node_->create_service<std_srvs::srv::SetBool>(
-    "set_command_mode", command_srv_callback);
+
+  //TODO(Svastits): create service for command mode changes
+  /*set_command_mode_service_ = robot_control_node_->create_service<std_srvs::srv::SetBool>(
+    "set_command_mode", command_srv_callback);*/
 }
 
 void RobotCommander::addBooleanOutputCommander(const std::string & name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to command interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto output_setter_func = [this](std::string name, bool value) -> void {
@@ -67,12 +66,14 @@ void RobotCommander::addBooleanOutputCommander(const std::string & name)
     std::make_unique<OutputSubscription<bool, std_msgs::msg::Bool>>(
       name, output_setter_func,
       is_active_,
-      robot_control_node_));
+      robot_control_node_));*/
 }
 
 void RobotCommander::addDigitalOutputCommander(const std::string & name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to command interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto output_setter_func = [this](std::string name, uint64_t value) -> void {
@@ -80,12 +81,14 @@ void RobotCommander::addDigitalOutputCommander(const std::string & name)
     };
   output_subscriptions_.emplace_back(
     std::make_unique<OutputSubscription<uint64_t, std_msgs::msg::UInt64>>(
-      name, output_setter_func, is_active_, robot_control_node_));
+      name, output_setter_func, is_active_, robot_control_node_));*/
 }
 
 void RobotCommander::addAnalogOutputCommander(const std::string & name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to command interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto output_setter_func = [this](std::string name, double value) -> void {
@@ -95,7 +98,7 @@ void RobotCommander::addAnalogOutputCommander(const std::string & name)
     std::make_unique<OutputSubscription<double, std_msgs::msg::Float64>>(
       name, output_setter_func,
       is_active_,
-      robot_control_node_));
+      robot_control_node_));*/
 }
 
 bool RobotCommander::setTorqueCommanding(bool is_torque_mode_active)
@@ -113,17 +116,13 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   std::unique_lock<std::mutex> lk(m_);
   while (!joint_command_msg_ || joint_command_msg_->header.stamp != stamp) {
     if (!is_active_) {
-      RCLCPP_INFO(
-        robot_control_node_->get_logger(),
-        "robot commander deactivated, exiting updatecommand");
+      printf("robot commander deactivated, exiting updatecommand\n");
       return;
     }
     cv_.wait(lk);
     // check if wait has been interrupted by the robot manager
     if (!is_active_) {
-      RCLCPP_INFO(
-        robot_control_node_->get_logger(),
-        "robot commander deactivated, exiting updatecommand");
+      printf("robot commander deactivated, exiting updatecommand\n");
       return;
     }
   }
@@ -131,9 +130,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   if (torque_command_mode_) {
     if (joint_command_msg_->effort.empty()) {
       // raise some error/warning
-      RCLCPP_ERROR(
-        robot_control_node_->get_logger(),
-        "Effort of joint command msg is empty in torque command mode");
+      printf("Effort of joint command msg is empty in torque command mode\n");
       return;
     }
     const double * joint_torques_ = joint_command_msg_->effort.data();
@@ -142,9 +139,7 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   } else {
     if (joint_command_msg_->position.empty()) {
       // raise some error/warning
-      RCLCPP_ERROR(
-        robot_control_node_->get_logger(),
-        "Position of joint command msg is empty in position command mode");
+      printf("Position of joint command msg is empty in position command mode\n");
       return;
     }
     const double * joint_positions_ = joint_command_msg_->position.data();
@@ -160,7 +155,7 @@ void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::Const
 {
   std::lock_guard<std::mutex> lk(m_);
   if (!is_active_) {
-    RCLCPP_INFO(robot_control_node_->get_logger(), "commander not activated");
+    printf("commander not activated\n");
     return;
   }
   joint_command_msg_ = msg;

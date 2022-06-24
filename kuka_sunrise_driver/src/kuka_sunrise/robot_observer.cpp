@@ -25,7 +25,9 @@ namespace kuka_sunrise
 
 void RobotObserver::addBooleanInputObserver(std::string name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to state interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> bool {
@@ -34,12 +36,14 @@ void RobotObserver::addBooleanInputObserver(std::string name)
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<bool, std_msgs::msg::Bool>>(
       name,
-      input_getter_func, robot_control_node_));
+      input_getter_func, robot_control_node_));*/
 }
 
 void RobotObserver::addDigitalInputObserver(std::string name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to state interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> uint64_t {
@@ -48,12 +52,14 @@ void RobotObserver::addDigitalInputObserver(std::string name)
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<uint64_t, std_msgs::msg::UInt64>>(
       name,
-      input_getter_func, robot_control_node_));
+      input_getter_func, robot_control_node_));*/
 }
 
 void RobotObserver::addAnalogInputObserver(std::string name)
 {
-  if (robot_control_node_->get_current_state().label() != "unconfigured") {
+  // TODO(Svastits): add to state interfaces
+
+  /*if (robot_control_node_->get_current_state().label() != "unconfigured") {
     return;  // TODO(resizoltan) handle other states
   }
   auto input_getter_func = [this](std::string name) -> double {
@@ -62,7 +68,7 @@ void RobotObserver::addAnalogInputObserver(std::string name)
   input_publishers_.emplace_back(
     std::make_unique<InputPublisher<double, std_msgs::msg::Float64>>(
       name,
-      input_getter_func, robot_control_node_));
+      input_getter_func, robot_control_node_));*/
 }
 
 bool RobotObserver::activate()
@@ -82,28 +88,26 @@ bool RobotObserver::deactivate()
 }
 
 RobotObserver::RobotObserver(
-  const KUKA::FRI::LBRState & robot_state,
-  rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node)
-: robot_state_(robot_state), robot_control_node_(robot_control_node)
+  const KUKA::FRI::LBRState & robot_state)
+: robot_state_(robot_state)
 {
   joint_state_msg_.position.reserve(robot_state_.NUMBER_OF_JOINTS);
   joint_state_msg_.velocity.reserve(robot_state_.NUMBER_OF_JOINTS);
   joint_state_msg_.effort.reserve(robot_state_.NUMBER_OF_JOINTS);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
-  joint_state_publisher_ = robot_control_node->create_publisher<
-    sensor_msgs::msg::JointState>("lbr_joint_state", 1);
-  tracking_performance_publisher_ = robot_control_node->create_publisher<
-    std_msgs::msg::Float64>("tracking_performance", qos);
+  // TODO(Svastits): add to state interface
+  /*tracking_performance_publisher_ = robot_control_node->create_publisher<
+    std_msgs::msg::Float64>("tracking_performance", qos);*/
 }
 
 void RobotObserver::publishRobotState(const rclcpp::Time & stamp)
 {
-  if (robot_control_node_->get_current_state().label() != "inactive" &&
+  /*if (robot_control_node_->get_current_state().label() != "inactive" &&
     robot_control_node_->get_current_state().label() != "active")
   {
     return;  // TODO(resizoltan) handle other states
-  }
+  }*/
 
   joint_state_msg_.header.frame_id = "world";
   joint_state_msg_.header.stamp = stamp;  // TODO(resizoltan) catch exceptions
