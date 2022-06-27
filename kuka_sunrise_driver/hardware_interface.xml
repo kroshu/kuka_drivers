@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="robot_control_client">
+    <class type="kuka_sunrise::RobotControlClient"
+           base_class_type="hardware_interface::SystemInterface"/>
+    <description>
+        ROS2 control hardware interface for KUKA LBR robots using the Fast Robot Interface (FRI).
+    </description>
+</library>

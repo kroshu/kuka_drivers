@@ -27,6 +27,7 @@ find_package(kuka_sunrise_interfaces REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(fri REQUIRED)
 find_package(hardware_interface REQUIRED)
+find_package(pluginlib REQUIRED)
 
 include_directories(include /home/rosdeveloper/ros2_ws/src/ros2_kuka_drivers/fri_client/include)
 
@@ -83,6 +84,7 @@ add_executable(lifecycle_client_node
   test/lifecycle_client_test.cpp)
 ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
 
+pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
 install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node lifecycle_client_node
   DESTINATION lib/${PROJECT_NAME})

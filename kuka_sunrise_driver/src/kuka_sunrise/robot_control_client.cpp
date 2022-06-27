@@ -15,24 +15,19 @@
 #include <memory>
 
 #include "kuka_sunrise/robot_control_client.hpp"
-#include "kuka_sunrise/robot_commander.hpp"
-#include "kuka_sunrise/robot_observer.hpp"
 
 namespace kuka_sunrise
 {
 CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInfo & system_info)
 {
+// TODO(Svastits): add parameter for command mode, receive multiplier etc
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
   hw_states_.resize(info_.joints.size());
   hw_commands_.resize(info_.joints.size());
 
-  robot_commander_ = std::make_unique<RobotCommander>(robotCommand(), robotState());
-  robot_observer_ = std::make_unique<RobotObserver>(robotState());
-
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
-
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(
         rclcpp::get_logger("RobotControlClient"),
@@ -71,73 +66,38 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
+  client_application_.connect(30200, nullptr);
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn RobotControlClient::on_deactivate(const rclcpp_lifecycle::State &)
 {
-
+  client_application_.disconnect();
   return CallbackReturn::SUCCESS;
 }
 
-
-/*RobotControlClient::RobotControlClient()
-: receive_multiplier_(1), receive_counter_(0)
-{
-  robot_observer_ = std::make_unique<RobotObserver>(robotState(), robot_control_node);
-  robot_commander_ = std::make_unique<RobotCommander>(
-    robotCommand(), robotState(),
-    robot_control_node);
-  auto command_srv_callback = [this](
-    kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
-    kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
-      if (this->setReceiveMultiplier(request->data)) {
-        response->success = true;
-      } else {
-        response->success = false;
-      }
-    };
-  set_receive_multiplier_service_ = robot_control_node_->create_service<
-    kuka_sunrise_interfaces::srv::SetInt>("set_receive_multiplier", command_srv_callback);
-}*/
-
 RobotControlClient::~RobotControlClient()
 {
-  robot_commander_->deactivate();
 }
 
 bool RobotControlClient::activate()
 {
-  // TODO(Svastits): activating the robot_observer should be moved to the on_activate function
-  //   of the node! As of now, activating the driver nodes in themselves do not activate
-  //   the observer, and the monitoring mode is not working on the ROS2 side
-  //   (the publisher is not active, joint states are not sent)
   this->ActivatableInterface::activate();
-  robot_commander_->activate();
-  robot_observer_->activate();
   return true;  // TODO(resizoltan) check if successful
 }
 
 bool RobotControlClient::deactivate()
 {
   this->ActivatableInterface::deactivate();
-  robot_commander_->deactivate();
-  robot_observer_->deactivate();
   return true;  // TODO(resizoltan) check if successful
-}
-
-void RobotControlClient::monitor()
-{
-  rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
 }
 
 void RobotControlClient::waitForCommand()
 {
+  // TODO(Svastits): is this really the purpose of waitForCommand?
   rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
   if (++receive_counter_ == receive_multiplier_) {
-    robot_commander_->updateCommand(stamp);
+    updateCommand(stamp);
     receive_counter_ = 0;
   }
 }
@@ -145,19 +105,19 @@ void RobotControlClient::waitForCommand()
 void RobotControlClient::command()
 {
   rclcpp::Time stamp = ros_clock_.now();
-  robot_observer_->publishRobotState(stamp);
   if (++receive_counter_ == receive_multiplier_) {
-    robot_commander_->updateCommand(stamp);
+    updateCommand(stamp);
     receive_counter_ = 0;
   }
 }
 
 bool RobotControlClient::setReceiveMultiplier(int receive_multiplier)
 {
-  if (1) {
+  if (!is_active_) {
     receive_multiplier_ = receive_multiplier;
     return true;
   } else {
+    printf("Receive multiplier cannot be set, if client is active\n");
     return false;
   }
 }
@@ -170,18 +130,20 @@ hardware_interface::return_type RobotControlClient::read(
     return hardware_interface::return_type::ERROR;
   }
 
-  if(!client_application_.client_app_read())
-  {
-	  RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Failed to read data from controller");
-	  return hardware_interface::return_type::ERROR;
+  if (!client_application_.client_app_read()) {
+    RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Failed to read data from controller");
+    return hardware_interface::return_type::ERROR;
   }
 
   // get the position and efforts and share them with exposed state interfaces
-  const double* position = robotState().getMeasuredJointPosition();
-  hw_states_.assign(position, position+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
-  const double* torque = robotState().getMeasuredTorque();
-  hw_torques_.assign(torque, torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  const double * position = robotState().getMeasuredJointPosition();
+  hw_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  const double * torque = robotState().getMeasuredTorque();
+  hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+
+  tracking_performance_ = robotState().getTrackingPerformance();
   // const double* external_torque = robotState().getExternalTorque();
+  // hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   // TODO(Svastits): add external torque interface
 
   return hardware_interface::return_type::OK;
@@ -196,7 +158,8 @@ hardware_interface::return_type RobotControlClient::write(
     return hardware_interface::return_type::ERROR;
   }
 
-
+  // Call the appropriate callback for the actual state (e.g. updateCommand)
+  // this updates the command to be sent based on the output of the controller update
   client_application_.client_app_update();
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -208,6 +171,29 @@ hardware_interface::return_type RobotControlClient::write(
   client_application_.client_app_write();
 
   return hardware_interface::return_type::OK;
+}
+
+void RobotControlClient::updateCommand(const rclcpp::Time &)
+{
+  if (!is_active_) {
+    printf("client deactivated, exiting updateCommand\n");
+    return;
+  }
+
+  if (torque_command_mode_) {
+    const double * joint_torques_ = hw_effort_command_.data();
+    robotCommand().setJointPosition(robotState().getIpoJointPosition());
+    robotCommand().setTorque(joint_torques_);
+  } else {
+    const double * joint_positions_ = hw_commands_.data();
+    robotCommand().setJointPosition(joint_positions_);
+  }
+  // TODO(Svastits): setDigitalIOValue and setAnalogIOValue
+/*
+  for (auto & output_subscription : output_subscriptions_) {
+    output_subscription->updateOutput();
+  }
+  */
 }
 
 std::vector<hardware_interface::StateInterface> RobotControlClient::export_state_interfaces()
@@ -251,5 +237,12 @@ std::vector<hardware_interface::CommandInterface> RobotControlClient::export_com
   }
   return command_interfaces;
 }
-
 }  // namespace kuka_sunrise
+
+#include "pluginlib/class_list_macros.hpp"
+
+
+PLUGINLIB_EXPORT_CLASS(
+  kuka_sunrise::RobotControlClient,
+  hardware_interface::SystemInterface
+)

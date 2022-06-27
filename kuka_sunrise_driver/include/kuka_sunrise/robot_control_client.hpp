@@ -17,6 +17,7 @@
 
 #include <condition_variable>
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -35,20 +36,17 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_sunrise
 {
 
-class RobotObserver;
-class RobotCommander;
-
 class RobotControlClient : public hardware_interface::SystemInterface, public KUKA::FRI::LBRClient,
   public ActivatableInterface
 {
 public:
-  //explicit RobotControlClient();
+  RobotControlClient()
+  : client_application_(udp_connection_, *this) {}
   ~RobotControlClient();
   bool activate();
   bool deactivate();
   bool setReceiveMultiplier(int receive_multiplier);
 
-  virtual void monitor();
   virtual void waitForCommand();
   virtual void command();
 
@@ -64,22 +62,18 @@ public:
     const rclcpp::Time & time,
     const rclcpp::Duration & period) override;
 
+  void updateCommand(const rclcpp::Time & stamp);
+
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
 private:
-  std::unique_ptr<RobotObserver> robot_observer_;
-  std::unique_ptr<RobotCommander> robot_commander_;
-
   // rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
   int receive_multiplier_;
   int receive_counter_;
 
-
-  // Dummy parameters
-  double hw_start_sec_, hw_stop_sec_, hw_slowdown_;
   // Store the command for the simulated robot
   std::vector<double> hw_commands_, hw_states_;
   std::vector<double> hw_torques_, hw_effort_command_;
@@ -87,6 +81,8 @@ private:
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
 
+  bool torque_command_mode_ = false;
+  double tracking_performance_;
 };
 
 }  // namespace kuka_sunrise

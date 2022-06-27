@@ -47,7 +47,7 @@ RobotCommander::RobotCommander(
       }
     };
 
-  //TODO(Svastits): create service for command mode changes
+  // TODO(Svastits): create service for command mode changes
   /*set_command_mode_service_ = robot_control_node_->create_service<std_srvs::srv::SetBool>(
     "set_command_mode", command_srv_callback);*/
 }
@@ -113,18 +113,9 @@ bool RobotCommander::setTorqueCommanding(bool is_torque_mode_active)
 
 void RobotCommander::updateCommand(const rclcpp::Time & stamp)
 {
-  std::unique_lock<std::mutex> lk(m_);
-  while (!joint_command_msg_ || joint_command_msg_->header.stamp != stamp) {
-    if (!is_active_) {
-      printf("robot commander deactivated, exiting updatecommand\n");
-      return;
-    }
-    cv_.wait(lk);
-    // check if wait has been interrupted by the robot manager
-    if (!is_active_) {
-      printf("robot commander deactivated, exiting updatecommand\n");
-      return;
-    }
+  if (!is_active_) {
+    printf("robot commander deactivated, exiting updatecommand\n");
+    return;
   }
 
   if (torque_command_mode_) {
@@ -151,22 +142,10 @@ void RobotCommander::updateCommand(const rclcpp::Time & stamp)
   }
 }
 
-void RobotCommander::commandReceivedCallback(sensor_msgs::msg::JointState::ConstSharedPtr msg)
-{
-  std::lock_guard<std::mutex> lk(m_);
-  if (!is_active_) {
-    printf("commander not activated\n");
-    return;
-  }
-  joint_command_msg_ = msg;
-  cv_.notify_one();
-}
 
 bool RobotCommander::deactivate()
 {
-  std::lock_guard<std::mutex> lk(m_);
   is_active_ = false;
-  cv_.notify_one();  // interrupt updateCommand()
   return true;
 }
 
