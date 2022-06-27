@@ -20,6 +20,7 @@
 	<depend>sensor_msgs</depend>
 	<depend>kuka_sunrise_interfaces</depend>
 	<depend>kroshu_ros2_core</depend>
+	<depend>hardware_interface</depend>
 
 	<exec_depend>rosidl_default_runtime</exec_depend>
 
