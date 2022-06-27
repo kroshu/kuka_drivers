@@ -29,7 +29,7 @@ find_package(TinyXML REQUIRED)
 
 include_directories(include ${TinyXML2_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
   src/kuka_hardware_interface.cpp
 )
 
