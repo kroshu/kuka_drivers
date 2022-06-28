@@ -67,12 +67,14 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
   client_application_.connect(30200, nullptr);
+  activate();
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn RobotControlClient::on_deactivate(const rclcpp_lifecycle::State &)
 {
   client_application_.disconnect();
+  deactivate();
   return CallbackReturn::SUCCESS;
 }
 
