@@ -6,9 +6,6 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def load_file(absolute_file_path):
-    # package_path = get_package_share_directory(package_name)
-    # absolute_file_path = os.path.join(package_path, file_path)
-
     try:
         with open(absolute_file_path, 'r') as file:
             return file.read()
@@ -18,8 +15,7 @@ def load_file(absolute_file_path):
 
 def generate_launch_description():
     controller_config = get_package_share_directory('urdflbriiwa7') + "/config/iiwa_ros2_controller_config.yaml"
-
-    robot_description_config = load_file("/home/rosdeveloper/ros2_ws/src/urdflbriiwa7/urdf/urdflbriiwa7.urdf")
+    robot_description_config = load_file(get_package_share_directory('urdflbriiwa7') + "/urdf/urdflbriiwa7.urdf")
     robot_description = {'robot_description' : robot_description_config}
 
     return LaunchDescription([
