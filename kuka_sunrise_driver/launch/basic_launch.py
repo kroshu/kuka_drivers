@@ -15,6 +15,7 @@ def load_file(absolute_file_path):
 
 def generate_launch_description():
     controller_config = get_package_share_directory('urdflbriiwa7') + "/config/iiwa_ros2_controller_config.yaml"
+    forward_controller_config = get_package_share_directory('kuka_sunrise') + "/config/forward_controller.yaml"
     robot_description_config = load_file(get_package_share_directory('urdflbriiwa7') + "/urdf/urdflbriiwa7.urdf")
     robot_description = {'robot_description' : robot_description_config}
 
@@ -27,11 +28,12 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager", "--load-only"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller_position", "--controller-manager", "/controller_manager"],
+            arguments=["forward_command_controller_position", "--controller-manager", "/controller_manager", "--load-only"],
+            parameters=[forward_controller_config]
         ),
     ])

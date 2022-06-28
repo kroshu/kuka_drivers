@@ -28,10 +28,10 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
   hw_commands_.resize(info_.joints.size());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
-    if (joint.command_interfaces.size() != 1) {
+    if (joint.command_interfaces.size() != 2) {
       RCLCPP_FATAL(
         rclcpp::get_logger("RobotControlClient"),
-        "expecting exactly 1 command interface");
+        "expecting exactly 2 command interface");
       return CallbackReturn::ERROR;
     }
 
@@ -43,8 +43,8 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
       return CallbackReturn::ERROR;
     }
 
-    if (joint.state_interfaces.size() != 1) {
-      RCLCPP_FATAL(rclcpp::get_logger("RobotControlClient"), "expecting exactly 1 state interface");
+    if (joint.state_interfaces.size() != 2) {
+      RCLCPP_FATAL(rclcpp::get_logger("RobotControlClient"), "expecting exactly 2 state interface");
       return CallbackReturn::ERROR;
     }
 
