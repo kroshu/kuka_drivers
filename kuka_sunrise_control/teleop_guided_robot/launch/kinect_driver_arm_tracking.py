@@ -59,6 +59,7 @@ def generate_launch_description():
         )
 
     joint_controller = launch_ros.actions.LifecycleNode(
+        namespace="",
         package='robot_control', executable='rate_scaled_controller', output='both',
         arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file,
                                                                      {'reference_rate': 12.0}],
