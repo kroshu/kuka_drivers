@@ -19,21 +19,37 @@ def generate_launch_description():
     robot_description_config = load_file(get_package_share_directory('urdflbriiwa7') + "/urdf/urdflbriiwa7.urdf")
     robot_description = {'robot_description' : robot_description_config}
 
+    rviz_config_file = os.path.join(
+    get_package_share_directory('urdflbriiwa7'), 'launch', 'urdf.rviz')
+
     return LaunchDescription([
         Node(
             package='controller_manager',
             executable='ros2_control_node',
-            parameters=[robot_description, controller_config],
+            parameters=[robot_description, controller_config]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager", "--load-only"]
+            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--stopped"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller_position", "--controller-manager", "/controller_manager", "--load-only"],
-            parameters=[forward_controller_config]
+            arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
+                       get_package_share_directory('kuka_sunrise') + "/config/forward_controller.yaml", "--stopped"]
+        ),
+        # Node(
+        #     package="rviz2",
+        #     executable="rviz2",
+        #     name="rviz2",
+        #     output="log",
+        #     arguments=["-d", rviz_config_file],
+        # ),
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            output='both',
+            parameters=[robot_description]
         ),
     ])

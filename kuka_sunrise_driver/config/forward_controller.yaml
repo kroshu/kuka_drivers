@@ -1,4 +1,4 @@
-forward_command_controller_position: 
+/forward_command_controller_position: 
   ros__parameters: 
     joints: 
       - URDFLBRiiwa7Joint1 

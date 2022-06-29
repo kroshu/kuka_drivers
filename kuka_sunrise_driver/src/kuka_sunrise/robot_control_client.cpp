@@ -66,6 +66,7 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
+  // TODO(Svastits): check success
   client_application_.connect(30200, nullptr);
   activate();
   return CallbackReturn::SUCCESS;
@@ -200,6 +201,8 @@ void RobotControlClient::updateCommand(const rclcpp::Time &)
 
 std::vector<hardware_interface::StateInterface> RobotControlClient::export_state_interfaces()
 {
+
+  // TODO(Svastits): add FRI state interface
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_state_interfaces()");
 
   std::vector<hardware_interface::StateInterface> state_interfaces;
