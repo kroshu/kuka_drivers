@@ -52,10 +52,11 @@ def generate_launch_description():
     robot_config_file = get_package_share_directory('robot_control') + "/config/kr6.yaml"
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        package='robot_control', executable='interpolating_controller', output='both',
-        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file],
-        name='joint_controller', remappings=[('measured_joint_state', 'rsi_joint_state'),
-                                             ('joint_command', 'rsi_joint_command')]
+        namespace="", package='robot_control', executable='interpolating_controller',
+        output='both', arguments=['--ros-args', '--log-level', 'info'],
+        parameters=[robot_config_file], name='joint_controller',
+        remappings=[('measured_joint_state', 'rsi_joint_state'),
+                    ('joint_command', 'rsi_joint_command')]
         )
 
     return LaunchDescription([
