@@ -145,6 +145,8 @@ hardware_interface::return_type RobotControlClient::read(
   hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   tracking_performance_ = robotState().getTrackingPerformance();
+  fri_state_ = robotState().getSessionState();
+
   // const double* external_torque = robotState().getExternalTorque();
   // hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   // TODO(Svastits): add external torque interface

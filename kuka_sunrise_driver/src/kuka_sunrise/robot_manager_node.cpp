@@ -58,12 +58,14 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   auto result = SUCCESS;
-  if (!requestRobotControlNodeStateTransition(
+  /*if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
   {
     RCLCPP_ERROR(get_logger(), "could not configure robot control node");
     return FAILURE;
-  }
+  }*/
+
+  // TODO(Svastits): configure HWInterface and controllers (currently done from launch file after loading)
 
   // If this fails, the node should be restarted, with different parameter values
   // Therefore exceptions are not caught
@@ -105,12 +107,12 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  if (!requestRobotControlNodeStateTransition(
+  /*if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP))
   {
     RCLCPP_ERROR(get_logger(), "could not clean up robot control node");
     return ERROR;
-  }
+  }*/
 
   if (robot_manager_->isConnected() && !robot_manager_->disconnect()) {
     RCLCPP_ERROR(get_logger(), "could not disconnect");
@@ -139,12 +141,13 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
       return SUCCESS;
   }
 
-  if (!requestRobotControlNodeStateTransition(
+  // TODO(Svasits): unload controllers, destroy HWInterface
+  /*if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_UNCONFIGURED_SHUTDOWN))
   {
     RCLCPP_ERROR(get_logger(), "could not shut down control");
     return ERROR;
-  }
+  }*/
 
   return SUCCESS;
 }
@@ -165,12 +168,20 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (!requestRobotControlNodeStateTransition(
+  /*if (!requestRobotControlNodeStateTransition(
       lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE))
   {
     RCLCPP_ERROR(get_logger(), "could not activate");
     return FAILURE;
-  }
+  }*/
+
+  // TODO(Svastits):
+  // 1. activate HWInterface (blocks CM until connect is successful)
+  // 2. start FRI -> monitoring mode -> states are available
+  // 3. activate joint state broadcaster
+  // 4. activate (commanding) controller
+  // 5. this->activate() (=activate control)
+
 
   if (!robot_manager_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "could not start fri");
@@ -229,11 +240,6 @@ bool RobotManagerNode::activate()
     return false;
   }
 
-  if (!setRobotControlNodeCommandState(true)) {
-    RCLCPP_ERROR(get_logger(), "could not set command state");
-    return false;
-  }
-
   if (!robot_manager_->activateControl()) {
     // TODO(resizoltan) check robot control node state first
     this->ActivatableInterface::deactivate();
@@ -259,11 +265,6 @@ bool RobotManagerNode::deactivate()
   }
   this->ActivatableInterface::deactivate();
 
-  if (!setRobotControlNodeCommandState(false)) {
-    // TODO(resizoltan) out of sync
-    RCLCPP_ERROR(get_logger(), "could not set command state");
-    return false;
-  }
   std_msgs::msg::Bool command_state;
   command_state.data = false;
   command_state_changed_publisher_->publish(command_state);

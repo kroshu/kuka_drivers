@@ -83,6 +83,7 @@ private:
 
   bool torque_command_mode_ = false;
   double tracking_performance_;
+  int fri_state_;
 };
 
 }  // namespace kuka_sunrise
