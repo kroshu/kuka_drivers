@@ -59,7 +59,7 @@ def generate_launch_description():
         )
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        package='robot_control', executable='rate_scaled_controller', output='both',
+        namespace="", package='robot_control', executable='rate_scaled_controller', output='both',
         arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file,
                                                                      {'reference_rate': 12.0}],
         name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
@@ -68,7 +68,7 @@ def generate_launch_description():
 
     system_manager = launch_ros.actions.LifecycleNode(
         package='teleop_guided_robot', executable='system_manager', output='screen',
-        name='system_manager'
+        name='system_manager', namespace=""
         )
 
     return LaunchDescription([
