@@ -29,6 +29,7 @@ find_package(fri REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager)
+find_package(controller_manager_msgs)
 
 include_directories(include /home/rosdeveloper/ros2_ws/src/ros2_kuka_drivers/fri_client/include)
 
@@ -62,7 +63,7 @@ ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp r
 
 add_executable(robot_manager_node
   src/kuka_sunrise/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core)
+ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
 target_link_libraries(robot_manager_node
   robot_manager
   configuration_manager)

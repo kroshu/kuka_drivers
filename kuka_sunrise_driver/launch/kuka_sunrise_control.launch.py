@@ -4,6 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.actions import LifecycleNode
 
 def load_file(absolute_file_path):
     try:
@@ -19,14 +20,15 @@ def generate_launch_description():
     robot_description_config = load_file(get_package_share_directory('urdflbriiwa7') + "/urdf/urdflbriiwa7.urdf")
     robot_description = {'robot_description' : robot_description_config}
 
-    rviz_config_file = os.path.join(
-    get_package_share_directory('urdflbriiwa7'), 'launch', 'urdf.rviz')
-
     return LaunchDescription([
         Node(
             package='kuka_sunrise',
             executable='sunrise_control_node',
             parameters=[robot_description, controller_config]
+        ),
+        LifecycleNode(
+            namespace = '', package='kuka_sunrise', executable='robot_manager_node', output='screen',
+            name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'}]
         ),
         Node(
             package="controller_manager",
@@ -38,18 +40,5 @@ def generate_launch_description():
             executable="spawner",
             arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
                        forward_controller_config, "--stopped"]
-        ),
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            name="rviz2",
-            output="log",
-            arguments=["-d", rviz_config_file],
-        ),
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            output='both',
-            parameters=[robot_description]
-        ),
+        )
     ])

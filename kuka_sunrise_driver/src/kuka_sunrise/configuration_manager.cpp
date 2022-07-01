@@ -64,6 +64,7 @@ ConfigurationManager::ConfigurationManager(
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
 {
+  return true;
   if (command_mode == "position") {
     if (!setCommandMode("position")) {
       return false;
@@ -95,6 +96,7 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
 
 bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
+  return true;
   if (control_mode == "position") {
     return robot_manager_->setPositionControlMode();
   } else if (control_mode == "joint_impedance") {
@@ -116,6 +118,7 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
 bool ConfigurationManager::onJointStiffnessChangeRequest(
   const std::vector<double> & joint_stiffness)
 {
+  return true;
   if (joint_stiffness.size() != 7) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
@@ -135,6 +138,7 @@ bool ConfigurationManager::onJointStiffnessChangeRequest(
 
 bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
 {
+  return true;
   if (joint_damping.size() != 7) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
@@ -153,6 +157,7 @@ bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double>
 
 bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) const
 {
+  return true;
   if (send_period < 1 || send_period > 100) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
@@ -167,6 +172,7 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) co
 
 bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier) const
 {
+  return true;
   if (receive_multiplier < 1) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
     return false;

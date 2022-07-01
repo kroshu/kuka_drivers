@@ -66,9 +66,12 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
+  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activating client\n");
   // TODO(Svastits): check success
-  client_application_.connect(30200, nullptr);
+  if(!client_application_.connect(30200, nullptr))
+	  RCLCPP_ERROR(rclcpp::get_logger("HWIF"),"could not connect");
   activate();
+  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activated client");
   return CallbackReturn::SUCCESS;
 }
 
