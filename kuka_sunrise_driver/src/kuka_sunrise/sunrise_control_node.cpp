@@ -31,7 +31,6 @@ int main(int argc, char** argv)
     // TODO(Svastits): wait for FRI state changed
     while (rclcpp::ok()) {
       controller_manager->read(controller_manager->now(), dt);  // Blocking until state received
-      printf("AFTER READ\n");
       controller_manager->update(controller_manager->now(), dt);
       controller_manager->write(controller_manager->now(), dt);
     }

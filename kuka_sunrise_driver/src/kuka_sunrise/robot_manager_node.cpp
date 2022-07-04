@@ -61,7 +61,6 @@ RobotManagerNode::RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  printf("logging\n");
   auto result = SUCCESS;
   // TODO(Svastits): configure HWInterface and controllers (currently done from launch file after loading)
   // If this fails, the node should be restarted, with different parameter values
@@ -81,8 +80,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
     return ERROR;
   }
-
-  RCLCPP_ERROR(get_logger(), "connected");
+  RCLCPP_INFO(get_logger(), "Successfully connected to FRI");
   // TODO(resizoltan) get IO configuration
 
   if (result == SUCCESS) {
@@ -196,12 +194,11 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         RCLCPP_ERROR(get_logger(), "Could not activate controller");
         return FAILURE;
       }
-
+  RCLCPP_ERROR(get_logger(), "activated controller");
+  command_state_changed_publisher_->on_activate();
   // Start commanding mode
   if (!activate())
 	  return FAILURE;
-
-  command_state_changed_publisher_->on_activate();
 
   return SUCCESS;
 }

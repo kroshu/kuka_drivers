@@ -26,6 +26,8 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
   }
   hw_states_.resize(info_.joints.size());
   hw_commands_.resize(info_.joints.size());
+  hw_torques_.resize(info_.joints.size());
+  hw_effort_command_.resize(info_.joints.size());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 2) {
@@ -66,10 +68,12 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activating client\n");
-  // TODO(Svastits): check success
+  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activating client");
   if(!client_application_.connect(30200, nullptr))
+  {
 	  RCLCPP_ERROR(rclcpp::get_logger("HWIF"),"could not connect");
+	  return CallbackReturn::FAILURE;
+  }
   activate();
   RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activated client");
   return CallbackReturn::SUCCESS;
@@ -133,6 +137,8 @@ hardware_interface::return_type RobotControlClient::read(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
+	RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Controller not active");
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
     return hardware_interface::return_type::ERROR;
   }
 
@@ -149,11 +155,11 @@ hardware_interface::return_type RobotControlClient::read(
 
   tracking_performance_ = robotState().getTrackingPerformance();
   fri_state_ = robotState().getSessionState();
+  // RCLCPP_INFO(rclcpp::get_logger("ClientApplication"), "FRI state: %i", fri_state_);
 
   // const double* external_torque = robotState().getExternalTorque();
   // hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   // TODO(Svastits): add external torque interface
-
   return hardware_interface::return_type::OK;
 }
 
@@ -169,12 +175,6 @@ hardware_interface::return_type RobotControlClient::write(
   // Call the appropriate callback for the actual state (e.g. updateCommand)
   // this updates the command to be sent based on the output of the controller update
   client_application_.client_app_update();
-
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "RobotControlClient"), "Got command %.5f for joint %ld!", hw_commands_[i], i);
-  }
 
   client_application_.client_app_write();
 

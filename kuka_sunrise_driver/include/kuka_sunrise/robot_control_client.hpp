@@ -71,8 +71,8 @@ private:
   // rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
-  int receive_multiplier_;
-  int receive_counter_;
+  int receive_multiplier_ = 1;
+  int receive_counter_ = 0;
 
   // Store the command for the simulated robot
   std::vector<double> hw_commands_, hw_states_;

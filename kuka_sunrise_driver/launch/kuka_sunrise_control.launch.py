@@ -33,12 +33,12 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--stopped"]
+            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--load-only"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
             arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
-                       forward_controller_config, "--stopped"]
+                       forward_controller_config, "--load-only"]
         )
     ])
