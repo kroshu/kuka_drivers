@@ -306,6 +306,7 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
 void RobotManagerNode::handleControlEndedError()
 {
   // TODO(Svastits): deactivate managers by internal control ended error
+  // currently only the ActivatableInterface is deactivated
   RCLCPP_INFO(get_logger(), "control ended");
   deactivate();
 }

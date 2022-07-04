@@ -28,7 +28,9 @@ int main(int argc, char** argv)
   std::thread control_loop([controller_manager]() {
     const rclcpp::Duration dt = rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
 
-    // TODO(Svastits): wait for FRI state changed
+    // TODO(Svastits): wait for FRI state changed??
+    // TODO(Svastits): sync controller start state with robot pose at startup
+    //  currently if robot is not in candle, speed limit is exceeded at startup
     while (rclcpp::ok()) {
       controller_manager->read(controller_manager->now(), dt);  // Blocking until state received
       controller_manager->update(controller_manager->now(), dt);
