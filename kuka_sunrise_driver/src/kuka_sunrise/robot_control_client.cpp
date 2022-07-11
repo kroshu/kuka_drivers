@@ -216,6 +216,9 @@ std::vector<hardware_interface::StateInterface> RobotControlClient::export_state
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_state_interfaces()");
 
   std::vector<hardware_interface::StateInterface> state_interfaces;
+
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface("state", "fri_state", &fri_state_));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
       hardware_interface::StateInterface(

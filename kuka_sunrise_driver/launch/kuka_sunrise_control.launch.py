@@ -45,5 +45,10 @@ def generate_launch_description():
             package="controller_manager",
             executable="spawner",
             arguments=["timing_controller", "-c", "/controller_manager"]
+        ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["robot_state_broadcaster", "-c", "/controller_manager"]
         )
     ])

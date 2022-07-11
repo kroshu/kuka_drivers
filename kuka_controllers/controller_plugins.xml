@@ -4,4 +4,9 @@
       This controller sets the receive multiplier of the hardware interface
     </description>
   </class>
+  <class name="kuka_controllers/RobotStateBroadcaster" type="kuka_controllers::RobotStateBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the state changes of the FRI
+    </description>
+  </class>
 </library>

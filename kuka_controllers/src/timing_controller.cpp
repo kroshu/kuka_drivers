@@ -18,6 +18,8 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn TimingController::on_init()
 {
+  // TODO(Svastits): create service to get multiplier changes (or perpaps parameter??)
+  //   and set resend_multiplier_ to true in the callback
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -32,8 +34,6 @@ const
 
 controller_interface::InterfaceConfiguration TimingController::state_interface_configuration() const
 {
-  // TODO(Svastits): create service to get multiplier changes (or perpaps parameter??)
-  //   and set resend_multiplier_ to true in the callback
   return controller_interface::InterfaceConfiguration{controller_interface::
     interface_configuration_type::NONE};
 }
