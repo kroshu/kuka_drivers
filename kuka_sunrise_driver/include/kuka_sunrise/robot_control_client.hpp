@@ -71,7 +71,9 @@ private:
   // rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
-  int receive_multiplier_ = 1;
+
+  // Command interface must be of type double, but controller can set only integers
+  double receive_multiplier_ = 1;
   int receive_counter_ = 0;
 
   // Store the command for the simulated robot

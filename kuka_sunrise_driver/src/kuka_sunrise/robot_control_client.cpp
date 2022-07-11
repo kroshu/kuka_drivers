@@ -21,6 +21,7 @@ namespace kuka_sunrise
 CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInfo & system_info)
 {
 // TODO(Svastits): add parameter for command mode, receive multiplier etc
+
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
@@ -37,11 +38,17 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
       return CallbackReturn::ERROR;
     }
 
-    // TODO(Svastits): enable effort interface too
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting only POSITION command interface");
+          "RobotControlClient"), "expecting POSITION command interface as first");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
+      RCLCPP_FATAL(
+        rclcpp::get_logger(
+          "RobotControlClient"), "expecting EFFORT command interface as second");
       return CallbackReturn::ERROR;
     }
 
@@ -53,9 +60,17 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting only POSITION state interface");
+          "RobotControlClient"), "expecting POSITION state interface as first");
       return CallbackReturn::ERROR;
     }
+
+    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
+      RCLCPP_FATAL(
+        rclcpp::get_logger(
+          "RobotControlClient"), "expecting EFFORT state interface as second");
+      return CallbackReturn::ERROR;
+    }
+    // TODO(Svastits): add external torque interface to URDF and check it here
   }
 
   return CallbackReturn::SUCCESS;
@@ -121,16 +136,6 @@ void RobotControlClient::command()
   }
 }
 
-bool RobotControlClient::setReceiveMultiplier(int receive_multiplier)
-{
-  if (!is_active_) {
-    receive_multiplier_ = receive_multiplier;
-    return true;
-  } else {
-    printf("Receive multiplier cannot be set, if client is active\n");
-    return false;
-  }
-}
 
 hardware_interface::return_type RobotControlClient::read(
   const rclcpp::Time &,
@@ -232,6 +237,9 @@ std::vector<hardware_interface::CommandInterface> RobotControlClient::export_com
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_command_interfaces()");
 
   std::vector<hardware_interface::CommandInterface> command_interfaces;
+
+  command_interfaces.emplace_back(
+        hardware_interface::CommandInterface("timing","receive_multiplier", &receive_multiplier_));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
       hardware_interface::CommandInterface(

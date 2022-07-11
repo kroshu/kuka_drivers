@@ -1,0 +1,7 @@
+<library path="kuka_controllers">
+  <class name="kuka_controllers/TimingController" type="kuka_controllers::TimingController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller sets the receive multiplier of the hardware interface
+    </description>
+  </class>
+</library>

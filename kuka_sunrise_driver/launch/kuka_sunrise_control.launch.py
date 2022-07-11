@@ -40,5 +40,10 @@ def generate_launch_description():
             executable="spawner",
             arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
                        forward_controller_config, "--load-only"]
+        ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["timing_controller", "-c", "/controller_manager"]
         )
     ])
