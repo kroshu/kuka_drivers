@@ -31,8 +31,7 @@ find_package(pluginlib REQUIRED)
 find_package(controller_manager)
 find_package(controller_manager_msgs)
 
-include_directories(include /home/rosdeveloper/ros2_ws/src/ros2_kuka_drivers/fri_client/include)
-
+include_directories(include)
 
 add_library(internal SHARED
   include/kuka_sunrise/internal/activatable_interface.hpp
