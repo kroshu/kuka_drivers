@@ -28,8 +28,6 @@ int main(int argc, char ** argv)
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
     "controller_manager");
-  auto cbg =
-    controller_manager->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   std::thread control_loop([controller_manager, &fri_state_]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
@@ -40,19 +38,16 @@ int main(int argc, char ** argv)
       };
       auto sub =
       controller_manager->create_subscription<std_msgs::msg::Int32>("fri_state", 1, callback);
-      RCLCPP_INFO(controller_manager->get_logger(), "REACHED");
       // TODO(Svastits): sync controller start state with robot pose at startup
       //  currently if robot is not in candle, speed limit is exceeded at startup
-
       while (rclcpp::ok()) {
-        if (fri_state_ < 2) {
-          // TODO(Svastits): adjust wait time
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          continue;
-        }
-        controller_manager->read(controller_manager->now(), dt); // Blocking until state received
+       //if (fri_state_ > 1) {
+        controller_manager->read(controller_manager->now(), dt);
         controller_manager->update(controller_manager->now(), dt);
         controller_manager->write(controller_manager->now(), dt);
+        //}
+        //else
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));  // TODO(Svastits): adjust wait time
       }
     });
 
