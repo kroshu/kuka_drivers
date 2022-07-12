@@ -15,7 +15,7 @@ def load_file(absolute_file_path):
 
 
 def generate_launch_description():
-    controller_config = get_package_share_directory('urdflbriiwa7') + "/config/iiwa_ros2_controller_config.yaml"
+    controller_config = get_package_share_directory('kuka_sunrise') + "/config/iiwa_ros2_controller_config.yaml"
     forward_controller_config = get_package_share_directory('kuka_sunrise') + "/config/forward_controller.yaml"
     robot_description_config = load_file(get_package_share_directory('urdflbriiwa7') + "/urdf/urdflbriiwa7.urdf")
     robot_description = {'robot_description' : robot_description_config}

@@ -1,0 +1,17 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    forward_command_controller_position:
+      type: forward_command_controller/ForwardCommandController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+      
+    timing_controller:
+      type: kuka_controllers/TimingController
+
+    robot_state_broadcaster:
+      type: kuka_controllers/RobotStateBroadcaster
+
+    configure_components_on_start: ["iiwa_hardware"]
