@@ -83,14 +83,13 @@ CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activating client");
-  if(!client_application_.connect(30200, nullptr))
-  {
-	  RCLCPP_ERROR(rclcpp::get_logger("HWIF"),"could not connect");
-	  return CallbackReturn::FAILURE;
+  RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activating client");
+  if (!client_application_.connect(30200, nullptr)) {
+    RCLCPP_ERROR(rclcpp::get_logger("HWIF"), "could not connect");
+    return CallbackReturn::FAILURE;
   }
   activate();
-  RCLCPP_INFO(rclcpp::get_logger("HWIF"),"activated client");
+  RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activated client");
   return CallbackReturn::SUCCESS;
 }
 
@@ -142,8 +141,8 @@ hardware_interface::return_type RobotControlClient::read(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-	RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Controller not active");
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Controller not active");
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     return hardware_interface::return_type::ERROR;
   }
 
@@ -218,7 +217,7 @@ std::vector<hardware_interface::StateInterface> RobotControlClient::export_state
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
-        hardware_interface::StateInterface("state", "fri_state", &fri_state_));
+    hardware_interface::StateInterface("state", "fri_state", &fri_state_));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
       hardware_interface::StateInterface(
@@ -242,7 +241,7 @@ std::vector<hardware_interface::CommandInterface> RobotControlClient::export_com
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
-        hardware_interface::CommandInterface("timing","receive_multiplier", &receive_multiplier_));
+    hardware_interface::CommandInterface("timing", "receive_multiplier", &receive_multiplier_));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
       hardware_interface::CommandInterface(

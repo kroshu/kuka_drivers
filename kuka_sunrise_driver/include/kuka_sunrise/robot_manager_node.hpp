@@ -66,8 +66,10 @@ private:
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr set_commanding_state_client_;
-  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr change_hardware_state_client_;
-  rclcpp::Client<controller_manager_msgs::srv::ConfigureStartController>::SharedPtr change_controller_state_client_;
+  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
+    change_hardware_state_client_;
+  rclcpp::Client<controller_manager_msgs::srv::ConfigureStartController>::SharedPtr
+    change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_commanding_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr

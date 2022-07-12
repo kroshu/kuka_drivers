@@ -37,10 +37,12 @@ RobotManagerNode::RobotManagerNode()
     "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
   set_commanding_state_client_ = this->create_client<std_srvs::srv::SetBool>(
     "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
-  change_hardware_state_client_ = this->create_client<controller_manager_msgs::srv::SetHardwareComponentState>(
+  change_hardware_state_client_ =
+    this->create_client<controller_manager_msgs::srv::SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
-  change_controller_state_client_ = this->create_client<controller_manager_msgs::srv::ConfigureStartController>(
-	"controller_manager/configure_and_start_controller", qos.get_rmw_qos_profile(), cbg_);
+  change_controller_state_client_ =
+    this->create_client<controller_manager_msgs::srv::ConfigureStartController>(
+    "controller_manager/configure_and_start_controller", qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](
     std_srvs::srv::SetBool::Request::SharedPtr request,
     std_srvs::srv::SetBool::Response::SharedPtr response) {
@@ -153,15 +155,17 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   RCLCPP_ERROR(get_logger(), "set FRI config");
   // Activate hardware interface
-  auto hw_request = std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
+  auto hw_request =
+    std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
   hw_request->name = "iiwa_hardware";
   hw_request->target_state.label = "active";
-  auto hw_response = kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+  auto hw_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
-    if (!hw_response || !hw_response->ok) {
-      RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-      return FAILURE;
-    }
+  if (!hw_response || !hw_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
+    return FAILURE;
+  }
 
   RCLCPP_ERROR(get_logger(), "activated HWIF");
 
@@ -174,31 +178,35 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   RCLCPP_ERROR(get_logger(), "started FRI");
 
   // Activate joint state broadcaster
-  auto controller_request = std::make_shared<controller_manager_msgs::srv::ConfigureStartController::Request>();
+  auto controller_request =
+    std::make_shared<controller_manager_msgs::srv::ConfigureStartController::Request>();
   controller_request->name = "joint_state_broadcaster";
-  auto controller_response = kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
-	change_controller_state_client_, controller_request, 0, 2000);
-    if (!controller_response || !controller_response->ok) {
-      RCLCPP_ERROR(get_logger(), "Could not activate broadcaster");
-      return FAILURE;
-    }
+  auto controller_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000);
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not activate broadcaster");
+    return FAILURE;
+  }
 
-    RCLCPP_ERROR(get_logger(), "activated joint state broadcaster");
+  RCLCPP_ERROR(get_logger(), "activated joint state broadcaster");
 
-    // Activate forward_command_controller
-    // TODO(Svastits): add parameter for controller name
-    controller_request->name = "forward_command_controller_position";
-    controller_response = kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
-      change_controller_state_client_, controller_request, 0, 2000);
-      if (!controller_response || !controller_response->ok) {
-        RCLCPP_ERROR(get_logger(), "Could not activate controller");
-        return FAILURE;
-      }
+  // Activate forward_command_controller
+  // TODO(Svastits): add parameter for controller name
+  controller_request->name = "forward_command_controller_position";
+  controller_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000);
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not activate controller");
+    return FAILURE;
+  }
   RCLCPP_ERROR(get_logger(), "activated controller");
   command_state_changed_publisher_->on_activate();
   // Start commanding mode
-  if (!activate())
-	  return FAILURE;
+  if (!activate()) {
+    return FAILURE;
+  }
 
   return SUCCESS;
 }
