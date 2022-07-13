@@ -20,8 +20,6 @@ namespace kuka_sunrise
 {
 CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInfo & system_info)
 {
-// TODO(Svastits): add parameter for command mode, receive multiplier etc
-
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
@@ -88,7 +86,7 @@ CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(rclcpp::get_logger("HWIF"), "could not connect");
     return CallbackReturn::FAILURE;
   }
-  activate();
+  this->ActivatableInterface::activate();
   RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activated client");
   return CallbackReturn::SUCCESS;
 }
@@ -96,24 +94,12 @@ CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
 CallbackReturn RobotControlClient::on_deactivate(const rclcpp_lifecycle::State &)
 {
   client_application_.disconnect();
-  deactivate();
+  this->ActivatableInterface::deactivate();
   return CallbackReturn::SUCCESS;
 }
 
 RobotControlClient::~RobotControlClient()
 {
-}
-
-bool RobotControlClient::activate()
-{
-  this->ActivatableInterface::activate();
-  return true;  // TODO(resizoltan) check if successful
-}
-
-bool RobotControlClient::deactivate()
-{
-  this->ActivatableInterface::deactivate();
-  return true;  // TODO(resizoltan) check if successful
 }
 
 void RobotControlClient::waitForCommand()
@@ -159,7 +145,7 @@ hardware_interface::return_type RobotControlClient::read(
 
   tracking_performance_ = robotState().getTrackingPerformance();
   fri_state_ = robotState().getSessionState();
-  // RCLCPP_INFO(rclcpp::get_logger("ClientApplication"), "FRI state: %i", fri_state_);
+  connection_quality_ = robotState().getConnectionQuality();
 
   // const double* external_torque = robotState().getExternalTorque();
   // hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
@@ -191,7 +177,7 @@ void RobotControlClient::updateCommand(const rclcpp::Time &)
     printf("client deactivated, exiting updateCommand\n");
     return;
   }
-
+  // TODO(Svastits): implement command mode switch
   if (torque_command_mode_) {
     const double * joint_torques_ = hw_effort_command_.data();
     robotCommand().setJointPosition(robotState().getIpoJointPosition());
@@ -210,14 +196,16 @@ void RobotControlClient::updateCommand(const rclcpp::Time &)
 
 std::vector<hardware_interface::StateInterface> RobotControlClient::export_state_interfaces()
 {
-
-  // TODO(Svastits): add FRI state interface
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_state_interfaces()");
 
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
     hardware_interface::StateInterface("state", "fri_state", &fri_state_));
+
+  state_interfaces.emplace_back(
+    hardware_interface::StateInterface("state", "connection_quality", &connection_quality_));
+
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
       hardware_interface::StateInterface(

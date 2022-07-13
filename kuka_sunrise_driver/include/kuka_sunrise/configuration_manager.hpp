@@ -49,8 +49,6 @@ private:
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
-  rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_client_;
-  rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
 
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);
@@ -65,7 +63,6 @@ private:
   bool onControllerIpChangeRequest(const std::string & controller_ip) const;
   bool setCommandMode(const std::string & control_mode) const;
   bool setReceiveMultiplier(int receive_multiplier) const;
-  bool setSendPeriod(int send_period) const;
   void setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);
 };
 }  // namespace kuka_sunrise

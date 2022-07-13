@@ -21,6 +21,8 @@ controller_interface::CallbackReturn RobotStateBroadcaster::on_init()
   // TODO(Svastits): choose appropriate QoS settings for late joiners
   fri_state_publisher_ = get_node()->create_publisher<std_msgs::msg::Int32>(
     "fri_state", rclcpp::SystemDefaultsQoS());
+  connection_quality_publisher_ = get_node()->create_publisher<std_msgs::msg::Int32>(
+    "connection_quality", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -37,6 +39,7 @@ const
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names.push_back("state/fri_state");
+  config.names.push_back("state/connection_quality");
   return config;
 }
 
@@ -62,10 +65,18 @@ controller_interface::return_type RobotStateBroadcaster::update(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  // TODO(Svastits): create custom state msg type and publish all robot state info
+  //   with given frequency -> measure additional system overload
   state_msg_.data = state_interfaces_[0].get_value();
   if (fri_state_ != state_msg_.data) {
     fri_state_ = state_msg_.data;
     fri_state_publisher_->publish(state_msg_);
+  }
+
+  state_msg_.data = state_interfaces_[1].get_value();
+  if (connection_quality_ != state_msg_.data) {
+    connection_quality_ = state_msg_.data;
+    connection_quality_publisher_->publish(state_msg_);
   }
   return controller_interface::return_type::OK;
 }

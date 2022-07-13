@@ -43,8 +43,6 @@ public:
   RobotControlClient()
   : client_application_(udp_connection_, *this) {}
   ~RobotControlClient();
-  bool activate();
-  bool deactivate();
   bool setReceiveMultiplier(int receive_multiplier);
 
   virtual void waitForCommand();
@@ -86,6 +84,7 @@ private:
   bool torque_command_mode_ = false;
   double tracking_performance_;
   double fri_state_ = 0;
+  double connection_quality_ = 0;
 };
 
 }  // namespace kuka_sunrise

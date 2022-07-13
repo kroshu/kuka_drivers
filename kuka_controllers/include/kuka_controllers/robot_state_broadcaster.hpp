@@ -53,8 +53,10 @@ public:
 
 private:
   int fri_state_ = 0;
+  int connection_quality_ = 0;
   bool resend_state_ = true;
   rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr fri_state_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr connection_quality_publisher_;
   std_msgs::msg::Int32 state_msg_;
 };
 }  // namespace kuka_controllers

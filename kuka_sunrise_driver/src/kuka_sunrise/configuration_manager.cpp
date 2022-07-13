@@ -39,14 +39,6 @@ ConfigurationManager::ConfigurationManager(
     kuka_sunrise_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
     cbg_);
-  sync_receive_multiplier_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
-    "sync_receive_multiplier", qos.get_rmw_qos_profile(),
-    cbg_);
-  sync_send_period_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
-    "sync_send_period", qos.get_rmw_qos_profile(),
-    cbg_);
 
   robot_manager_node_->registerParameter<std::string>(
     "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {false, false,
@@ -64,7 +56,6 @@ ConfigurationManager::ConfigurationManager(
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
 {
-  return true;
   if (command_mode == "position") {
     if (!setCommandMode("position")) {
       return false;
@@ -96,7 +87,6 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
 
 bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
-  return true;
   if (control_mode == "position") {
     return robot_manager_->setPositionControlMode();
   } else if (control_mode == "joint_impedance") {
@@ -118,7 +108,6 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
 bool ConfigurationManager::onJointStiffnessChangeRequest(
   const std::vector<double> & joint_stiffness)
 {
-  return true;
   if (joint_stiffness.size() != 7) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
@@ -138,7 +127,6 @@ bool ConfigurationManager::onJointStiffnessChangeRequest(
 
 bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
 {
-  return true;
   if (joint_damping.size() != 7) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
@@ -157,14 +145,10 @@ bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double>
 
 bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) const
 {
-  return true;
   if (send_period < 1 || send_period > 100) {
     RCLCPP_ERROR(
       robot_manager_node_->get_logger(),
       "Send period milliseconds must be >=1 && <=100");
-    return false;
-  }
-  if (!setSendPeriod(send_period)) {
     return false;
   }
   return true;
@@ -172,7 +156,6 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) co
 
 bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier) const
 {
-  return true;
   if (receive_multiplier < 1) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
     return false;
@@ -216,23 +199,15 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
 
 bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
 {
-  auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
+
+  //TODO(Svastits): load and switch controllers through controller_manager
   ClientCommandModeID client_command_mode;
   if (control_mode == "position") {
-    request->data = false;
     client_command_mode = POSITION_COMMAND_MODE;
   } else if (control_mode == "torque") {
-    request->data = true;
     client_command_mode = TORQUE_COMMAND_MODE;
   } else {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
-    return false;
-  }
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    command_mode_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set command mode");
     return false;
   }
   if (robot_manager_) {
@@ -254,34 +229,6 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
 
   if (!response || !response->success) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set receive_multiplier");
-    return false;
-  }
-
-  // TODO(Svastits): if monitoring mode is intended, no joint_controller is necessary
-  // syncing these parameters should be optional (applies also for send_period)
-
-  // Sync with joint controller
-  response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
-    sync_receive_multiplier_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync receive_multiplier");
-    return false;
-  }
-  return true;
-}
-
-bool ConfigurationManager::setSendPeriod(int send_period) const
-{
-  // Sync with joint controller
-  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
-  request->data = send_period;
-
-  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
-    sync_send_period_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync send_period");
     return false;
   }
   return true;
