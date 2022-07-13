@@ -36,13 +36,13 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_sunrise
 {
 
-class RobotControlClient : public hardware_interface::SystemInterface, public KUKA::FRI::LBRClient,
+class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface, public KUKA::FRI::LBRClient,
   public ActivatableInterface
 {
 public:
-  RobotControlClient()
+	KUKAFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
-  ~RobotControlClient();
+  ~KUKAFRIHardwareInterface();
   bool setReceiveMultiplier(int receive_multiplier);
 
   virtual void waitForCommand();
@@ -82,7 +82,7 @@ private:
   KUKA::FRI::UdpConnection udp_connection_;
 
   bool torque_command_mode_ = false;
-  double tracking_performance_;
+  double tracking_performance_ = 1;
   double fri_state_ = 0;
   double connection_quality_ = 0;
 };

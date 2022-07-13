@@ -14,11 +14,11 @@
 
 #include <memory>
 
-#include "kuka_sunrise/robot_control_client.hpp"
+#include "kuka_sunrise/kuka_fri_hardware_interface.hpp"
 
 namespace kuka_sunrise
 {
-CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInfo & system_info)
+CallbackReturn KUKAFRIHardwareInterface::on_init(const hardware_interface::HardwareInfo & system_info)
 {
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -74,12 +74,12 @@ CallbackReturn RobotControlClient::on_init(const hardware_interface::HardwareInf
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn RobotControlClient::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KUKAFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activating client");
   if (!client_application_.connect(30200, nullptr)) {
@@ -91,18 +91,18 @@ CallbackReturn RobotControlClient::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn RobotControlClient::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KUKAFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   client_application_.disconnect();
   this->ActivatableInterface::deactivate();
   return CallbackReturn::SUCCESS;
 }
 
-RobotControlClient::~RobotControlClient()
+KUKAFRIHardwareInterface::~KUKAFRIHardwareInterface()
 {
 }
 
-void RobotControlClient::waitForCommand()
+void KUKAFRIHardwareInterface::waitForCommand()
 {
   // TODO(Svastits): is this really the purpose of waitForCommand?
   rclcpp::Time stamp = ros_clock_.now();
@@ -112,7 +112,7 @@ void RobotControlClient::waitForCommand()
   }
 }
 
-void RobotControlClient::command()
+void KUKAFRIHardwareInterface::command()
 {
   rclcpp::Time stamp = ros_clock_.now();
   if (++receive_counter_ == receive_multiplier_) {
@@ -122,7 +122,7 @@ void RobotControlClient::command()
 }
 
 
-hardware_interface::return_type RobotControlClient::read(
+hardware_interface::return_type KUKAFRIHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
@@ -153,7 +153,7 @@ hardware_interface::return_type RobotControlClient::read(
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type RobotControlClient::write(
+hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
@@ -171,7 +171,7 @@ hardware_interface::return_type RobotControlClient::write(
   return hardware_interface::return_type::OK;
 }
 
-void RobotControlClient::updateCommand(const rclcpp::Time &)
+void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
   if (!is_active_) {
     printf("client deactivated, exiting updateCommand\n");
@@ -194,7 +194,7 @@ void RobotControlClient::updateCommand(const rclcpp::Time &)
   */
 }
 
-std::vector<hardware_interface::StateInterface> RobotControlClient::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export_state_interfaces()
 {
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_state_interfaces()");
 
@@ -222,7 +222,7 @@ std::vector<hardware_interface::StateInterface> RobotControlClient::export_state
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> RobotControlClient::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> KUKAFRIHardwareInterface::export_command_interfaces()
 {
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_command_interfaces()");
 
@@ -251,6 +251,6 @@ std::vector<hardware_interface::CommandInterface> RobotControlClient::export_com
 
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_sunrise::RobotControlClient,
+  kuka_sunrise::KUKAFRIHardwareInterface,
   hardware_interface::SystemInterface
 )
