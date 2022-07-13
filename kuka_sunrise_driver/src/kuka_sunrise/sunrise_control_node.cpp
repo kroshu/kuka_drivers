@@ -41,13 +41,9 @@ int main(int argc, char ** argv)
       // TODO(Svastits): sync controller start state with robot pose at startup
       //  currently if robot is not in candle, speed limit is exceeded at startup
       while (rclcpp::ok()) {
-       //if (fri_state_ > 1) {
         controller_manager->read(controller_manager->now(), dt);
         controller_manager->update(controller_manager->now(), dt);
         controller_manager->write(controller_manager->now(), dt);
-        //}
-        //else
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));  // TODO(Svastits): adjust wait time
       }
     });
 
