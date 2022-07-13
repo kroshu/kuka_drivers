@@ -143,17 +143,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
-  RCLCPP_ERROR(get_logger(), "activating");
-
   auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
   auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
-
   if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
     RCLCPP_ERROR(get_logger(), "could not set fri config");
     return FAILURE;
   }
 
-  RCLCPP_ERROR(get_logger(), "set FRI config");
+  RCLCPP_INFO(get_logger(), "set FRI config");
   // Activate hardware interface
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
@@ -167,15 +164,15 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  RCLCPP_ERROR(get_logger(), "activated HWIF");
+  RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
 
   // Start FRI (in monitoring mode)
   if (!robot_manager_->startFRI()) {
-    RCLCPP_ERROR(get_logger(), "could not start fri");
+    RCLCPP_ERROR(get_logger(), "Could not start FRI");
     return FAILURE;
   }
 
-  RCLCPP_ERROR(get_logger(), "started FRI");
+  RCLCPP_INFO(get_logger(), "Started FRI");
 
   // Activate joint state broadcaster
   auto controller_request =
@@ -189,8 +186,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  RCLCPP_ERROR(get_logger(), "activated joint state broadcaster");
-
   // Activate forward_command_controller
   // TODO(Svastits): add parameter for controller name
   controller_request->name = "forward_command_controller_position";
@@ -201,7 +196,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not activate controller");
     return FAILURE;
   }
-  RCLCPP_ERROR(get_logger(), "activated controller");
   command_state_changed_publisher_->on_activate();
   // Start commanding mode
   if (!activate()) {
@@ -215,17 +209,17 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   if (!robot_manager_->isConnected()) {
-    RCLCPP_ERROR(get_logger(), "not connected");
+    RCLCPP_ERROR(get_logger(), "Not connected");
     return ERROR;
   }
 
   if (this->isActive() && !this->deactivate()) {
-    RCLCPP_ERROR(get_logger(), "could not deactivate control");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return ERROR;
   }
 
   if (!robot_manager_->endFRI()) {
-    RCLCPP_ERROR(get_logger(), "could not end fri");
+    RCLCPP_ERROR(get_logger(), "Could not end FRI");
     return ERROR;
   }
 
@@ -233,7 +227,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
       lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
   {
     // TODO(resizoltan) out of sync
-    RCLCPP_ERROR(get_logger(), "could not deactivate");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate");
     return ERROR;
   }
 
@@ -246,14 +240,14 @@ bool RobotManagerNode::activate()
 {
   this->ActivatableInterface::activate();
   if (!robot_manager_->isConnected()) {
-    RCLCPP_ERROR(get_logger(), "not connected");
+    RCLCPP_ERROR(get_logger(), "Not connected");
     return false;
   }
 
   if (!robot_manager_->activateControl()) {
     // TODO(resizoltan) check robot control node state first
     this->ActivatableInterface::deactivate();
-    RCLCPP_ERROR(get_logger(), "could not activate control");
+    RCLCPP_ERROR(get_logger(), "Could not activate control");
     return false;
   }
   std_msgs::msg::Bool command_state;
@@ -265,12 +259,12 @@ bool RobotManagerNode::activate()
 bool RobotManagerNode::deactivate()
 {
   if (!robot_manager_->isConnected()) {
-    RCLCPP_ERROR(get_logger(), "not connected");
+    RCLCPP_ERROR(get_logger(), "Not connected");
     return false;
   }
 
   if (this->isActive() && !robot_manager_->deactivateControl()) {
-    RCLCPP_ERROR(get_logger(), "could not deactivate control");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return false;
   }
   this->ActivatableInterface::deactivate();
