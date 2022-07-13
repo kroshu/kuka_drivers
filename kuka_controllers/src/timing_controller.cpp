@@ -18,6 +18,14 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn TimingController::on_init()
 {
+  auto callback = [this](kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
+      kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
+      resend_multiplier_ = true;
+      receive_multiplier_ = request->data;
+      response->success = true;
+    };
+  receive_multiplier_service_ = get_node()->create_service<kuka_sunrise_interfaces::srv::SetInt>(
+    "set_receive_multiplier", callback);
   // TODO(Svastits): create service to get multiplier changes (or perpaps parameter??)
   //   and set resend_multiplier_ to true in the callback
   return controller_interface::CallbackReturn::SUCCESS;
@@ -62,6 +70,9 @@ controller_interface::return_type TimingController::update(
 {
   // TODO(Svastits): disable changes if HWIF is active
   if (resend_multiplier_) {
+    RCLCPP_INFO(
+      get_node()->get_logger(), "Changing receive multiplier of hardware interface to %i",
+      receive_multiplier_);
     command_interfaces_[0].set_value(receive_multiplier_);
     resend_multiplier_ = false;
   }

@@ -221,7 +221,7 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode) cons
 
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
 {
-  // Set parameter of control client
+  // Set receive multiplier of hardware interface through controller manager service
   auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
   auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(

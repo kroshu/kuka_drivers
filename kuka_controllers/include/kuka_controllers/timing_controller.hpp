@@ -24,7 +24,7 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp/duration.hpp"
-
+#include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
 namespace kuka_controllers
 {
@@ -51,6 +51,7 @@ public:
   controller_interface::CallbackReturn on_init() override;
 
 private:
+  rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_service_;
   int receive_multiplier_ = 1;
   bool resend_multiplier_ = true;
 };
