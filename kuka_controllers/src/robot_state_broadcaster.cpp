@@ -26,7 +26,8 @@ controller_interface::CallbackReturn RobotStateBroadcaster::on_init()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::InterfaceConfiguration RobotStateBroadcaster::command_interface_configuration()
+controller_interface::InterfaceConfiguration
+RobotStateBroadcaster::command_interface_configuration()
 const
 {
   return controller_interface::InterfaceConfiguration{controller_interface::

@@ -20,9 +20,9 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.LifecycleNode(
-            namespace = '', package='kuka_sunrise', executable='robot_manager_node', output='screen',
+            namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'}]),
         launch_ros.actions.LifecycleNode(
-            namespace = '', package='kuka_sunrise', executable='robot_control_node', output='screen',
+            namespace='', package='kuka_sunrise', executable='robot_control_node', output='screen',
             name=['robot_control'])
         ])

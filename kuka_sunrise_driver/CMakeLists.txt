@@ -48,11 +48,11 @@ add_library(robot_manager SHARED
   src/kuka_sunrise/robot_manager.cpp
   src/kuka_sunrise/tcp_connection.cpp)
 
-add_library(robot_control_client SHARED
+add_library(kuka_fri_hw_interface SHARED
   src/kuka_sunrise/kuka_fri_hardware_interface.cpp
 )
-ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs hardware_interface)
-target_link_libraries(robot_control_client fri::fri_client)
+ament_target_dependencies(kuka_fri_hw_interface kuka_sunrise_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+target_link_libraries(kuka_fri_hw_interface fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)
@@ -84,7 +84,8 @@ ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS robot_manager robot_control_client robot_manager_node position_controller_node torque_controller_node lifecycle_client_node sunrise_control_node
+install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node position_controller_node torque_controller_node
+  lifecycle_client_node sunrise_control_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch

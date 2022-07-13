@@ -64,7 +64,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   auto result = SUCCESS;
-  // TODO(Svastits): configure HWInterface and controllers (currently done from launch file after loading)
+  // TODO(Svastits): configure HWInterface and controllers
+  //    (currently done from launch file after loading)
   // If this fails, the node should be restarted, with different parameter values
   // Therefore exceptions are not caught
   if (!configuration_manager_) {

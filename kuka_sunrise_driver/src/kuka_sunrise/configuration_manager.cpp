@@ -199,8 +199,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
 
 bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
 {
-
-  //TODO(Svastits): load and switch controllers through controller_manager
+  // TODO(Svastits): load and switch controllers through controller_manager
   ClientCommandModeID client_command_mode;
   if (control_mode == "position") {
     client_command_mode = POSITION_COMMAND_MODE;

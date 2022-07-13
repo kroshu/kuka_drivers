@@ -1,4 +1,16 @@
-import os
+# Copyright 2022 Áron Svastits
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -6,19 +18,23 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.actions import LifecycleNode
 
+
 def load_file(absolute_file_path):
     try:
         with open(absolute_file_path, 'r') as file:
             return file.read()
-    except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
+    except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
         return None
 
 
 def generate_launch_description():
-    controller_config = get_package_share_directory('kuka_sunrise') + "/config/iiwa_ros2_controller_config.yaml"
-    forward_controller_config = get_package_share_directory('kuka_sunrise') + "/config/forward_controller.yaml"
-    robot_description_config = load_file(get_package_share_directory('kuka_lbr_iiwa7_support') + "/urdf/urdflbriiwa7.urdf")
-    robot_description = {'robot_description' : robot_description_config}
+    controller_config = (get_package_share_directory('kuka_sunrise') +
+                         "/config/iiwa_ros2_controller_config.yaml")
+    forward_controller_config = (get_package_share_directory('kuka_sunrise') +
+                                 "/config/forward_controller.yaml")
+    robot_description_config = load_file(get_package_share_directory('kuka_lbr_iiwa7_support') +
+                                         "/urdf/urdflbriiwa7.urdf")
+    robot_description = {'robot_description': robot_description_config}
 
     return LaunchDescription([
         Node(
@@ -27,7 +43,7 @@ def generate_launch_description():
             parameters=[robot_description, controller_config]
         ),
         LifecycleNode(
-            namespace = '', package='kuka_sunrise', executable='robot_manager_node', output='screen',
+            namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'}]
         ),
         Node(

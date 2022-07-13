@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_
-#define KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_
+#ifndef KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
+#define KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
 
 #include <condition_variable>
 #include <memory>
@@ -36,11 +36,12 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_sunrise
 {
 
-class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface, public KUKA::FRI::LBRClient,
+class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
+  public KUKA::FRI::LBRClient,
   public ActivatableInterface
 {
 public:
-	KUKAFRIHardwareInterface()
+  KUKAFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
   ~KUKAFRIHardwareInterface();
   bool setReceiveMultiplier(int receive_multiplier);
@@ -89,4 +90,4 @@ private:
 
 }  // namespace kuka_sunrise
 
-#endif  // KUKA_SUNRISE__ROBOT_CONTROL_CLIENT_HPP_
+#endif  // KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_

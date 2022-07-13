@@ -18,7 +18,8 @@
 
 namespace kuka_sunrise
 {
-CallbackReturn KUKAFRIHardwareInterface::on_init(const hardware_interface::HardwareInfo & system_info)
+CallbackReturn KUKAFRIHardwareInterface::on_init(
+  const hardware_interface::HardwareInfo & system_info)
 {
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -222,7 +223,8 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> KUKAFRIHardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> KUKAFRIHardwareInterface::
+export_command_interfaces()
 {
   RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_command_interfaces()");
 
