@@ -43,7 +43,7 @@ def generate_launch_description():
 
     system_manager = launch_ros.actions.LifecycleNode(
         namespace="", name='system_manager',
-        package='teleop_guided_robot', executable='system_manager', output='screen'        
+        package='teleop_guided_robot', executable='system_manager', output='screen'
     )
     """
     key_teleop = launch_ros.actions.Node(
