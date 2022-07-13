@@ -53,7 +53,7 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller_position", "--controller-manager", "/controller_manager"],
+            arguments=["joint_trajectory_controller", "--controller-manager", "/controller_manager"]
         ),
         Node(
             package="rviz2",
