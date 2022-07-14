@@ -66,8 +66,6 @@ public:
   void waitForCommand() final;
   void command() final;
 
-
-
 private:
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;

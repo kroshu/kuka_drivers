@@ -146,8 +146,8 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   hw_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * torque = robotState().getMeasuredTorque();
   hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
-  const double* external_torque = robotState().getExternalTorque();
-  hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  const double * external_torque = robotState().getExternalTorque();
+  hw_torques_ext_.assign(external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   tracking_performance_ = robotState().getTrackingPerformance();
   fri_state_ = robotState().getSessionState();
