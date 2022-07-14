@@ -27,6 +27,7 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   hw_states_.resize(info_.joints.size());
   hw_commands_.resize(info_.joints.size());
   hw_torques_.resize(info_.joints.size());
+  hw_torques_ext_.resize(info_.joints.size());
   hw_effort_command_.resize(info_.joints.size());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
@@ -51,8 +52,8 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
       return CallbackReturn::ERROR;
     }
 
-    if (joint.state_interfaces.size() != 2) {
-      RCLCPP_FATAL(rclcpp::get_logger("RobotControlClient"), "expecting exactly 2 state interface");
+    if (joint.state_interfaces.size() != 3) {
+      RCLCPP_FATAL(rclcpp::get_logger("RobotControlClient"), "expecting exactly 3 state interface");
       return CallbackReturn::ERROR;
     }
 
@@ -69,7 +70,13 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
           "RobotControlClient"), "expecting EFFORT state interface as second");
       return CallbackReturn::ERROR;
     }
-    // TODO(Svastits): add external torque interface to URDF and check it here
+
+    if (joint.state_interfaces[2].name != "external_torque") {
+      RCLCPP_FATAL(
+        rclcpp::get_logger(
+          "RobotControlClient"), "expecting 'external torque' state interface as third");
+      return CallbackReturn::ERROR;
+    }
   }
 
   return CallbackReturn::SUCCESS;
@@ -97,10 +104,6 @@ CallbackReturn KUKAFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   client_application_.disconnect();
   this->ActivatableInterface::deactivate();
   return CallbackReturn::SUCCESS;
-}
-
-KUKAFRIHardwareInterface::~KUKAFRIHardwareInterface()
-{
 }
 
 void KUKAFRIHardwareInterface::waitForCommand()
@@ -143,14 +146,13 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   hw_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * torque = robotState().getMeasuredTorque();
   hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  const double* external_torque = robotState().getExternalTorque();
+  hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   tracking_performance_ = robotState().getTrackingPerformance();
   fri_state_ = robotState().getSessionState();
   connection_quality_ = robotState().getConnectionQuality();
 
-  // const double* external_torque = robotState().getExternalTorque();
-  // hw_torques_ext_.assign(external_torque, external_torque+KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
-  // TODO(Svastits): add external torque interface
   return hardware_interface::return_type::OK;
 }
 
@@ -197,28 +199,21 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 
 std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export_state_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_state_interfaces()");
-
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back(
-    hardware_interface::StateInterface("state", "fri_state", &fri_state_));
-
-  state_interfaces.emplace_back(
-    hardware_interface::StateInterface("state", "connection_quality", &connection_quality_));
+  state_interfaces.emplace_back("state", "fri_state", &fri_state_);
+  state_interfaces.emplace_back("state", "connection_quality", &connection_quality_);
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_POSITION,
-        &hw_states_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION,
+      &hw_states_[i]);
 
     state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_EFFORT,
-        &hw_torques_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
+      &hw_torques_[i]);
+
+    state_interfaces.emplace_back(info_.joints[i].name, "external_torque", &hw_torques_ext_[i]);
   }
   return state_interfaces;
 }
@@ -226,31 +221,20 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 std::vector<hardware_interface::CommandInterface> KUKAFRIHardwareInterface::
 export_command_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "export_command_interfaces()");
-
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  command_interfaces.emplace_back(
-    hardware_interface::CommandInterface("timing", "receive_multiplier", &receive_multiplier_));
+  command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
-      hardware_interface::CommandInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_POSITION,
-        &hw_commands_[i]));
-
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION,
+      &hw_commands_[i]);
     command_interfaces.emplace_back(
-      hardware_interface::CommandInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_EFFORT,
-        &hw_effort_command_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
+      &hw_effort_command_[i]);
   }
   return command_interfaces;
 }
 }  // namespace kuka_sunrise
-
-#include "pluginlib/class_list_macros.hpp"
-
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_sunrise::KUKAFRIHardwareInterface,

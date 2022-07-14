@@ -30,6 +30,8 @@
 #include "fri/HWIFClientApplication.hpp"
 #include "fri/friUdpConnection.h"
 
+#include "pluginlib/class_list_macros.hpp"
+
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -38,21 +40,18 @@ namespace kuka_sunrise
 
 class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
   public KUKA::FRI::LBRClient,
-  public ActivatableInterface
+  public ActivatableInterface  // TODO(Svastits): is this necessary in current state?
 {
 public:
   KUKAFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
-  ~KUKAFRIHardwareInterface();
-  bool setReceiveMultiplier(int receive_multiplier);
-
-  virtual void waitForCommand();
-  virtual void command();
-
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   hardware_interface::return_type read(
     const rclcpp::Time & time,
@@ -62,32 +61,36 @@ public:
     const rclcpp::Duration & period) override;
 
   void updateCommand(const rclcpp::Time & stamp);
+  bool setReceiveMultiplier(int receive_multiplier);
 
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  void waitForCommand() final;
+  void command() final;
+
+
 
 private:
-  // rclcpp_lifecycle::LifecycleNode::SharedPtr robot_control_node_;
+  KUKA::FRI::HWIFClientApplication client_application_;
+  KUKA::FRI::UdpConnection udp_connection_;
+
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
 
   // Command interface must be of type double, but controller can set only integers
+  // this is a temporary solution, until runtime parameters are supported for hardware interfaces
   double receive_multiplier_ = 1;
   int receive_counter_ = 0;
-
-  // Store the command for the simulated robot
-  std::vector<double> hw_commands_, hw_states_;
-  std::vector<double> hw_torques_, hw_effort_command_;
-
-  KUKA::FRI::HWIFClientApplication client_application_;
-  KUKA::FRI::UdpConnection udp_connection_;
-
   bool torque_command_mode_ = false;
+
+  // State and command interfaces
+  std::vector<double> hw_commands_;
+  std::vector<double> hw_states_;
+  std::vector<double> hw_torques_ext_;
+  std::vector<double> hw_torques_;
+  std::vector<double> hw_effort_command_;
   double tracking_performance_ = 1;
   double fri_state_ = 0;
   double connection_quality_ = 0;
 };
-
 }  // namespace kuka_sunrise
 
 #endif  // KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
