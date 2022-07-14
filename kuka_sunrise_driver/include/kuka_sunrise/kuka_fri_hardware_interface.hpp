@@ -88,6 +88,8 @@ private:
   double tracking_performance_ = 1;
   double fri_state_ = 0;
   double connection_quality_ = 0;
+  std::vector<double> gpio_inputs_;
+  std::vector<double> gpio_outputs_;
 };
 }  // namespace kuka_sunrise
 

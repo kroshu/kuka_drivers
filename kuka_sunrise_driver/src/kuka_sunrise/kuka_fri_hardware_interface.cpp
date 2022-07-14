@@ -30,6 +30,12 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   hw_torques_ext_.resize(info_.joints.size());
   hw_effort_command_.resize(info_.joints.size());
 
+
+  // TODO(Svastits): create config file for available I/O with types
+  //   and implement classes for different data types
+  gpio_inputs_.resize(10);
+  gpio_outputs_.resize(10);
+
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 2) {
       RCLCPP_FATAL(
@@ -153,6 +159,9 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   fri_state_ = robotState().getSessionState();
   connection_quality_ = robotState().getConnectionQuality();
 
+  for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
+    gpio_inputs_[i] = robotState().getBooleanIOValue(("Output" + std::to_string(i)).c_str());
+  }
   return hardware_interface::return_type::OK;
 }
 
@@ -189,12 +198,12 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     const double * joint_positions_ = hw_commands_.data();
     robotCommand().setJointPosition(joint_positions_);
   }
-  // TODO(Svastits): setDigitalIOValue and setAnalogIOValue
-/*
-  for (auto & output_subscription : output_subscriptions_) {
-    output_subscription->updateOutput();
+
+  for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
+    robotCommand().setBooleanIOValue(
+      ("Input" + std::to_string(i)).c_str(),
+      static_cast<double>(gpio_inputs_[i]));
   }
-  */
 }
 
 std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export_state_interfaces()
@@ -203,6 +212,12 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 
   state_interfaces.emplace_back("state", "fri_state", &fri_state_);
   state_interfaces.emplace_back("state", "connection_quality", &connection_quality_);
+
+
+  // Register I/O outputs (read access) and inputs (write access)
+  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
+    state_interfaces.emplace_back("gpio", "Output" + std::to_string(i), &gpio_outputs_[i]);
+  }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
@@ -224,6 +239,12 @@ export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
+
+  // Register I/O inputs (write access)
+  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
+    command_interfaces.emplace_back("gpio", "Input" + std::to_string(i), &gpio_inputs_[i]);
+  }
+
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION,
