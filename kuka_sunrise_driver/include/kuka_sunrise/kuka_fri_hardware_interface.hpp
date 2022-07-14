@@ -18,6 +18,8 @@
 #include <condition_variable>
 #include <memory>
 #include <vector>
+#include <string>
+#include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -32,11 +34,21 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
-
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_sunrise
 {
+
+enum IOTypes
+{
+  ANALOG = 0,
+  DIGITAL = 1,
+  BOOLEAN = 2,
+};
+
+static std::unordered_map<std::string,
+  IOTypes> const types =
+{{"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
 
 class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
   public KUKA::FRI::LBRClient,
@@ -89,12 +101,13 @@ private:
   double fri_state_ = 0;
   double connection_quality_ = 0;
 
-  enum IOTypes
+  IOTypes getType(const std::string type_string)
   {
-    ANALOG = 0,
-    DIGITAL = 1,
-    BOOLEAN = 2,
-  };
+    auto it = types.find(type_string);
+    if (it != types.end()) {
+      return it->second;
+    } else {throw std::runtime_error("Invalid type for GPIO");}
+  }
 
   class GPIOReader
   {
@@ -124,15 +137,16 @@ public:
 
   class GPIOWriter
   {
-    // TODO(Svastits): add default value??
     const std::string name_;
     IOTypes type_;
     KUKA::FRI::LBRCommand command_;
 
 public:
     double data_;
-    GPIOWriter(const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command)
-    : name_(name), type_(type), command_(command) {}
+    GPIOWriter(
+      const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command,
+      double initial_value)
+    : name_(name), type_(type), command_(command), data_(initial_value) {}
     void setValue()
     {
       switch (type_) {

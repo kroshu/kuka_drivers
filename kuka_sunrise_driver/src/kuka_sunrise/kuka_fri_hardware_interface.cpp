@@ -30,16 +30,37 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   hw_torques_ext_.resize(info_.joints.size());
   hw_effort_command_.resize(info_.joints.size());
 
+  if (info_.gpios.size() != 1) {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KUKAFRIHardwareInterface"),
+      "expecting exactly 1 GPIO");
+    return CallbackReturn::ERROR;
+  }
 
-  // TODO(Svastits): create config file for available I/O-s with types
-  //  and fill vectors with that info
-  gpio_inputs_.emplace_back("Input1", BOOLEAN, robotCommand());
-  gpio_outputs_.emplace_back("Output1", BOOLEAN, robotState());
+  if (info_.gpios[0].command_interfaces.size() > 10 ||
+    info_.gpios[0].state_interfaces.size() > 10)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KUKAFRIHardwareInterface"),
+      "A maximum of 10 inputs and outputs can be registered to FRI");
+    return CallbackReturn::ERROR;
+  }
+
+  for (const auto & state_if : info_.gpios[0].state_interfaces) {
+    gpio_outputs_.emplace_back(state_if.name, getType(state_if.data_type), robotState());
+  }
+
+  for (const auto & command_if : info_.gpios[0].command_interfaces) {
+    gpio_inputs_.emplace_back(
+      command_if.name, getType(command_if.data_type),
+      robotCommand(), std::stod(command_if.initial_value));
+  }
+
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 2) {
       RCLCPP_FATAL(
-        rclcpp::get_logger("RobotControlClient"),
+        rclcpp::get_logger("KUKAFRIHardwareInterface"),
         "expecting exactly 2 command interface");
       return CallbackReturn::ERROR;
     }
@@ -47,40 +68,42 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting POSITION command interface as first");
+          "KUKAFRIHardwareInterface"), "expecting POSITION command interface as first");
       return CallbackReturn::ERROR;
     }
 
     if (joint.command_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting EFFORT command interface as second");
+          "KUKAFRIHardwareInterface"), "expecting EFFORT command interface as second");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces.size() != 3) {
-      RCLCPP_FATAL(rclcpp::get_logger("RobotControlClient"), "expecting exactly 3 state interface");
+      RCLCPP_FATAL(
+        rclcpp::get_logger(
+          "KUKAFRIHardwareInterface"), "expecting exactly 3 state interface");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting POSITION state interface as first");
+          "KUKAFRIHardwareInterface"), "expecting POSITION state interface as first");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting EFFORT state interface as second");
+          "KUKAFRIHardwareInterface"), "expecting EFFORT state interface as second");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[2].name != "external_torque") {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "RobotControlClient"), "expecting 'external torque' state interface as third");
+          "KUKAFRIHardwareInterface"), "expecting 'external torque' state interface as third");
       return CallbackReturn::ERROR;
     }
   }
@@ -95,13 +118,12 @@ CallbackReturn KUKAFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activating client");
   if (!client_application_.connect(30200, nullptr)) {
-    RCLCPP_ERROR(rclcpp::get_logger("HWIF"), "could not connect");
+    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Could not connect");
     return CallbackReturn::FAILURE;
   }
   this->ActivatableInterface::activate();
-  RCLCPP_INFO(rclcpp::get_logger("HWIF"), "activated client");
+  RCLCPP_INFO(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Activated client");
   return CallbackReturn::SUCCESS;
 }
 
@@ -170,7 +192,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-    RCLCPP_INFO(rclcpp::get_logger("RobotControlClient"), "Controller deactivated");
+    RCLCPP_INFO(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Controller deactivated");
     return hardware_interface::return_type::ERROR;
   }
 
