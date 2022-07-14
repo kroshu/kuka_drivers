@@ -31,10 +31,10 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   hw_effort_command_.resize(info_.joints.size());
 
 
-  // TODO(Svastits): create config file for available I/O with types
-  //   and implement classes for different data types
-  gpio_inputs_.resize(10);
-  gpio_outputs_.resize(10);
+  // TODO(Svastits): create config file for available I/O-s with types
+  //  and fill vectors with that info
+  gpio_inputs_.emplace_back("Input1", BOOLEAN, robotCommand());
+  gpio_outputs_.emplace_back("Output1", BOOLEAN, robotState());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 2) {
@@ -159,8 +159,8 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   fri_state_ = robotState().getSessionState();
   connection_quality_ = robotState().getConnectionQuality();
 
-  for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
-    gpio_inputs_[i] = robotState().getBooleanIOValue(("Output" + std::to_string(i)).c_str());
+  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
+    gpio_outputs_[i].getValue();
   }
   return hardware_interface::return_type::OK;
 }
@@ -200,9 +200,7 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
   }
 
   for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
-    robotCommand().setBooleanIOValue(
-      ("Input" + std::to_string(i)).c_str(),
-      static_cast<double>(gpio_inputs_[i]));
+    gpio_inputs_[i].setValue();
   }
 }
 
@@ -216,7 +214,7 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 
   // Register I/O outputs (read access) and inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
-    state_interfaces.emplace_back("gpio", "Output" + std::to_string(i), &gpio_outputs_[i]);
+    state_interfaces.emplace_back("gpio", "Output" + std::to_string(i), &gpio_outputs_[i].data_);
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -242,7 +240,7 @@ export_command_interfaces()
 
   // Register I/O inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
-    command_interfaces.emplace_back("gpio", "Input" + std::to_string(i), &gpio_inputs_[i]);
+    command_interfaces.emplace_back("gpio", "Input" + std::to_string(i), &gpio_inputs_[i].data_);
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {

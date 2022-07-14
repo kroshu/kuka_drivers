@@ -88,8 +88,69 @@ private:
   double tracking_performance_ = 1;
   double fri_state_ = 0;
   double connection_quality_ = 0;
-  std::vector<double> gpio_inputs_;
-  std::vector<double> gpio_outputs_;
+
+  enum IOTypes
+  {
+    ANALOG = 0,
+    DIGITAL = 1,
+    BOOLEAN = 2,
+  };
+
+  class GPIOReader
+  {
+    const std::string name_;
+    IOTypes type_;
+    KUKA::FRI::LBRState state_;
+
+public:
+    double data_;
+    GPIOReader(const std::string & name, IOTypes type, const KUKA::FRI::LBRState & state)
+    : name_(name), type_(type), state_(state) {}
+    void getValue()
+    {
+      switch (type_) {
+        case ANALOG:
+          data_ = state_.getAnalogIOValue(name_.c_str());
+          break;
+        case DIGITAL:
+          data_ = state_.getDigitalIOValue(name_.c_str());
+          break;
+        case BOOLEAN:
+          data_ = state_.getBooleanIOValue(name_.c_str());
+          break;
+      }
+    }
+  };
+
+  class GPIOWriter
+  {
+    // TODO(Svastits): add default value??
+    const std::string name_;
+    IOTypes type_;
+    KUKA::FRI::LBRCommand command_;
+
+public:
+    double data_;
+    GPIOWriter(const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command)
+    : name_(name), type_(type), command_(command) {}
+    void setValue()
+    {
+      switch (type_) {
+        case ANALOG:
+          command_.setAnalogIOValue(name_.c_str(), data_);
+          break;
+        case DIGITAL:
+          command_.setDigitalIOValue(name_.c_str(), data_);
+          break;
+        case BOOLEAN:
+          command_.setBooleanIOValue(name_.c_str(), data_);
+          break;
+      }
+    }
+  };
+
+  std::vector<GPIOWriter> gpio_inputs_;
+  std::vector<GPIOReader> gpio_outputs_;
 };
 }  // namespace kuka_sunrise
 
