@@ -1,12 +1,12 @@
 /forward_command_controller_position: 
   ros__parameters: 
     joints: 
-      - URDFLBRiiwa7Joint1 
-      - URDFLBRiiwa7Joint2 
-      - URDFLBRiiwa7Joint3 
-      - URDFLBRiiwa7Joint4 
-      - URDFLBRiiwa7Joint5 
-      - URDFLBRiiwa7Joint6 
-      - URDFLBRiiwa7Joint7 
+      - LBRiiwa7Joint1 
+      - LBRiiwa7Joint2 
+      - LBRiiwa7Joint3 
+      - LBRiiwa7Joint4 
+      - LBRiiwa7Joint5 
+      - LBRiiwa7Joint6 
+      - LBRiiwa7Joint7 
     interface_name: position
 
