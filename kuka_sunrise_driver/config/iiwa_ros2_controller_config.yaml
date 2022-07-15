@@ -14,4 +14,4 @@ controller_manager:
     robot_state_broadcaster:
       type: kuka_controllers/RobotStateBroadcaster
 
-    configure_components_on_start: ["iiwa_hardware"]
+    configure_components_on_start: [""]

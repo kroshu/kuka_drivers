@@ -111,11 +111,6 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KUKAFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
-{
-  return CallbackReturn::SUCCESS;
-}
-
 CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   if (!client_application_.connect(30200, nullptr)) {

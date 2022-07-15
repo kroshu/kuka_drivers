@@ -25,6 +25,16 @@ namespace kuka_sunrise
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
+  // Controllers do not support the cleanup transition (as of now)
+  // Therefore controllers are loaded and configured at startup, only activation
+  //   and deactivation is managed by this node
+  // There are two kind of controllers used:
+  //  - RT: joint state broadcaster and joint state/effort commander
+  //  - non-RT: configuration (workaround until runtime parameters are enabled)
+  //            and robot state broadcaster
+  // RT controllers are started after interface activation
+  // non-RT controllers are started after interface configuration
+
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   robot_manager_ = std::make_shared<RobotManager>(
     [this]
@@ -41,8 +51,8 @@ RobotManagerNode::RobotManagerNode()
     this->create_client<controller_manager_msgs::srv::SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ =
-    this->create_client<controller_manager_msgs::srv::ConfigureStartController>(
-    "controller_manager/configure_and_start_controller", qos.get_rmw_qos_profile(), cbg_);
+    this->create_client<controller_manager_msgs::srv::SwitchController>(
+    "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
   auto command_srv_callback = [this](
     std_srvs::srv::SetBool::Request::SharedPtr request,
     std_srvs::srv::SetBool::Response::SharedPtr response) {
@@ -63,9 +73,21 @@ RobotManagerNode::RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Configure hardware interface
+  auto hw_request =
+    std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
+  hw_request->name = "iiwa_hardware";
+  hw_request->target_state.label = "inactive";
+  auto hw_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    change_hardware_state_client_, hw_request, 0, 2000);
+  if (!hw_response || !hw_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
+    return FAILURE;
+  }
+
   auto result = SUCCESS;
-  // TODO(Svastits): configure HWInterface and controllers
-  //    (currently done from launch file after loading)
+
   // If this fails, the node should be restarted, with different parameter values
   // Therefore exceptions are not caught
   if (!configuration_manager_) {
@@ -73,6 +95,21 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
       std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
         this->shared_from_this()), robot_manager_);
   }
+
+  // Start non-RT controllers
+  auto controller_request =
+    std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->start_controllers =
+    std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
+  auto controller_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000);
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not start controllers");
+    result = FAILURE;
+  }
+
   const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
   if (!robot_manager_->isConnected()) {
     if (!robot_manager_->connect(controller_ip, 30000)) {
@@ -111,6 +148,34 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
+  // Stop non-RT controllers
+  auto controller_request =
+    std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->stop_controllers =
+    std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
+  auto controller_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000);
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+    return ERROR;
+  }
+
+  // Cleanup hardware interface
+  // TODO(Svastits): interface cleanup is not called but result is success!!
+  auto hw_request =
+    std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
+  hw_request->name = "iiwa_hardware";
+  hw_request->target_state.label = "unconfigured";
+  auto hw_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    change_hardware_state_client_, hw_request, 0, 2000);
+  if (!hw_response || !hw_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not cleanup hardware interface");
+    return FAILURE;
+  }
+
   return SUCCESS;
 }
 
@@ -140,6 +205,7 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  // TODO(Svastits): implement rollback mechanism
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
@@ -150,8 +216,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "could not set fri config");
     return FAILURE;
   }
+  RCLCPP_INFO(get_logger(), "Successfully set FRI config");
 
-  RCLCPP_INFO(get_logger(), "set FRI config");
   // Activate hardware interface
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
@@ -164,7 +230,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     return FAILURE;
   }
-
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
 
   // Start FRI (in monitoring mode)
@@ -172,32 +237,37 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not start FRI");
     return FAILURE;
   }
-
   RCLCPP_INFO(get_logger(), "Started FRI");
 
   // Activate joint state broadcaster
+  // The other controller must be started later so that it can initialize internal state
+  //   with broadcaster information
   auto controller_request =
-    std::make_shared<controller_manager_msgs::srv::ConfigureStartController::Request>();
-  controller_request->name = "joint_state_broadcaster";
+    std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->start_controllers = std::vector<std::string>{"joint_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not activate broadcaster");
+    RCLCPP_ERROR(get_logger(), "Could not start controllers");
     return FAILURE;
   }
 
   // Activate forward_command_controller
   // TODO(Svastits): add parameter for controller name
-  controller_request->name = "forward_command_controller_position";
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->start_controllers =
+    std::vector<std::string>{"forward_command_controller_position"};
   controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ConfigureStartController::Response>(
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate controller");
     return FAILURE;
   }
   command_state_changed_publisher_->on_activate();
+
   // Start commanding mode
   if (!activate()) {
     return FAILURE;
@@ -224,11 +294,32 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (!requestRobotControlNodeStateTransition(
-      lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE))
-  {
-    // TODO(resizoltan) out of sync
-    RCLCPP_ERROR(get_logger(), "Could not deactivate");
+  // Deactivate hardware interface
+  auto hw_request =
+    std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
+  hw_request->name = "iiwa_hardware";
+  hw_request->target_state.label = "inactive";
+  auto hw_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    change_hardware_state_client_, hw_request, 0, 2000);
+  if (!hw_response || !hw_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
+    return ERROR;
+  }
+  RCLCPP_INFO(get_logger(), "Deactivated LBR iiwa hardware interface");
+
+
+  // Stop RT controllers
+  auto controller_request =
+    std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->stop_controllers =
+    std::vector<std::string>{"joint_state_broadcaster", "forward_command_controller_position"};
+  auto controller_response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000);
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }
 
@@ -309,9 +400,12 @@ bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
 void RobotManagerNode::handleControlEndedError()
 {
   // TODO(Svastits): deactivate managers by internal control ended error
-  // currently only the ActivatableInterface is deactivated
-  RCLCPP_INFO(get_logger(), "control ended");
-  deactivate();
+  //   currently the hardware interface deactivation fails with timeout
+  //   (possible threading issue)
+  RCLCPP_INFO(get_logger(), "Control ended");
+  if (this->on_deactivate(get_current_state()) != SUCCESS) {
+    RCLCPP_FATAL(get_logger(), "Could not deactivate managers");
+  }
 }
 
 void RobotManagerNode::handleFRIEndedError()

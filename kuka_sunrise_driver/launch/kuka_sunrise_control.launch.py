@@ -53,22 +53,22 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--load-only"]
+            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--stopped"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
             arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
-                       forward_controller_config, "--load-only"]
+                       forward_controller_config, "--stopped"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["timing_controller", "-c", "/controller_manager"]
+            arguments=["timing_controller", "-c", "/controller_manager", "--stopped"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["robot_state_broadcaster", "-c", "/controller_manager"]
+            arguments=["robot_state_broadcaster", "-c", "/controller_manager", "--stopped"]
         )
     ])
