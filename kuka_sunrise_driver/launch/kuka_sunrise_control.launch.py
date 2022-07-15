@@ -17,6 +17,8 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.actions import LifecycleNode
+from launch_ros.descriptions import ParameterValue
+from launch.substitutions import Command
 
 
 def load_file(absolute_file_path):
@@ -32,9 +34,11 @@ def generate_launch_description():
                          "/config/iiwa_ros2_controller_config.yaml")
     forward_controller_config = (get_package_share_directory('kuka_sunrise') +
                                  "/config/forward_controller.yaml")
-    robot_description_config = load_file(get_package_share_directory('kuka_lbr_iiwa7_support') +
-                                         "/urdf/urdflbriiwa7.urdf")
-    robot_description = {'robot_description': robot_description_config}
+    robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
+                              "/urdf/lbriiwa7.xacro")
+    robot_description = {'robot_description': ParameterValue(
+            Command(['xacro ', str(robot_description_path)]), value_type=str
+        )}
 
     return LaunchDescription([
         Node(
