@@ -96,11 +96,13 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         this->shared_from_this()), robot_manager_);
   }
 
+  RCLCPP_INFO(get_logger(), "Successfully set 'controller_ip' parameter" );
+
   // Start non-RT controllers
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->start_controllers =
+  controller_request->activate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
@@ -152,7 +154,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->stop_controllers =
+  controller_request->deactivate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
@@ -245,7 +247,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->start_controllers = std::vector<std::string>{"joint_state_broadcaster"};
+  controller_request->activate_controllers = std::vector<std::string>{"joint_state_broadcaster"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
@@ -257,7 +259,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate forward_command_controller
   // TODO(Svastits): add parameter for controller name
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->start_controllers =
+  controller_request->activate_controllers =
     std::vector<std::string>{"forward_command_controller_position"};
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
@@ -313,7 +315,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->stop_controllers =
+  controller_request->deactivate_controllers =
     std::vector<std::string>{"joint_state_broadcaster", "forward_command_controller_position"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(

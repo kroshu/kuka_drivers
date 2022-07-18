@@ -53,7 +53,7 @@ public:
 private:
   rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_service_;
   int receive_multiplier_ = 1;
-  bool resend_multiplier_ = true;
+  bool resend_multiplier_ = false;
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__TIMING_CONTROLLER_HPP_
