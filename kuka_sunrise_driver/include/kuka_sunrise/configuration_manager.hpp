@@ -61,6 +61,7 @@ private:
   bool onSendPeriodChangeRequest(const int & send_period) const;
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier) const;
   bool onControllerIpChangeRequest(const std::string & controller_ip) const;
+  bool onControllerNameChangeRequest(const std::string & controller_name) const;
   bool setCommandMode(const std::string & control_mode) const;
   bool setReceiveMultiplier(int receive_multiplier) const;
   void setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);

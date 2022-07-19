@@ -161,7 +161,9 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   }
 
   if (!client_application_.client_app_read()) {
-    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Failed to read data from controller");
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Failed to read data from controller");
     return hardware_interface::return_type::ERROR;
   }
 
