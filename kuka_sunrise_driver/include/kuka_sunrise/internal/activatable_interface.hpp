@@ -40,7 +40,7 @@ public:
   }
 
 protected:
-  bool is_active_;
+  bool is_active_ = false;
 };
 
 }  // namespace kuka_sunrise

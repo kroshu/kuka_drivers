@@ -95,7 +95,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
       std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
         this->shared_from_this()), robot_manager_);
   }
-
   RCLCPP_INFO(get_logger(), "Successfully set 'controller_ip' parameter" );
 
   // Start non-RT controllers
@@ -165,7 +164,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   // Cleanup hardware interface
-  // TODO(Svastits): interface cleanup is not called but result is success!!
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
   hw_request->name = "iiwa_hardware";

@@ -153,14 +153,15 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  // Read is called in inactive state, check is necessary
   if (!is_active_) {
-    RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Controller not active");
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    return hardware_interface::return_type::ERROR;
+    RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    return hardware_interface::return_type::OK;
   }
 
   if (!client_application_.client_app_read()) {
-    RCLCPP_ERROR(rclcpp::get_logger("ClientApplication"), "Failed to read data from controller");
+    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Failed to read data from controller");
     return hardware_interface::return_type::ERROR;
   }
 
@@ -186,9 +187,10 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  // Write is called in inactive state, check is necessary
   if (!is_active_) {
-    RCLCPP_INFO(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Controller deactivated");
-    return hardware_interface::return_type::ERROR;
+    RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
+    return hardware_interface::return_type::OK;
   }
 
   // Call the appropriate callback for the actual state (e.g. updateCommand)
