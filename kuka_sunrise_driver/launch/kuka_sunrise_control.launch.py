@@ -33,7 +33,9 @@ def generate_launch_description():
     controller_config = (get_package_share_directory('kuka_sunrise') +
                          "/config/iiwa_ros2_controller_config.yaml")
     forward_controller_config = (get_package_share_directory('kuka_sunrise') +
-                                 "/config/forward_controller.yaml")
+                                 "/config/forward_controller_config.yaml")
+    joint_traj_controller_cofig = (get_package_share_directory('kuka_sunrise') +
+                                   "/config/joint_trajectory_controller_config.yaml")
     robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
                               "/urdf/lbriiwa7.xacro")
     robot_description = {'robot_description': ParameterValue(
@@ -49,6 +51,7 @@ def generate_launch_description():
         LifecycleNode(
             namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'}]
+                                                {'controller_name': 'joint_trajectory_controller'}]
         ),
         Node(
             package="controller_manager",
@@ -58,8 +61,14 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
+            arguments=["forward_command_controller", "-c", "/controller_manager", "-p",
                        forward_controller_config, "--inactive"]
+        ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_trajectory_controller", "-c", "/controller_manager", "-p",
+                       joint_traj_controller_cofig, "--inactive"]
         ),
         Node(
             package="controller_manager",
