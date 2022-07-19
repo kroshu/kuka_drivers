@@ -112,19 +112,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  # install custom copyright name
-  install(CODE
-    "execute_process(
-      COMMAND
-        \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\"
-        \"egg_info\" \"--egg-base\" \"${PROJECT_BINARY_DIR}\"
-        \"build\" \"--build-base\" \"${PROJECT_BINARY_DIR}/build\"
-        \"install\" \"--prefix\" \"${CMAKE_INSTALL_PREFIX}\"
-        \"--record\" \"${PROJECT_BINARY_DIR}/install_copyright.log\"
-        \"--single-version-externally-managed\"
-      WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
-  )
-
   ament_copyright()
   ament_cppcheck(--language=c++)
   ament_pep257()
@@ -162,9 +149,3 @@ if(TEST_COVERAGE)
   set_coverage_output_dir()
 endif()
 
-if(TEST_COVERAGE)
-  # Define a coverage target with some libs and executables to check
-  # NAME    Name of coverage target. Default: coverage. Only works with default currently.
-  # TARGETS Library and executable targets for which coverage reports are requested.
-  # add_coverage_gcov(NAME coverage TARGETS mypkg_lib mypkg_node)
-endif()
