@@ -70,7 +70,12 @@ public:
   hardware_interface::return_type write(
     const rclcpp::Time & time,
     const rclcpp::Duration & period) override;
-
+  hardware_interface::return_type prepare_command_mode_switch(
+    const std::vector<std::string> & start_interfaces,
+    const std::vector<std::string> & stop_interfaces) override;
+  hardware_interface::return_type perform_command_mode_switch(
+    const std::vector<std::string> & start_interfaces,
+    const std::vector<std::string> & stop_interfaces) override;
   void updateCommand(const rclcpp::Time & stamp);
   bool setReceiveMultiplier(int receive_multiplier);
 

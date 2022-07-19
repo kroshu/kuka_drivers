@@ -274,6 +274,27 @@ export_command_interfaces()
   }
   return command_interfaces;
 }
+
+hardware_interface::return_type KUKAFRIHardwareInterface::prepare_command_mode_switch(
+  const std::vector<std::string> & start_interfaces,
+  const std::vector<std::string> & stop_interfaces)
+{
+  if (is_active_) {
+    RCLCPP_DEBUG(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Cannot change command mode if hardware interface is active");
+    return hardware_interface::return_type::ERROR;
+  } else {
+    return hardware_interface::return_type::OK;
+  }
+}
+
+hardware_interface::return_type KUKAFRIHardwareInterface::perform_command_mode_switch(
+  const std::vector<std::string> & start_interfaces,
+  const std::vector<std::string> & stop_interfaces)
+{
+  return hardware_interface::return_type::OK;
+}
 }  // namespace kuka_sunrise
 
 PLUGINLIB_EXPORT_CLASS(
