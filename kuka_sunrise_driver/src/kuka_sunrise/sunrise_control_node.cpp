@@ -23,21 +23,14 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  int fri_state = 0;
   auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
     "controller_manager");
-  std::thread control_loop([controller_manager, &fri_state]() {
+  std::thread control_loop([controller_manager]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
 
-      auto callback = [&fri_state, controller_manager](std_msgs::msg::Int32::SharedPtr state) {
-        RCLCPP_INFO(controller_manager->get_logger(), "State received: %i", state->data);
-        fri_state = state->data;
-      };
-      auto sub =
-      controller_manager->create_subscription<std_msgs::msg::Int32>("fri_state", 1, callback);
       while (rclcpp::ok()) {
         controller_manager->read(controller_manager->now(), dt);
         controller_manager->update(controller_manager->now(), dt);
