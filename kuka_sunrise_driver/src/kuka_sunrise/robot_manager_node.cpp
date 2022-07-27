@@ -198,7 +198,12 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
       return SUCCESS;
   }
 
-  // TODO(Svasits): unload controllers, destroy HWInterface
+  // Publish message to notify other nodes about shutdown
+  auto control_ended_pub = create_publisher<std_msgs::msg::Bool>("control_ended", rclcpp::QoS(1));
+  std_msgs::msg::Bool end;
+  end.data = true;
+  control_ended_pub->publish(end);
+
   return SUCCESS;
 }
 
@@ -219,6 +224,13 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
   RCLCPP_INFO(get_logger(), "Successfully set FRI config");
 
+  // Start FRI (in monitoring mode)
+  if (!robot_manager_->startFRI()) {
+    RCLCPP_ERROR(get_logger(), "Could not start FRI");
+    return FAILURE;
+  }
+  RCLCPP_INFO(get_logger(), "Started FRI");
+
   // Activate hardware interface
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
@@ -232,13 +244,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
-
-  // Start FRI (in monitoring mode)
-  if (!robot_manager_->startFRI()) {
-    RCLCPP_ERROR(get_logger(), "Could not start FRI");
-    return FAILURE;
-  }
-  RCLCPP_INFO(get_logger(), "Started FRI");
 
   // Activate joint state broadcaster
   // The other controller must be started later so that it can initialize internal state

@@ -17,7 +17,7 @@
 
 #include "controller_manager/controller_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/int32.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 int main(int argc, char ** argv)
 {
@@ -27,6 +27,15 @@ int main(int argc, char ** argv)
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
     "controller_manager");
+
+  auto callback = [controller_manager](std_msgs::msg::Bool::SharedPtr state) {
+    RCLCPP_INFO(controller_manager->get_logger(), "Robot manager node shut down, terminating");
+    rclcpp::shutdown();
+  };
+  auto sub =
+  controller_manager->create_subscription<std_msgs::msg::Bool>("control_ended", 1, callback);
+
+
   std::thread control_loop([controller_manager]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
