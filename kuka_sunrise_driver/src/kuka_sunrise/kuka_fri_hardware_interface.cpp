@@ -212,8 +212,7 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     printf("client deactivated, exiting updateCommand\n");
     return;
   }
-  // TODO(Svastits): implement command mode switch
-  if (torque_command_mode_) {
+  if (torque_command_mode_) {  // TODO(Svastits): consider using robotState().getClientCommandMode()
     const double * joint_torques_ = hw_effort_command_.data();
     robotCommand().setJointPosition(robotState().getIpoJointPosition());
     robotCommand().setTorque(joint_torques_);

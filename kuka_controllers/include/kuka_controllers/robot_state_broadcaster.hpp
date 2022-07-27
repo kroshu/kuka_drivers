@@ -22,7 +22,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
-#include "std_msgs/msg/int32.hpp"
+#include "kuka_sunrise_interfaces/msg/robot_state.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp/duration.hpp"
 
@@ -54,10 +54,9 @@ public:
 private:
   int fri_state_ = 0;
   int connection_quality_ = 0;
-  bool resend_state_ = true;
-  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr fri_state_publisher_;
-  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr connection_quality_publisher_;
-  std_msgs::msg::Int32 state_msg_;
+  int counter_ = 0;
+  rclcpp::Publisher<kuka_sunrise_interfaces::msg::RobotState>::SharedPtr robot_state_publisher_;
+  kuka_sunrise_interfaces::msg::RobotState state_msg_;
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__ROBOT_STATE_BROADCASTER_HPP_

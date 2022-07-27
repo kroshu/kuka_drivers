@@ -19,10 +19,8 @@ namespace kuka_controllers
 controller_interface::CallbackReturn RobotStateBroadcaster::on_init()
 {
   // TODO(Svastits): choose appropriate QoS settings for late joiners
-  fri_state_publisher_ = get_node()->create_publisher<std_msgs::msg::Int32>(
-    "fri_state", rclcpp::SystemDefaultsQoS());
-  connection_quality_publisher_ = get_node()->create_publisher<std_msgs::msg::Int32>(
-    "connection_quality", rclcpp::SystemDefaultsQoS());
+  robot_state_publisher_ = get_node()->create_publisher<kuka_sunrise_interfaces::msg::RobotState>(
+    "robot_state", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -66,19 +64,15 @@ controller_interface::return_type RobotStateBroadcaster::update(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  // TODO(Svastits): create custom state msg type and publish all robot state info
-  //   with given frequency -> measure additional system overload
-  state_msg_.data = state_interfaces_[0].get_value();
-  if (fri_state_ != state_msg_.data) {
-    fri_state_ = state_msg_.data;
-    fri_state_publisher_->publish(state_msg_);
+  // TODO(Svastits): measure additional system overload, limit rate?
+  state_msg_.fri_state = state_interfaces_[0].get_value();
+  state_msg_.connection_quality = state_interfaces_[1].get_value();
+
+  if (counter_++ == 10) {
+    robot_state_publisher_->publish(state_msg_);
+    counter_ = 0;
   }
 
-  state_msg_.data = state_interfaces_[1].get_value();
-  if (connection_quality_ != state_msg_.data) {
-    connection_quality_ = state_msg_.data;
-    connection_quality_publisher_->publish(state_msg_);
-  }
   return controller_interface::return_type::OK;
 }
 
