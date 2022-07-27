@@ -197,12 +197,6 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   return true;
 }
 
-bool ConfigurationManager::onControllerNameChangeRequest(const std::string & controller_name) const
-{
-  // TODO(Svastits): check available controller names
-  return true;
-}
-
 bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
 {
   // TODO(Svastits): load and switch controllers through controller_manager
@@ -288,12 +282,8 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
       return this->onJointDampingChangeRequest(joint_damping);
     });
 
-  robot_manager_node_->registerParameter<std::string>(
-    "controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      true, false, true}, [this](const std::string & controller_name) {
-      return this->onControllerNameChangeRequest(controller_name);
-    });
-
+  // TODO(Svastits): add controller name parameters, when HWIF parameter interface is available
+  // currently syncing between manager node and HWIF is not possible, (only with ugly workaround)
   configured_ = true;
   response->success = true;
 }

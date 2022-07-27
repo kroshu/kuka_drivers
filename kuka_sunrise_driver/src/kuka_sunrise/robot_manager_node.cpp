@@ -210,6 +210,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
+
   auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
   auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
   if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
@@ -257,7 +258,11 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate RT commander
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers =
-    std::vector<std::string>{this->get_parameter("controller_name").as_string()};
+    std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
+    "position") ? "position_controller" : "effort_controller"};
+  controller_request->deactivate_controllers =
+    std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
+    "position") ? "effort_controller" : "position_controller"};
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);

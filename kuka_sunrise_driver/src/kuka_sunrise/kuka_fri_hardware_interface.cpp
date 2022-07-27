@@ -131,6 +131,8 @@ CallbackReturn KUKAFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 void KUKAFRIHardwareInterface::waitForCommand()
 {
+  hw_commands_ = hw_states_;
+  hw_effort_command_ = hw_torques_;
   // TODO(Svastits): is this really the purpose of waitForCommand?
   rclcpp::Time stamp = ros_clock_.now();
   if (++receive_counter_ == receive_multiplier_) {
@@ -279,20 +281,27 @@ hardware_interface::return_type KUKAFRIHardwareInterface::prepare_command_mode_s
   const std::vector<std::string> & start_interfaces,
   const std::vector<std::string> & stop_interfaces)
 {
-  if (is_active_) {
-    RCLCPP_DEBUG(
+  if (fri_state_ > 2) {
+    RCLCPP_ERROR(
       rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Cannot change command mode if hardware interface is active");
+        "KUKAFRIHardwareInterface"), "Cannot change command mode if FRI is in commanding mode");
     return hardware_interface::return_type::ERROR;
-  } else {
-    return hardware_interface::return_type::OK;
+  } else if (start_interfaces[0] == "position_controller" &&
+    stop_interfaces[0] == "effort_controller")
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Successfully changed to position command mode");
+    torque_command_mode_ = false;
+  } else if (start_interfaces[0] == "effort_controller" &&
+    stop_interfaces[0] == "position_controller")
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Successfully changed to torque command mode");
+    torque_command_mode_ = true;
   }
-}
 
-hardware_interface::return_type KUKAFRIHardwareInterface::perform_command_mode_switch(
-  const std::vector<std::string> & start_interfaces,
-  const std::vector<std::string> & stop_interfaces)
-{
   return hardware_interface::return_type::OK;
 }
 }  // namespace kuka_sunrise

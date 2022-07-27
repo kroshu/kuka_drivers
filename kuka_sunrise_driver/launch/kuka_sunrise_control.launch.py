@@ -61,13 +61,7 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller", "-c", "/controller_manager", "-p",
-                       forward_controller_config, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", "/controller_manager", "-p",
+            arguments=["position_controller", "-c", "/controller_manager", "-p",
                        joint_traj_controller_cofig, "--inactive"]
         ),
         Node(
