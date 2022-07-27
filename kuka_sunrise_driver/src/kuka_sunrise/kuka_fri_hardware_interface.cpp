@@ -180,6 +180,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   tracking_performance_ = robotState().getTrackingPerformance();
   fri_state_ = robotState().getSessionState();
   connection_quality_ = robotState().getConnectionQuality();
+  // TODO(Svastits): get states, create interfaces
 
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
     gpio_outputs_[i].getValue();

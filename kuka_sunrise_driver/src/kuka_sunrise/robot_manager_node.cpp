@@ -219,7 +219,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
   auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
   if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
-    RCLCPP_ERROR(get_logger(), "could not set fri config");
+    RCLCPP_ERROR(get_logger(), "could not set FRI config");
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Successfully set FRI config");
@@ -267,7 +267,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     "position") ? "position_controller" : "effort_controller"};
   controller_request->deactivate_controllers =
     std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
-    "position") ? "effort_controller" : "position_controller"};
+    "position") ? "effort_controller" : "position_controller"};  // TODO(Svastits): remove if unnecessary
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
@@ -324,7 +324,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->deactivate_controllers =
     std::vector<std::string>{"joint_state_broadcaster",
-    this->get_parameter("controller_name").as_string()};
+    (this->get_parameter("command_mode").as_string() ==
+    "position") ? "effort_controller" : "position_controller"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);

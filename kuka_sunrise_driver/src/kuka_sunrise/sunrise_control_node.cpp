@@ -29,11 +29,11 @@ int main(int argc, char ** argv)
     "controller_manager");
 
   auto callback = [controller_manager](std_msgs::msg::Bool::SharedPtr state) {
-    RCLCPP_INFO(controller_manager->get_logger(), "Robot manager node shut down, terminating");
-    rclcpp::shutdown();
-  };
+      RCLCPP_INFO(controller_manager->get_logger(), "Robot manager node shut down, terminating");
+      rclcpp::shutdown();
+    };
   auto sub =
-  controller_manager->create_subscription<std_msgs::msg::Bool>("control_ended", 1, callback);
+    controller_manager->create_subscription<std_msgs::msg::Bool>("control_ended", 1, callback);
 
 
   std::thread control_loop([controller_manager]() {
