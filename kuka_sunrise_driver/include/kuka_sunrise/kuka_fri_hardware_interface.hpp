@@ -98,8 +98,16 @@ private:
   std::vector<double> hw_torques_;
   std::vector<double> hw_effort_command_;
   double tracking_performance_ = 1;
-  double fri_state_ = 0;
+
+  // Enum values represented with doubles (as all interfaces must be pointers to doubles)
+  double session_state_ = 0;
   double connection_quality_ = 0;
+  double command_mode_ = 0;
+  double safety_state_ = 0;
+  double control_mode_ = 0;
+  double operation_mode_ = 0;
+  double drive_state_ = 0;
+  double overlay_type_ = 0;
 
   IOTypes getType(const std::string type_string)
   {

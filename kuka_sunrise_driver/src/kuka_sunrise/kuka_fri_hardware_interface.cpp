@@ -178,9 +178,14 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   hw_torques_ext_.assign(external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   tracking_performance_ = robotState().getTrackingPerformance();
-  fri_state_ = robotState().getSessionState();
+  session_state_ = robotState().getSessionState();
   connection_quality_ = robotState().getConnectionQuality();
-  // TODO(Svastits): get states, create interfaces
+  command_mode_ = robotState().getClientCommandMode();
+  safety_state_ = robotState().getSafetyState();
+  control_mode_ = robotState().getControlMode();
+  operation_mode_ = robotState().getOperationMode();
+  drive_state_ = robotState().getDriveState();
+  overlay_type_ = robotState().getOverlayType();
 
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
     gpio_outputs_[i].getValue();
@@ -235,9 +240,15 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back("state", "fri_state", &fri_state_);
+  state_interfaces.emplace_back("state", "session_state", &session_state_);
   state_interfaces.emplace_back("state", "connection_quality", &connection_quality_);
-
+  state_interfaces.emplace_back("state", "safety_state", &safety_state_);
+  state_interfaces.emplace_back("state", "command_mode", &command_mode_);
+  state_interfaces.emplace_back("state", "control_mode", &control_mode_);
+  state_interfaces.emplace_back("state", "operation_mode", &operation_mode_);
+  state_interfaces.emplace_back("state", "drive_state", &drive_state_);
+  state_interfaces.emplace_back("state", "overlay_type", &overlay_type_);
+  state_interfaces.emplace_back("state", "tracking_performance", &tracking_performance_);
 
   // Register I/O outputs (read access) and inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
