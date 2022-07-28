@@ -1,4 +1,4 @@
-/position_controller:  # uniqe names will be available with HWIF parameter interface
+/joint_trajectory_controller:
   ros__parameters:
     joints: 
       - LBRiiwa7Joint1 

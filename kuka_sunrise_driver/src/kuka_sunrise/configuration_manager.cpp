@@ -225,7 +225,7 @@ bool ConfigurationManager::onControllerNameChangeRequest(
     return true;
   }
 
-  for (auto controller: response->controller) {
+  for (auto controller : response->controller) {
     if (controller_name == controller.name) {
       if (position) {position_controller_available_ = true;} else {
         torque_controller_available_ = true;

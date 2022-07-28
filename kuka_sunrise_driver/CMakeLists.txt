@@ -56,7 +56,8 @@ target_link_libraries(kuka_fri_hw_interface fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core controller_manager_msgs)
+ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
+                          controller_manager_msgs)
 
 
 add_executable(robot_manager_node

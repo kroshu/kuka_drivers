@@ -2,9 +2,8 @@ controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
-    position_controller:
+    joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-      # type: forward_command_controller/ForwardCommandController
       
     effort_controller:
       type: effort_controllers/JointEffortController
