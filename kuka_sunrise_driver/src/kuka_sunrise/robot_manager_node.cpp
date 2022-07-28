@@ -253,7 +253,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not start controllers");
+    RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
     return FAILURE;
   }
 
