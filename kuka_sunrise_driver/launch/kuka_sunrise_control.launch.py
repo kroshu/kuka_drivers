@@ -42,6 +42,8 @@ def generate_launch_description():
             Command(['xacro ', str(robot_description_path)]), value_type=str
         )}
 
+    conntroller_manager_node = '/controller_manager'
+
     return LaunchDescription([
         Node(
             package='kuka_sunrise',
@@ -58,22 +60,22 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--inactive"]
+            arguments=["joint_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", "/controller_manager", "-p",
+            arguments=["joint_trajectory_controller", "-c", conntroller_manager_node, "-p",
                        joint_traj_controller_cofig, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["timing_controller", "-c", "/controller_manager", "--inactive"]
+            arguments=["timing_controller", "-c", conntroller_manager_node, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["robot_state_broadcaster", "-c", "/controller_manager", "--inactive"]
+            arguments=["robot_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
         )
     ])

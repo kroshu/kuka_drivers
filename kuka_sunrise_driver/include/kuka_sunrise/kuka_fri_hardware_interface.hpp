@@ -41,7 +41,7 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_sunrise
 {
 
-enum IOTypes
+enum class IOTypes
 {
   ANALOG = 0,
   DIGITAL = 1,
@@ -78,6 +78,16 @@ public:
   void waitForCommand() final;
   void command() final;
 
+  class InvalidGPIOTypeException : public std::runtime_error
+  {
+public:
+    explicit InvalidGPIOTypeException(const std::string & gpio_type)
+    : std::runtime_error(
+        "GPIO type '" + gpio_type +
+        "' is not supported, possible ones are 'analog', 'digital' or 'boolean'")
+    {}
+  };
+
 private:
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
@@ -109,20 +119,16 @@ private:
   double drive_state_ = 0;
   double overlay_type_ = 0;
 
-  IOTypes getType(const std::string type_string)
+  IOTypes getType(const std::string & type_string) const
   {
     auto it = types.find(type_string);
     if (it != types.end()) {
       return it->second;
-    } else {throw std::runtime_error("Invalid type for GPIO");}
+    } else {throw InvalidGPIOTypeException(type_string);}
   }
 
   class GPIOReader
   {
-    const std::string name_;
-    IOTypes type_;
-    KUKA::FRI::LBRState state_;
-
 public:
     double data_;
     GPIOReader(const std::string & name, IOTypes type, const KUKA::FRI::LBRState & state)
@@ -130,25 +136,26 @@ public:
     void getValue()
     {
       switch (type_) {
-        case ANALOG:
+        case IOTypes::ANALOG:
           data_ = state_.getAnalogIOValue(name_.c_str());
           break;
-        case DIGITAL:
-          data_ = state_.getDigitalIOValue(name_.c_str());
+        case IOTypes::DIGITAL:
+          data_ = static_cast<double>(state_.getDigitalIOValue(name_.c_str()));
           break;
-        case BOOLEAN:
+        case IOTypes::BOOLEAN:
           data_ = state_.getBooleanIOValue(name_.c_str());
           break;
       }
     }
+
+private:
+    const std::string name_;
+    IOTypes type_;
+    KUKA::FRI::LBRState state_;
   };
 
   class GPIOWriter
   {
-    const std::string name_;
-    IOTypes type_;
-    KUKA::FRI::LBRCommand command_;
-
 public:
     double data_;
     GPIOWriter(
@@ -158,17 +165,22 @@ public:
     void setValue()
     {
       switch (type_) {
-        case ANALOG:
+        case IOTypes::ANALOG:
           command_.setAnalogIOValue(name_.c_str(), data_);
           break;
-        case DIGITAL:
-          command_.setDigitalIOValue(name_.c_str(), data_);
+        case IOTypes::DIGITAL:
+          command_.setDigitalIOValue(name_.c_str(), static_cast<uint64_t>(data_));
           break;
-        case BOOLEAN:
-          command_.setBooleanIOValue(name_.c_str(), data_);
+        case IOTypes::BOOLEAN:
+          command_.setBooleanIOValue(name_.c_str(), static_cast<bool>(data_));
           break;
       }
     }
+
+private:
+    const std::string name_;
+    IOTypes type_;
+    KUKA::FRI::LBRCommand command_;
   };
 
   std::vector<GPIOWriter> gpio_inputs_;
