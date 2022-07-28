@@ -210,16 +210,20 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
 void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
   if (!is_active_) {
-    printf("client deactivated, exiting updateCommand\n");
+	RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
-  if (torque_command_mode_) {  // TODO(Svastits): consider using robotState().getClientCommandMode()
+  if (command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE) {
     const double * joint_torques_ = hw_effort_command_.data();
     robotCommand().setJointPosition(robotState().getIpoJointPosition());
     robotCommand().setTorque(joint_torques_);
-  } else {
+  } else if (command_mode_ == KUKA::FRI::EClientCommandMode::POSITION) {
     const double * joint_positions_ = hw_commands_.data();
     robotCommand().setJointPosition(joint_positions_);
+  }
+  else
+  {
+	RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Unsupported command mode");
   }
 
   for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
@@ -275,34 +279,6 @@ export_command_interfaces()
       &hw_effort_command_[i]);
   }
   return command_interfaces;
-}
-
-hardware_interface::return_type KUKAFRIHardwareInterface::prepare_command_mode_switch(
-  const std::vector<std::string> & start_interfaces,
-  const std::vector<std::string> & stop_interfaces)
-{
-  if (fri_state_ > 2) {
-    RCLCPP_ERROR(
-      rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Cannot change command mode if FRI is in commanding mode");
-    return hardware_interface::return_type::ERROR;
-  } else if (start_interfaces[0] == "position_controller" &&
-    stop_interfaces[0] == "effort_controller")
-  {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Successfully changed to position command mode");
-    torque_command_mode_ = false;
-  } else if (start_interfaces[0] == "effort_controller" &&
-    stop_interfaces[0] == "position_controller")
-  {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Successfully changed to torque command mode");
-    torque_command_mode_ = true;
-  }
-
-  return hardware_interface::return_type::OK;
 }
 }  // namespace kuka_sunrise
 

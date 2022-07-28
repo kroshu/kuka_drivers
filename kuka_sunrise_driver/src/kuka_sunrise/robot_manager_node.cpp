@@ -264,10 +264,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers =
     std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
-    "position") ? "position_controller" : "effort_controller"};
-  controller_request->deactivate_controllers =
-    std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
-    "position") ? "effort_controller" : "position_controller"};  // TODO(Svastits): remove if unnecessary
+    "position") ? "position_controller" : "effort_controller"};  // TODO(Svastits): use parameter
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
@@ -325,7 +322,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   controller_request->deactivate_controllers =
     std::vector<std::string>{"joint_state_broadcaster",
     (this->get_parameter("command_mode").as_string() ==
-    "position") ? "effort_controller" : "position_controller"};
+    "position") ? "effort_controller" : "position_controller"};  // TODO(Svastits): use parameter
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
