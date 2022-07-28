@@ -44,17 +44,23 @@ public:
 
 private:
   bool configured_ = false;
+  bool position_controller_available_ = false;
+  bool torque_controller_available_ = false;
   std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node_;
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
-  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
   rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
 
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);
   std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
+
+  const std::string POSITION_COMMAND = "position";
+  const std::string TORQUE_COMMAND = "torque";
+  const std::string POSITION_CONTROL = "position";
+  const std::string IMPEDANCE_CONTROL = "joint_impedance";
 
   bool onCommandModeChangeRequest(const std::string & command_mode) const;
   bool onControlModeChangeRequest(const std::string & control_mode) const;
@@ -63,7 +69,7 @@ private:
   bool onSendPeriodChangeRequest(const int & send_period) const;
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier) const;
   bool onControllerIpChangeRequest(const std::string & controller_ip) const;
-  bool onControllerNameChangeRequest(const std::string & controller_name) const;
+  bool onControllerNameChangeRequest(const std::string & controller_name, bool position);
   bool setCommandMode(const std::string & control_mode) const;
   bool setReceiveMultiplier(int receive_multiplier) const;
   void setParameters(std_srvs::srv::Trigger::Response::SharedPtr response);

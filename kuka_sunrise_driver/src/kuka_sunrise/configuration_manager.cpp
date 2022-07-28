@@ -33,8 +33,6 @@ ConfigurationManager::ConfigurationManager(
     rclcpp::CallbackGroupType::MutuallyExclusive);
   param_cbg_ = robot_manager_node->create_callback_group(
     rclcpp::CallbackGroupType::MutuallyExclusive);
-  command_mode_client_ = robot_manager_node->create_client<std_srvs::srv::SetBool>(
-    "set_command_mode", qos.get_rmw_qos_profile(), cbg_);
   receive_multiplier_client_ = robot_manager_node->create_client<
     kuka_sunrise_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
@@ -60,12 +58,12 @@ ConfigurationManager::ConfigurationManager(
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
 {
-  if (command_mode == "position") {
-    if (!setCommandMode("position")) {
+  if (command_mode == POSITION_COMMAND) {
+    if (!position_controller_available_ || !setCommandMode(POSITION_COMMAND)) {
       return false;
     }
-  } else if (command_mode == "torque") {
-    if (robot_manager_node_->get_parameter("control_mode").as_string() != "joint_impedance") {
+  } else if (command_mode == TORQUE_COMMAND) {
+    if (robot_manager_node_->get_parameter("control_mode").as_string() != IMPEDANCE_CONTROL) {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
         "Unable to set torque command mode, if control mode is not 'joint impedance'");
@@ -77,12 +75,13 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
         "Unable to set torque command mode, if send period is bigger than 5 [ms]");
       return false;
     }
-    if (!setCommandMode("torque")) {
+    if (!torque_controller_available_ || !setCommandMode(TORQUE_COMMAND)) {
       return false;
     }
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Command mode should be 'position' or 'torque'");
+      robot_manager_node_->get_logger(), "Command mode should be '%s' or '%s'",
+      POSITION_COMMAND.c_str(), TORQUE_COMMAND.c_str());
     return false;
   }
   RCLCPP_INFO(robot_manager_node_->get_logger(), "Successfully set command mode");
@@ -91,9 +90,9 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
 
 bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
-  if (control_mode == "position") {
+  if (control_mode == POSITION_CONTROL) {
     return robot_manager_->setPositionControlMode();
-  } else if (control_mode == "joint_impedance") {
+  } else if (control_mode == IMPEDANCE_CONTROL) {
     try {
       return robot_manager_->setJointImpedanceControlMode(
         joint_stiffness_,
@@ -104,7 +103,8 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
     return false;
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Control mode should be 'position' or 'joint_impedance'");
+      robot_manager_node_->get_logger(), "Control mode should be '%s' or '%s'",
+      POSITION_CONTROL.c_str(), IMPEDANCE_CONTROL.c_str());
     return false;
   }
 }
@@ -201,7 +201,9 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   return true;
 }
 
-bool ConfigurationManager::onControllerNameChangeRequest(const std::string & controller_name) const
+bool ConfigurationManager::onControllerNameChangeRequest(
+  const std::string & controller_name,
+  bool position)
 {
   auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
   auto response =
@@ -213,21 +215,36 @@ bool ConfigurationManager::onControllerNameChangeRequest(const std::string & con
     return false;
   }
 
+  if (controller_name == "") {
+    RCLCPP_WARN(
+      robot_manager_node_->get_logger(), "Controller for %s command mode not available",
+      position ? POSITION_COMMAND.c_str() : TORQUE_COMMAND.c_str());
+    if (position) {position_controller_available_ = false;} else {
+      torque_controller_available_ = false;
+    }
+    return true;
+  }
+
   for (auto controller: response->controller) {
-    if (controller_name == controller.name) {return true;}
+    if (controller_name == controller.name) {
+      if (position) {position_controller_available_ = true;} else {
+        torque_controller_available_ = true;
+      }
+      return true;
+    }
   }
   RCLCPP_ERROR(
-    robot_manager_node_->get_logger(), "Controller name %s not available",
+    robot_manager_node_->get_logger(), "Controller name '%s' not available",
     controller_name.c_str());
   return false;
 }
 
-bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
+bool ConfigurationManager::setCommandMode(const std::string & command_mode) const
 {
   ClientCommandModeID client_command_mode;
-  if (control_mode == "position") {
+  if (command_mode == POSITION_COMMAND) {
     client_command_mode = POSITION_COMMAND_MODE;
-  } else if (control_mode == "torque") {
+  } else if (command_mode == TORQUE_COMMAND) {
     client_command_mode = TORQUE_COMMAND_MODE;
   } else {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
@@ -270,13 +287,25 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
   //   parameter type (or value), the nodes must be launched again with changed parameters
   //   because they could not be declared, therefore change is not possible in runtime
   robot_manager_node_->registerParameter<std::string>(
-    "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, true);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, false);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "command_mode", POSITION_COMMAND, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & command_mode) {
       return this->onCommandModeChangeRequest(command_mode);
     });
@@ -304,18 +333,6 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     "joint_damping", joint_damping_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
       true, false, true}, [this](const std::vector<double> & joint_damping) {
       return this->onJointDampingChangeRequest(joint_damping);
-    });
-
-  robot_manager_node_->registerParameter<std::string>(
-    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      false, false, true}, [this](const std::string & controller_name) {
-      return this->onControllerNameChangeRequest(controller_name);
-    });
-
-  robot_manager_node_->registerParameter<std::string>(
-    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
-      false, false, true}, [this](const std::string & controller_name) {
-      return this->onControllerNameChangeRequest(controller_name);
     });
 
   configured_ = true;

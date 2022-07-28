@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
     executor,
     "controller_manager");
 
-  auto callback = [controller_manager](std_msgs::msg::Bool::SharedPtr state) {
+  auto callback = [controller_manager](std_msgs::msg::Bool::SharedPtr) {
       RCLCPP_INFO(controller_manager->get_logger(), "Robot manager node shut down, terminating");
       rclcpp::shutdown();
     };
