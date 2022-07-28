@@ -50,7 +50,7 @@ def generate_launch_description():
         ),
         LifecycleNode(
             namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
-            name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'}]
+            name=['robot_manager'], parameters=[{'controller_ip': '<insert ip here>'},
                                                 {'position_controller_name': 'position_controller'},
                                                 {'torque_controller_name': 'position_controller'}]
         ),
