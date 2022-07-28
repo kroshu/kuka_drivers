@@ -26,6 +26,7 @@
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "controller_manager_msgs/srv/list_controllers.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -49,6 +50,7 @@ private:
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr command_mode_client_;
   rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
+  rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
 
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 1000.0);

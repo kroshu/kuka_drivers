@@ -31,6 +31,7 @@
 #include "kuka_sunrise/robot_manager.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "kuka_sunrise/internal/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -74,6 +75,7 @@ private:
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_commanding_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     command_state_changed_publisher_;
+  std::string controller_name_;
 
   bool requestRobotControlNodeStateTransition(std::uint8_t transition);
   bool setRobotControlNodeCommandState(bool active);

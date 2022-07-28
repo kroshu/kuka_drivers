@@ -215,7 +215,9 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
 void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
   if (!is_active_) {
-	RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
   if (command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE) {
@@ -225,10 +227,8 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
   } else if (command_mode_ == KUKA::FRI::EClientCommandMode::POSITION) {
     const double * joint_positions_ = hw_commands_.data();
     robotCommand().setJointPosition(joint_positions_);
-  }
-  else
-  {
-	RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Unsupported command mode");
+  } else {
+    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Unsupported command mode");
   }
 
   for (size_t i = 0; i < gpio_inputs_.size(); ++i) {

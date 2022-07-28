@@ -14,10 +14,7 @@
 
 #include <memory>
 
-#include "std_msgs/msg/bool.hpp"
-
 #include "kuka_sunrise/robot_manager_node.hpp"
-#include "kuka_sunrise/internal/service_tools.hpp"
 
 namespace kuka_sunrise
 {
@@ -260,11 +257,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+
+  auto position_controller_name = this->get_parameter("position_controller_name").as_string();
+  auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
+  controller_name_ = (this->get_parameter("command_mode").as_string() ==
+    "position") ? position_controller_name : torque_controller_name;
   // Activate RT commander
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->activate_controllers =
-    std::vector<std::string>{(this->get_parameter("command_mode").as_string() ==
-    "position") ? "position_controller" : "effort_controller"};  // TODO(Svastits): use parameter
+  controller_request->activate_controllers = std::vector<std::string>{controller_name_};
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
@@ -314,15 +314,11 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   }
   RCLCPP_INFO(get_logger(), "Deactivated LBR iiwa hardware interface");
 
-
   // Stop RT controllers
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->deactivate_controllers =
-    std::vector<std::string>{"joint_state_broadcaster",
-    (this->get_parameter("command_mode").as_string() ==
-    "position") ? "effort_controller" : "position_controller"};  // TODO(Svastits): use parameter
+  controller_request->deactivate_controllers = std::vector<std::string>{controller_name_};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);

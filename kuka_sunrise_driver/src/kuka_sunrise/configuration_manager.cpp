@@ -52,6 +52,10 @@ ConfigurationManager::ConfigurationManager(
       std_srvs::srv::Trigger::Response::SharedPtr response) {
       this->setParameters(response);
     }, ::rmw_qos_profile_default, param_cbg_);
+
+  get_controllers_client_ =
+    robot_manager_node->create_client<controller_manager_msgs::srv::ListControllers>(
+    "controller_manager/list_controllers", qos.get_rmw_qos_profile(), cbg_);
 }
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
@@ -180,7 +184,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   split_ip.push_back(controller_ip.substr(i, controller_ip.length()));
 
   if (split_ip.size() != 4) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Valid ip must have 3 '.' delimiters");
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Valid IP must have 3 '.' delimiters");
     return false;
   }
 
@@ -197,9 +201,29 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   return true;
 }
 
+bool ConfigurationManager::onControllerNameChangeRequest(const std::string & controller_name) const
+{
+  auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
+  auto response =
+    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
+    get_controllers_client_, request, 0, 1000);
+
+  if (!response) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not get controller names");
+    return false;
+  }
+
+  for (auto controller: response->controller) {
+    if (controller_name == controller.name) {return true;}
+  }
+  RCLCPP_ERROR(
+    robot_manager_node_->get_logger(), "Controller name %s not available",
+    controller_name.c_str());
+  return false;
+}
+
 bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
 {
-  // TODO(Svastits): load and switch controllers through controller_manager
   ClientCommandModeID client_command_mode;
   if (control_mode == "position") {
     client_command_mode = POSITION_COMMAND_MODE;
@@ -282,8 +306,18 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
       return this->onJointDampingChangeRequest(joint_damping);
     });
 
-  // TODO(Svastits): add controller name parameters, when HWIF parameter interface is available
-  // currently syncing between manager node and HWIF is not possible, (only with ugly workaround)
+  robot_manager_node_->registerParameter<std::string>(
+    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name);
+    });
+
   configured_ = true;
   response->success = true;
 }
