@@ -36,15 +36,15 @@ const
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.push_back("state/session_state");
-  config.names.push_back("state/connection_quality");
-  config.names.push_back("state/safety_state");
-  config.names.push_back("state/command_mode");
-  config.names.push_back("state/control_mode");
-  config.names.push_back("state/operation_mode");
-  config.names.push_back("state/drive_state");
-  config.names.push_back("state/overlay_type");
-  config.names.push_back("state/tracking_performance");
+  config.names.emplace_back("state/session_state");
+  config.names.emplace_back("state/connection_quality");
+  config.names.emplace_back("state/safety_state");
+  config.names.emplace_back("state/command_mode");
+  config.names.emplace_back("state/control_mode");
+  config.names.emplace_back("state/operation_mode");
+  config.names.emplace_back("state/drive_state");
+  config.names.emplace_back("state/overlay_type");
+  config.names.emplace_back("state/tracking_performance");
   return config;
 }
 
@@ -71,14 +71,14 @@ controller_interface::return_type RobotStateBroadcaster::update(
   const rclcpp::Duration &)
 {
   // TODO(Svastits): measure additional system overload, limit rate?
-  state_msg_.session_state = state_interfaces_[0].get_value();
-  state_msg_.connection_quality = state_interfaces_[1].get_value();
-  state_msg_.safety_state = state_interfaces_[2].get_value();
-  state_msg_.command_mode = state_interfaces_[3].get_value();
-  state_msg_.control_mode = state_interfaces_[4].get_value();
-  state_msg_.operation_mode = state_interfaces_[5].get_value();
-  state_msg_.drive_state = state_interfaces_[6].get_value();
-  state_msg_.overlay_type = state_interfaces_[7].get_value();
+  state_msg_.session_state = static_cast<int>(state_interfaces_[0].get_value());
+  state_msg_.connection_quality = static_cast<int>(state_interfaces_[1].get_value());
+  state_msg_.safety_state = static_cast<int>(state_interfaces_[2].get_value());
+  state_msg_.command_mode = static_cast<int>(state_interfaces_[3].get_value());
+  state_msg_.control_mode = static_cast<int>(state_interfaces_[4].get_value());
+  state_msg_.operation_mode = static_cast<int>(state_interfaces_[5].get_value());
+  state_msg_.drive_state = static_cast<int>(state_interfaces_[6].get_value());
+  state_msg_.overlay_type = static_cast<int>(state_interfaces_[7].get_value());
   state_msg_.tracking_performance = state_interfaces_[8].get_value();
 
   if (counter_++ == 10) {
@@ -90,8 +90,6 @@ controller_interface::return_type RobotStateBroadcaster::update(
 }
 
 }  // namespace kuka_controllers
-
-#include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_controllers::RobotStateBroadcaster,

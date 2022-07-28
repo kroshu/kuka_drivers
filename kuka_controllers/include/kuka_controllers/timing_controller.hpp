@@ -26,6 +26,8 @@
 #include "rclcpp/duration.hpp"
 #include "kuka_sunrise_interfaces/srv/set_int.hpp"
 
+#include "pluginlib/class_list_macros.hpp"
+
 namespace kuka_controllers
 {
 class TimingController : public controller_interface::ControllerInterface

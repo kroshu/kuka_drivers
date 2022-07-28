@@ -130,7 +130,7 @@ private:
   class GPIOReader
   {
 public:
-    double data_;
+    double & getData() {return data_;}
     GPIOReader(const std::string & name, IOTypes type, const KUKA::FRI::LBRState & state)
     : name_(name), type_(type), state_(state) {}
     void getValue()
@@ -152,12 +152,13 @@ private:
     const std::string name_;
     IOTypes type_;
     KUKA::FRI::LBRState state_;
+    double data_;
   };
 
   class GPIOWriter
   {
 public:
-    double data_;
+    double & getData() {return data_;}
     GPIOWriter(
       const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command,
       double initial_value)
@@ -181,6 +182,7 @@ private:
     const std::string name_;
     IOTypes type_;
     KUKA::FRI::LBRCommand command_;
+    double data_;
   };
 
   std::vector<GPIOWriter> gpio_inputs_;

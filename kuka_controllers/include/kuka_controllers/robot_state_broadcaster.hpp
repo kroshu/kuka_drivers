@@ -26,6 +26,8 @@
 #include "rclcpp/time.hpp"
 #include "rclcpp/duration.hpp"
 
+#include "pluginlib/class_list_macros.hpp"
+
 
 namespace kuka_controllers
 {
@@ -52,8 +54,6 @@ public:
   controller_interface::CallbackReturn on_init() override;
 
 private:
-  int fri_state_ = 0;
-  int connection_quality_ = 0;
   int counter_ = 0;
   rclcpp::Publisher<kuka_sunrise_interfaces::msg::RobotState>::SharedPtr robot_state_publisher_;
   kuka_sunrise_interfaces::msg::RobotState state_msg_;

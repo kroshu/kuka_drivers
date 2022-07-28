@@ -252,7 +252,9 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 
   // Register I/O outputs (read access) and inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
-    state_interfaces.emplace_back("gpio", "Output" + std::to_string(i), &gpio_outputs_[i].data_);
+    state_interfaces.emplace_back(
+      "gpio", "Output" + std::to_string(i),
+      &gpio_outputs_[i].getData());
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -278,7 +280,9 @@ export_command_interfaces()
 
   // Register I/O inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
-    command_interfaces.emplace_back("gpio", "Input" + std::to_string(i), &gpio_inputs_[i].data_);
+    command_interfaces.emplace_back(
+      "gpio", "Input" + std::to_string(i),
+      &gpio_inputs_[i].getData());
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {

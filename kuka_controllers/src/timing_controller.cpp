@@ -81,8 +81,6 @@ controller_interface::return_type TimingController::update(
 
 }  // namespace kuka_controllers
 
-#include "pluginlib/class_list_macros.hpp"
-
 PLUGINLIB_EXPORT_CLASS(
   kuka_controllers::TimingController,
   controller_interface::ControllerInterface)
