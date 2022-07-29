@@ -33,7 +33,7 @@ def generate_launch_description():
     controller_config = (get_package_share_directory('kuka_sunrise') +
                          "/config/iiwa_ros2_controller_config.yaml")
     joint_traj_controller_config = (get_package_share_directory('kuka_sunrise') +
-                                   "/config/joint_trajectory_controller_config.yaml")
+                                    "/config/joint_trajectory_controller_config.yaml")
     robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
                               "/urdf/lbriiwa7.xacro")
     robot_description = {'robot_description': ParameterValue(
