@@ -187,8 +187,8 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   robot_state_.drive_state_ = robotState().getDriveState();
   robot_state_.overlay_type_ = robotState().getOverlayType();
 
-  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
-    gpio_outputs_[i].getValue();
+  for (auto & output : gpio_outputs_) {
+    output.getValue();
   }
   return hardware_interface::return_type::OK;
 }
@@ -234,6 +234,9 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
   for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
     gpio_inputs_[i].setValue();
   }
+  for (auto & input : gpio_inputs_) {
+    input.setValue();
+  }
 }
 
 std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export_state_interfaces()
@@ -252,11 +255,11 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
     "state", "tracking_performance",
     &robot_state_.tracking_performance_);
 
-  // Register I/O outputs (read access) and inputs (write access)
-  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
+  // Register I/O outputs (read access)
+  for (auto & output : gpio_outputs_) {
     state_interfaces.emplace_back(
-      "gpio", "Output" + std::to_string(i),
-      &gpio_outputs_[i].getData());
+      "gpio", output.getName(),
+      &output.getData());
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -281,10 +284,10 @@ export_command_interfaces()
   command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
 
   // Register I/O inputs (write access)
-  for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
+  for (auto & input : gpio_inputs_) {
     command_interfaces.emplace_back(
-      "gpio", "Input" + std::to_string(i),
-      &gpio_inputs_[i].getData());
+      "gpio", input.getName(),
+      &input.getData());
   }
 
   for (size_t i = 0; i < info_.joints.size(); i++) {

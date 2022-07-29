@@ -136,6 +136,7 @@ private:
   {
 public:
     double & getData() {return data_;}
+    const std::string & getName() const {return name_;}
     GPIOReader(const std::string & name, IOTypes type, const KUKA::FRI::LBRState & state)
     : name_(name), type_(type), state_(state) {}
     void getValue()
@@ -164,6 +165,7 @@ private:
   {
 public:
     double & getData() {return data_;}
+    const std::string & getName() const {return name_;}
     GPIOWriter(
       const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command,
       double initial_value)
