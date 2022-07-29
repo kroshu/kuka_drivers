@@ -230,10 +230,6 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Unsupported command mode");
   }
-
-  for (size_t i = 0; i < gpio_inputs_.size(); ++i) {
-    gpio_inputs_[i].setValue();
-  }
   for (auto & input : gpio_inputs_) {
     input.setValue();
   }
