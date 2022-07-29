@@ -157,7 +157,7 @@ public:
 private:
     const std::string name_;
     IOTypes type_;
-    KUKA::FRI::LBRState state_;
+    const KUKA::FRI::LBRState & state_;
     double data_;
   };
 
@@ -188,7 +188,7 @@ public:
 private:
     const std::string name_;
     IOTypes type_;
-    KUKA::FRI::LBRCommand command_;
+    KUKA::FRI::LBRCommand & command_;
     double data_;
   };
 
