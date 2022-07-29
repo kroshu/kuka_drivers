@@ -36,7 +36,7 @@ const
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.push_back("timing/receive_multiplier");
+  config.names.emplace_back("timing/receive_multiplier");
   return config;
 }
 

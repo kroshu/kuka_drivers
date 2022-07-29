@@ -177,15 +177,15 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   const double * external_torque = robotState().getExternalTorque();
   hw_torques_ext_.assign(external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
-  tracking_performance_ = robotState().getTrackingPerformance();
-  session_state_ = robotState().getSessionState();
-  connection_quality_ = robotState().getConnectionQuality();
-  command_mode_ = robotState().getClientCommandMode();
-  safety_state_ = robotState().getSafetyState();
-  control_mode_ = robotState().getControlMode();
-  operation_mode_ = robotState().getOperationMode();
-  drive_state_ = robotState().getDriveState();
-  overlay_type_ = robotState().getOverlayType();
+  robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
+  robot_state_.session_state_ = robotState().getSessionState();
+  robot_state_.connection_quality_ = robotState().getConnectionQuality();
+  robot_state_.command_mode_ = robotState().getClientCommandMode();
+  robot_state_.safety_state_ = robotState().getSafetyState();
+  robot_state_.control_mode_ = robotState().getControlMode();
+  robot_state_.operation_mode_ = robotState().getOperationMode();
+  robot_state_.drive_state_ = robotState().getDriveState();
+  robot_state_.overlay_type_ = robotState().getOverlayType();
 
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
     gpio_outputs_[i].getValue();
@@ -220,11 +220,11 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
         "KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
-  if (command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE) {
+  if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE) {
     const double * joint_torques_ = hw_effort_command_.data();
     robotCommand().setJointPosition(robotState().getIpoJointPosition());
     robotCommand().setTorque(joint_torques_);
-  } else if (command_mode_ == KUKA::FRI::EClientCommandMode::POSITION) {
+  } else if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::POSITION) {
     const double * joint_positions_ = hw_commands_.data();
     robotCommand().setJointPosition(joint_positions_);
   } else {
@@ -240,15 +240,17 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back("state", "session_state", &session_state_);
-  state_interfaces.emplace_back("state", "connection_quality", &connection_quality_);
-  state_interfaces.emplace_back("state", "safety_state", &safety_state_);
-  state_interfaces.emplace_back("state", "command_mode", &command_mode_);
-  state_interfaces.emplace_back("state", "control_mode", &control_mode_);
-  state_interfaces.emplace_back("state", "operation_mode", &operation_mode_);
-  state_interfaces.emplace_back("state", "drive_state", &drive_state_);
-  state_interfaces.emplace_back("state", "overlay_type", &overlay_type_);
-  state_interfaces.emplace_back("state", "tracking_performance", &tracking_performance_);
+  state_interfaces.emplace_back("state", "session_state", &robot_state_.session_state_);
+  state_interfaces.emplace_back("state", "connection_quality", &robot_state_.connection_quality_);
+  state_interfaces.emplace_back("state", "safety_state", &robot_state_.safety_state_);
+  state_interfaces.emplace_back("state", "command_mode", &robot_state_.command_mode_);
+  state_interfaces.emplace_back("state", "control_mode", &robot_state_.control_mode_);
+  state_interfaces.emplace_back("state", "operation_mode", &robot_state_.operation_mode_);
+  state_interfaces.emplace_back("state", "drive_state", &robot_state_.drive_state_);
+  state_interfaces.emplace_back("state", "overlay_type", &robot_state_.overlay_type_);
+  state_interfaces.emplace_back(
+    "state", "tracking_performance",
+    &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access) and inputs (write access)
   for (size_t i = 0; i < gpio_outputs_.size(); ++i) {
