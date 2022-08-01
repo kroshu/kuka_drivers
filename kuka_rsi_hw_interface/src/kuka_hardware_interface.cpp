@@ -62,7 +62,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
-
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
@@ -90,10 +89,9 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
           "KukaRSIHardwareInterface"), "expecting only POSITION state interface");
       return CallbackReturn::ERROR;
     }
-
   }
 
-  //RSI
+  // RSI
   in_buffer_.resize(1024);  // udp_server.h --> #define BUFSIZE 1024
   out_buffer_.resize(1024);
 
@@ -117,7 +115,7 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_configure()");
 
-  //just in case - not 100% sure this is the right thing to do . . .
+  // just in case - not 100% sure this is the right thing to do . . .
   for (size_t i = 0; i < hw_states_.size(); ++i) {
     hw_states_[i] = std::numeric_limits<double>::quiet_NaN();
     hw_commands_[i] = std::numeric_limits<double>::quiet_NaN();
@@ -263,7 +261,6 @@ return_type KukaRSIHardwareInterface::write(
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
   server_->send(out_buffer_);
   return return_type::OK;
-
 }
 
 bool KukaRSIHardwareInterface::isActive() const
