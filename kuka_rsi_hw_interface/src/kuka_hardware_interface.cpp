@@ -52,8 +52,6 @@ namespace kuka_rsi_hw_interface
 {
 CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_init()");
-
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
@@ -113,8 +111,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 CallbackReturn KukaRSIHardwareInterface::on_configure(
   const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_configure()");
-
   // just in case - not 100% sure this is the right thing to do . . .
   for (size_t i = 0; i < hw_states_.size(); ++i) {
     hw_states_[i] = std::numeric_limits<double>::quiet_NaN();
@@ -128,8 +124,6 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(
 
 std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export_state_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "export_state_interfaces()");
-
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
@@ -144,8 +138,6 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
 std::vector<hardware_interface::CommandInterface> KukaRSIHardwareInterface::
 export_command_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "export_command_interfaces()");
-
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
@@ -159,8 +151,6 @@ export_command_interfaces()
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_activate()");
-
   // Wait for connection from robot
   server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
 
@@ -168,16 +158,11 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   int bytes = server_->recv(in_buffer_);
 
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "got some bytes");
+  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Got data from robot");
 
   // Drop empty <rob> frame with RSI <= 2.3
   if (bytes < 100) {
     bytes = server_->recv(in_buffer_);
-  }
-
-  if (bytes < 100) {
-    RCLCPP_FATAL(rclcpp::get_logger("KukaRSIHardwareInterface"), "not enough data received");
-    return CallbackReturn::ERROR;
   }
 
   rsi_state_ = RSIState(in_buffer_);
@@ -191,9 +176,9 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
   server_->send(out_buffer_);
-  server_->set_timeout(1000);       // Set receive timeout to 1 second
+  server_->set_timeout(1000);  // Set receive timeout to 1 second
 
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System Sucessfully started!");
+  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System Successfully started!");
   is_active_ = true;
 
   return CallbackReturn::SUCCESS;
@@ -202,12 +187,11 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_deactivate()");
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
   server_->send(out_buffer_);
   server_.reset();
   is_active_ = false;
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System sucessfully stopped!");
+  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System successfully stopped!");
   return CallbackReturn::SUCCESS;
 }
 
@@ -229,9 +213,6 @@ return_type KukaRSIHardwareInterface::read(
 
   for (std::size_t i = 0; i < n_dof_; ++i) {
     hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KukaRSIHardwareInterface"), "Got state %.5f for joint %ld!", hw_states_[i], i);
   }
   ipoc_ = rsi_state_.ipoc;
   return return_type::OK;
@@ -249,9 +230,6 @@ return_type KukaRSIHardwareInterface::write(
   }
 
   for (size_t i = 0; i < n_dof_; i++) {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KukaRSIHardwareInterface"), "Got command %.5f for joint %ld!", hw_commands_[i], i);
     joint_pos_correction_deg_[i] = (hw_commands_[i] - initial_joint_pos_[i]) *
       KukaRSIHardwareInterface::R2D;
   }
