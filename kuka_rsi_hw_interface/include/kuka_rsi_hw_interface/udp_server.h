@@ -68,7 +68,7 @@ public:
   : local_host_(host), local_port_(port), timeout_(
       false)
   {
-	RCLCPP_INFO(rclcpp::get_logger("UDPServer"), "%s: %i", local_host_.c_str(), local_port_);
+    RCLCPP_INFO(rclcpp::get_logger("UDPServer"), "%s: %i", local_host_.c_str(), local_port_);
     sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd_ < 0) {
       throw std::runtime_error("Error opening socket: " + std::string(strerror(errno)));
@@ -147,7 +147,7 @@ public:
       memset(buffer_, 0, BUFSIZE);
       bytes = recvfrom(sockfd_, buffer_, BUFSIZE, 0, (struct sockaddr *) &clientaddr_, &clientlen_);
       if (bytes < 0) {
-    	RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
+        RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
       }
     }
 
