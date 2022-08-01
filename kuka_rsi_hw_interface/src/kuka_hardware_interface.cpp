@@ -50,18 +50,6 @@
 
 namespace kuka_rsi_hw_interface
 {
-
-// KukaRSIHardwareInterface::KukaRSIHardwareInterface(
-//   const std::string & rsi_ip_address, int rsi_port, uint8_t n_dof)
-// : rsi_ip_address_(rsi_ip_address),
-//   rsi_port_(rsi_port),
-//   n_dof_(n_dof)
-// {
-//   in_buffer_.resize(1024);
-//   out_buffer_.resize(1024);
-// }
-
-
 CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_init()");
@@ -106,7 +94,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   }
 
   //RSI
-  in_buffer_.resize(1024);       //udp_server.h --> #define BUFSIZE 1024
+  in_buffer_.resize(1024);  // udp_server.h --> #define BUFSIZE 1024
   out_buffer_.resize(1024);
 
   initial_joint_pos_.resize(n_dof_, 0.0);
@@ -120,15 +108,12 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     rclcpp::get_logger("KukaRSIHardwareInterface"),
     "robot location: %s:%d", rsi_ip_address_.c_str(), rsi_port_);
 
-  //done
-  // return return_type::OK;
-  //lifecycle_state_ = rclcpp_lifecycle::State::CONFIGURED;
   return CallbackReturn::SUCCESS;
 }
 
 
 CallbackReturn KukaRSIHardwareInterface::on_configure(
-  const rclcpp_lifecycle::State & previous_state)
+  const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_configure()");
 
@@ -139,7 +124,6 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(
     initial_joint_pos_[i] = 0.0;
     joint_pos_correction_deg_[i] = 0.0;
   }
-
   return CallbackReturn::SUCCESS;
 }
 
@@ -175,7 +159,7 @@ export_command_interfaces()
   return command_interfaces;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_activate()");
 
@@ -204,7 +188,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
     hw_commands_[i] = hw_states_[i];
     initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
-    //          joint_state_msg_position[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
+    // joint_state_msg_position[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
   }
   ipoc_ = rsi_state_.ipoc;
 
@@ -215,13 +199,11 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System Sucessfully started!");
   is_active_ = true;
 
-  // status_ = hardware_interface::status::STARTED;
-  // return return_type::OK;
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(
-  const rclcpp_lifecycle::State & previous_state)
+  const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "on_deactivate()");
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
@@ -232,43 +214,15 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(
   return CallbackReturn::SUCCESS;
 }
 
-
-// void KukaRSIHardwareInterface::start(std::vector<double> & joint_state_msg_position)
-// {
-//      std::lock_guard<std::mutex> lock(m_);
-//      // Wait for connection from robot
-//      server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
-//      // TODO(Marton): use any logger
-//      std::cout << "Waiting for robot connection\n";
-//      int bytes = server_->recv(in_buffer_);
-
-//      // Drop empty <rob> frame with RSI <= 2.3
-//      if (bytes < 100) {
-//              bytes = server_->recv(in_buffer_);
-//      }
-
-//      rsi_state_ = RSIState(in_buffer_);
-//      for (std::size_t i = 0; i < n_dof_; ++i) {
-//              joint_state_msg_position[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-//              initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
-//      }
-//      ipoc_ = rsi_state_.ipoc;
-//      out_buffer_ = RSICommand(std::vector<double>(n_dof_, 0), ipoc_).xml_doc;
-//      server_->send(out_buffer_);
-//      // Set receive timeout to 1 second
-//      server_->set_timeout(1000);
-//      // TODO(Marton): use any logger
-//      std::cout << "Got connection from robot\n";
-//      is_active_ = true;
-// }
-
 return_type KukaRSIHardwareInterface::read(
-  const rclcpp::Time & time,
-  const rclcpp::Duration & period)
+  const rclcpp::Time &,
+  const rclcpp::Duration &)
 {
-  std::lock_guard<std::mutex> lock(m_);
   if (!is_active_) {
-    return return_type::ERROR;
+    RCLCPP_DEBUG(
+      rclcpp::get_logger(
+        "KukaRSIHardwareInterface"), "Hardware interface is not active");
+    return return_type::OK;
   }
 
   if (server_->recv(in_buffer_) == 0) {
@@ -288,15 +242,14 @@ return_type KukaRSIHardwareInterface::read(
 }
 
 return_type KukaRSIHardwareInterface::write(
-  const rclcpp::Time & time,
-  const rclcpp::Duration & period)
+  const rclcpp::Time &,
+  const rclcpp::Duration &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "write()");
-
-  std::lock_guard<std::mutex> lock(m_);
   if (!is_active_) {
-    RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Controller deactivated");
-    return return_type::ERROR;
+    RCLCPP_DEBUG(
+      rclcpp::get_logger("KukaRSIHardwareInterface"),
+      "Hardware interface is not active");
+    return return_type::OK;
   }
 
   for (size_t i = 0; i < n_dof_; i++) {
@@ -312,16 +265,6 @@ return_type KukaRSIHardwareInterface::write(
   return return_type::OK;
 
 }
-
-// void KukaRSIHardwareInterface::stop()
-// {
-//      std::lock_guard<std::mutex> lock(m_);
-//      out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
-//      server_->send(out_buffer_);
-//      server_.reset();
-//      is_active_ = false;
-//      std::cout << "Connection to robot terminated\n";
-// }
 
 bool KukaRSIHardwareInterface::isActive() const
 {

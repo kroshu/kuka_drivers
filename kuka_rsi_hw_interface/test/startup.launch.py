@@ -33,8 +33,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='controller_manager',
-            executable='ros2_control_node',
+            package='kuka_rsi_hw_interface',
+            executable='rsi_control_node',
             parameters=[robot_description, controller_config]
         ),
         # Node(

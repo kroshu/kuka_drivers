@@ -70,7 +70,7 @@ namespace kuka_rsi_hw_interface
 class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface);
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
   KUKA_RSI_HW_INTERFACE_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;

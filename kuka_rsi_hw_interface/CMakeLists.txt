@@ -42,14 +42,13 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNC
 ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
 target_link_libraries(${PROJECT_NAME} tinyxml)
 
-add_executable(robot_control_node
-  src/robot_control_node.cpp)
-ament_target_dependencies(robot_control_node rclcpp kroshu_ros2_core sensor_msgs)
-target_link_libraries(robot_control_node ${PROJECT_NAME})
+add_executable(rsi_control_node
+  src/rsi_control_node.cpp)
+ament_target_dependencies(rsi_control_node rclcpp rclcpp_lifecycle controller_manager)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rsi_hw_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} robot_control_node
+install(TARGETS ${PROJECT_NAME} rsi_control_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
