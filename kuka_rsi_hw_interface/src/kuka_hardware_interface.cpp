@@ -186,7 +186,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
     hw_commands_[i] = hw_states_[i];
     initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
-    // joint_state_msg_position[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
   }
   ipoc_ = rsi_state_.ipoc;
 
@@ -233,7 +232,6 @@ return_type KukaRSIHardwareInterface::read(
     RCLCPP_INFO(
       rclcpp::get_logger(
         "KukaRSIHardwareInterface"), "Got state %.5f for joint %ld!", hw_states_[i], i);
-    // joint_state_msg_position[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
   }
   ipoc_ = rsi_state_.ipoc;
   return return_type::OK;
