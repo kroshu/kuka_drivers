@@ -18,11 +18,13 @@ def generate_launch_description():
     robot_description_config = xacro.process_file(robot_description_path)
     robot_description = {'robot_description': robot_description_config.toxml()}
 
-    robot_forward_controller = os.path.join(
-        get_package_share_directory('kuka_kr6_support'),
-        'config',
-        'kr6r700sixx_ros2_controller_config.yaml'
-        )
+    controller_config = (get_package_share_directory('kuka_rsi_hw_interface') +
+                         "/config/ros2_controller_config.yaml")
+
+    joint_traj_controller_config = (get_package_share_directory('kuka_rsi_hw_interface') +
+                                    "/config/joint_trajectory_controller_config.yaml")
+
+    controller_manager_node = '/controller_manager'
 
     rviz_config_file = os.path.join(
         get_package_share_directory('kuka_kr6_support'),
@@ -33,34 +35,31 @@ def generate_launch_description():
         Node(
             package='controller_manager',
             executable='ros2_control_node',
-            parameters=[robot_description, robot_forward_controller],
-            # output={
-            # 'stdout': 'screen',
-            # 'stderr': 'screen',
-            # },
+            parameters=[robot_description, controller_config]
         ),
+        # Node(
+        #     package='robot_state_publisher',
+        #     executable='robot_state_publisher',
+        #     output='both',
+        #     parameters=[robot_description]
+        # ),
         Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            output='both',
-            parameters=[robot_description]
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_state_broadcaster", "-c", controller_manager_node],
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+            arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
+                       joint_traj_controller_config, "--inactive"]
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_trajectory_controller", "--controller-manager", "/controller_manager"]
-        ),
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            name="rviz2",
-            output="log",
-            arguments=["-d", rviz_config_file],
-        )
+        # Node(
+        #     package="rviz2",
+        #     executable="rviz2",
+        #     name="rviz2",
+        #     output="log",
+        #     arguments=["-d", rviz_config_file],
+        # )
 
     ])
