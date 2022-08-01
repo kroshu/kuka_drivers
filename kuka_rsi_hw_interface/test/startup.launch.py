@@ -52,7 +52,7 @@ def generate_launch_description():
             package="controller_manager",
             executable="spawner",
             arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
-                       joint_traj_controller_config, "--inactive"]
+                       joint_traj_controller_config]
         ),
         # Node(
         #     package="rviz2",
