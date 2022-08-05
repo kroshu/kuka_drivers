@@ -119,7 +119,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return ERROR;
   }
   RCLCPP_INFO(get_logger(), "Successfully connected to FRI");
-  // TODO(resizoltan) get IO configuration
 
   if (result == SUCCESS) {
     auto trigger_request =
@@ -224,6 +223,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Start FRI (in monitoring mode)
   if (!robot_manager_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "Could not start FRI");
+    // 'unset config' does not exist, safe to return
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Started FRI");
@@ -238,6 +238,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
@@ -254,6 +255,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
 
@@ -270,12 +272,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate controller");
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
   command_state_changed_publisher_->on_activate();
 
   // Start commanding mode
   if (!activate()) {
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
 
@@ -301,6 +305,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   }
 
   // Deactivate hardware interface
+  // If it is inactive, deactivation will also succeed
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
   hw_request->name = "iiwa_hardware";
@@ -317,7 +322,9 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  // With best effort strictness, deactivation succeeds if specific controller is not active
+  controller_request->strictness =
+    controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
   controller_request->deactivate_controllers = std::vector<std::string>{controller_name_};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
@@ -327,7 +334,9 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  command_state_changed_publisher_->on_deactivate();
+  if (command_state_changed_publisher_->is_activated()) {
+    command_state_changed_publisher_->on_deactivate();
+  }
 
   return SUCCESS;
 }
