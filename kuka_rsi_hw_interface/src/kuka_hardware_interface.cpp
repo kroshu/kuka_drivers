@@ -113,8 +113,8 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(
 {
   // just in case - not 100% sure this is the right thing to do . . .
   for (size_t i = 0; i < hw_states_.size(); ++i) {
-    hw_states_[i] = std::numeric_limits<double>::quiet_NaN();
-    hw_commands_[i] = std::numeric_limits<double>::quiet_NaN();
+    hw_states_[i] = 0;
+    hw_commands_[i] = 0;
     initial_joint_pos_[i] = 0.0;
     joint_pos_correction_deg_[i] = 0.0;
   }
