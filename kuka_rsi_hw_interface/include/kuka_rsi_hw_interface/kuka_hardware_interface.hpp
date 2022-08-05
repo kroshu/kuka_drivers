@@ -105,15 +105,15 @@ public:
 
 private:
   bool is_active_ = false;
-  const uint8_t n_dof_ = 6;
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;
 
-  std::vector<double> initial_joint_pos_ = std::vector<double>(n_dof_, 0.0);
-  std::vector<double> joint_pos_correction_deg_ = std::vector<double>(n_dof_, 0.0);
+  std::vector<double> hw_commands_;
+  std::vector<double> hw_states_;
 
-// Store the command for the simulated robot
-  std::vector<double> hw_commands_, hw_states_;
+  // RSI related joint positions
+  std::vector<double> initial_joint_pos_;
+  std::vector<double> joint_pos_correction_deg_;
 
   uint64_t ipoc_ = 0;
   RSIState rsi_state_;
@@ -121,13 +121,6 @@ private:
   std::unique_ptr<UDPServer> server_;
   std::string in_buffer_;
   std::string out_buffer_;
-  std::mutex m_;
-
-  double loop_hz_;
-  std::chrono::steady_clock::time_point time_now_;
-  std::chrono::steady_clock::time_point time_last_;
-  std::chrono::duration<double> control_period_;
-  std::chrono::duration<double> elapsed_time_;
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;

@@ -53,8 +53,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
-  hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_states_.resize(info_.joints.size());
+  hw_commands_.resize(info_.joints.size());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 1) {
@@ -90,8 +90,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   in_buffer_.resize(1024);  // udp_server.h --> #define BUFSIZE 1024
   out_buffer_.resize(1024);
 
-  initial_joint_pos_.resize(n_dof_, 0.0);
-  joint_pos_correction_deg_.resize(n_dof_, 0.0);
+  initial_joint_pos_.resize(info_.joints.size(), 0.0);
+  joint_pos_correction_deg_.resize(info_.joints.size(), 0.0);
   ipoc_ = 0;
 
   rsi_ip_address_ = info_.hardware_parameters["rsi_ip_address"];
@@ -161,7 +161,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   rsi_state_ = RSIState(in_buffer_);
 
-  for (size_t i = 0; i < n_dof_; ++i) {
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
     hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
     hw_commands_[i] = hw_states_[i];
     initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
@@ -205,7 +205,7 @@ return_type KukaRSIHardwareInterface::read(
   }
   rsi_state_ = RSIState(in_buffer_);
 
-  for (std::size_t i = 0; i < n_dof_; ++i) {
+  for (std::size_t i = 0; i < info_.joints.size(); ++i) {
     hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
   }
   ipoc_ = rsi_state_.ipoc;
@@ -223,7 +223,7 @@ return_type KukaRSIHardwareInterface::write(
     return return_type::OK;
   }
 
-  for (size_t i = 0; i < n_dof_; i++) {
+  for (size_t i = 0; i < info_.joints.size(); i++) {
     joint_pos_correction_deg_[i] = (hw_commands_[i] - initial_joint_pos_[i]) *
       KukaRSIHardwareInterface::R2D;
   }
