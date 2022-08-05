@@ -148,7 +148,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // Stop non-RT controllers
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  // With best effort strictness, cleanup succeeds if specific controller is not active
+  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
   controller_request->deactivate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
@@ -160,6 +161,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   // Cleanup hardware interface
+  // If it is inactive, cleanup will also succeed
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
   hw_request->name = "iiwa_hardware";
