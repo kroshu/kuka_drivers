@@ -81,9 +81,6 @@ public:
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
   KUKA_RSI_HW_INTERFACE_PUBLIC
-  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
-
-  KUKA_RSI_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
   KUKA_RSI_HW_INTERFACE_PUBLIC

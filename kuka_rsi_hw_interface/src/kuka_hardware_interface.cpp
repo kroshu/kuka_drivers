@@ -53,8 +53,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
-  hw_states_.resize(info_.joints.size());
-  hw_commands_.resize(info_.joints.size());
+  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_commands_.resize(info_.joints.size(), 0.0);
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 1) {
@@ -103,20 +103,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   return CallbackReturn::SUCCESS;
 }
-
-
-CallbackReturn KukaRSIHardwareInterface::on_configure(
-  const rclcpp_lifecycle::State &)
-{
-  for (size_t i = 0; i < hw_states_.size(); ++i) {
-    hw_states_[i] = 0;
-    hw_commands_[i] = 0;
-    initial_joint_pos_[i] = 0.0;
-    joint_pos_correction_deg_[i] = 0.0;
-  }
-  return CallbackReturn::SUCCESS;
-}
-
 
 std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export_state_interfaces()
 {
@@ -194,9 +180,7 @@ return_type KukaRSIHardwareInterface::read(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-    RCLCPP_DEBUG(
-      rclcpp::get_logger(
-        "KukaRSIHardwareInterface"), "Hardware interface is not active");
+	RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
 
@@ -217,9 +201,7 @@ return_type KukaRSIHardwareInterface::write(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-    RCLCPP_DEBUG(
-      rclcpp::get_logger("KukaRSIHardwareInterface"),
-      "Hardware interface is not active");
+	RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
 
