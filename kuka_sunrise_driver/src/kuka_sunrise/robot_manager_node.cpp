@@ -149,7 +149,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   // With best effort strictness, cleanup succeeds if specific controller is not active
-  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
+  controller_request->strictness =
+    controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
   controller_request->deactivate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
@@ -208,7 +209,6 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  // TODO(Svastits): implement rollback mechanism
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
