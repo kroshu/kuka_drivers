@@ -180,7 +180,7 @@ return_type KukaRSIHardwareInterface::read(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-	RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
+    RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
 
@@ -201,7 +201,7 @@ return_type KukaRSIHardwareInterface::write(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-	RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
+    RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
 
