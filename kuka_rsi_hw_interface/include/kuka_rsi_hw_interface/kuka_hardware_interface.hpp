@@ -59,6 +59,11 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/state.hpp"
+
+#include "pluginlib/class_list_macros.hpp"
 
 
 using hardware_interface::return_type;
@@ -86,11 +91,9 @@ public:
 
   KUKA_RSI_HW_INTERFACE_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
-// return_type start() override;
 
   KUKA_RSI_HW_INTERFACE_PUBLIC
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
-// return_type stop() override;
 
   KUKA_RSI_HW_INTERFACE_PUBLIC
   return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
@@ -109,8 +112,6 @@ private:
   std::vector<double> initial_joint_pos_ = std::vector<double>(n_dof_, 0.0);
   std::vector<double> joint_pos_correction_deg_ = std::vector<double>(n_dof_, 0.0);
 
-// Dummy parameters
-  double hw_start_sec_, hw_stop_sec_, hw_slowdown_;
 // Store the command for the simulated robot
   std::vector<double> hw_commands_, hw_states_;
 
@@ -123,8 +124,10 @@ private:
   std::mutex m_;
 
   double loop_hz_;
-  std::chrono::steady_clock::time_point time_now_, time_last_;
-  std::chrono::duration<double> control_period_, elapsed_time_;
+  std::chrono::steady_clock::time_point time_now_;
+  std::chrono::steady_clock::time_point time_last_;
+  std::chrono::duration<double> control_period_;
+  std::chrono::duration<double> elapsed_time_;
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;

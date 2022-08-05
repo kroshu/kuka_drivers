@@ -44,9 +44,6 @@
 #include <vector>
 
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/state.hpp"
 
 namespace kuka_rsi_hw_interface
 {
@@ -94,7 +91,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   out_buffer_.resize(1024);
 
   initial_joint_pos_.resize(n_dof_, 0.0);
-  joint_pos_correction_deg_.resize(n_dof_, 0.0),
+  joint_pos_correction_deg_.resize(n_dof_, 0.0);
   ipoc_ = 0;
 
   rsi_ip_address_ = info_.hardware_parameters["rsi_ip_address"];
@@ -111,7 +108,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 CallbackReturn KukaRSIHardwareInterface::on_configure(
   const rclcpp_lifecycle::State &)
 {
-  // just in case - not 100% sure this is the right thing to do . . .
   for (size_t i = 0; i < hw_states_.size(); ++i) {
     hw_states_[i] = 0;
     hw_commands_[i] = 0;
@@ -127,10 +123,9 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++) {
     state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_POSITION,
-        &hw_states_[i]));
+      info_.joints[i].name,
+      hardware_interface::HW_IF_POSITION,
+      &hw_states_[i]);
   }
   return state_interfaces;
 }
@@ -141,10 +136,9 @@ export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
-      hardware_interface::CommandInterface(
-        info_.joints[i].name,
-        hardware_interface::HW_IF_POSITION,
-        &hw_commands_[i]));
+      info_.joints[i].name,
+      hardware_interface::HW_IF_POSITION,
+      &hw_commands_[i]);
   }
   return command_interfaces;
 }
@@ -245,8 +239,6 @@ bool KukaRSIHardwareInterface::isActive() const
 }
 
 }  // namespace namespace kuka_rsi_hw_interface
-
-#include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_rsi_hw_interface::KukaRSIHardwareInterface,
