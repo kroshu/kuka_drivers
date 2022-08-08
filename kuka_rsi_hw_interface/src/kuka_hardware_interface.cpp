@@ -186,7 +186,7 @@ return_type KukaRSIHardwareInterface::read(
   }
 
   if (server_->recv(in_buffer_) == 0) {
-	RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "No data received from robot");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "No data received from robot");
     this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
