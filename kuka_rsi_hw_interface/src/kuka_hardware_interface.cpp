@@ -168,6 +168,7 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
+  ipoc_ = 0;  // necessary to disable write-first scenarios after reactivation
   server_->send(out_buffer_);
   server_.reset();
   is_active_ = false;
@@ -185,6 +186,8 @@ return_type KukaRSIHardwareInterface::read(
   }
 
   if (server_->recv(in_buffer_) == 0) {
+	RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "No data received from robot");
+    this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
   rsi_state_ = RSIState(in_buffer_);
@@ -200,7 +203,9 @@ return_type KukaRSIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if (!is_active_) {
+  // It is possible, that write is called immediately after activation
+  // In this case write in that tick should be skipped to be able to read state at first
+  if (!is_active_ || ipoc_ == 0) {
     RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
