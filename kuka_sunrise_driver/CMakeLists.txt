@@ -89,7 +89,7 @@ install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node position_
   lifecycle_client_node sunrise_control_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch
+install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY config

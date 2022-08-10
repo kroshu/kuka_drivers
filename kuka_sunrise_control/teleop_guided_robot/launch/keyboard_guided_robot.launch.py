@@ -29,21 +29,20 @@ def generate_launch_description():
         )
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        namespace="",
-        package='robot_control', executable='interpolating_controller', output='screen',
-        parameters=[robot_config_file], name='joint_controller',
-        remappings=[('measured_joint_state', 'lbr_joint_state'),
-                    ('joint_command', 'lbr_joint_command')]
+        namespace="", package='robot_control', executable='interpolating_controller',
+        name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
+                                                  ('joint_command', 'lbr_joint_command')]
+        parameters=[robot_config_file], output='screen',
     )
 
     keyboard_control = launch_ros.actions.LifecycleNode(
-        namespace="", name='keyboard_control',
-        package='teleop_guided_robot', executable='keyboard_control', output='screen'
+        package='teleop_guided_robot', executable='keyboard_control', output='screen',
+        name='keyboard_control', namespace=""
     )
 
     system_manager = launch_ros.actions.LifecycleNode(
-        namespace="", name='system_manager',
-        package='teleop_guided_robot', executable='system_manager', output='screen'
+        package='teleop_guided_robot', executable='system_manager', output='screen',
+        name='system_manager', namespace=""
     )
     """
     key_teleop = launch_ros.actions.Node(
