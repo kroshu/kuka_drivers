@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <fri_client/friUdpConnection.h>
+#include <stdio.h>
 
 namespace KUKA
 {
@@ -22,6 +23,7 @@ namespace FRI
 UdpConnection::UdpConnection(unsigned int receiveTimeout)
 : _udpSock(0), _receiveTimeout(receiveTimeout)
 {
+  printf("[FATAL] This is only mock and will not work!!!");
 }
 
 UdpConnection::~UdpConnection()
