@@ -105,7 +105,7 @@ install(TARGETS robot_manager robot_control_client robot_manager_node robot_cont
         lifecycle_client_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch
+install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/kuka_sunrise/internal DESTINATION include/kuka_sunrise)
