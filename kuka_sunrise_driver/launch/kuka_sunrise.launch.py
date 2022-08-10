@@ -14,10 +14,13 @@
 
 
 from launch import LaunchDescription
+from ament_index_python.packages import get_package_share_directory
 import launch.actions
 import launch.substitutions
 import launch_ros.actions
 
+
+fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
 
 def generate_launch_description():
     return LaunchDescription([
@@ -26,10 +29,10 @@ def generate_launch_description():
             default_value=[''],
             description='prefix for node names'),
         launch_ros.actions.LifecycleNode(
-            package='kuka_sunrise', executable='robot_manager_node', output='screen',
+            namespace="", package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'robot_manager'],
-            parameters=[{'controller_ip': '<insert ip here>'}]),
+            parameters=[fri_config_file]),
         launch_ros.actions.LifecycleNode(
-            package='kuka_sunrise', executable='robot_control_node', output='screen',
+            namespace="", package='kuka_sunrise', executable='robot_control_node', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'robot_control'])
         ])

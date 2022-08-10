@@ -1,0 +1,8 @@
+robot_manager:
+  ros__parameters:
+    controller_ip: "<insert ip here>"
+    control_mode: "position"
+    command_mode: "position"
+    receive_multiplier: 1
+    send_period_ms: 10
+    

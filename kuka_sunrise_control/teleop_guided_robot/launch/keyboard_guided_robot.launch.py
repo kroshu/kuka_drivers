@@ -28,24 +28,24 @@ def generate_launch_description():
         )
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        package='robot_control', node_executable='joint_controller', output='screen',
+        namespace="", package='robot_control', executable='joint_controller', output='screen',
         node_name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
                                                   ('joint_command', 'lbr_joint_command')]
     )
 
     keyboard_control = launch_ros.actions.LifecycleNode(
-        package='teleop_guided_robot', node_executable='keyboard_control', output='screen',
-        node_name='keyboard_control'
+        package='teleop_guided_robot', executable='keyboard_control', output='screen',
+        name='keyboard_control', namespace=""
     )
 
     system_manager = launch_ros.actions.LifecycleNode(
-        package='teleop_guided_robot', node_executable='system_manager', output='screen',
-        node_name='system_manager'
+        package='teleop_guided_robot', executable='system_manager', output='screen',
+        name='system_manager', namespace=""
     )
     """
     key_teleop = launch_ros.actions.Node(
-        package='key_teleop', node_executable='key_teleop', output='screen',
-        node_name='key_teleop')
+        package='key_teleop', executable='key_teleop', output='screen',
+        name='key_teleop')
     """
     return LaunchDescription([
         kuka_sunrise_interface,
