@@ -22,6 +22,7 @@ import launch_ros.actions
 
 fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
 
+
 def generate_launch_description():
     return LaunchDescription([
         launch.actions.DeclareLaunchArgument(
