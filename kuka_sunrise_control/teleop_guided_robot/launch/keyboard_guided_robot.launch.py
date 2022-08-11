@@ -22,16 +22,18 @@ import launch_ros.actions
 
 def generate_launch_description():
     kuka_sunrise_dir = get_package_share_directory('kuka_sunrise')
+    robot_config_file = get_package_share_directory('robot_control') + "/config/lbr_iiwa.yaml"
 
     kuka_sunrise_interface = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([kuka_sunrise_dir, '/launch/kuka_sunrise.launch.py'])
         )
 
     joint_controller = launch_ros.actions.LifecycleNode(
-        namespace="", package='robot_control', executable='joint_controller', output='screen',
-        node_name='joint_controller', remappings=[('measured_joint_state', 'lbr_joint_state'),
-                                                  ('joint_command', 'lbr_joint_command')]
-    )
+        namespace="", package='robot_control', executable='interpolating_controller',
+        parameters=[robot_config_file], name='joint_controller',  output='both',
+        remappings=[('measured_joint_state', 'lbr_joint_state'),
+                    ('joint_command', 'lbr_joint_command')]
+        )
 
     keyboard_control = launch_ros.actions.LifecycleNode(
         package='teleop_guided_robot', executable='keyboard_control', output='screen',
