@@ -42,11 +42,7 @@ def generate_launch_description():
         package='teleop_guided_robot', executable='system_manager', output='screen',
         name='system_manager', namespace=""
     )
-    """
-    key_teleop = launch_ros.actions.Node(
-        package='key_teleop', executable='key_teleop', output='screen',
-        name='key_teleop')
-    """
+
     return LaunchDescription([
         kuka_sunrise_interface,
         joint_controller,
