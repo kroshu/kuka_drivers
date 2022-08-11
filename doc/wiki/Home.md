@@ -2,7 +2,6 @@
 
 ## KUKA Sunrise driver (FRI)
 
-
 ### Project description
 
 This project centers on the development of a comprehensive ROS2 driver for external control of KUKA robots running on Sunrise OS through the real-time Fast Robot Interface (FRI). The following aspects are given particular consideration:
