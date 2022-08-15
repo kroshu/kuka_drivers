@@ -56,6 +56,13 @@ def generate_launch_description():
                         {'position_controller_name': 'joint_trajectory_controller'},
                         {'torque_controller_name': ''}]
         ),
+        # robot_description topic is needed for rqt_joint_trajectory_controller
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            output='both',
+            parameters=[robot_description]
+        ),
         Node(
             package="controller_manager",
             executable="spawner",
