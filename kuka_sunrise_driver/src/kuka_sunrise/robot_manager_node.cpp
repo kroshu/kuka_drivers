@@ -222,14 +222,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
   RCLCPP_INFO(get_logger(), "Successfully set FRI config");
 
-  // Start FRI (in monitoring mode)
-  if (!robot_manager_->startFRI()) {
-    RCLCPP_ERROR(get_logger(), "Could not start FRI");
-    // 'unset config' does not exist, safe to return
-    return FAILURE;
-  }
-  RCLCPP_INFO(get_logger(), "Started FRI");
-
   // Activate hardware interface
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
@@ -244,6 +236,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
+
+  // Start FRI (in monitoring mode)
+  if (!robot_manager_->startFRI()) {
+    RCLCPP_ERROR(get_logger(), "Could not start FRI");
+    // 'unset config' does not exist, safe to return
+    return FAILURE;
+  }
+  RCLCPP_INFO(get_logger(), "Started FRI");
 
   // Activate joint state broadcaster
   // The other controller must be started later so that it can initialize internal state
@@ -260,7 +260,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
-
 
   auto position_controller_name = this->get_parameter("position_controller_name").as_string();
   auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();

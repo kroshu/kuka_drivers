@@ -20,6 +20,7 @@ from launch_ros.actions import LifecycleNode
 from launch_ros.descriptions import ParameterValue
 from launch.substitutions import Command
 
+fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
 
 def load_file(absolute_file_path):
     try:
@@ -51,7 +52,7 @@ def generate_launch_description():
         LifecycleNode(
             namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
             name=['robot_manager'],
-            parameters=[{'controller_ip': '<insert ip here>'},
+            parameters=[fri_config_file,
                         {'position_controller_name': 'joint_trajectory_controller'},
                         {'torque_controller_name': ''}]
         ),
