@@ -327,7 +327,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // With best effort strictness, deactivation succeeds if specific controller is not active
   controller_request->strictness =
     controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers = std::vector<std::string>{controller_name_};
+  controller_request->deactivate_controllers =
+    std::vector<std::string>{controller_name_, "joint_state_broadcaster"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
