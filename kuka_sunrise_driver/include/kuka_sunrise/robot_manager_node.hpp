@@ -65,21 +65,16 @@ public:
 private:
   std::shared_ptr<RobotManager> robot_manager_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
-  rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
-  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr set_commanding_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_commanding_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     command_state_changed_publisher_;
   std::string controller_name_;
 
-  bool requestRobotControlNodeStateTransition(std::uint8_t transition);
-  bool setRobotControlNodeCommandState(bool active);
   void handleControlEndedError();
   void handleFRIEndedError();
 };

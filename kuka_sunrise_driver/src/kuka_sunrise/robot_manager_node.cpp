@@ -40,27 +40,12 @@ RobotManagerNode::RobotManagerNode()
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  change_robot_control_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
-    "robot_control/change_state", qos.get_rmw_qos_profile(), cbg_);
-  set_commanding_state_client_ = this->create_client<std_srvs::srv::SetBool>(
-    "robot_control/set_commanding_state", qos.get_rmw_qos_profile(), cbg_);
   change_hardware_state_client_ =
     this->create_client<controller_manager_msgs::srv::SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ =
     this->create_client<controller_manager_msgs::srv::SwitchController>(
     "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
-  auto command_srv_callback = [this](
-    std_srvs::srv::SetBool::Request::SharedPtr request,
-    std_srvs::srv::SetBool::Response::SharedPtr response) {
-      if (request->data == true) {
-        response->success = this->activate();
-      } else {
-        response->success = this->deactivate();
-      }
-    };
-  change_robot_commanding_state_service_ = this->create_service<std_srvs::srv::SetBool>(
-    "robot_manager/set_commanding_state", command_srv_callback);
   command_state_changed_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/commanding_state_changed", qos);
   set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
@@ -379,36 +364,6 @@ bool RobotManagerNode::deactivate()
   std_msgs::msg::Bool command_state;
   command_state.data = false;
   command_state_changed_publisher_->publish(command_state);
-  return true;
-}
-
-bool RobotManagerNode::requestRobotControlNodeStateTransition(std::uint8_t transition)
-{
-  auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
-  request->transition.id = transition;
-
-  auto response = kuka_sunrise::sendRequest<lifecycle_msgs::srv::ChangeState::Response>(
-    change_robot_control_state_client_, request, 2000, 3000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(get_logger(), "Could not change robot control state");
-    return false;
-  }
-  return true;
-}
-
-bool RobotManagerNode::setRobotControlNodeCommandState(bool active)
-{
-  auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
-  request->data = active;
-
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    set_commanding_state_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(get_logger(), "Could not set robot command state");
-    return false;
-  }
   return true;
 }
 
