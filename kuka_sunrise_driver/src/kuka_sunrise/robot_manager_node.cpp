@@ -26,7 +26,7 @@ RobotManagerNode::RobotManagerNode()
   // Therefore controllers are loaded and configured at startup, only activation
   //   and deactivation is managed by this node
   // There are two kind of controllers used:
-  //  - RT: joint state broadcaster and joint state/effort commander
+  //  - RT: joint state broadcaster and joint position/effort commander
   //  - non-RT: configuration (workaround until runtime parameters are enabled)
   //            and robot state broadcaster
   // RT controllers are started after interface activation
@@ -206,6 +206,7 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
   return SUCCESS;
 }
 
+// TODO(Svastits): activation fails after deactivation
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {

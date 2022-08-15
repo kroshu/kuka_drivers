@@ -118,7 +118,6 @@ CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     return CallbackReturn::FAILURE;
   }
   this->ActivatableInterface::activate();
-  RCLCPP_INFO(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Activated client");
   return CallbackReturn::SUCCESS;
 }
 
