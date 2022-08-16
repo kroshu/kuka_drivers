@@ -293,6 +293,12 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
   // Parameter exceptions are intentionally not caught, because in case of an invalid
   //   parameter type (or value), the nodes must be launched again with changed parameters
   //   because they could not be declared, therefore change is not possible in runtime
+  robot_manager_node_->registerParameter<int>(
+    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
+      true}, [this](const int & send_period) {
+      return this->onSendPeriodChangeRequest(send_period);
+    });
+
   robot_manager_node_->registerParameter<std::string>(
     "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & control_mode) {
@@ -310,12 +316,6 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
       false,
       true}, [this](const int & receive_multiplier) {
       return this->onReceiveMultiplierChangeRequest(receive_multiplier);
-    });
-
-  robot_manager_node_->registerParameter<int>(
-    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
-      true}, [this](const int & send_period) {
-      return this->onSendPeriodChangeRequest(send_period);
     });
 
   robot_manager_node_->registerParameter<std::vector<double>>(
