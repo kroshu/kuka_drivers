@@ -218,7 +218,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    this->on_deactivate(get_current_state());
+    // 'unset config' does not exist, safe to return
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
@@ -226,7 +226,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Start FRI (in monitoring mode)
   if (!robot_manager_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "Could not start FRI");
-    // 'unset config' does not exist, safe to return
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Started FRI");
@@ -265,7 +265,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   command_state_changed_publisher_->on_activate();
 
   // Start commanding mode
-  if (!activate()) {
+  if (!activateControl()) {
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
@@ -281,7 +281,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (this->isActive() && !this->deactivate()) {
+  if (this->isActive() && !this->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return ERROR;
   }
@@ -329,7 +329,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-bool RobotManagerNode::activate()
+bool RobotManagerNode::activateControl()
 {
   this->ActivatableInterface::activate();
   if (!robot_manager_->isConnected()) {
@@ -348,7 +348,7 @@ bool RobotManagerNode::activate()
   return true;
 }
 
-bool RobotManagerNode::deactivate()
+bool RobotManagerNode::deactivateControl()
 {
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "Not connected");
@@ -369,21 +369,13 @@ bool RobotManagerNode::deactivate()
 
 void RobotManagerNode::handleControlEndedError()
 {
-  // TODO(Svastits): deactivate managers by internal control ended error
-  //   currently the hardware interface deactivation fails with timeout
-  //   (possible threading issue)
   RCLCPP_INFO(get_logger(), "Control ended");
-  if (this->on_deactivate(get_current_state()) != SUCCESS) {
-    RCLCPP_FATAL(get_logger(), "Could not deactivate managers");
-  }
+  this->LifecycleNode::deactivate();
 }
 
 void RobotManagerNode::handleFRIEndedError()
 {
   RCLCPP_INFO(get_logger(), "FRI ended");
-  if (get_current_state().label() == "active") {
-    deactivate();
-  }
   this->LifecycleNode::deactivate();
 }
 
