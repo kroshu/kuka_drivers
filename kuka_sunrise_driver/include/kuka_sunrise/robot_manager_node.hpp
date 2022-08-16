@@ -59,6 +59,8 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &);
 
+  // TODO(Svastits): implement on_error callback to clean up node
+
   bool activateControl();
   bool deactivateControl();
 

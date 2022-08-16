@@ -22,6 +22,7 @@ from launch.substitutions import Command
 
 fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
 
+
 def load_file(absolute_file_path):
     try:
         with open(absolute_file_path, 'r') as file:
