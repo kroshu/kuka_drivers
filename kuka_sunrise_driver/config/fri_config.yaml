@@ -5,4 +5,6 @@ robot_manager:
     command_mode: "position"
     receive_multiplier: 1
     send_period_ms: 10
+    joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+    joint_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
     

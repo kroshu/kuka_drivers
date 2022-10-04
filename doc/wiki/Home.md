@@ -1,6 +1,8 @@
 # Welcome to the ROS2 KUKA Sunrise driver project!
 
-## Project description
+## KUKA Sunrise driver (FRI)
+
+### Project description
 
 This project centers on the development of a comprehensive ROS2 driver for external control of KUKA robots running on Sunrise OS through the real-time Fast Robot Interface (FRI). The following aspects are given particular consideration:
 
@@ -28,11 +30,11 @@ This project centers on the development of a comprehensive ROS2 driver for exter
 
 The ROS2 KUKA Sunrise driver does not include a controller; its purpose is to expose a joint-level interface of robots running on Sunrise to the ROS2 system. The control loop is then expected to be closed by a connected joint controller node. This approach is contrary to how most real-time robot interfaces to ROS and ROS2 are realized, which would be to use the ros2\_control stack. The document [3. Relationship to ros2_control](3.-Relationship-to-ros2_control.md) provides more information on this topic.
 
-## Current state of project
+### Current state of project
 
 This project is currently experimental. The functionalities are not fully tested and the API and the internal architecture of the driver should be expected to change. This wiki is targeted at developers who would like to understand and potentially contribute to the project. Usage of this driver is discouraged except for the testing of the driver, only in controlled environment and with the proper safety configuration applied.
 
-## Features
+### Features
 
 The following features of the FRI are exposed to ROS2:
 
@@ -61,6 +63,10 @@ The following features of the FRI are exposed to ROS2:
 - [x] Client command mode
 - [ ] Operation mode
 - [ ] Number of axes
+
+## KUKA KSS driver (RSI)
+
+The other project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The structure of the driver is similiar to that of the Sunrise driver and the same interfaces are opened, so the same joint controller can be used to move robots. Howewer this controller should be improved, as it allows big torques that stop the robot for machine protection reasons.
 
 ## Contact
 
