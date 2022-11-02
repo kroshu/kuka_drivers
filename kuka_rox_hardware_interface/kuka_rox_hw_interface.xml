@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<library path="kuka_rox_hw_interface">
+  <class type="kuka_rox::KukaRoXHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>ROS2 control Kuka driver for RoX</description>
+  </class>
+</library>
