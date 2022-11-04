@@ -51,11 +51,11 @@ def generate_launch_description():
             arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
                        joint_traj_controller_config]
         ),
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            name="rviz2",
-            output="log",
-            arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
-        )
+        # Node(
+        #     package="rviz2",
+        #     executable="rviz2",
+        #     name="rviz2",
+        #     output="log",
+        #     arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
+        # )
     ])

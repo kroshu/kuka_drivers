@@ -22,7 +22,7 @@
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-
+  std::cout << "Starting cm" << std::endl;
   auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
@@ -31,7 +31,6 @@ int main(int argc, char ** argv)
   std::thread control_loop([controller_manager]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
-
       while (rclcpp::ok()) {
         controller_manager->read(controller_manager->now(), dt);
         controller_manager->update(controller_manager->now(), dt);

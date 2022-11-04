@@ -17,6 +17,8 @@
 #include <memory>
 #include <vector>
 
+#include <grpcpp/create_channel.h>
+
 #include "kuka_rox_hw_interface/rox_hardware_interface.hpp"
 #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
 
@@ -29,6 +31,14 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
+
+  stub_ =
+    ExternalControlService::NewStub(
+    grpc::CreateChannel(
+      "***REMOVED***:***REMOVED***",
+      grpc::InsecureChannelCredentials()));
+  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_commands_.resize(info_.joints.size(), 0.0);
 
   return CallbackReturn::SUCCESS;
 }
@@ -67,19 +77,6 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
-  StartControlRequest request;
-  StartControlResponse response;
-  grpc::ClientContext context;
-
-  request.set_timeout(5000);
-  request.set_cycle_time(4);
-
-  // TODO: how to initialize this better?
-  ExternalControlMode * mode_tmp = new ExternalControlMode();
-  mode_tmp->set_control_type(ExternalControlType::POSITION_CONTROL);
-  request.set_allocated_external_control_mode(mode_tmp);
-
-  grpc::Status status = stub_->StartControl(&context, request, &response);
   return CallbackReturn::SUCCESS;
 }
 
@@ -99,9 +96,35 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  count ++;
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Read with count: %i", count);
+
+  if (count < 10) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    return return_type::OK;
+  }
+  if (count == 10) {
+    StartControlRequest request;
+    StartControlResponse response;
+    grpc::ClientContext context;
+
+    request.set_timeout(5000);
+    request.set_cycle_time(4);
+
+    // TODO: how to initialize this better?
+    ExternalControlMode * mode_tmp = new ExternalControlMode();
+    mode_tmp->set_control_type(ExternalControlType::POSITION_CONTROL);
+    request.set_allocated_external_control_mode(mode_tmp);
+
+    stub_->StartControl(&context, request, &response);
+    return return_type::OK;
+  }
+
   if (udp_replier_.WaitForAndReceiveRequest(std::chrono::milliseconds(4000)) ==
     os::core::udp::communication::State::kSuccess)
   {
+      RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Got msg");
+
     auto req_message = udp_replier_.GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
@@ -125,33 +148,51 @@ return_type KukaRoXHardwareInterface::read(
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
   }
-  return return_type::OK;
+      RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "read return");
+    return return_type::OK;
 }
 
 return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  if (count < 10) return return_type::OK;
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Successfully encoded control signal");
+
+  if (!is_active_) {
+    for (size_t i = 0; i < info_.joints.size(); i++) {
+      control_signal_ext_.control_signal.joint_command.values[i] = 0;
+    }
+  } else {
+    for (size_t i = 0; i < info_.joints.size(); i++) {
+      control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+    }
   }
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr, MTU);
   if (encoded_bytes < 0) {
-    std::cout << "Encoding of control signal to out_buffer failed." << std::endl;
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KukaRoXHardwareInterface"), "Encoding of control signal to out_buffer failed.");
     return return_type::ERROR;
   }
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Successfully encoded control signal");
+
 
   if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
     os::core::udp::communication::ReplyState::kSuccess)
   {
-    std::cout << "Error sending reply" << std::endl;
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
+    return return_type::ERROR;
   } else {
-    std::cout << "Sent reply encoded, ipoc: " << control_signal_ext_.header.ipoc << std::endl;
+    RCLCPP_INFO(
+      rclcpp::get_logger(
+        "KukaRoXHardwareInterface"), "Sent reply encoded, ipoc: %i",
+      control_signal_ext_.header.ipoc);
   }
 
   return return_type::OK;
@@ -164,10 +205,10 @@ bool KukaRoXHardwareInterface::isActive() const
 
 void KukaRoXHardwareInterface::ObserveControl()
 {
+  RCLCPP_INFO(
+    rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "Observe control");
   while (!terminate_) {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "Observe control");
     context_ = std::make_unique<::grpc::ClientContext>();
     ObserveControlStateRequest obs_control;
     std::unique_ptr<grpc::ClientReader<CommandState>> reader(
@@ -190,8 +231,8 @@ void KukaRoXHardwareInterface::ObserveControl()
           is_active_ = true;
           break;
         case 6:
-          std::cout << response.message() << std::endl;
-          is_active_ = true;
+          RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
+          is_active_ = false;
           break;
         default:
           break;
