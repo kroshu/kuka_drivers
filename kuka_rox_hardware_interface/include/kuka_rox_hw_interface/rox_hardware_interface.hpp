@@ -90,6 +90,8 @@ private:
   int32_t timeout_;
   bool stopped_ = true;
 
+  int count = 0;
+
   std::unique_ptr<grpc::ClientContext> context_;
 
   std::thread observe_thread_;
