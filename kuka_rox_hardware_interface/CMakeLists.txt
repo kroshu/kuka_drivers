@@ -25,22 +25,19 @@ find_package(pluginlib REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 
-find_package(tinyxml_vendor REQUIRED)
-find_package(TinyXML REQUIRED)
-
 find_package(motion-external-proto-api-nanopb REQUIRED)
 find_package(motion-services-ecs-proto-api-cpp REQUIRED)
 find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
 find_package(os-core-udp-communication REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-include_directories(include ${TinyXML2_INCLUDE_DIRS})
+include_directories(include)
 
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_rox_hw_interface tinyxml motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp motion-services-ecs-proto-api-nanopb os-core-udp-communication yaml-cpp)
+target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp motion-services-ecs-proto-api-nanopb os-core-udp-communication yaml-cpp)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)

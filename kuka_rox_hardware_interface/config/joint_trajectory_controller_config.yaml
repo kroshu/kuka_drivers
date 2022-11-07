@@ -12,5 +12,5 @@
       - position
     state_interfaces:
       - position
-    state_publish_rate: 50.0
+    state_publish_rate: 250.0
     action_monitor_rate: 20.0
