@@ -101,8 +101,7 @@ private:
 
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
     "10.36.60.228", 44444, "10.36.60.227", 44445);
-  std::thread replier_thread_;
-  std::atomic<bool> terminate_replier_ = false;
+  std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};

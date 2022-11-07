@@ -39,6 +39,14 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
       grpc::InsecureChannelCredentials()));
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
+  control_signal_ext_.has_header = true;
+  control_signal_ext_.has_control_signal = true;
+  control_signal_ext_.control_signal.has_joint_command = true;
+  control_signal_ext_.control_signal.joint_command.values_count = 6;
+  if (!udp_replier_.Setup()) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
+    return CallbackReturn::ERROR;
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -96,7 +104,7 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  count ++;
+  count++;
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Read with count: %i", count);
 
   if (count < 10) {
@@ -104,35 +112,39 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
   if (count == 10) {
-    StartControlRequest request;
-    StartControlResponse response;
-    grpc::ClientContext context;
+    // TODO: we may not need this thread
+    start_control_thread_ = std::thread(
+      [this]()
+      {
+        StartControlRequest request;
+        StartControlResponse response;
+        grpc::ClientContext context;
 
-    request.set_timeout(5000);
-    request.set_cycle_time(4);
+        request.set_timeout(5000);
+        request.set_cycle_time(4);
 
-    // TODO: how to initialize this better?
-    ExternalControlMode * mode_tmp = new ExternalControlMode();
-    mode_tmp->set_control_type(ExternalControlType::POSITION_CONTROL);
-    request.set_allocated_external_control_mode(mode_tmp);
-
-    stub_->StartControl(&context, request, &response);
-    return return_type::OK;
+        // TODO: how to initialize this better?
+        ExternalControlMode * mode_tmp = new ExternalControlMode();
+        mode_tmp->set_control_type(ExternalControlType::POSITION_CONTROL);
+        request.set_allocated_external_control_mode(mode_tmp);
+        stub_->StartControl(&context, request, &response);
+      });
   }
 
   if (udp_replier_.WaitForAndReceiveRequest(std::chrono::milliseconds(4000)) ==
     os::core::udp::communication::State::kSuccess)
   {
-      RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Got msg");
-
-    auto req_message = udp_replier_.GetRequestMessage();
+    //TODO: hacky solution until span solution is working
+    auto buff = udp_replier_.GetServerBuffer();
+    auto sp = std::span{buff, udp_replier_.GetSize()};
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
-        req_message.data(), req_message.size(), motion_state_external_))
+        sp.data(), sp.size(), motion_state_external_))
     {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Decoding request failed");
       return return_type::ERROR;
     }
+
     RCLCPP_INFO(
       rclcpp::get_logger(
         "KukaRoXHardwareInterface"), "Got motion state, decoded, ipoc: %i",
@@ -144,23 +156,19 @@ return_type KukaRoXHardwareInterface::read(
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
-      terminate_replier_ = true;
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
   }
-      RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "read return");
-    return return_type::OK;
+  return return_type::OK;
 }
 
 return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if (count < 10) return return_type::OK;
+  if (count < 10) {return return_type::OK;}
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
-
-  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Successfully encoded control signal");
 
   if (!is_active_) {
     for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -180,8 +188,6 @@ return_type KukaRoXHardwareInterface::write(
         "KukaRoXHardwareInterface"), "Encoding of control signal to out_buffer failed.");
     return return_type::ERROR;
   }
-  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Successfully encoded control signal");
-
 
   if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
     os::core::udp::communication::ReplyState::kSuccess)
