@@ -16,6 +16,9 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <memory>
+#include <sched.h>
+#include <sys/mman.h>
 
 #include <grpcpp/create_channel.h>
 
@@ -47,6 +50,21 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::ERROR;
   }
+
+  // if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
+  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "mlockall error");
+  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
+  //   return CallbackReturn::ERROR;
+  // }
+
+  struct sched_param param;
+  param.sched_priority = 95;
+  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
+    return CallbackReturn::ERROR;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
   return CallbackReturn::SUCCESS;
 }
