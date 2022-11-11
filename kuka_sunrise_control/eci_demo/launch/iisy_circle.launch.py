@@ -23,6 +23,7 @@ def generate_launch_description():
         'kuka_iisy_support') + "/urdf/iisy.urdf.xacro")
         .robot_description_semantic(file_path=get_package_share_directory(
         'kuka_iisy_support') + "/urdf/iisy.srdf")
+        .robot_description_kinematics(file_path="config/kinematics.yaml")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .planning_scene_monitor(
             publish_robot_description=True, publish_robot_description_semantic=True
