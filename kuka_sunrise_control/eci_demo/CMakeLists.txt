@@ -21,6 +21,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
+find_package(rviz_visual_tools REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(graph_msgs REQUIRED)
 
@@ -30,6 +31,9 @@ ament_target_dependencies(moveit_circular
   rclcpp
   geometry_msgs
   visualization_msgs
+  rviz_visual_tools
+  moveit_visual_tools
+  graph_msgs
 )
 
 install(TARGETS moveit_circular
