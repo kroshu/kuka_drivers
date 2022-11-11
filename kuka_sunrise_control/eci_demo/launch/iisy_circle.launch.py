@@ -19,7 +19,10 @@ def load_file(package_name, file_path):
 def generate_launch_description():
     moveit_config = (
         MoveItConfigsBuilder("kuka_iisy")
-        .robot_description(file_path= "config/iisy.urdf.xacro")
+        .robot_description(file_path=get_package_share_directory(
+        'kuka_iisy_support') + "/urdf/iisy.urdf.xacro")
+        .robot_description_semantic(file_path=get_package_share_directory(
+        'kuka_iisy_support') + "/urdf/iisy.srdf")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .planning_scene_monitor(
             publish_robot_description=True, publish_robot_description_semantic=True
@@ -28,21 +31,18 @@ def generate_launch_description():
     )
 
     robot_description_config = load_file(
-        'kuka_iisy_moveit_config', 'config/iisy.urdf')
+        'kuka_iisy_support', 'urdf/iisy.urdf')
     robot_description = {'robot_description': robot_description_config}
 
-    # RViz
     rviz_config_file = get_package_share_directory(
         'kuka_iisy_support') + "/launch/urdf.rviz"
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                          "/config/ros2_controller_config.yaml")
+    joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
+                                    "/config/joint_trajectory_controller_config.yaml")    
 
     controller_manager_node = "/controller_manager"
-
-    joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                                    "/config/joint_trajectory_controller_config.yaml")
-    
 
     return LaunchDescription([
         Node(
@@ -74,13 +74,13 @@ def generate_launch_description():
             output="screen",
             parameters=[moveit_config.to_dict()],
         ),
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            name="static_transform_publisher",
-            output="log",
-            arguments=["0.0", "0.0", "0.0", "0.0", "0.0", "0.0", "base_link", "LBR3R760_iisy_fixedbase"],
-        ),
+        # Node(
+        #     package="tf2_ros",
+        #     executable="static_transform_publisher",
+        #     name="static_transform_publisher",
+        #     output="log",
+        #     arguments=["0.0", "0.0", "0.0", "0.0", "0.0", "0.0", "base_link", "LBR3R760_iisy_fixedbase"],
+        # ),
         Node(
             package="rviz2",
             executable="rviz2",
