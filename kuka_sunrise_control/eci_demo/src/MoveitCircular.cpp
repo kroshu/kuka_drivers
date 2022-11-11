@@ -74,9 +74,9 @@ int main(int argc, char * argv[])
   // Need to check what is frame_id, and what is the center of the box
   geometry_msgs::msg::Pose stand_pose;
   stand_pose.orientation.w = 1.0;
-  stand_pose.position.x = 0.2;
-  stand_pose.position.y = 0.2;
-  stand_pose.position.z = 0.6;
+  stand_pose.position.x = - 0.2;
+  stand_pose.position.y = - 0.2;
+  stand_pose.position.z = -1.2;
 
   collision_object.primitives.push_back(primitive);
   collision_object.primitive_poses.push_back(stand_pose);
@@ -89,9 +89,9 @@ int main(int argc, char * argv[])
   //RCLCPP_INFO(logger, "Add a Robotarm stand object into the world");
   planning_scene_interface.addCollisionObjects(collision_objects);
 
+
+
   // visual_tools.trigger();
-
-
   // End Collision Objects define
 
 
@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
   msg.orientation.y = 0.0;
   msg.orientation.z = 0.0;
   msg.orientation.w = 1.0;
-  msg.position.x = 0.5;
+  msg.position.x = 0.6;
   msg.position.y = 0.1;
   msg.position.z = 0.4;
   waypoints.push_back(msg);
@@ -118,7 +118,7 @@ int main(int argc, char * argv[])
 
   double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
 
-  if (fraction == -1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
+  if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
     move_group_interface.execute(trajectory);
   }
 
