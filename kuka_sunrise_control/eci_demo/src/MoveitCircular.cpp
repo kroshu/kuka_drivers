@@ -48,13 +48,13 @@ int main(int argc, char * argv[])
 
   // Create MoveIt Visual Tools, whitch is for adding visual boxes to rviz.
   namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools(node, "LBR3R760_iisy_fixedbase",
-    "move_group_tutorial",
-    move_group_interface.getRobotModel());
-  visual_tools.deleteAllMarkers();
+  // moveit_visual_tools::MoveItVisualTools visual_tools(node, "LBR3R760_iisy_fixedbase",
+  //   "move_group_tutorial",
+  //   move_group_interface.getRobotModel());
+  // visual_tools.deleteAllMarkers();
 /* Remote control is an introspection tool that allows users to step through a high level script */
 /* via buttons and keyboard shortcuts in RViz */
-  visual_tools.trigger();
+  // visual_tools.trigger();
 
   // End Visualization setup
 
@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
   //RCLCPP_INFO(logger, "Add a Robotarm stand object into the world");
   planning_scene_interface.addCollisionObjects(collision_objects);
 
-  visual_tools.trigger();
+  // visual_tools.trigger();
 
 
   // End Collision Objects define
