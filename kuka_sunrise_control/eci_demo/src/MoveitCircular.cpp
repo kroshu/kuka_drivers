@@ -12,7 +12,7 @@
 
 int main(int argc, char * argv[])
 {
-  //Setup
+  // Setup
 
   // Initialize ROS and create the Node
   rclcpp::init(argc, argv);
@@ -36,30 +36,7 @@ int main(int argc, char * argv[])
   using moveit::planning_interface::PlanningSceneInterface;
   auto planning_scene_interface = PlanningSceneInterface();
 
-  // This is the official reason for this line, I don't understand it yet:
-  // Raw pointers are frequently used to refer to the planning group for improved performance.
-  // const moveit::core::JointModelGroup * joint_modell_group =
-  //   move_group_interface.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-
-  //End Setup
-
-
-  // Visualization setup
-
-  // Create MoveIt Visual Tools, whitch is for adding visual boxes to rviz.
-  namespace rvt = rviz_visual_tools;
-  // moveit_visual_tools::MoveItVisualTools visual_tools(node, "LBR3R760_iisy_fixedbase",
-  //   "move_group_tutorial",
-  //   move_group_interface.getRobotModel());
-  // visual_tools.deleteAllMarkers();
-/* Remote control is an introspection tool that allows users to step through a high level script */
-/* via buttons and keyboard shortcuts in RViz */
-  // visual_tools.trigger();
-
-  // End Visualization setup
-
   // Collision Objects define
-
   moveit_msgs::msg::CollisionObject collision_object;
   collision_object.header.frame_id = move_group_interface.getPlanningFrame();
   collision_object.id = "box1";
@@ -74,24 +51,18 @@ int main(int argc, char * argv[])
   // Need to check what is frame_id, and what is the center of the box
   geometry_msgs::msg::Pose stand_pose;
   stand_pose.orientation.w = 1.0;
-  stand_pose.position.x = - 0.2;
-  stand_pose.position.y = - 0.2;
-  stand_pose.position.z = -1.2;
+  stand_pose.position.x = 0.0;
+  stand_pose.position.y = 0.0;
+  stand_pose.position.z = -0.6;
 
   collision_object.primitives.push_back(primitive);
   collision_object.primitive_poses.push_back(stand_pose);
   collision_object.operation = collision_object.ADD;
 
-
   std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
   collision_objects.push_back(collision_object);
 
-  //RCLCPP_INFO(logger, "Add a Robotarm stand object into the world");
   planning_scene_interface.addCollisionObjects(collision_objects);
-
-
-
-  // visual_tools.trigger();
   // End Collision Objects define
 
 
