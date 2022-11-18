@@ -40,7 +40,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     grpc::CreateChannel(
       "***REMOVED***:***REMOVED***",
       grpc::InsecureChannelCredentials()));
-  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_states_.resize(info_.joints.size(), 0);
   hw_commands_.resize(info_.joints.size(), 0.0);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
@@ -123,7 +123,6 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Duration &)
 {
   count++;
-  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Read with count: %i", count);
 
   if (count < 10) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -162,11 +161,6 @@ return_type KukaRoXHardwareInterface::read(
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Decoding request failed");
       return return_type::ERROR;
     }
-
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "Got motion state, decoded, ipoc: %i",
-      motion_state_external_.header.ipoc);
     control_signal_ext_.header.ipoc = motion_state_external_.header.ipoc;
 
     for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -190,13 +184,14 @@ return_type KukaRoXHardwareInterface::write(
 
   if (!is_active_) {
     for (size_t i = 0; i < info_.joints.size(); i++) {
-      control_signal_ext_.control_signal.joint_command.values[i] = 0;
-    }
-  } else {
-    for (size_t i = 0; i < info_.joints.size(); i++) {
-      control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+      // This is necessary, as joint trajectory controller does not update the command at a state step
+      hw_commands_[i] = hw_states_[i];  
     }
   }
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+  }
+  
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr, MTU);
@@ -211,14 +206,9 @@ return_type KukaRoXHardwareInterface::write(
     os::core::udp::communication::ReplyState::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
+    rclcpp::shutdown();
     return return_type::ERROR;
-  } else {
-    RCLCPP_INFO(
-      rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "Sent reply encoded, ipoc: %i",
-      control_signal_ext_.header.ipoc);
-  }
-
+  } 
   return return_type::OK;
 }
 
@@ -244,7 +234,7 @@ void KukaRoXHardwareInterface::ObserveControl()
       RCLCPP_INFO(
         rclcpp::get_logger(
           "KukaRoXHardwareInterface"), "Event streamed from external control service");
-      std::unique_lock<std::mutex> lck(observe_mutex_);
+      std::unique_lock<std::mutex> lck(observe_mutex_);  // TODO: is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
         rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
