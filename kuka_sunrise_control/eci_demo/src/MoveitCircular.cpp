@@ -43,12 +43,11 @@ int main(int argc, char * argv[])
   shape_msgs::msg::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
   primitive.dimensions.resize(3);
-  primitive.dimensions[primitive.BOX_X] = 0.4;
-  primitive.dimensions[primitive.BOX_Y] = 0.4;
+  primitive.dimensions[primitive.BOX_X] = 0.5;
+  primitive.dimensions[primitive.BOX_Y] = 0.5;
   primitive.dimensions[primitive.BOX_Z] = 1.2;
 
   // Define a pose for the box (specified relative to frame_id).
-  // Need to check what is frame_id, and what is the center of the box
   geometry_msgs::msg::Pose stand_pose;
   stand_pose.orientation.w = 1.0;
   stand_pose.position.x = 0.0;
