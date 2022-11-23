@@ -71,10 +71,10 @@ int main(int argc, char * argv[])
   //Start pose;
   geometry_msgs::msg::Pose msg;
   msg.orientation.x = 0.0;
-  msg.orientation.y = 0.0;
+  msg.orientation.y = -0.707;
   msg.orientation.z = 0.0;
-  msg.orientation.w = 1.0;
-  msg.position.x = 0.6;
+  msg.orientation.w = 0.707;
+  msg.position.x = 0.55;
   msg.position.y = 0.1;
   msg.position.z = 0.4;
   waypoints.push_back(msg);
