@@ -68,24 +68,64 @@ int main(int argc, char * argv[])
   std::vector<geometry_msgs::msg::Pose> waypoints;
 
   moveit_msgs::msg::RobotTrajectory trajectory;
-  //Start pose;
+ 
+  // Motion start
+
+  // First circle faceing down
+    // Move to origin point
   geometry_msgs::msg::Pose msg;
   msg.orientation.x = 0.0;
-  msg.orientation.y = -0.707;
+  msg.orientation.y = 0.0;
   msg.orientation.z = 0.0;
-  msg.orientation.w = 0.707;
-  msg.position.x = 0.55;
-  msg.position.y = 0.1;
+  msg.orientation.w = 1.0;
+  msg.position.x = 0.35;
+  msg.position.y = 0.0;
   msg.position.z = 0.4;
   waypoints.push_back(msg);
-
-
+    // Move circle
   for (int i = 1; i < 63; i++) {
-    msg.position.y = 0.0 + sin(0.1 * i) / 5;
-    msg.position.z = 0.2 + cos(0.1 * i) / 5;
+    msg.position.y = 0.0 + sin(0.1 * i) * 0.18;
+    msg.position.x = 0.35 + cos(0.1 * i) * 0.18;
     waypoints.push_back(msg);
   }
 
+  // Second circle faceing forward
+    // Move to origin point
+  msg.orientation.x = 0.0;
+  msg.orientation.y = -sqrt(2.0) / 2.0;
+  msg.orientation.z = 0.0;
+  msg.orientation.w = sqrt(2.0) / 2.0;
+  msg.position.x = 0.4;
+  msg.position.y = -0.2;
+  msg.position.z = 0.2;
+  waypoints.push_back(msg);
+    // Move circle
+  for (int i = 63; i > 0; i--) {
+    msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
+    msg.position.z = 0.2 + cos(0.1 * i) * 0.15;
+    waypoints.push_back(msg);
+  }
+
+  // Third cirlce faceing right
+    // Move to origin point
+  msg.orientation.x = sqrt(2.0) / 2.0;
+  msg.orientation.y = 0.0;
+  msg.orientation.z = 0.0;
+  msg.orientation.w = sqrt(2.0) / 2.0;
+  msg.position.x = 0.2;
+  msg.position.y = 0.2;
+  msg.position.z = 0.38;
+  waypoints.push_back(msg);
+    // Move circle
+  for (int i = 63; i > 0; i--) {
+    msg.position.x = 0.2 + sin(0.1 * i) * 0.18;
+    msg.position.z = 0.38 + cos(0.1 * i) * 0.25;
+    waypoints.push_back(msg);
+  }
+
+  // Planing
+
+  //move_group_interface.setPlannerId("");
   double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
 
   if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
