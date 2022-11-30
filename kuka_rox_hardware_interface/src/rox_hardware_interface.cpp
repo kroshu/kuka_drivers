@@ -104,8 +104,9 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
 
-  observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
-
+  // Non Mock
+  // observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
+  // /Non Mock
   return CallbackReturn::SUCCESS;
 }
 
