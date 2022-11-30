@@ -34,22 +34,25 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
-
-  stub_ =
-    ExternalControlService::NewStub(
-    grpc::CreateChannel(
-      "10.36.60.227:49335",
-      grpc::InsecureChannelCredentials()));
+  // Non Mock
+  // stub_ =
+  //   ExternalControlService::NewStub(
+  //   grpc::CreateChannel(
+  //     "10.36.60.227:49335",
+  //     grpc::InsecureChannelCredentials()));
+  // /Non Mock
   hw_states_.resize(info_.joints.size(), 0);
   hw_commands_.resize(info_.joints.size(), 0.0);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
-  if (!udp_replier_.Setup()) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
-    return CallbackReturn::ERROR;
-  }
+  // Non Mock
+  // if (!udp_replier_.Setup()) {
+  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
+  //   return CallbackReturn::ERROR;
+  // }
+  // /Non Mock
 
   // if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
   //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "mlockall error");
@@ -122,6 +125,14 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  // Mock
+  std::this_thread::sleep_for(std::chrono::microseconds(3900));
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    hw_states_[i] = hw_commands_[i];
+  }
+  return return_type::OK;
+  // /Mock
+
   count++;
 
   if (count < 10) {
@@ -185,13 +196,12 @@ return_type KukaRoXHardwareInterface::write(
   if (!is_active_) {
     for (size_t i = 0; i < info_.joints.size(); i++) {
       // This is necessary, as joint trajectory controller does not update the command at a state step
-      hw_commands_[i] = hw_states_[i];  
+      hw_commands_[i] = hw_states_[i];
     }
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
-  }
-  
+  }  
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr, MTU);
