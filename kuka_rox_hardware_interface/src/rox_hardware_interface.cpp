@@ -34,25 +34,25 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
-  // Non Mock
-  // stub_ =
-  //   ExternalControlService::NewStub(
-  //   grpc::CreateChannel(
-  //     "10.36.60.227:49335",
-  //     grpc::InsecureChannelCredentials()));
-  // /Non Mock
+#if !MOCK_HW_ONLY
+  stub_ =
+    ExternalControlService::NewStub(
+    grpc::CreateChannel(
+      "10.36.60.227:49335",
+      grpc::InsecureChannelCredentials()));
+#endif
   hw_states_.resize(info_.joints.size(), 0);
   hw_commands_.resize(info_.joints.size(), 0.0);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
-  // Non Mock
-  // if (!udp_replier_.Setup()) {
-  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
-  //   return CallbackReturn::ERROR;
-  // }
-  // /Non Mock
+#if !MOCK_HW_ONLY
+  if (!udp_replier_.Setup()) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
+    return CallbackReturn::ERROR;
+  }
+#endif
 
   // if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
   //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "mlockall error");
@@ -104,9 +104,9 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
 
-  // Non Mock
-  // observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
-  // /Non Mock
+#if !MOCK_HW_ONLY
+  observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
+#endif
   return CallbackReturn::SUCCESS;
 }
 
@@ -126,13 +126,13 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  // Mock
+#if MOCK_HW_ONLY
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     hw_states_[i] = hw_commands_[i];
   }
   return return_type::OK;
-  // /Mock
+#endif
 
   count++;
 

@@ -15,6 +15,8 @@
 #ifndef KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 #define KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 
+#define MOCK_HW_ONLY false
+
 #include <vector>
 #include <string>
 #include <memory>
@@ -41,7 +43,6 @@
 #include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
 #include "os-core-udp-communication/udp_replier.h"
-
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
