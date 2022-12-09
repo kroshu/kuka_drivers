@@ -6,9 +6,8 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++20, required for std::span
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -31,7 +30,7 @@ find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
 find_package(os-core-udp-communication REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-include_directories(include)
+include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
 
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp

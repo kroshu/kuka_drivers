@@ -26,6 +26,8 @@
 #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
 
 using namespace kuka::ecs::v1;
+using namespace kuka::motion::external;
+using namespace os::core::udp::communication;
 
 namespace kuka_rox
 {
@@ -145,30 +147,25 @@ return_type KukaRoXHardwareInterface::read(
     start_control_thread_ = std::thread(
       [this]()
       {
-        StartControlRequest request;
-        StartControlResponse response;
+        OpenControlChannelRequest request;
+        OpenControlChannelResponse response;
         grpc::ClientContext context;
 
         request.set_timeout(5000);
         request.set_cycle_time(4);
-
-        // TODO: how to initialize this better?
-        ExternalControlMode * mode_tmp = new ExternalControlMode();
-        mode_tmp->set_control_type(ExternalControlType::POSITION_CONTROL);
-        request.set_allocated_external_control_mode(mode_tmp);
-        stub_->StartControl(&context, request, &response);
+        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
+        stub_->OpenControlChannel(&context, request, &response);
       });
   }
 
-  if (udp_replier_.WaitForAndReceiveRequest(std::chrono::milliseconds(4000)) ==
-    os::core::udp::communication::State::kSuccess)
+  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
+    UDPSocket::ErrorCode::kSuccess)
   {
     //TODO: hacky solution until span solution is working
-    auto buff = udp_replier_.GetServerBuffer();
-    auto sp = std::span{buff, udp_replier_.GetSize()};
+    auto req_message = udp_replier_.GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
-        sp.data(), sp.size(), motion_state_external_))
+        req_message.first, req_message.second, motion_state_external_))
     {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Decoding request failed");
       return return_type::ERROR;
@@ -214,7 +211,7 @@ return_type KukaRoXHardwareInterface::write(
   }
 
   if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
-    os::core::udp::communication::ReplyState::kSuccess)
+    UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
     rclcpp::shutdown();
