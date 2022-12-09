@@ -24,7 +24,6 @@
 #include <cmath>
 #include <mutex>
 #include <thread>
-#include <span>
 
 #include "rclcpp/macros.hpp"
 
@@ -38,7 +37,7 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
-#include "kuka/ecs/v1/motion-services-ecs.grpc.pb.h"
+#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 #include "nanopb/kuka/core/motion/joint.pb.hh"
 #include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
@@ -82,10 +81,6 @@ private:
   std::vector<double> hw_states_;
 
   uint64_t ipoc_ = 0;
-
-  std::string in_buffer_;
-  std::string out_buffer_;
-
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   unsigned char token_[16];
   int32_t timeout_;
@@ -102,7 +97,7 @@ private:
   std::mutex observe_mutex_;
 
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    "***REMOVED***", ***REMOVED***, "***REMOVED***", 44445);
+    os::core::udp::communication::SocketAddress("***REMOVED***", ***REMOVED***));
   std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
