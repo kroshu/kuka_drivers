@@ -50,7 +50,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
 #if !MOCK_HW_ONLY
-  if (!udp_replier_.Setup()) {
+  if (udp_replier_.Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::ERROR;
   }
@@ -255,6 +255,10 @@ void KukaRoXHardwareInterface::ObserveControl()
         case 3:
           RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
           is_active_ = true;
+          break;
+        case 4:
+          RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
+          is_active_ = false;
           break;
         case 6:
           RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
