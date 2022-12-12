@@ -115,6 +115,11 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
+
+  control_signal_ext_.control_signal.stop_ipo = true;
+  while (is_active_) std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   terminate_ = true;
   if (context_ != nullptr) {context_->TryCancel();}
 
