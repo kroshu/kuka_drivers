@@ -92,7 +92,7 @@ private:
   std::unique_ptr<grpc::ClientContext> context_;
 
   std::thread observe_thread_;
-  std::atomic<bool> terminate_;
+  std::atomic<bool> terminate_{false};
   kuka::ecs::v1::CommandState command_state_;
   std::mutex observe_mutex_;
 

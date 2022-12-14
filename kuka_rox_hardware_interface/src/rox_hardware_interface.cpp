@@ -133,6 +133,11 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  if(terminate_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    return return_type::OK;
+  }
+
 #if MOCK_HW_ONLY
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -192,6 +197,10 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  if(terminate_) {
+    return return_type::OK;
+  }
+
   if (count < 10) {return return_type::OK;}
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
