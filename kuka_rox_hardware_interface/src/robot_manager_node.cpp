@@ -159,7 +159,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     auto hw_request = 
         std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
     hw_request->name = "iisy_hardware";
-    hw_request->target_state = "inactive";
+    hw_request->target_state.label = "inactive";
     auto hw_response = 
         kuka_rox::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
         change_hardware_state_client_, hw_request, 0, 2000
@@ -168,8 +168,41 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     {
         RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
         return ERROR;
-
     }
+
+    RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
+
+    // Stop RT controllers
+    auto controller_request =
+        std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+    // With best effort strictness, deactivation succeeds if specific controller is not active
+    controller_request->strictness =
+        controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
+    controller_request->deactivate_controllers =
+        std::vector<std::string>{controller_name_, "joint_state_broadcaster"};
+    auto controller_response =
+        kuka_rox::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+        change_controller_state_client_, controller_request, 0, 2000
+        );
+    if(!controller_response || !controller_response->ok)
+    {
+        RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+        return ERROR;
+    }
+    return SUCCESS;
 }
 
 } // namespace kuka_rox
+
+int main(int argc, char * argv[])
+{
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
+  rclcpp::init(argc, argv);
+  rclcpp::executors::MultiThreadedExecutor executor;
+  auto node = std::make_shared<kuka_rox::RobotManagerNode>();
+  executor.add_node(node->get_node_base_interface());
+  executor.spin();
+  rclcpp::shutdown();
+  return 0;
+}

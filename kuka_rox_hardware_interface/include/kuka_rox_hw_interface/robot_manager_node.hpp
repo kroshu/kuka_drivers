@@ -25,7 +25,6 @@
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 
-#include "kuka_rox_hw_interface/internal/activatable_interface.hpp"
 #include "kuka_rox_hw_interface/internal/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
@@ -33,7 +32,7 @@
 namespace kuka_rox
 {
 
-class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode, public ActivatableInterface // Not sure if ActivableInterface is needed
+class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
     RobotManagerNode();
