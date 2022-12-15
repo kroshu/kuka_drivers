@@ -43,9 +43,14 @@ add_executable(rox_control_node
 ament_target_dependencies(rox_control_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
 target_link_libraries(rox_control_node kuka_rox_hw_interface)
 
+add_executable(robot_manager_node
+  src/robot_manager_node.cpp)
+ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
+target_link_libraries(robot_manager_node kuka_rox_hw_interface)
+
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
-install(TARGETS kuka_rox_hw_interface rox_control_node
+install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
   
 install(DIRECTORY config launch

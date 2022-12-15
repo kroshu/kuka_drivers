@@ -105,10 +105,25 @@ export_command_interfaces()
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
+  
 
 #if !MOCK_HW_ONLY
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
+
+  start_control_thread_ = std::thread(
+      [this]()
+      {
+        OpenControlChannelRequest request;
+        OpenControlChannelResponse response;
+        grpc::ClientContext context;
+
+        request.set_timeout(5000);
+        request.set_cycle_time(4);
+        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
+        stub_->OpenControlChannel(&context, request, &response);
+  });
 #endif
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -133,6 +148,12 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+
+  if(!is_active_){
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    return return_type::OK;
+  }
+
 #if MOCK_HW_ONLY
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
@@ -141,27 +162,6 @@ return_type KukaRoXHardwareInterface::read(
   return return_type::OK;
 #endif
 
-  count++;
-
-  if (count < 10) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    return return_type::OK;
-  }
-  if (count == 10) {
-    // TODO: we may not need this thread
-    start_control_thread_ = std::thread(
-      [this]()
-      {
-        OpenControlChannelRequest request;
-        OpenControlChannelResponse response;
-        grpc::ClientContext context;
-
-        request.set_timeout(5000);
-        request.set_cycle_time(4);
-        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
-        stub_->OpenControlChannel(&context, request, &response);
-      });
-  }
 
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
