@@ -97,7 +97,7 @@ private:
   std::mutex observe_mutex_;
 
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("***REMOVED***", ***REMOVED***));
+    os::core::udp::communication::SocketAddress("10.36.60.223", ***REMOVED***));
   std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{

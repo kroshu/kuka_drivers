@@ -19,9 +19,6 @@
 #include "rclcpp/client.hpp"
 #include "lifecycle_msgs/srv/change_state.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
-#include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
-#include "std_msgs/msg/bool.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 
@@ -62,7 +59,7 @@ private:
 
 };
 
-} // namespace kuka_rox
+}  // namespace kuka_rox
 
 
-#endif KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
+#endif  // KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_

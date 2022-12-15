@@ -4,6 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.actions import LifecycleNode
 
 import xacro
 
@@ -34,6 +35,13 @@ def generate_launch_description():
             executable='rox_control_node',
             parameters=[robot_description, controller_config]
         ),
+        LifecycleNode(
+            name=['robot_manager'],
+            namespace='',
+            package="kuka_rox_hw_interface",
+            executable="robot_manager_node",
+            arguments=[robot_description]
+        ),
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -43,14 +51,17 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", controller_manager_node],
+            arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
+                       joint_traj_controller_config, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
-                       joint_traj_controller_config]
+            arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
+        
+
+        
         # Node(
         #     package="rviz2",
         #     executable="rviz2",
