@@ -1,0 +1,12 @@
+<library path="kuka_controllers">
+  <class name="kuka_controllers/JointImpedanceController" type="kuka_controllers::JointImpedanceController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller sets the joint impedance parameters in real time
+    </description>
+  </class>
+  <class name="kuka_controllers/RobotStateBroadcaster" type="kuka_controllers::RobotStateBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the state changes of the FRI
+    </description>
+  </class>
+</library>
