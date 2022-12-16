@@ -31,10 +31,14 @@ int main(int argc, char ** argv)
   std::thread control_loop([controller_manager]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
+      std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> awake_time{std::chrono::nanoseconds(controller_manager->now().nanoseconds())};
+      
       while (rclcpp::ok()) {
+        awake_time += std::chrono::milliseconds(4);
         controller_manager->read(controller_manager->now(), dt);
         controller_manager->update(controller_manager->now(), dt);
         controller_manager->write(controller_manager->now(), dt);
+        std::this_thread::sleep_until(awake_time);
       }
     });
 
