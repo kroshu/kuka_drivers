@@ -15,7 +15,7 @@
 #ifndef KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 #define KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 
-#define MOCK_HW_ONLY false
+#define MOCK_HW_ONLY true
 
 #include <vector>
 #include <string>
@@ -79,6 +79,8 @@ private:
 
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;
+  std::vector<double> hw_stiffness_;
+  std::vector<double> hw_damping_;
 
   uint64_t ipoc_ = 0;
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
@@ -107,6 +109,9 @@ private:
 
   nanopb::kuka::core::motion::JointPositions start_pos_{
     nanopb::kuka::core::motion::JointPositions_init_default};
+
+  static constexpr char HW_IF_STIFFNESS[] = "stiffness";
+  static constexpr char HW_IF_DAMPING[] = "damping";
 };
 }  // namespace kuka_rox
 

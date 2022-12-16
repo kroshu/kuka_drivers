@@ -43,8 +43,10 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
       "***REMOVED***:***REMOVED***",
       grpc::InsecureChannelCredentials()));
 #endif
-  hw_states_.resize(info_.joints.size(), 0);
+  hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
+  hw_stiffness_.resize(info_.joints.size(), 10);
+  hw_damping_.resize(info_.joints.size(), 0.7);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
@@ -98,6 +100,20 @@ export_command_interfaces()
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
       &hw_commands_[i]);
+  }
+
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      HW_IF_STIFFNESS,
+      &hw_stiffness_[i]);
+  }
+
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      HW_IF_DAMPING,
+      &hw_damping_[i]);
   }
   return command_interfaces;
 }
