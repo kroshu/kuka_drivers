@@ -14,6 +14,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+option(MOCK_KUKA_LIBS "Use mock classes instead of the kuka lib classes" ON)
+
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -27,10 +29,24 @@ find_package(controller_manager_msgs REQUIRED)
 find_package(motion-external-proto-api-nanopb REQUIRED)
 find_package(motion-services-ecs-proto-api-cpp REQUIRED)
 find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
-find_package(os-core-udp-communication REQUIRED)
+# find_package(os-core-udp-communication REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
+
+
+if(NOT MOCK_KUKA_LIBS)
+  find_library(os-core-udp-communication_library
+    libos-core-udp-communication.a
+    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
+  message("Using real kuka libs")
+else()
+  add_library(os-core-udp-communication
+    src/kuka_mock_libs/os-core-udp-communication/udp_replier_mock.cpp)
+  set(os-core-udp-communication_library os-core-udp-communication)
+  message("Using mock kuka libs")
+endif()
+
 
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
