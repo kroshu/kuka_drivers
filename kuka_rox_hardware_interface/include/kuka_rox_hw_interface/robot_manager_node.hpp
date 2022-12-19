@@ -21,6 +21,7 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 #include "kuka_rox_hw_interface/internal/service_tools.hpp"
 
@@ -57,6 +58,8 @@ private:
     rclcpp::CallbackGroup::SharedPtr cbg_;
     std::string controller_name_;
 
+    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
+    std_msgs::msg::Bool is_configured_msg_;
 };
 
 }  // namespace kuka_rox
