@@ -21,10 +21,6 @@
   <depend>pluginlib</depend>
   <depend>controller_manager</depend>
   
-  <depend>motion-external-proto-api-nanopb</depend>
-  <depend>motion-services-ecs-proto-api-cpp</depend>
-  <depend>motion-services-ecs-proto-api-nanopb</depend>
-  <depend>os-core-udp-communication</depend>
   <depend>yaml-cpp</depend>
 
   <test_depend>ament_cmake_copyright</test_depend>

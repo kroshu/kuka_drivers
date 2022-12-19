@@ -6,8 +6,6 @@
 
 #include <moveit_msgs/msg/collision_object.hpp>
 
-#include <moveit_visual_tools/moveit_visual_tools.h>
-
 #include <math.h>
 
 int main(int argc, char * argv[])
