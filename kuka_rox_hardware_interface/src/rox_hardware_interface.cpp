@@ -179,6 +179,8 @@ return_type KukaRoXHardwareInterface::read(
 
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
+       // This is necessary, as joint trajectory controller is initialized with 0 command values
+      if (!msg_received_) hw_commands_[i] = hw_states_[i];
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
@@ -197,10 +199,6 @@ return_type KukaRoXHardwareInterface::write(
   uint8_t out_buff_arr[MTU];
 
   if (!msg_received_) {
-    for (size_t i = 0; i < info_.joints.size(); i++) {
-      // This is necessary, as joint trajectory controller does not update the command at a state step
-      hw_commands_[i] = hw_states_[i];
-    }
     return return_type::OK;
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
