@@ -32,18 +32,18 @@ RobotManagerNode::RobotManagerNode() : kroshu_ros2_core::ROS2BaseLCNode("robot_m
         this->create_client<controller_manager_msgs::srv::SwitchController>(
         "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_
         );
-    
+
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
     // Configure hardware interface
-    auto hw_request = 
+    auto hw_request =
         std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
     hw_request->name = "iisy_hardware";
     hw_request->target_state.label = "inactive";
-    auto hw_response = 
+    auto hw_response =
         kuka_rox::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
         change_hardware_state_client_, hw_request, 0, 2000
         );
@@ -117,7 +117,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         // 'unset config' does not exist, safe to return
         return FAILURE;
     }
-    
+
     // Activate joint state broadcaster
     auto controller_request =
         std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
@@ -134,6 +134,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         return FAILURE;
     }
 
+    // auto position_controller_name = this->get_parameter("position_controller_name").as_string();
+    // auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
+    // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
+    //     ? position_controller_name : torque_controller_name;
     controller_name_ = "joint_trajectory_controller";
     // Activate RT commander
     controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
@@ -156,11 +160,11 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
     // Deactivate hardware interface
-    auto hw_request = 
+    auto hw_request =
         std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
     hw_request->name = "iisy_hardware";
     hw_request->target_state.label = "inactive";
-    auto hw_response = 
+    auto hw_response =
         kuka_rox::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
         change_hardware_state_client_, hw_request, 0, 2000
         );

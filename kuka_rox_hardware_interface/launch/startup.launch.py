@@ -19,10 +19,12 @@ def generate_launch_description():
         robot_description = {'robot_description': desc.read()}
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                         "/config/ros2_controller_config.yaml")
+                        "/config/ros2_controller_config.yaml")
 
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
+    eci_config = (get_package_share_directory('kuka_rox_hw_interface') + 
+                 "/config/eci_config.yaml")
 
     controller_manager_node = '/controller_manager'
 
@@ -40,7 +42,9 @@ def generate_launch_description():
             namespace='',
             package="kuka_rox_hw_interface",
             executable="robot_manager_node",
-            arguments=[robot_description]
+            parameters=[eci_config,
+                        {'position_controller_name': 'joint_trajectory_controller'},
+                        {'torque_controller_name': ''}]
         ),
         Node(
             package='robot_state_publisher',
