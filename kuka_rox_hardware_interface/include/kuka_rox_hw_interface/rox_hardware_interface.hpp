@@ -86,9 +86,6 @@ private:
   int32_t timeout_;
   bool stopped_ = true;
 
-  // Only temporary variables, until syncing is not solved correctly
-  int count = 0;
-
   std::unique_ptr<grpc::ClientContext> context_;
 
   std::thread observe_thread_;
