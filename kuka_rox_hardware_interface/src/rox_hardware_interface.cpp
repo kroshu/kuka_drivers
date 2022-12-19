@@ -151,6 +151,7 @@ return_type KukaRoXHardwareInterface::read(
 
   if(!is_active_){
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    msg_received_ = false;
     return return_type::OK;
   }
 
@@ -184,6 +185,7 @@ return_type KukaRoXHardwareInterface::read(
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
   }
+  msg_received_ = true;
   return return_type::OK;
 }
 
@@ -194,7 +196,7 @@ return_type KukaRoXHardwareInterface::write(
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
-  if (!is_active_) {
+  if (!msg_received_) {
     for (size_t i = 0; i < info_.joints.size(); i++) {
       // This is necessary, as joint trajectory controller does not update the command at a state step
       hw_commands_[i] = hw_states_[i];
@@ -218,9 +220,7 @@ return_type KukaRoXHardwareInterface::write(
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    // TODO: check if message was received previously and throw error if yes
-    // rclcpp::shutdown();
-    // return return_type::ERROR;
+    return return_type::ERROR;
   } 
   return return_type::OK;
 }
