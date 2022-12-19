@@ -150,7 +150,7 @@ return_type KukaRoXHardwareInterface::read(
 {
 
   if(!is_active_){
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     return return_type::OK;
   }
 
@@ -166,7 +166,6 @@ return_type KukaRoXHardwareInterface::read(
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
   {
-    //TODO: hacky solution until span solution is working
     auto req_message = udp_replier_.GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
@@ -192,7 +191,6 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if (count < 10) {return return_type::OK;}
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
@@ -201,6 +199,7 @@ return_type KukaRoXHardwareInterface::write(
       // This is necessary, as joint trajectory controller does not update the command at a state step
       hw_commands_[i] = hw_states_[i];
     }
+    return return_type::OK;
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
@@ -219,8 +218,9 @@ return_type KukaRoXHardwareInterface::write(
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    rclcpp::shutdown();
-    return return_type::ERROR;
+    // TODO: check if message was received previously and throw error if yes
+    // rclcpp::shutdown();
+    // return return_type::ERROR;
   } 
   return return_type::OK;
 }
