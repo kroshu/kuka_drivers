@@ -21,8 +21,9 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "std_msgs/msg/bool.hpp"
 
-#include "kuka_rox_hw_interface/internal/service_tools.hpp"
+#include "kuka_sunrise/internal/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -32,31 +33,33 @@ namespace kuka_rox
 class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
-    RobotManagerNode();
+  RobotManagerNode();
 
-    virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-    on_configure(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_configure(const rclcpp_lifecycle::State &);
 
-    virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-    on_cleanup(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_cleanup(const rclcpp_lifecycle::State &);
 
-    virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-    on_shutdown(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_shutdown(const rclcpp_lifecycle::State &);
 
-    virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-    on_activate(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State &);
 
-    virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-    on_deactivate(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State &);
 
 private:
-    rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
-        change_hardware_state_client_;
-    rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
-        change_controller_state_client_;
-    rclcpp::CallbackGroup::SharedPtr cbg_;
-    std::string controller_name_;
+  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
+    change_hardware_state_client_;
+  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
+    change_controller_state_client_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
+  std::string controller_name_;
 
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
+  std_msgs::msg::Bool is_configured_msg_;
 };
 
 }  // namespace kuka_rox
