@@ -148,10 +148,10 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-
   if(!is_active_){
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     msg_received_ = false;
+
     return return_type::OK;
   }
 
