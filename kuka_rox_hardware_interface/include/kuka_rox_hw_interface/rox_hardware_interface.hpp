@@ -74,6 +74,7 @@ public:
 
 private:
   bool is_active_ = false;
+  bool msg_received_ = false;
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;
 
@@ -85,9 +86,6 @@ private:
   unsigned char token_[16];
   int32_t timeout_;
   bool stopped_ = true;
-
-  // Only temporary variables, until syncing is not solved correctly
-  int count = 0;
 
   std::unique_ptr<grpc::ClientContext> context_;
 

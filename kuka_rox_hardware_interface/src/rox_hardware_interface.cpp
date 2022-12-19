@@ -105,10 +105,25 @@ export_command_interfaces()
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
+  
 
 #if !MOCK_HW_ONLY
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
+
+  start_control_thread_ = std::thread(
+      [this]()
+      {
+        OpenControlChannelRequest request;
+        OpenControlChannelResponse response;
+        grpc::ClientContext context;
+
+        request.set_timeout(5000);
+        request.set_cycle_time(4);
+        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
+        stub_->OpenControlChannel(&context, request, &response);
+  });
 #endif
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -133,8 +148,10 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if(terminate_) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  if(!is_active_){
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    msg_received_ = false;
+
     return return_type::OK;
   }
 
@@ -146,32 +163,10 @@ return_type KukaRoXHardwareInterface::read(
   return return_type::OK;
 #endif
 
-  count++;
-
-  if (count < 10) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    return return_type::OK;
-  }
-  if (count == 10) {
-    // TODO: we may not need this thread
-    start_control_thread_ = std::thread(
-      [this]()
-      {
-        OpenControlChannelRequest request;
-        OpenControlChannelResponse response;
-        grpc::ClientContext context;
-
-        request.set_timeout(5000);
-        request.set_cycle_time(4);
-        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
-        stub_->OpenControlChannel(&context, request, &response);
-      });
-  }
 
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
   {
-    //TODO: hacky solution until span solution is working
     auto req_message = udp_replier_.GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
@@ -190,6 +185,7 @@ return_type KukaRoXHardwareInterface::read(
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
   }
+  msg_received_ = true;
   return return_type::OK;
 }
 
@@ -197,19 +193,15 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if(terminate_) {
-    return return_type::OK;
-  }
-
-  if (count < 10) {return return_type::OK;}
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
-  if (!is_active_) {
+  if (!msg_received_) {
     for (size_t i = 0; i < info_.joints.size(); i++) {
       // This is necessary, as joint trajectory controller does not update the command at a state step
       hw_commands_[i] = hw_states_[i];
     }
+    return return_type::OK;
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
@@ -228,7 +220,6 @@ return_type KukaRoXHardwareInterface::write(
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    rclcpp::shutdown();
     return return_type::ERROR;
   } 
   return return_type::OK;
