@@ -105,23 +105,23 @@ export_command_interfaces()
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
-  
+
 
 #if !MOCK_HW_ONLY
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
   start_control_thread_ = std::thread(
-      [this]()
-      {
-        OpenControlChannelRequest request;
-        OpenControlChannelResponse response;
-        grpc::ClientContext context;
+    [this]()
+    {
+      OpenControlChannelRequest request;
+      OpenControlChannelResponse response;
+      grpc::ClientContext context;
 
-        request.set_timeout(5000);
-        request.set_cycle_time(4);
-        request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
-        stub_->OpenControlChannel(&context, request, &response);
-  });
+      request.set_timeout(5000);
+      request.set_cycle_time(4);
+      request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
+      stub_->OpenControlChannel(&context, request, &response);
+    });
 #endif
 
   return CallbackReturn::SUCCESS;
@@ -133,7 +133,7 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
 
   control_signal_ext_.control_signal.stop_ipo = true;
-  while (is_active_) std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  while (is_active_) {std::this_thread::sleep_for(std::chrono::milliseconds(10));}
 
   terminate_ = true;
   if (context_ != nullptr) {context_->TryCancel();}
@@ -148,9 +148,10 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  if (!is_active_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    msg_received_ = false;
 
-  if(!is_active_){
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return return_type::OK;
   }
 
@@ -166,7 +167,6 @@ return_type KukaRoXHardwareInterface::read(
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
   {
-    //TODO: hacky solution until span solution is working
     auto req_message = udp_replier_.GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
@@ -179,12 +179,15 @@ return_type KukaRoXHardwareInterface::read(
 
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
+      // This is necessary, as joint trajectory controller is initialized with 0 command values
+      if (!msg_received_) {hw_commands_[i] = hw_states_[i];}
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
   }
+  msg_received_ = true;
   return return_type::OK;
 }
 
@@ -192,19 +195,15 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  if (count < 10) {return return_type::OK;}
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
-  if (!is_active_) {
-    for (size_t i = 0; i < info_.joints.size(); i++) {
-      // This is necessary, as joint trajectory controller does not update the command at a state step
-      hw_commands_[i] = hw_states_[i];
-    }
+  if (!msg_received_) {
+    return return_type::OK;
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
-  }  
+  }
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr, MTU);
@@ -219,9 +218,8 @@ return_type KukaRoXHardwareInterface::write(
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    rclcpp::shutdown();
     return return_type::ERROR;
-  } 
+  }
   return return_type::OK;
 }
 

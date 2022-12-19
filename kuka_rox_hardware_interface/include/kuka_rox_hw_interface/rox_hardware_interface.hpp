@@ -74,6 +74,7 @@ public:
 
 private:
   bool is_active_ = false;
+  bool msg_received_ = false;
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;
 
@@ -86,18 +87,15 @@ private:
   int32_t timeout_;
   bool stopped_ = true;
 
-  // Only temporary variables, until syncing is not solved correctly
-  int count = 0;
-
   std::unique_ptr<grpc::ClientContext> context_;
 
   std::thread observe_thread_;
-  std::atomic<bool> terminate_;
+  std::atomic<bool> terminate_{false};
   kuka::ecs::v1::CommandState command_state_;
   std::mutex observe_mutex_;
 
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("10.36.60.223", 44444));
+    os::core::udp::communication::SocketAddress("10.36.60.228", 44444));
   std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
