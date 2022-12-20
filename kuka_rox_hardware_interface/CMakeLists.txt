@@ -47,7 +47,7 @@ else()
   set(os-core-udp-communication_library os-core-udp-communication)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
-  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/kuka_mock_libs/ecs_proto_headers)
+  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
   set(motion-services-ecs-proto-api-cpp_library motion-services-ecs-proto-api-cpp)
   message("Using mock kuka libs")
 endif()
