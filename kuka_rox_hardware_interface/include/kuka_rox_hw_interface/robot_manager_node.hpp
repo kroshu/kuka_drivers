@@ -15,6 +15,9 @@
 #ifndef KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
 #define KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
 
+#include <string>
+#include <memory>
+
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
 #include "lifecycle_msgs/srv/change_state.hpp"

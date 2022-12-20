@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
-#define KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
+#define KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 
 #define MOCK_HW_ONLY false
 
@@ -108,4 +108,4 @@ private:
 };
 }  // namespace kuka_rox
 
-#endif  // KUKA_ROX_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_

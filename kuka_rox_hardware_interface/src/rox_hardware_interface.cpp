@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdexcept>
-#include <string>
-#include <memory>
-#include <vector>
-#include <memory>
+#include "kuka_rox_hw_interface/rox_hardware_interface.hpp"
+
 #include <sched.h>
 #include <sys/mman.h>
-
 #include <grpcpp/create_channel.h>
 
-#include "kuka_rox_hw_interface/rox_hardware_interface.hpp"
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
 
-using namespace kuka::ecs::v1;
-using namespace kuka::motion::external;
-using namespace os::core::udp::communication;
+using namespace kuka::ecs::v1;  // NOLINT
+
+using os::core::udp::communication::UDPSocket;
 
 namespace kuka_rox
 {
@@ -119,7 +119,9 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
       request.set_timeout(5000);
       request.set_cycle_time(4);
-      request.set_external_control_mode(ExternalControlMode::POSITION_CONTROL);
+      request.set_external_control_mode(
+        kuka::motion::external::ExternalControlMode::
+        POSITION_CONTROL);
       stub_->OpenControlChannel(&context, request, &response);
     });
 #endif
@@ -245,25 +247,28 @@ void KukaRoXHardwareInterface::ObserveControl()
       RCLCPP_INFO(
         rclcpp::get_logger(
           "KukaRoXHardwareInterface"), "Event streamed from external control service");
-      std::unique_lock<std::mutex> lck(observe_mutex_);  // TODO: is this necessary?
+      std::unique_lock<std::mutex> lck(observe_mutex_);  // TODO(Svastits): is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
         rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
         static_cast<int>(response.event()));
 
       switch (static_cast<int>(response.event())) {
-        case 2:
+        case CommandEvent::COMMAND_READY:
           RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Command accepted");
           break;
-        case 3:
+        case CommandEvent::SAMPLING:
           RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
           is_active_ = true;
           break;
-        case 4:
+        case CommandEvent::STOPPED:
           RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
           is_active_ = false;
           break;
-        case 6:
+        case CommandEvent::ERROR:
+          RCLCPP_ERROR(
+            rclcpp::get_logger(
+              "KukaRoXHardwareInterface"), "External control stopped by an error");
           RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
           is_active_ = false;
           break;
