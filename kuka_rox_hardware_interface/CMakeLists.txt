@@ -25,11 +25,6 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
-
-find_package(motion-external-proto-api-nanopb REQUIRED)
-find_package(motion-services-ecs-proto-api-cpp REQUIRED)
-find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
-# find_package(os-core-udp-communication REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 find_package(kuka_sunrise) # TODO: move internal lib to another package
@@ -40,6 +35,15 @@ include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # 
 if(NOT MOCK_KUKA_LIBS)
   find_library(os-core-udp-communication_library
     libos-core-udp-communication.so
+    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
+  find_library(motion-external-proto-api-nanopb_library
+    libmotion-external-proto-api-nanopb.so
+    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
+  find_library(motion-services-ecs-proto-api-cpp_library
+    libmotion-services-ecs-proto-api-cpp.so
+    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
+  find_library(motion-services-ecs-proto-api-nanopb_library
+    libmotion-services-ecs-proto-api-nanopb.so
     PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
   message("Using real kuka libs")
 else()
