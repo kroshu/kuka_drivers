@@ -15,25 +15,16 @@ find_package(moveit_common REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(rclcpp_lifecycle REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(lifecycle_msgs REQUIRED)
-find_package(kroshu_ros2_core REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
 find_package(rviz_visual_tools REQUIRED)
 find_package(moveit_msgs REQUIRED)
-find_package(graph_msgs REQUIRED)
 
 add_executable(moveit_circular src/MoveitCircular.cpp)
 ament_target_dependencies(moveit_circular
   moveit_ros_planning_interface
   rclcpp
-  geometry_msgs
-  visualization_msgs
   rviz_visual_tools
   moveit_visual_tools
-  graph_msgs
 )
 
 install(TARGETS moveit_circular

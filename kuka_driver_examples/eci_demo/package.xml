@@ -12,12 +12,7 @@
 
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_msgs</depend>
-  <depend>trajectory_msgs</depend>
   <depend>rclcpp</depend>
-  <depend>geometry_msgs</depend>
-  <depend>kroshu_ros2_core</depend>
-  <depend>moveit_servo</depend>
-  <depend>control_toolbox</depend>
   <depend>moveit_visual_tools</depend>
 
   <test_depend>ament_lint_auto</test_depend>
