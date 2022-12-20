@@ -36,14 +36,8 @@ if(NOT MOCK_KUKA_LIBS)
   find_library(os-core-udp-communication_library
     libos-core-udp-communication.so
     PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
-  find_library(motion-external-proto-api-nanopb_library
-    libmotion-external-proto-api-nanopb.so
-    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
   find_library(motion-services-ecs-proto-api-cpp_library
     libmotion-services-ecs-proto-api-cpp.so
-    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
-  find_library(motion-services-ecs-proto-api-nanopb_library
-    libmotion-services-ecs-proto-api-nanopb.so
     PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
   message("Using real kuka libs")
 else()
@@ -51,6 +45,10 @@ else()
     src/kuka_mock_libs/os-core-udp-communication/udp_replier_mock.cpp
     src/kuka_mock_libs/os-core-udp-communication/udp_socket_mock.cpp)
   set(os-core-udp-communication_library os-core-udp-communication)
+
+  add_library(motion-services-ecs-proto-api-cpp INTERFACE)
+  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/kuka_mock_libs/ecs_proto_headers)
+  set(motion-services-ecs-proto-api-cpp_library motion-services-ecs-proto-api-cpp)
   message("Using mock kuka libs")
 endif()
 
@@ -59,7 +57,7 @@ add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp motion-services-ecs-proto-api-nanopb
+target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb ${motion-services-ecs-proto-api-cpp_library} motion-services-ecs-proto-api-nanopb
     yaml-cpp ${os-core-udp-communication_library})
 
 add_executable(rox_control_node
