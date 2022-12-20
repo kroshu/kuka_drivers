@@ -24,7 +24,7 @@
   
   <depend>yaml-cpp</depend>
 
-  <exec_depend>iisy_support</exec_depend>
+  <exec_depend>kuka_iisy_support</exec_depend>
 
   <test_depend>ament_cmake_copyright</test_depend>
   <test_depend>ament_cmake_cppcheck</test_depend>
