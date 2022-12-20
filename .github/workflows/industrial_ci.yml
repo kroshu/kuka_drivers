@@ -31,6 +31,11 @@ on:
       - .github/workflows/deploy_wiki.yml
 
 jobs:
+  apt_install_prereq:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get install -y protobuf-compiler
+
   industrial_ci:
     strategy:
       matrix:
