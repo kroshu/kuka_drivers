@@ -39,7 +39,7 @@ jobs:
           BUILDER: colcon
           ANALYZER: sonarqube
           TEST_COVERAGE: true
-          UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master'
+          UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master github:kroshu/kuka_simulators#master'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: humble
     env:
