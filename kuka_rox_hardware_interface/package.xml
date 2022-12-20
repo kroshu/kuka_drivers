@@ -24,6 +24,8 @@
   
   <depend>yaml-cpp</depend>
 
+  <exec_depend>iisy_support</exec_depend>
+
   <test_depend>ament_cmake_copyright</test_depend>
   <test_depend>ament_cmake_cppcheck</test_depend>
   <test_depend>ament_cmake_pep257</test_depend>
