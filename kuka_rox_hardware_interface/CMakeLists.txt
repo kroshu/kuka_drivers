@@ -72,7 +72,7 @@ pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interfac
 
 install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
-  
+
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 

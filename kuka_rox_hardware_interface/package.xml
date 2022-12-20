@@ -16,6 +16,7 @@
   <depend>std_srvs</depend>
   <depend>sensor_msgs</depend>
   <depend>kroshu_ros2_core</depend>
+  <depend>kuka_sunrise</depend>
   <depend>tinyxml_vendor</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>

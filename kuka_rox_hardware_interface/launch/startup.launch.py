@@ -1,3 +1,17 @@
+# Copyright 2022 Áron Svastits
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -5,8 +19,6 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.actions import LifecycleNode
-
-import xacro
 
 
 def generate_launch_description():
@@ -19,12 +31,12 @@ def generate_launch_description():
         robot_description = {'robot_description': desc.read()}
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                        "/config/ros2_controller_config.yaml")
+                         "/config/ros2_controller_config.yaml")
 
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
-    eci_config = (get_package_share_directory('kuka_rox_hw_interface') + 
-                 "/config/eci_config.yaml")
+    eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
+                  "/config/eci_config.yaml")
 
     controller_manager_node = '/controller_manager'
 
@@ -63,14 +75,12 @@ def generate_launch_description():
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
-        
 
-        
-        # Node(
-        #     package="rviz2",
-        #     executable="rviz2",
-        #     name="rviz2",
-        #     output="log",
-        #     arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
-        # )
+        Node(
+            package="rviz2",
+            executable="rviz2",
+            name="rviz2",
+            output="log",
+            arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
+        )
     ])

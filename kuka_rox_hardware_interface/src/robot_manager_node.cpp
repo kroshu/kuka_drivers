@@ -20,7 +20,6 @@ namespace kuka_rox
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
-
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -203,8 +202,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   }
   return SUCCESS;
 }
-
-} // namespace kuka_rox
+}  // namespace kuka_rox
 
 int main(int argc, char * argv[])
 {
