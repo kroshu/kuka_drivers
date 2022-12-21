@@ -949,4 +949,3 @@ class ExternalControlService final {
 
 
 #endif  // GRPC_kuka_2fecs_2fv1_2fmotion_5fservices_5fecs_2eproto__INCLUDED
-

@@ -6,7 +6,7 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#include "kuka_rox_hw_interface/kuka_mock_libs/os-core-udp-communication/udp_socket.hpp"
+#include "os-core-udp-communication/udp_socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
