@@ -23,7 +23,14 @@
 #include <string>
 #include <vector>
 
-#include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
+
+// TODO(Svastits): mock this out properly
+#if MOCK_HW_ONLY
+   #include "nanopb/nanopb_helper.h"
+#endif
+#if !MOCK_HW_ONLY
+  #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
+#endif
 
 using namespace kuka::ecs::v1;  // NOLINT
 
