@@ -27,6 +27,8 @@ find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+find_package(protobuf-compiler)
+
 find_package(kuka_sunrise) # TODO: move internal lib to another package
 
 include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
@@ -56,7 +58,7 @@ endif()
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
+ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface protobuf-compiler)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb ${motion-services-ecs-proto-api-cpp_library} motion-services-ecs-proto-api-nanopb
     yaml-cpp ${os-core-udp-communication_library})
 
