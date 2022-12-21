@@ -27,7 +27,6 @@ find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-
 find_package(kuka_sunrise) # TODO: move internal lib to another package
 
 include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
