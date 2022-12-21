@@ -23,6 +23,7 @@
   <depend>controller_manager</depend>
   
   <depend>yaml-cpp</depend>
+  <depend>protobuf-dev</depend>
 
   <exec_depend>kuka_iisy_support</exec_depend>
 
