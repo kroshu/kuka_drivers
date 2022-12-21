@@ -1,4 +1,4 @@
-#include "kuka_rox_hw_interface/kuka_mock_libs/os-core-udp-communication/udp_replier.hpp"
+#include "os-core-udp-communication/udp_replier.h"
 
 namespace os::core::udp::communication {
 

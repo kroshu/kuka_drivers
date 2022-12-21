@@ -11,7 +11,7 @@
 
 #include <chrono>
 
-#include "kuka_rox_hw_interface/kuka_mock_libs/os-core-udp-communication/udp_socket.hpp"
+#include "os-core-udp-communication/udp_socket.h"
 
 namespace os::core::udp::communication {
 

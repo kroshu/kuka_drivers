@@ -27,7 +27,6 @@ find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-find_package(protobuf-compiler)
 
 find_package(kuka_sunrise) # TODO: move internal lib to another package
 
@@ -43,14 +42,23 @@ if(NOT MOCK_KUKA_LIBS)
     PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
   message("Using real kuka libs")
 else()
+  include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
-    src/kuka_mock_libs/os-core-udp-communication/udp_replier_mock.cpp
-    src/kuka_mock_libs/os-core-udp-communication/udp_socket_mock.cpp)
+    src/mock/os-core-udp-communication/udp_replier_mock.cpp
+    src/mock/os-core-udp-communication/udp_socket_mock.cpp)
   set(os-core-udp-communication_library os-core-udp-communication)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
   set(motion-services-ecs-proto-api-cpp_library motion-services-ecs-proto-api-cpp)
+
+  add_library(motion-external-proto-api-nanopb INTERFACE)
+  target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
+  set(motion-external-proto-api-nanopb_library motion-external-proto-api-nanopb)
+
+  add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
+  target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
+  set(motion-services-ecs-proto-api-nanopb_library motion-services-ecs-proto-api-nanopb)
   message("Using mock kuka libs")
 endif()
 
@@ -58,7 +66,7 @@ endif()
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface protobuf-compiler)
+ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb ${motion-services-ecs-proto-api-cpp_library} motion-services-ecs-proto-api-nanopb
     yaml-cpp ${os-core-udp-communication_library})
 
