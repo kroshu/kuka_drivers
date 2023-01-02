@@ -58,6 +58,9 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
+  control_signal_ext_.control_signal.has_joint_attributes = true;
+  control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
+  control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
 #if !MOCK_HW_ONLY
   if (udp_replier_.Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
@@ -228,6 +231,9 @@ return_type KukaRoXHardwareInterface::write(
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+    // TODO should we separate control modes somehow?
+    control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
+    control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];
   }
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
