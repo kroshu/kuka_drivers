@@ -63,6 +63,8 @@ jobs:
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
       - run: sudo apt-get install -y libnanopb-dev
       - run: sudo apt-get install -y libgrpc++-dev
+      - run: ls -l /usr/include/grpc
+      - run: ls -l /usr/include/grpc/impl/codegen
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
