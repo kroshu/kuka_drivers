@@ -37,6 +37,7 @@ find_package(motion-external-proto-api-nanopb REQUIRED)
 find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
 include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
 message("Using real kuka libs")
+add_definitions(-DNON_MOCK_SETUP)
 else()
 include_directories(include/mock)
 add_library(os-core-udp-communication SHARED
