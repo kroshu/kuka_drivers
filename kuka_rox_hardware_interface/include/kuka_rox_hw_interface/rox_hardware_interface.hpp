@@ -15,8 +15,6 @@
 #ifndef KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 #define KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 
-#define MOCK_HW_ONLY true
-
 #include <vector>
 #include <string>
 #include <memory>

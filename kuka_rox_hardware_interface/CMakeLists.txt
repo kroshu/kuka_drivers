@@ -28,14 +28,16 @@ find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 find_package(kuka_sunrise) # TODO: move internal lib to another package
-include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
+include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
 find_package(os-core-udp-communication REQUIRED)
 find_package(motion-services-ecs-proto-api-cpp REQUIRED)
 find_package(motion-external-proto-api-nanopb REQUIRED)
 find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
+include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
 message("Using real kuka libs")
+add_definitions(-DNON_MOCK_SETUP)
 else()
 include_directories(include/mock)
 add_library(os-core-udp-communication SHARED
