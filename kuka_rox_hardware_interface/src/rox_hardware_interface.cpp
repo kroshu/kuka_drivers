@@ -47,7 +47,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
-      "***REMOVED***:***REMOVED***",
+      "<insert ip of KRC here>:<insert external grpc port of KRC here>",
       grpc::InsecureChannelCredentials()));
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
