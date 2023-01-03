@@ -15,7 +15,7 @@
 #include "kuka/ecs/v1/motion_services_ecs.pb.h"
 
 #include <functional>
-#include "/usr/include/grpc/impl/codegen/port_platform.h"
+#include <grpc/impl/codegen/port_platform.h>
 #include <grpcpp/impl/codegen/async_generic_service.h>
 #include <grpcpp/impl/codegen/async_stream.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>

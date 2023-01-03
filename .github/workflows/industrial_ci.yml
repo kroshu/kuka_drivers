@@ -44,6 +44,7 @@ jobs:
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      BEFORE_INIT: 'sudo apt-get install -y libgrpc++-dev && sudo apt-get install -y libnanopb-dev'
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
@@ -61,10 +62,6 @@ jobs:
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
-      - run: sudo apt-get install -y libnanopb-dev
-      - run: sudo apt-get install -y libgrpc++-dev
-      - run: ls -l /usr/include/grpc
-      - run: ls -l /usr/include/grpc/impl/codegen
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
