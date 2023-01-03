@@ -58,8 +58,8 @@ add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp motion-services-ecs-proto-api-nanopb
-    yaml-cpp os-core-udp-communication)
+target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
+                      motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)
@@ -79,15 +79,16 @@ install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
-file(GLOB mock_headers
+file(GLOB_RECURSE mock_headers
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}/include/mock"
-  include/mock/*)
+  /mock/*.h)
 
-file(GLOB mock_src
+file(GLOB_RECURSE mock_src
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}/src/mock"
-  src/mock/*)
+  /mock/*.cpp)
+
 
 if(BUILD_TESTING)
   find_package(ament_cmake_copyright REQUIRED)
@@ -99,10 +100,11 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
+  ament_copyright(--exclude ${mock_headers} ${mock_src})
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
-  ament_cpplint(--exclude ${mock_headers} ${mock_src})
+  ament_cpplint(--exclude=${mock_headers})
   ament_lint_cmake()
   ament_uncrustify(--exclude ${mock_headers} ${mock_src})
   ament_xmllint()

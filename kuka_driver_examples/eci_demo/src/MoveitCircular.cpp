@@ -13,7 +13,6 @@
 // limitations under the License.
 
 
-
 #include <math.h>
 
 #include <memory>
