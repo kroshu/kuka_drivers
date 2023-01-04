@@ -81,18 +81,18 @@ install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
-file(GLOB_RECURSE mock_headers
-  LIST_DIRECTORIES FALSE
-  RELATIVE "${PROJECT_SOURCE_DIR}/include/mock"
-  /mock/*.h)
-
-file(GLOB_RECURSE mock_src
-  LIST_DIRECTORIES FALSE
-  RELATIVE "${PROJECT_SOURCE_DIR}/src/mock"
-  /mock/*.cpp)
-
 
 if(BUILD_TESTING)
+  file(GLOB_RECURSE mock_headers
+  LIST_DIRECTORIES FALSE
+  RELATIVE "${PROJECT_SOURCE_DIR}"
+    include/mock/*)
+
+  file(GLOB_RECURSE mock_src
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${PROJECT_SOURCE_DIR}"
+    src/mock/*)
+
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
@@ -106,7 +106,7 @@ if(BUILD_TESTING)
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
-  ament_cpplint(--exclude=${mock_headers})
+  ament_cpplint()
   ament_lint_cmake()
   ament_uncrustify(--exclude ${mock_headers} ${mock_src})
   ament_xmllint()
