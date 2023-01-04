@@ -30,6 +30,18 @@ const
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names.emplace_back("joint_impedance");
+  config.names.emplace_back("joint_a1/stiffness");
+  config.names.emplace_back("joint_a2/stiffness");
+  config.names.emplace_back("joint_a3/stiffness");
+  config.names.emplace_back("joint_a4/stiffness");
+  config.names.emplace_back("joint_a5/stiffness");
+  config.names.emplace_back("joint_a6/stiffness");
+  config.names.emplace_back("joint_a1/damping");
+  config.names.emplace_back("joint_a2/damping");
+  config.names.emplace_back("joint_a3/damping");
+  config.names.emplace_back("joint_a4/damping");
+  config.names.emplace_back("joint_a5/damping");
+  config.names.emplace_back("joint_a6/damping");
   return config;
 }
 
@@ -70,13 +82,13 @@ controller_interface::return_type JointImpedanceController::update(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  for (auto index = 6; index < 12; ++index) {
-    command_interfaces_[index].set_value(stiffness_[index-6]);
-  }
-  for (auto index = 12; index < 18; ++index) {
-    command_interfaces_[index].set_value(damping_[index-12]);
-  }
 
+  for (auto index = 0; index < 6; ++index) {
+    command_interfaces_[index].set_value(stiffness_[index]);
+  }
+  for (auto index = 6; index < 12; ++index) {
+    command_interfaces_[index].set_value(damping_[index-6]);
+  }
   return controller_interface::return_type::OK;
 }
 

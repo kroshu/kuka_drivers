@@ -35,6 +35,7 @@ def generate_launch_description():
 
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
+
     eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
                   "/config/eci_config.yaml")
 
@@ -56,6 +57,7 @@ def generate_launch_description():
             executable="robot_manager_node",
             parameters=[eci_config,
                         {'position_controller_name': 'joint_trajectory_controller'},
+                        {'impedance_controller_name': 'joint_impedance_controller'},
                         {'torque_controller_name': ''}]
         ),
         Node(
@@ -70,6 +72,13 @@ def generate_launch_description():
             arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
                        joint_traj_controller_config, "--inactive"]
         ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
+            "kuka_controllers/JointImpedanceController", "--inactive"],
+        ),
+
         Node(
             package="controller_manager",
             executable="spawner",

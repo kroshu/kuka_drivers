@@ -145,13 +145,20 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
 
   // auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  // auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
+  // auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
   // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
   //     ? position_controller_name : torque_controller_name;
   controller_name_ = "joint_trajectory_controller";
+  controller_names_.clear();
+  controller_names_.emplace_back("joint_trajectory_controller");
+  if (true)
+  {
+    controller_names_.emplace_back("joint_impedance_controller");
+  }
+  
   // Activate RT commander
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
-  controller_request->activate_controllers = std::vector<std::string>{controller_name_};
+  controller_request->activate_controllers = controller_names_;
   controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
@@ -185,13 +192,13 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
 
   // Stop RT controllers
+  controller_names_.emplace_back("joint_state_broadcaster");
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   // With best effort strictness, deactivation succeeds if specific controller is not active
   controller_request->strictness =
     controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers =
-    std::vector<std::string>{controller_name_, "joint_state_broadcaster"};
+  controller_request->deactivate_controllers = controller_names_;
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000

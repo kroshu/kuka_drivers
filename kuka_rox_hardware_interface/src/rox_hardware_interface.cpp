@@ -143,6 +143,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       OpenControlChannelResponse response;
       grpc::ClientContext context;
 
+      request.set_ip_address("<insert ip of your client here>");
       request.set_timeout(5000);
       request.set_cycle_time(4);
       request.set_external_control_mode(
