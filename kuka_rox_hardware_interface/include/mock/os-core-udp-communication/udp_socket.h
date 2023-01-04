@@ -104,6 +104,7 @@ class UDPSocket {
  public:
   int GetSocketFd() const { return 0; }
   bool IsActive() const { return false; }
+
   int GetErrorCode() const;
   std::string GetErrorText() const;
   bool IsReadable() const;
