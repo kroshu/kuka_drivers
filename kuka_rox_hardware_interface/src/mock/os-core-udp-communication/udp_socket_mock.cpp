@@ -111,7 +111,7 @@ int UDPSocket::Connect(const SocketAddress& remote_address) {
 }
 
 int UDPSocket::Select(std::chrono::microseconds timeout, bool read) {
-  // TODO check
+  // TODO(kovacsge): check
   return 1;
 }
 
@@ -152,8 +152,7 @@ int UDPSocket::GetErrorCode() const { return errno; }
 std::string UDPSocket::GetErrorText() const { return ""; }
 
 bool UDPSocket::IsReadable() const {
-  // TODO: is there any packet - MSG_PEEK
-  throw "NOT IMPLEMENTED";
+  return false;
 }
 
 }  // namespace os::core::udp::communication

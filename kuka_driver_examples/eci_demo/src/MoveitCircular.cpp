@@ -1,19 +1,32 @@
-#include <memory>
+// Copyright 2022 Áron Svastits
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <rclcpp/rclcpp.hpp>
-#include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
-
-#include <moveit_msgs/msg/collision_object.hpp>
-
-#include <moveit_visual_tools/moveit_visual_tools.h>
 
 #include <math.h>
+
+#include <memory>
+
+#include "rclcpp/rclcpp.hpp"
+#include "moveit/move_group_interface/move_group_interface.h"
+#include "moveit/planning_scene_interface/planning_scene_interface.h"
+#include "moveit_msgs/msg/collision_object.hpp"
+#include "moveit_visual_tools/moveit_visual_tools.h"
+
 
 int main(int argc, char * argv[])
 {
   // Setup
-
   // Initialize ROS and create the Node
   rclcpp::init(argc, argv);
   auto const node = std::make_shared<rclcpp::Node>(
@@ -24,7 +37,7 @@ int main(int argc, char * argv[])
   // Create a ROS logger
   auto const logger = rclcpp::get_logger("moveit_circle");
 
-  //Create Planning group:
+  // Create Planning group
   static const std::string PLANNING_GROUP = "iisy_arm";
 
   // Next step goes here
@@ -32,7 +45,7 @@ int main(int argc, char * argv[])
   using moveit::planning_interface::MoveGroupInterface;
   auto move_group_interface = MoveGroupInterface(node, PLANNING_GROUP);
 
-  // Create Planning Sceen Interface, witch is for adding collision boxes
+  // Create Planning Scene Interface, witch is for adding collision boxes
   using moveit::planning_interface::PlanningSceneInterface;
   auto planning_scene_interface = PlanningSceneInterface();
 
@@ -68,11 +81,11 @@ int main(int argc, char * argv[])
   std::vector<geometry_msgs::msg::Pose> waypoints;
 
   moveit_msgs::msg::RobotTrajectory trajectory;
- 
+
   // Motion start
 
   // First circle faceing down
-    // Move to origin point
+  // Move to origin point
   geometry_msgs::msg::Pose msg;
   msg.orientation.x = 0.0;
   msg.orientation.y = 0.0;
@@ -82,7 +95,7 @@ int main(int argc, char * argv[])
   msg.position.y = 0.0;
   msg.position.z = 0.4;
   waypoints.push_back(msg);
-    // Move circle
+  // Move circle
   for (int i = 1; i < 63; i++) {
     msg.position.y = 0.0 + sin(0.1 * i) * 0.18;
     msg.position.x = 0.35 + cos(0.1 * i) * 0.18;
@@ -90,7 +103,7 @@ int main(int argc, char * argv[])
   }
 
   // Second circle faceing forward
-    // Move to origin point
+  // Move to origin point
   msg.orientation.x = 0.0;
   msg.orientation.y = -sqrt(2.0) / 2.0;
   msg.orientation.z = 0.0;
@@ -99,7 +112,7 @@ int main(int argc, char * argv[])
   msg.position.y = -0.2;
   msg.position.z = 0.2;
   waypoints.push_back(msg);
-    // Move circle
+  // Move circle
   for (int i = 63; i > 0; i--) {
     msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
     msg.position.z = 0.2 + cos(0.1 * i) * 0.15;
@@ -107,7 +120,7 @@ int main(int argc, char * argv[])
   }
 
   // Third cirlce faceing right
-    // Move to origin point
+  // Move to origin point
   msg.orientation.x = sqrt(2.0) / 2.0;
   msg.orientation.y = 0.0;
   msg.orientation.z = 0.0;
@@ -116,7 +129,7 @@ int main(int argc, char * argv[])
   msg.position.y = 0.2;
   msg.position.z = 0.38;
   waypoints.push_back(msg);
-    // Move circle
+  // Move circle
   for (int i = 63; i > 0; i--) {
     msg.position.x = 0.2 + sin(0.1 * i) * 0.18;
     msg.position.z = 0.38 + cos(0.1 * i) * 0.25;
@@ -124,8 +137,7 @@ int main(int argc, char * argv[])
   }
 
   // Planing
-
-  //move_group_interface.setPlannerId("");
+  // move_group_interface.setPlannerId("");
   double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
 
   if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {

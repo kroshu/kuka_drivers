@@ -25,11 +25,10 @@
 
 
 // TODO(Svastits): mock this out properly
-#if MOCK_HW_ONLY
-   #include "nanopb/nanopb_helper.h"
-#endif
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
+#else
+  #include "nanopb/nanopb_helper.h"
 #endif
 
 using namespace kuka::ecs::v1;  // NOLINT
@@ -43,7 +42,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
@@ -61,7 +60,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.has_joint_attributes = true;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   if (udp_replier_.Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::ERROR;
@@ -133,7 +132,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
 
 
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
   start_control_thread_ = std::thread(
@@ -184,7 +183,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-#if MOCK_HW_ONLY
+#ifndef NON_MOCK_SETUP
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     hw_states_[i] = hw_commands_[i];

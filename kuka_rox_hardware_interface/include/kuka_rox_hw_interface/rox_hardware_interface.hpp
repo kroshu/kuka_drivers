@@ -15,8 +15,6 @@
 #ifndef KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 #define KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 
-#define MOCK_HW_ONLY true
-
 #include <vector>
 #include <string>
 #include <memory>
@@ -96,8 +94,10 @@ private:
   kuka::ecs::v1::CommandState command_state_;
   std::mutex observe_mutex_;
 
+  // insert port of your client instead of -1
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("<insert ip of your client here>", -1));  // insert port of your client instead of -1
+    os::core::udp::communication::SocketAddress("<insert ip of your client here>", -1));
+
   std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{

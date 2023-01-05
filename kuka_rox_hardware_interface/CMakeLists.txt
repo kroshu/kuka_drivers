@@ -28,37 +28,31 @@ find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 find_package(kuka_sunrise) # TODO: move internal lib to another package
-
-include_directories(include /usr/include/kuka/os-core-udp-communication-0.0)  # TODO
-
+include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
-  find_library(os-core-udp-communication_library
-    libos-core-udp-communication.so
-    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
-  find_library(motion-services-ecs-proto-api-cpp_library
-    libmotion-services-ecs-proto-api-cpp.so
-    PATHS /home/rosdeveloper/Documents/kuka_libs/lib)
-  message("Using real kuka libs")
+find_package(os-core-udp-communication REQUIRED)
+find_package(motion-services-ecs-proto-api-cpp REQUIRED)
+find_package(motion-external-proto-api-nanopb REQUIRED)
+find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
+include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
+message("Using real kuka libs")
+add_definitions(-DNON_MOCK_SETUP)
 else()
-  include_directories(include/mock)
-  add_library(os-core-udp-communication SHARED
-    src/mock/os-core-udp-communication/udp_replier_mock.cpp
-    src/mock/os-core-udp-communication/udp_socket_mock.cpp)
-  set(os-core-udp-communication_library os-core-udp-communication)
+include_directories(include/mock)
+add_library(os-core-udp-communication SHARED
+src/mock/os-core-udp-communication/udp_replier_mock.cpp
+src/mock/os-core-udp-communication/udp_socket_mock.cpp)
 
-  add_library(motion-services-ecs-proto-api-cpp INTERFACE)
-  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
-  set(motion-services-ecs-proto-api-cpp_library motion-services-ecs-proto-api-cpp)
+add_library(motion-services-ecs-proto-api-cpp INTERFACE)
+target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
 
-  add_library(motion-external-proto-api-nanopb INTERFACE)
-  target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
-  set(motion-external-proto-api-nanopb_library motion-external-proto-api-nanopb)
+add_library(motion-external-proto-api-nanopb INTERFACE)
+target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
 
-  add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
-  target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
-  set(motion-services-ecs-proto-api-nanopb_library motion-services-ecs-proto-api-nanopb)
-  message("Using mock kuka libs")
+add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
+target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
+message("Using mock kuka libs")
 endif()
 
 
@@ -66,8 +60,8 @@ add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb ${motion-services-ecs-proto-api-cpp_library} motion-services-ecs-proto-api-nanopb
-    yaml-cpp ${os-core-udp-communication_library})
+target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
+                      motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)
@@ -87,7 +81,18 @@ install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
+
 if(BUILD_TESTING)
+  file(GLOB_RECURSE mock_headers
+  LIST_DIRECTORIES FALSE
+  RELATIVE "${PROJECT_SOURCE_DIR}"
+    include/mock/*)
+
+  file(GLOB_RECURSE mock_src
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${PROJECT_SOURCE_DIR}"
+    src/mock/*)
+
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
@@ -97,12 +102,13 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
+  ament_copyright(--exclude ${mock_headers} ${mock_src})
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify(--language=C++)
+  ament_uncrustify(--exclude ${mock_headers} ${mock_src})
   ament_xmllint()
 endif()
 

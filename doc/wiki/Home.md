@@ -77,6 +77,9 @@ The third project in the repo is the driver for iiQKA robots.
 The driver uses the ros2_control framework, so a variaty of controllers are supported and it can be easily integrated into moveit. It consists of a realtime component for controlling the robot via UDP (ROS2 hardware interface) and a non-realtime one for lifecycle management of the controllers and the hardware interface. The driver supports a control cycle time of 4 milliseconds, but the round-trip time of one cycle should not exceed 3 milliseconds, as above that the packets are considered lost. Therefore it is advised to run the driver on a realtime-capable Linux machine (with the PRREMPT_RT patch applied). After a few lost packets the connection is considered not stable enough and external control is ended.
 
 The driver depends on some KUKA-specific packages, which are only available with the real robot, but setting the MOCK_HW_ONLY flag in the hardware_interface enables the usage of the driver in a simulated way, so that motion planning problems can be tried out with the same components running.
+Two additional packages (not listed in package.xml) must be installed with apt:
+- libnanopb-dev
+- libgrpc++-dev
 
 ### Setup
 
