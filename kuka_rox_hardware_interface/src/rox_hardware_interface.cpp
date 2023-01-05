@@ -147,7 +147,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       request.set_cycle_time(4);
       request.set_external_control_mode(
         kuka::motion::external::ExternalControlMode::
-        POSITION_CONTROL);
+        JOINT_IMPEDANCE_CONTROL);
       stub_->OpenControlChannel(&context, request, &response);
     });
 #endif

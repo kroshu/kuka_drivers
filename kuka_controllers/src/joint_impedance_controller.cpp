@@ -29,7 +29,7 @@ const
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.emplace_back("joint_impedance");
+  // config.names.emplace_back("joint_impedance");
   config.names.emplace_back("joint_a1/stiffness");
   config.names.emplace_back("joint_a2/stiffness");
   config.names.emplace_back("joint_a3/stiffness");
