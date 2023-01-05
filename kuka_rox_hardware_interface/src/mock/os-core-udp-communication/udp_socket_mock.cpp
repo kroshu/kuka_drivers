@@ -152,8 +152,7 @@ int UDPSocket::GetErrorCode() const { return errno; }
 std::string UDPSocket::GetErrorText() const { return ""; }
 
 bool UDPSocket::IsReadable() const {
-  // TODO(kovacsge): is there any packet - MSG_PEEK
-  throw "NOT IMPLEMENTED";
+  return false;
 }
 
 }  // namespace os::core::udp::communication
