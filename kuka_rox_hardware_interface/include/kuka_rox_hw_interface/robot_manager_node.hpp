@@ -63,6 +63,8 @@ private:
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
+
+  static constexpr bool is_joint_imp_contr_ = true;
 };
 
 }  // namespace kuka_rox

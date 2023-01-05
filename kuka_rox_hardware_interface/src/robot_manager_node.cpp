@@ -148,10 +148,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
   // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
   //     ? position_controller_name : torque_controller_name;
-  controller_name_ = "joint_trajectory_controller";
   controller_names_.clear();
   controller_names_.emplace_back("joint_trajectory_controller");
-  if (true)
+  if (is_joint_imp_contr_)
   {
     controller_names_.emplace_back("joint_impedance_controller");
   }
