@@ -35,6 +35,9 @@ def generate_launch_description():
 
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
+    
+    joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') + 
+                                    "/config/joint_impedance_controller_config.yaml")
 
     eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
                   "/config/eci_config.yaml")
@@ -75,8 +78,8 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-            "kuka_controllers/JointImpedanceController", "--inactive"],
+            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-p",
+            joint_imp_controller_config, "--inactive"],
         ),
 
         Node(
@@ -85,11 +88,11 @@ def generate_launch_description():
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
 
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            name="rviz2",
-            output="log",
-            arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
-        )
+        # Node(
+        #     package="rviz2",
+        #     executable="rviz2",
+        #     name="rviz2",
+        #     output="log",
+        #     arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
+        # )
     ])
