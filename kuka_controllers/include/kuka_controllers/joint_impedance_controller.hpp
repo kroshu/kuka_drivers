@@ -68,6 +68,12 @@ private:
   // Parameters from ROS for joint_impedance_controller
   std::shared_ptr<joint_impedance_controller::ParamListener> param_listener_;
   joint_impedance_controller::Params params_;
+
+  // Private consts
+  const std::vector<std::string> command_interfaces_param = {"stiffness", "damping"};
+  static constexpr double STIFFNESS_DEFAULT = 10;
+  static constexpr double DAMPING_DEFAULT = 0.7;
+
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__JOINT_IMPEDANCE_CONTROLLER_HPP_
