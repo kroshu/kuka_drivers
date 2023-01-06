@@ -73,8 +73,6 @@ public:
 private:
   bool is_active_ = false;
   bool msg_received_ = false;
-  std::string rsi_ip_address_ = "";
-  int rsi_port_ = 0;
 
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;

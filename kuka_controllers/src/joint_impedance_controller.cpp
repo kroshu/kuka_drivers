@@ -18,8 +18,8 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn JointImpedanceController::on_init()
 {
-  stiffness_.resize(6);
-  damping_.resize(6);
+  stiffness_.resize(6, 10);
+  damping_.resize(6, 0.7);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 

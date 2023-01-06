@@ -57,6 +57,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
+  control_signal_ext_.control_signal.update_attributes = true;
   control_signal_ext_.control_signal.has_joint_attributes = true;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
