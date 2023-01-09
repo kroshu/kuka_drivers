@@ -80,21 +80,24 @@ private:
   std::vector<double> hw_damping_;
 
   uint64_t ipoc_ = 0;
-  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   unsigned char token_[16];
   int32_t timeout_;
   bool stopped_ = true;
 
+#ifdef NON_MOCK_SETUP
+  kuka::ecs::v1::CommandState command_state_;
+  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
+#endif
+
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
-  kuka::ecs::v1::CommandState command_state_;
   std::mutex observe_mutex_;
 
   // insert port of your client instead of -1
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("<insert ip of your client here>", -1));
+    os::core::udp::communication::SocketAddress("10.36.61.10", 44444));
 
   std::thread start_control_thread_;
 

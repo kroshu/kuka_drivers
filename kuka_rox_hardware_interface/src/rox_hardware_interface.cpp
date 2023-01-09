@@ -165,7 +165,9 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   while (is_active_) {std::this_thread::sleep_for(std::chrono::milliseconds(10));}
 
   terminate_ = true;
-  if (context_ != nullptr) {context_->TryCancel();}
+  #ifdef NON_MOCK_SETUP
+    if (context_ != nullptr) {context_->TryCancel();}
+  #endif
 
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -262,6 +264,7 @@ bool KukaRoXHardwareInterface::isActive() const
 
 void KukaRoXHardwareInterface::ObserveControl()
 {
+  #ifdef NON_MOCK_SETUP
   RCLCPP_INFO(
     rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "Observe control");
@@ -311,6 +314,7 @@ void KukaRoXHardwareInterface::ObserveControl()
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
   }
+  #endif
 }
 
 }  // namespace namespace kuka_rox

@@ -31,28 +31,29 @@ find_package(kuka_sunrise) # TODO: move internal lib to another package
 include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
-find_package(os-core-udp-communication REQUIRED)
-find_package(motion-services-ecs-proto-api-cpp REQUIRED)
-find_package(motion-external-proto-api-nanopb REQUIRED)
-find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
-include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
-message("Using real kuka libs")
-add_definitions(-DNON_MOCK_SETUP)
+  find_package(os-core-udp-communication REQUIRED)
+  find_package(motion-services-ecs-proto-api-cpp REQUIRED)
+  find_package(motion-external-proto-api-nanopb REQUIRED)
+  find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
+  include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
+  message("Using real kuka libs")
+  add_definitions(-DNON_MOCK_SETUP)
 else()
-include_directories(include/mock)
-add_library(os-core-udp-communication SHARED
-src/mock/os-core-udp-communication/udp_replier_mock.cpp
-src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+  include_directories(include/mock)
+  add_library(os-core-udp-communication SHARED
+  src/mock/os-core-udp-communication/udp_replier_mock.cpp
+  src/mock/os-core-udp-communication/udp_socket_mock.cpp)
 
-add_library(motion-services-ecs-proto-api-cpp INTERFACE)
-target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
+  add_library(motion-services-ecs-proto-api-cpp INTERFACE)
+  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
 
-add_library(motion-external-proto-api-nanopb INTERFACE)
-target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
+  add_library(motion-external-proto-api-nanopb INTERFACE)
+  target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
 
-add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
-target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
-message("Using mock kuka libs")
+  add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
+  target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
+  message("Using mock kuka libs")
+  remove_definitions(-DNON_MOCK_SETUP)
 endif()
 
 
