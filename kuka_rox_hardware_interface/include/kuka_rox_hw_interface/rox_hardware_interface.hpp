@@ -97,7 +97,7 @@ private:
 
   // insert port of your client instead of -1
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("10.36.61.10", 44444));
+    os::core::udp::communication::SocketAddress("insert client ip here", -1));
 
   std::thread start_control_thread_;
 

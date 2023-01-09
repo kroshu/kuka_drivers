@@ -150,8 +150,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   //     ? position_controller_name : torque_controller_name;
   controller_names_.clear();
   controller_names_.emplace_back("joint_trajectory_controller");
-  if (is_joint_imp_contr_)
-  {
+  if (is_joint_imp_contr_) {
     controller_names_.emplace_back("joint_impedance_controller");
   }
 
