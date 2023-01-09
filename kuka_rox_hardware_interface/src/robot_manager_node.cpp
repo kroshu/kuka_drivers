@@ -154,7 +154,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   {
     controller_names_.emplace_back("joint_impedance_controller");
   }
-  
+
   // Activate RT commander
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers = controller_names_;

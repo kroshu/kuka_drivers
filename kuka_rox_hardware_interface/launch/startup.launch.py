@@ -41,8 +41,8 @@ def generate_launch_description():
 
     controller_manager_node = '/controller_manager'
 
-    rviz_config_file = os.path.join(
-        get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf.rviz')
+    # rviz_config_file = os.path.join(
+    #     get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf.rviz')
 
     return LaunchDescription([
         Node(
@@ -76,7 +76,7 @@ def generate_launch_description():
             package="controller_manager",
             executable="spawner",
             arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-            "kuka_controllers/JointImpedanceController", "--inactive"],
+                       "kuka_controllers/JointImpedanceController", "--inactive"],
         ),
 
         Node(

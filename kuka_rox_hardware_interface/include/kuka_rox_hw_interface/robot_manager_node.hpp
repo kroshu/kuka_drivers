@@ -17,6 +17,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"

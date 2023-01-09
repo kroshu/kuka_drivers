@@ -234,7 +234,7 @@ return_type KukaRoXHardwareInterface::write(
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
-    // TODO should we separate control modes somehow?
+    // TODO(Svastits): should we separate control modes somehow?
     control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
     control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];
   }
