@@ -166,7 +166,7 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
 
   terminate_ = true;
   #ifdef NON_MOCK_SETUP
-    if (context_ != nullptr) {context_->TryCancel();}
+  if (context_ != nullptr) {context_->TryCancel();}
   #endif
 
   if (observe_thread_.joinable()) {
