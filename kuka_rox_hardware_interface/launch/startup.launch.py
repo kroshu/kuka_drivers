@@ -83,13 +83,5 @@ def generate_launch_description():
             package="controller_manager",
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
-        ),
-
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            name="rviz2",
-            output="log",
-            arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
         )
     ])
