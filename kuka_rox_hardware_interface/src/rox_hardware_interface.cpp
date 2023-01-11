@@ -179,21 +179,21 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+
+  #ifndef NON_MOCK_SETUP
+  std::this_thread::sleep_for(std::chrono::microseconds(3900));
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    hw_states_[i] = hw_commands_[i];
+  }
+  return return_type::OK;
+  #endif
+
   if (!is_active_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     msg_received_ = false;
 
     return return_type::OK;
   }
-
-#ifndef NON_MOCK_SETUP
-  std::this_thread::sleep_for(std::chrono::microseconds(3900));
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_states_[i] = hw_commands_[i];
-  }
-  return return_type::OK;
-#endif
-
 
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)

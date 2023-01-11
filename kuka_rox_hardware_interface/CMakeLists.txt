@@ -14,7 +14,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-option(MOCK_KUKA_LIBS "Use mock classes instead of the kuka lib classes" ON)
+# option(MOCK_KUKA_LIBS "Use mock classes instead of the kuka lib classes" ON)
+set(MOCK_KUKA_LIBS TRUE)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)

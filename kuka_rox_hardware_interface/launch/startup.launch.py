@@ -41,8 +41,8 @@ def generate_launch_description():
 
     controller_manager_node = '/controller_manager'
 
-    # rviz_config_file = os.path.join(
-    #     get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf.rviz')
+    rviz_config_file = os.path.join(
+        get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf_wo_planning_scene.rviz')
 
     return LaunchDescription([
         Node(
@@ -73,15 +73,23 @@ def generate_launch_description():
                        joint_traj_controller_config, "--inactive"]
         ),
         Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-                       "kuka_controllers/JointImpedanceController", "--inactive"],
+           package="controller_manager",
+           executable="spawner",
+           arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
+                      "kuka_controllers/JointImpedanceController", "--inactive"],
         ),
 
         Node(
             package="controller_manager",
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
+        ),
+        
+        Node(
+            package="rviz2",
+            executable="rviz2",
+            name="rviz2",
+            output="log",
+            arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
         )
     ])
