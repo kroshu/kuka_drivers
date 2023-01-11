@@ -109,7 +109,7 @@ JointImpedanceController::on_configure(const rclcpp_lifecycle::State &)
   joint_impedance_subscriber_ = get_node()->create_subscription<std_msgs::msg::Float64MultiArray>(
     "joint_impedance", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
-      for (auto i = 0; i < (int) dof_; ++i) {
+      for (size_t i = 0; i < dof_; ++i) {
         stiffness_[i] = msg->data[i];
         damping_[i] = msg->data[i + dof_];
       }
@@ -135,7 +135,7 @@ controller_interface::return_type JointImpedanceController::update(
   const rclcpp::Duration &)
 {
 
-  for (auto index = 0; index < (int) dof_*command_interfaces_param.size(); index+2) {
+  for (auto index = 0; index < dof_*command_interfaces_param.size(); index+2) {
     command_interfaces_[index].set_value(stiffness_[index]);
   }
   for (auto index = 1; index < dof_*command_interfaces_param.size(); index+2) {
