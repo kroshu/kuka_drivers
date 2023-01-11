@@ -135,10 +135,10 @@ controller_interface::return_type JointImpedanceController::update(
   const rclcpp::Duration &)
 {
 
-  for (auto index = 0; index < (int) dof_; ++index) {
+  for (auto index = 0; index < (int) dof_*command_interfaces_param.size(); index+2) {
     command_interfaces_[index].set_value(stiffness_[index]);
   }
-  for (auto index = dof_; index < dof_*command_interfaces_param.size(); ++index) {
+  for (auto index = 1; index < dof_*command_interfaces_param.size(); index+2) {
     command_interfaces_[index].set_value(damping_[index-dof_]);
   }
   return controller_interface::return_type::OK;
