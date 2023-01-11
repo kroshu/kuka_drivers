@@ -78,13 +78,11 @@ def generate_launch_description():
            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
                       "kuka_controllers/JointImpedanceController", "--inactive"],
         ),
-
         Node(
             package="controller_manager",
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
-        
         Node(
             package="rviz2",
             executable="rviz2",
