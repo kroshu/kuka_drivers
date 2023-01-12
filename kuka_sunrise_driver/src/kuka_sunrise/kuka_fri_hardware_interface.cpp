@@ -108,6 +108,14 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
     }
   }
 
+  struct sched_param param;
+  param.sched_priority = 95;
+  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
+    return CallbackReturn::ERROR;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
