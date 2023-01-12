@@ -1,4 +1,4 @@
-# Copyright 2022 Aron Svastits
+# Copyright 2020 Zoltán Rési
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,47 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-
 from launch.actions.include_launch_description import IncludeLaunchDescription
-from launch.launch_description_sources.python_launch_description_source import PythonLaunchDescriptionSource  # noqa: E501
+from launch.launch_description_sources.python_launch_description_source import (
+    PythonLaunchDescriptionSource)
 import launch_ros.actions
-import yaml
-
-
-def load_file(package_name, file_path):
-
-    package_path = get_package_share_directory(package_name)
-    absolute_file_path = os.path.join(package_path, file_path)
-
-    try:
-        with open(absolute_file_path, 'r') as file:
-            return file.read()
-    except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
-        print('Couldnt load file ' + absolute_file_path)
-        return None
-
-
-def load_yaml(package_name, file_path):
-
-    package_path = get_package_share_directory(package_name)
-    absolute_file_path = os.path.join(package_path, file_path)
-
-    try:
-        with open(absolute_file_path, 'r') as file:
-            return yaml.safe_load(file)
-    except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
-        print('Couldnt load yaml ' + absolute_file_path)
-        return None
 
 
 def generate_launch_description():
-
-    robot_config_file = get_package_share_directory('robot_control') + "/config/lbr_iiwa.yaml"
     kuka_sunrise_dir = get_package_share_directory('kuka_sunrise')
+    robot_config_file = get_package_share_directory('robot_control') + "/config/lbr_iiwa.yaml"
 
     kuka_sunrise_interface = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([kuka_sunrise_dir, '/launch/kuka_sunrise.launch.py'])
@@ -60,19 +30,24 @@ def generate_launch_description():
 
     joint_controller = launch_ros.actions.LifecycleNode(
         namespace="", package='robot_control', executable='interpolating_controller',
-        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file],
-        name='joint_controller',  output='both',
+        parameters=[robot_config_file], name='joint_controller',  output='both',
         remappings=[('measured_joint_state', 'lbr_joint_state'),
                     ('joint_command', 'lbr_joint_command')]
         )
 
+    keyboard_control = launch_ros.actions.LifecycleNode(
+        package='teleop_guided_robot', executable='keyboard_control', output='screen',
+        name='keyboard_control', namespace=""
+    )
+
     system_manager = launch_ros.actions.LifecycleNode(
         package='teleop_guided_robot', executable='system_manager', output='screen',
         name='system_manager', namespace=""
-        )
+    )
 
     return LaunchDescription([
         kuka_sunrise_interface,
-        system_manager,
-        joint_controller
+        joint_controller,
+        keyboard_control,
+        system_manager
         ])

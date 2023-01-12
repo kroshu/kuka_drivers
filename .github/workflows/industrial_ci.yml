@@ -39,11 +39,12 @@ jobs:
           BUILDER: colcon
           ANALYZER: sonarqube
           TEST_COVERAGE: true
-          UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master'
+          UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master github:kroshu/kuka_simulators#main'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      BEFORE_INIT: 'apt update && apt-get install -y libgrpc++-dev && apt-get install -y libnanopb-dev'
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
