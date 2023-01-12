@@ -60,8 +60,8 @@ def generate_launch_description():
 
     joint_controller = launch_ros.actions.LifecycleNode(
         namespace="", package='robot_control', executable='interpolating_controller',
+        arguments=['--ros-args', '--log-level', 'info'], parameters=[robot_config_file],
         name='joint_controller',  output='both',
-        parameters=[robot_config_file, {"velocity_factors": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]}],
         remappings=[('measured_joint_state', 'lbr_joint_state'),
                     ('joint_command', 'lbr_joint_command')]
         )
