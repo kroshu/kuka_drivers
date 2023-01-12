@@ -88,12 +88,12 @@ int main(int argc, char * argv[])
   // Move to origin point
   geometry_msgs::msg::Pose msg;
   msg.orientation.x = 0.0;
-  msg.orientation.y = 0.0;
+  msg.orientation.y = -sqrt(2.0) / 2.0;
   msg.orientation.z = 0.0;
-  msg.orientation.w = 1.0;
-  msg.position.x = 0.35;
+  msg.orientation.w = sqrt(2.0) / 2.0;
+  msg.position.x = 0.1;
   msg.position.y = 0.0;
-  msg.position.z = 0.4;
+  msg.position.z = 0.8;
   waypoints.push_back(msg);
 
   RCLCPP_INFO(logger, "Start planning");

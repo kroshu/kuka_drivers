@@ -20,7 +20,6 @@ from moveit_configs_utils import MoveItConfigsBuilder
 from launch_ros.actions import LifecycleNode
 
 
-
 def load_file(package_name, file_path):
     package_path = get_package_share_directory(package_name)
     absolute_file_path = os.path.join(package_path, file_path)
@@ -78,8 +77,8 @@ def generate_launch_description():
             executable="robot_manager_node",
             parameters=[eci_config,
                         {'position_controller_name': 'joint_trajectory_controller'},
-                               {'impedance_controller_name': 'joint_impedance_controller'},
-                               {'torque_controller_name': ''}]
+                        {'impedance_controller_name': 'joint_impedance_controller'},
+                        {'torque_controller_name': ''}]
         ),
         Node(
             package='robot_state_publisher',
@@ -106,7 +105,7 @@ def generate_launch_description():
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
-        #Start the actual move_group node/action server
+        # Start the actual move_group node/action server
         Node(
             package="moveit_ros_move_group",
             executable="move_group",
