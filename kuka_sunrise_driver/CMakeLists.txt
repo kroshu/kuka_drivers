@@ -85,8 +85,8 @@ ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node
-        lifecycle_client_node
+install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node position_controller_node torque_controller_node
+        lifecycle_client_node sunrise_control_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
