@@ -85,9 +85,9 @@ ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node position_controller_node torque_controller_node
-  lifecycle_client_node sunrise_control_node
-  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node
+        lifecycle_client_node
+        DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME})
@@ -113,13 +113,26 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright()
+  # install custom copyright name
+  install(CODE
+    "execute_process(
+      COMMAND
+        \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\"
+        \"egg_info\" \"--egg-base\" \"${PROJECT_BINARY_DIR}\"
+        \"build\" \"--build-base\" \"${PROJECT_BINARY_DIR}/build\"
+        \"install\" \"--prefix\" \"${CMAKE_INSTALL_PREFIX}\"
+        \"--record\" \"${PROJECT_BINARY_DIR}/install_copyright.log\"
+        \"--single-version-externally-managed\"
+      WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
+  )
+
+  ament_copyright(--exclude include/fri_client/*)
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify()
+  ament_uncrustify(--exclude include/fri_client/*)
   ament_xmllint()
 endif()
 
