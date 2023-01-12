@@ -15,8 +15,6 @@
 #ifndef KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 #define KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
 
-#define MOCK_HW_ONLY true
-
 #include <vector>
 #include <string>
 #include <memory>
@@ -75,27 +73,32 @@ public:
 private:
   bool is_active_ = false;
   bool msg_received_ = false;
-  std::string rsi_ip_address_ = "";
-  int rsi_port_ = 0;
 
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;
+  std::vector<double> hw_stiffness_;
+  std::vector<double> hw_damping_;
 
   uint64_t ipoc_ = 0;
-  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   unsigned char token_[16];
   int32_t timeout_;
   bool stopped_ = true;
 
+#ifdef NON_MOCK_SETUP
+  kuka::ecs::v1::CommandState command_state_;
+  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
+#endif
+
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
-  kuka::ecs::v1::CommandState command_state_;
   std::mutex observe_mutex_;
 
+  // insert port of your client instead of -1
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress("<insert ip of your client here>", -1));  // insert port of your client instead of -1
+    os::core::udp::communication::SocketAddress("insert client ip here", -1));
+
   std::thread start_control_thread_;
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
@@ -105,6 +108,9 @@ private:
 
   nanopb::kuka::core::motion::JointPositions start_pos_{
     nanopb::kuka::core::motion::JointPositions_init_default};
+
+  static constexpr char HW_IF_STIFFNESS[] = "stiffness";
+  static constexpr char HW_IF_DAMPING[] = "damping";
 };
 }  // namespace kuka_rox
 

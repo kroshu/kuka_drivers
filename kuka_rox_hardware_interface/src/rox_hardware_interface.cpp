@@ -25,11 +25,10 @@
 
 
 // TODO(Svastits): mock this out properly
-#if MOCK_HW_ONLY
-   #include "nanopb/nanopb_helper.h"
-#endif
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
+#else
+  #include "nanopb/nanopb_helper.h"
 #endif
 
 using namespace kuka::ecs::v1;  // NOLINT
@@ -43,20 +42,25 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
       "<insert ip of KRC here>:<insert external grpc port of KRC here>",
       grpc::InsecureChannelCredentials()));
 #endif
-  hw_states_.resize(info_.joints.size(), 0);
+  hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
+  hw_stiffness_.resize(info_.joints.size(), 10);
+  hw_damping_.resize(info_.joints.size(), 0.7);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
-#if !MOCK_HW_ONLY
+  control_signal_ext_.control_signal.has_joint_attributes = true;
+  control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
+  control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
+#ifdef NON_MOCK_SETUP
   if (udp_replier_.Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::ERROR;
@@ -106,6 +110,20 @@ export_command_interfaces()
       hardware_interface::HW_IF_POSITION,
       &hw_commands_[i]);
   }
+
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      HW_IF_STIFFNESS,
+      &hw_stiffness_[i]);
+  }
+
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      HW_IF_DAMPING,
+      &hw_damping_[i]);
+  }
   return command_interfaces;
 }
 
@@ -114,7 +132,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
 
 
-#if !MOCK_HW_ONLY
+#ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
   start_control_thread_ = std::thread(
@@ -124,11 +142,12 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       OpenControlChannelResponse response;
       grpc::ClientContext context;
 
+      request.set_ip_address("<insert ip of your client here>");
       request.set_timeout(5000);
       request.set_cycle_time(4);
       request.set_external_control_mode(
         kuka::motion::external::ExternalControlMode::
-        POSITION_CONTROL);
+        JOINT_IMPEDANCE_CONTROL);
       stub_->OpenControlChannel(&context, request, &response);
     });
 #endif
@@ -145,7 +164,9 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   while (is_active_) {std::this_thread::sleep_for(std::chrono::milliseconds(10));}
 
   terminate_ = true;
+  #ifdef NON_MOCK_SETUP
   if (context_ != nullptr) {context_->TryCancel();}
+  #endif
 
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -157,21 +178,20 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  #ifndef NON_MOCK_SETUP
+  std::this_thread::sleep_for(std::chrono::microseconds(3900));
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    hw_states_[i] = hw_commands_[i];
+  }
+  return return_type::OK;
+  #endif
+
   if (!is_active_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     msg_received_ = false;
 
     return return_type::OK;
   }
-
-#if MOCK_HW_ONLY
-  std::this_thread::sleep_for(std::chrono::microseconds(3900));
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_states_[i] = hw_commands_[i];
-  }
-  return return_type::OK;
-#endif
-
 
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
@@ -212,6 +232,9 @@ return_type KukaRoXHardwareInterface::write(
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+    // TODO(Svastits): should we separate control modes somehow?
+    control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
+    control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];
   }
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
@@ -239,6 +262,7 @@ bool KukaRoXHardwareInterface::isActive() const
 
 void KukaRoXHardwareInterface::ObserveControl()
 {
+  #ifdef NON_MOCK_SETUP
   RCLCPP_INFO(
     rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "Observe control");
@@ -288,6 +312,7 @@ void KukaRoXHardwareInterface::ObserveControl()
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
   }
+  #endif
 }
 
 }  // namespace namespace kuka_rox

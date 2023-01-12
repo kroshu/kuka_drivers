@@ -101,8 +101,9 @@ add_executable(lifecycle_client_node
 ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
 
 
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node lifecycle_client_node
-  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node
+        lifecycle_client_node
+        DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME})
@@ -116,10 +117,6 @@ install(
 )
 
 if(BUILD_TESTING)
-
-  # _ament_cmake_python_register_environment_hook()
-
-
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
@@ -141,27 +138,14 @@ if(BUILD_TESTING)
         \"--single-version-externally-managed\"
       WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
   )
-  file(GLOB fri_headers
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}/include/fri_client"
-    include/fri_client/*)
 
-  ament_copyright(--exclude ${fri_headers})
-#    friClientApplication.h
-#    friClientIf.h
-#    friConnectionIf.h
-#    friException.h
-#    friLBRClient.h
-#    friLBRCommand.h
-#    friLBRState.h
-#    friTransformationClient.h
-#    friUdpConnection.h)
+  ament_copyright(--exclude include/fri_client/*)
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify(--exclude ${fri_headers})
+  ament_uncrustify(--exclude include/fri_client/*)
   ament_xmllint()
 endif()
 

@@ -233,7 +233,7 @@ bool JointControllerBase::onVelocityFactorsChangeRequest(
 
 void JointControllerBase::updateMaxPositionDifference()
 {
-  auto calc_pos_diff = [ & loop_period_ms_ = loop_period_ms_](double v) {
+  auto calc_pos_diff = [&loop_period_ms_ = loop_period_ms_](double v) {
       return v * loop_period_ms_ / JointControllerBase::ms_in_sec_;
     };
   std::transform(

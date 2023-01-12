@@ -17,6 +17,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
@@ -59,10 +60,12 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  std::string controller_name_;
+  std::vector<std::string> controller_names_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
+
+  static constexpr bool is_joint_imp_contr_ = true;
 };
 
 }  // namespace kuka_rox
