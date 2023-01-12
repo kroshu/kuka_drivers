@@ -138,21 +138,8 @@ if(BUILD_TESTING)
         \"--single-version-externally-managed\"
       WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
   )
-  file(GLOB fri_headers
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}/include/fri_client"
-    include/fri_client/*)
 
-  ament_copyright(--exclude ${fri_headers})
-#    friClientApplication.h
-#    friClientIf.h
-#    friConnectionIf.h
-#    friException.h
-#    friLBRClient.h
-#    friLBRCommand.h
-#    friLBRState.h
-#    friTransformationClient.h
-#    friUdpConnection.h)
+  ament_copyright(--exclude include/fri_client/*)
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
