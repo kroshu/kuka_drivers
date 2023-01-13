@@ -99,8 +99,6 @@ private:
   os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
     os::core::udp::communication::SocketAddress("insert client ip here", -1));
 
-  std::thread start_control_thread_;
-
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{

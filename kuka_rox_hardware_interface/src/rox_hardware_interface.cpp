@@ -135,21 +135,22 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
-  start_control_thread_ = std::thread(
-    [this]()
-    {
-      OpenControlChannelRequest request;
-      OpenControlChannelResponse response;
-      grpc::ClientContext context;
+  OpenControlChannelRequest request;
+  OpenControlChannelResponse response;
+  grpc::ClientContext context;
 
       request.set_ip_address("<insert ip of your client here>");
-      request.set_timeout(5000);
-      request.set_cycle_time(4);
-      request.set_external_control_mode(
-        kuka::motion::external::ExternalControlMode::
-        JOINT_IMPEDANCE_CONTROL);
-      stub_->OpenControlChannel(&context, request, &response);
-    });
+  request.set_timeout(5000);
+  request.set_cycle_time(4);
+  request.set_external_control_mode(
+    kuka::motion::external::ExternalControlMode::
+    JOINT_IMPEDANCE_CONTROL);
+  if (stub_->OpenControlChannel(
+      &context, request,
+      &response).error_code() != grpc::StatusCode::OK)
+  {
+    return CallbackReturn::ERROR;
+  }
 #endif
 
   return CallbackReturn::SUCCESS;
