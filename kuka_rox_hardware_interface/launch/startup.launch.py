@@ -58,10 +58,7 @@ def generate_launch_description():
             namespace='',
             package="kuka_rox_hw_interface",
             executable="robot_manager_node",
-            parameters=[eci_config,
-                        {'position_controller_name': 'joint_trajectory_controller'},
-                        {'impedance_controller_name': 'joint_impedance_controller'},
-                        {'torque_controller_name': ''}]
+            parameters=[eci_config]
         ),
         Node(
             package='robot_state_publisher',

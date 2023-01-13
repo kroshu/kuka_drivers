@@ -39,6 +39,27 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  this->registerParameter<std::string>(
+    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true, 
+    false, true}, [this](const std::string & control_mode){
+      return true;
+    });
+  this->registerParameter<std::string>(
+    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    false, true}, [this](const std::string & controller_name){
+      return true;
+    });
+  this->registerParameter<std::string>(
+    "impedance_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    false, true}, [this](const std::string & controller_name){
+      return true;
+    });
+  this->registerParameter<std::string>(
+    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    false, true}, [this](const std::string & controller_name){
+      return true;
+    });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -144,15 +165,29 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  // auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
-  // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
-  //     ? position_controller_name : torque_controller_name;
+  // Select control mode
+  auto position_controller_name = this->get_parameter("position_controller_name").as_string();
+  auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
+  auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
+  auto control_mode = this->get_parameter("control_mode").as_string();
   controller_names_.clear();
-  controller_names_.emplace_back("joint_trajectory_controller");
-  if (is_joint_imp_contr_)
+  if (control_mode == POSITION_CONTROL)
   {
+    controller_names_.emplace_back("joint_trajectory_controller");
+  }
+  else if (control_mode == IMPEDANCE_CONTROL)
+  {
+    controller_names_.emplace_back("joint_trajectory_controller");
     controller_names_.emplace_back("joint_impedance_controller");
+  }
+  else if (control_mode == TORQUE_CONTROL)
+  {
+
+  }
+  else
+  {
+    RCLCPP_ERROR(get_logger(), "Not valid control mode, control mode set to: %s", control_mode);
+    return ERROR;
   }
   
   // Activate RT commander

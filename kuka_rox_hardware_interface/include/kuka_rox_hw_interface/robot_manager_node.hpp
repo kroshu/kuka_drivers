@@ -64,6 +64,10 @@ private:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
+  const std::string POSITION_CONTROL = "position";
+  const std::string TORQUE_CONTROL = "torque";
+  const std::string IMPEDANCE_CONTROL = "impedance";
+
   static constexpr bool is_joint_imp_contr_ = true;
 };
 
