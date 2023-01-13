@@ -6,7 +6,7 @@
       type: joint_trajectory_controller/JointTrajectoryController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-  joint_trajectory_controller:
+    joint_impedance_controller:
       type: kuka_controllers/JointImpedanceController
   
     configure_components_on_start: [""]
