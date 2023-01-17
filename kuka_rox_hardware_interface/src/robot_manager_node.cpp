@@ -43,20 +43,20 @@ RobotManagerNode::RobotManagerNode()
   this->registerParameter<std::string>(
     "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true, 
     false, true}, [this](const std::string & control_mode){
-      return true;
+      return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
-    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    POSITION_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
     false, true}, [this](const std::string & controller_name){
       return true;
     });
   this->registerParameter<std::string>(
-    "impedance_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    IMPEDANCE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
     false, true}, [this](const std::string & controller_name){
       return true;
     });
   this->registerParameter<std::string>(
-    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
+    TORQUE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
     false, true}, [this](const std::string & controller_name){
       return true;
     });
@@ -165,7 +165,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // Select control mode
+  // Select control modes
   auto position_controller_name = this->get_parameter("position_controller_name").as_string();
   auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
   auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
@@ -242,6 +242,34 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
   return SUCCESS;
+}
+
+bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mode)
+{
+  if(control_mode == POSITION_CONTROL ||
+     control_mode == IMPEDANCE_CONTROL ||
+     control_mode == TORQUE_CONTROL)
+  {
+
+  }
+
+  // if (control_mode == POSITION_CONTROL) {
+  //   return robot_manager_->setPositionControlMode();
+  // } else if (control_mode == IMPEDANCE_CONTROL) {
+  //   try {
+  //     return robot_manager_->setJointImpedanceControlMode(
+  //       joint_stiffness_,
+  //       joint_damping_);
+  //   } catch (const std::exception & e) {
+  //     RCLCPP_ERROR(robot_manager_node_->get_logger(), e.what());
+  //   }
+  //   return false;
+  // } else {
+  //   RCLCPP_ERROR(
+  //     robot_manager_node_->get_logger(), "Control mode should be '%s' or '%s'",
+  //     POSITION_CONTROL.c_str(), IMPEDANCE_CONTROL.c_str());
+  //   return false;
+  // }
 }
 }  // namespace kuka_rox
 

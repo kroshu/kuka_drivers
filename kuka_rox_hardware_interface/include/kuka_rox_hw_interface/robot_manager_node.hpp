@@ -53,6 +53,8 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &);
 
+  bool onControlModeChangeRequest(const std::string & control_mode);
+
 private:
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -67,6 +69,10 @@ private:
   const std::string POSITION_CONTROL = "position";
   const std::string TORQUE_CONTROL = "torque";
   const std::string IMPEDANCE_CONTROL = "impedance";
+
+  const std::string POSITION_CONTROLLER_NAME = "position_controller_name";
+  const std::string IMPEDANCE_CONTROLLER_NAME = "impedance_controller_name";
+  const std::string TORQUE_CONTROLLER_NAME = "torque_controller_name";
 
   static constexpr bool is_joint_imp_contr_ = true;
 };
