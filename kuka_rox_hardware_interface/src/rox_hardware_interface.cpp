@@ -203,7 +203,7 @@ return_type KukaRoXHardwareInterface::read(
         req_message.first, req_message.second, motion_state_external_))
     {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Decoding request failed");
-      return return_type::ERROR;
+      throw std::runtime_error("Decoding request failed");
     }
     control_signal_ext_.header.ipoc = motion_state_external_.header.ipoc;
 
@@ -244,14 +244,14 @@ return_type KukaRoXHardwareInterface::write(
     RCLCPP_ERROR(
       rclcpp::get_logger(
         "KukaRoXHardwareInterface"), "Encoding of control signal to out_buffer failed.");
-    return return_type::ERROR;
+    throw std::runtime_error("Encoding of control signal to out_buffer failed.");
   }
 
   if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    return return_type::ERROR;
+    throw std::runtime_error("Error sending reply");
   }
   return return_type::OK;
 }
