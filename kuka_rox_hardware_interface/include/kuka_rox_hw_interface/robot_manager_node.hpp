@@ -73,6 +73,7 @@ private:
   const std::string POSITION_CONTROLLER_NAME = "position_controller_name";
   const std::string IMPEDANCE_CONTROLLER_NAME = "impedance_controller_name";
   const std::string TORQUE_CONTROLLER_NAME = "torque_controller_name";
+  const std::string CONTROL_MODE = "control_mode"
 
   static constexpr bool is_joint_imp_contr_ = true;
 };
