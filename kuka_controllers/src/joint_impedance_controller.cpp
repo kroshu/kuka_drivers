@@ -139,7 +139,7 @@ controller_interface::return_type JointImpedanceController::update(
     command_interfaces_[index].set_value(stiffness_[index]);
   }
   for (auto index = 1; index < dof_*command_interfaces_param.size(); index+2) {
-    command_interfaces_[index].set_value(damping_[index-dof_]);
+    command_interfaces_[index].set_value(damping_[index]);
   }
   return controller_interface::return_type::OK;
 }
