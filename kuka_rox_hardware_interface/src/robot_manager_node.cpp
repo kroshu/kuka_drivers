@@ -40,26 +40,32 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/is_configured",
     is_configured_qos);
 
+  control_mode_map_.emplace(std::make_pair(POSITION_CONTROL, std::vector<std::string>()));
+  control_mode_map_.emplace(std::make_pair(IMPEDANCE_CONTROL, std::vector<std::string>()));
+  control_mode_map_.emplace(std::make_pair(TORQUE_CONTROL, std::vector<std::string>()));
+
   this->registerParameter<std::string>(
-    CONTROL_MODE, POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
     false, false}, [this](const std::string & control_mode){
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
-    POSITION_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    POSITION_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
     false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
   this->registerParameter<std::string>(
-    IMPEDANCE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    IMPEDANCE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
     false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
   this->registerParameter<std::string>(
-    TORQUE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    TORQUE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
     false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
+
+
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -166,29 +172,23 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
 
   // Select control modes
-  auto position_controller_name = this->get_parameter(POSITION_CONTROLLER_NAME).as_string();
-  auto impedance_controller_name = this->get_parameter(IMPEDANCE_CONTROLLER_NAME).as_string();
-  auto torque_controller_name = this->get_parameter(TORQUE_CONTROLLER_NAME).as_string();
-  auto control_mode = this->get_parameter(CONTROL_MODE).as_string();
-  controller_names_.clear();
-  if (control_mode == POSITION_CONTROL)
-  {
-    controller_names_.emplace_back(position_controller_name);
-  }
-  else if (control_mode == IMPEDANCE_CONTROL)
-  {
-    controller_names_.emplace_back(position_controller_name);
-    controller_names_.emplace_back(impedance_controller_name);
-  }
-  else if (control_mode == TORQUE_CONTROL)
-  {
-    controller_names_.emplace_back(torque_controller_name);
-  }
-  else
+  auto position_controller_name = this->get_parameter(POSITION_CONTROLLER_NAME_PARAM).as_string();
+  auto impedance_controller_name = this->get_parameter(IMPEDANCE_CONTROLLER_NAME_PARAM).as_string();
+  auto torque_controller_name = this->get_parameter(TORQUE_CONTROLLER_NAME_PARAM).as_string();
+  auto control_mode = this->get_parameter("control_mode").as_string();
+
+  control_mode_map_.at(POSITION_CONTROL) = {position_controller_name};
+  control_mode_map_.at(IMPEDANCE_CONTROL) = {position_controller_name, impedance_controller_name};
+  control_mode_map_.at(TORQUE_CONTROL) = {torque_controller_name};
+
+  if (control_mode_map_.find(control_mode) == control_mode_map_.end())
   {
     RCLCPP_ERROR(get_logger(), "Not valid control mode, control mode set to: %s", control_mode.c_str());
     return ERROR;
   }
+  
+
+  controller_names_ = control_mode_map_.at(control_mode);
   
   // Activate RT commander
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;

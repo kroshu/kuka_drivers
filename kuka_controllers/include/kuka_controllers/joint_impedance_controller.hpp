@@ -71,7 +71,7 @@ private:
 
   // Private consts
   const std::vector<std::string> command_interfaces_param = {"stiffness", "damping"};
-  static constexpr double STIFFNESS_DEFAULT = 10;
+  static constexpr double STIFFNESS_DEFAULT = 30;
   static constexpr double DAMPING_DEFAULT = 0.7;
 
 };
