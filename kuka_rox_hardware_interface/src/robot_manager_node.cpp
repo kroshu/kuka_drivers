@@ -41,23 +41,23 @@ RobotManagerNode::RobotManagerNode()
     is_configured_qos);
 
   this->registerParameter<std::string>(
-    CONTROL_MODE, POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true, 
-    false, true}, [this](const std::string & control_mode){
+    CONTROL_MODE, POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    false, false}, [this](const std::string & control_mode){
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
-    POSITION_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
-    false, true}, [this](const std::string & controller_name){
+    POSITION_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
   this->registerParameter<std::string>(
-    IMPEDANCE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
-    false, true}, [this](const std::string & controller_name){
+    IMPEDANCE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
   this->registerParameter<std::string>(
-    TORQUE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {false, true, false, 
-    false, true}, [this](const std::string & controller_name){
+    TORQUE_CONTROLLER_NAME, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
+    false, false}, [this](const std::string & /*controller_name*/){
       return true;
     });
 }
@@ -186,7 +186,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
   else
   {
-    RCLCPP_ERROR(get_logger(), "Not valid control mode, control mode set to: %s", control_mode);
+    RCLCPP_ERROR(get_logger(), "Not valid control mode, control mode set to: %s", control_mode.c_str());
     return ERROR;
   }
   
@@ -250,12 +250,12 @@ bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mo
      control_mode == IMPEDANCE_CONTROL ||
      control_mode == TORQUE_CONTROL)
   {
-    RCLCPP_INFO(get_logger(), "Control mode changed to %s", control_mode);
+    RCLCPP_INFO(get_logger(), "Control mode changed to %s", control_mode.c_str());
     return true;
   }
   else
   {
-    RCLCPP_WARN(get_logger(), "Could not change control mode, %s is not a valid control mode", control_mode);
+    RCLCPP_WARN(get_logger(), "Could not change control mode, %s is not a valid control mode", control_mode.c_str());
     return false;
   }
 }
