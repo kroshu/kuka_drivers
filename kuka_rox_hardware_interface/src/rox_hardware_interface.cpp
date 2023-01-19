@@ -57,7 +57,6 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
-  control_signal_ext_.control_signal.update_attributes = true;
   control_signal_ext_.control_signal.has_joint_attributes = true;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
@@ -165,7 +164,9 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   while (is_active_) {std::this_thread::sleep_for(std::chrono::milliseconds(10));}
 
   terminate_ = true;
+  #ifdef NON_MOCK_SETUP
   if (context_ != nullptr) {context_->TryCancel();}
+  #endif
 
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -177,21 +178,20 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  #ifndef NON_MOCK_SETUP
+  std::this_thread::sleep_for(std::chrono::microseconds(3900));
+  for (size_t i = 0; i < info_.joints.size(); i++) {
+    hw_states_[i] = hw_commands_[i];
+  }
+  return return_type::OK;
+  #endif
+
   if (!is_active_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     msg_received_ = false;
 
     return return_type::OK;
   }
-
-#ifndef NON_MOCK_SETUP
-  std::this_thread::sleep_for(std::chrono::microseconds(3900));
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_states_[i] = hw_commands_[i];
-  }
-  return return_type::OK;
-#endif
-
 
   if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
     UDPSocket::ErrorCode::kSuccess)
@@ -232,7 +232,7 @@ return_type KukaRoXHardwareInterface::write(
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
-    // TODO should we separate control modes somehow?
+    // TODO(Svastits): should we separate control modes somehow?
     control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
     control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];
   }
@@ -262,6 +262,7 @@ bool KukaRoXHardwareInterface::isActive() const
 
 void KukaRoXHardwareInterface::ObserveControl()
 {
+  #ifdef NON_MOCK_SETUP
   RCLCPP_INFO(
     rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "Observe control");
@@ -311,6 +312,7 @@ void KukaRoXHardwareInterface::ObserveControl()
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
   }
+  #endif
 }
 
 }  // namespace namespace kuka_rox
