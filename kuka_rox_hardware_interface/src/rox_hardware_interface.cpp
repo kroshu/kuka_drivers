@@ -51,7 +51,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
-  hw_stiffness_.resize(info_.joints.size(), 10);
+  hw_stiffness_.resize(info_.joints.size(), 30);
   hw_damping_.resize(info_.joints.size(), 0.7);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
