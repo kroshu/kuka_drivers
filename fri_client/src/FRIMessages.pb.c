@@ -5,35 +5,35 @@
 
 
 
-const pb_field_t JointValues_fields[2] = {
+const pb_msgdesc_t JointValues_fields[2] = {
     PB_FIELD2(  1, DOUBLE  , REPEATED, CALLBACK, FIRST, JointValues, value, value, 0),
     PB_LAST_FIELD
 };
 
-const pb_field_t TimeStamp_fields[3] = {
+const pb_sm TimeStamp_fields[3] = {
     PB_FIELD2(  1, UINT32  , REQUIRED, STATIC  , FIRST, TimeStamp, sec, sec, 0),
     PB_FIELD2(  2, UINT32  , REQUIRED, STATIC  , OTHER, TimeStamp, nanosec, sec, 0),
     PB_LAST_FIELD
 };
 
-const pb_field_t CartesianVector_fields[2] = {
+const pb_msgdesc_t CartesianVector_fields[2] = {
     PB_FIELD2(  1, DOUBLE  , REPEATED, STATIC  , FIRST, CartesianVector, element, element, 0),
     PB_LAST_FIELD
 };
 
-const pb_field_t Checksum_fields[2] = {
+const pb_msgdesc_t Checksum_fields[2] = {
     PB_FIELD2(  1, INT32   , OPTIONAL, STATIC  , FIRST, Checksum, crc32, crc32, 0),
     PB_LAST_FIELD
 };
 
-const pb_field_t Transformation_fields[4] = {
+const pb_msgdesc_t Transformation_fields[4] = {
     PB_FIELD2(  1, STRING  , REQUIRED, STATIC  , FIRST, Transformation, name, name, 0),
     PB_FIELD2(  2, DOUBLE  , REPEATED, STATIC  , OTHER, Transformation, matrix, name, 0),
     PB_FIELD2(  3, MESSAGE , OPTIONAL, STATIC  , OTHER, Transformation, timestamp, matrix, &TimeStamp_fields),
     PB_LAST_FIELD
 };
 
-const pb_field_t FriIOValue_fields[6] = {
+const pb_msgdesc_t FriIOValue_fields[6] = {
     PB_FIELD2(  1, STRING  , REQUIRED, STATIC  , FIRST, FriIOValue, name, name, 0),
     PB_FIELD2(  2, ENUM    , REQUIRED, STATIC  , OTHER, FriIOValue, type, name, 0),
     PB_FIELD2(  3, ENUM    , REQUIRED, STATIC  , OTHER, FriIOValue, direction, type, 0),
@@ -42,14 +42,14 @@ const pb_field_t FriIOValue_fields[6] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t MessageHeader_fields[4] = {
+const pb_msgdesc_t MessageHeader_fields[4] = {
     PB_FIELD2(  1, UINT32  , REQUIRED, STATIC  , FIRST, MessageHeader, messageIdentifier, messageIdentifier, 0),
     PB_FIELD2(  2, UINT32  , REQUIRED, STATIC  , OTHER, MessageHeader, sequenceCounter, messageIdentifier, 0),
     PB_FIELD2(  3, UINT32  , REQUIRED, STATIC  , OTHER, MessageHeader, reflectedSequenceCounter, sequenceCounter, 0),
     PB_LAST_FIELD
 };
 
-const pb_field_t ConnectionInfo_fields[5] = {
+const pb_msgdesc_t ConnectionInfo_fields[5] = {
     PB_FIELD2(  1, ENUM    , REQUIRED, STATIC  , FIRST, ConnectionInfo, sessionState, sessionState, 0),
     PB_FIELD2(  2, ENUM    , REQUIRED, STATIC  , OTHER, ConnectionInfo, quality, sessionState, 0),
     PB_FIELD2(  3, UINT32  , OPTIONAL, STATIC  , OTHER, ConnectionInfo, sendPeriod, quality, 0),
@@ -57,7 +57,7 @@ const pb_field_t ConnectionInfo_fields[5] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t RobotInfo_fields[6] = {
+const pb_msgdesc_t RobotInfo_fields[6] = {
     PB_FIELD2(  1, INT32   , OPTIONAL, STATIC  , FIRST, RobotInfo, numberOfJoints, numberOfJoints, 0),
     PB_FIELD2(  2, ENUM    , OPTIONAL, STATIC  , OTHER, RobotInfo, safetyState, numberOfJoints, 0),
     PB_FIELD2(  5, ENUM    , REPEATED, CALLBACK, OTHER, RobotInfo, driveState, safetyState, 0),
@@ -66,7 +66,7 @@ const pb_field_t RobotInfo_fields[6] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t MessageMonitorData_fields[8] = {
+const pb_msgdesc_t MessageMonitorData_fields[8] = {
     PB_FIELD2(  1, MESSAGE , OPTIONAL, STATIC  , FIRST, MessageMonitorData, measuredJointPosition, measuredJointPosition, &JointValues_fields),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, MessageMonitorData, measuredTorque, measuredJointPosition, &JointValues_fields),
     PB_FIELD2(  3, MESSAGE , OPTIONAL, STATIC  , OTHER, MessageMonitorData, commandedJointPosition, measuredTorque, &JointValues_fields),
@@ -77,7 +77,7 @@ const pb_field_t MessageMonitorData_fields[8] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t MessageIpoData_fields[5] = {
+const pb_msgdesc_t MessageIpoData_fields[5] = {
     PB_FIELD2(  1, MESSAGE , OPTIONAL, STATIC  , FIRST, MessageIpoData, jointPosition, jointPosition, &JointValues_fields),
     PB_FIELD2( 10, ENUM    , OPTIONAL, STATIC  , OTHER, MessageIpoData, clientCommandMode, jointPosition, 0),
     PB_FIELD2( 11, ENUM    , OPTIONAL, STATIC  , OTHER, MessageIpoData, overlayType, clientCommandMode, 0),
@@ -85,7 +85,7 @@ const pb_field_t MessageIpoData_fields[5] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t MessageCommandData_fields[6] = {
+const pb_msgdesc_t MessageCommandData_fields[6] = {
     PB_FIELD2(  1, MESSAGE , OPTIONAL, STATIC  , FIRST, MessageCommandData, jointPosition, jointPosition, &JointValues_fields),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, MessageCommandData, cartesianWrenchFeedForward, jointPosition, &CartesianVector_fields),
     PB_FIELD2(  3, MESSAGE , OPTIONAL, STATIC  , OTHER, MessageCommandData, jointTorque, cartesianWrenchFeedForward, &JointValues_fields),
@@ -94,13 +94,13 @@ const pb_field_t MessageCommandData_fields[6] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t MessageEndOf_fields[3] = {
+const pb_msgdesc_t MessageEndOf_fields[3] = {
     PB_FIELD2(  1, INT32   , OPTIONAL, STATIC  , FIRST, MessageEndOf, messageLength, messageLength, 0),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, MessageEndOf, messageChecksum, messageLength, &Checksum_fields),
     PB_LAST_FIELD
 };
 
-const pb_field_t FRIMonitoringMessage_fields[8] = {
+const pb_msgdesc_t FRIMonitoringMessage_fields[8] = {
     PB_FIELD2(  1, MESSAGE , REQUIRED, STATIC  , FIRST, FRIMonitoringMessage, header, header, &MessageHeader_fields),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, FRIMonitoringMessage, robotInfo, header, &RobotInfo_fields),
     PB_FIELD2(  3, MESSAGE , OPTIONAL, STATIC  , OTHER, FRIMonitoringMessage, monitorData, robotInfo, &MessageMonitorData_fields),
@@ -111,7 +111,7 @@ const pb_field_t FRIMonitoringMessage_fields[8] = {
     PB_LAST_FIELD
 };
 
-const pb_field_t FRICommandMessage_fields[4] = {
+const pb_msgdesc_t FRICommandMessage_fields[4] = {
     PB_FIELD2(  1, MESSAGE , REQUIRED, STATIC  , FIRST, FRICommandMessage, header, header, &MessageHeader_fields),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, FRICommandMessage, commandData, header, &MessageCommandData_fields),
     PB_FIELD2( 15, MESSAGE , OPTIONAL, STATIC  , OTHER, FRICommandMessage, endOfMessageData, commandData, &MessageEndOf_fields),
@@ -119,7 +119,7 @@ const pb_field_t FRICommandMessage_fields[4] = {
 };
 
 
-/* Check that field information fits in pb_field_t */
+/* Check that field information fits in pb_msgdesc_t */
 #if !defined(PB_FIELD_32BIT)
 /* If you get an error here, it means that you need to define PB_FIELD_32BIT
  * compile-time option. You can do that in pb.h or on compiler command line.

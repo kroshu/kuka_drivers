@@ -59,7 +59,7 @@ cost of any service and repair.
 */
 #include <cstdio>
 #include <friMonitoringMessageDecoder.h>
-#include <nanopb/pb_decode.h>
+#include <pb_decode.h>
 
 
 using namespace KUKA::FRI;

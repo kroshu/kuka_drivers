@@ -3,7 +3,7 @@
 
 #ifndef _PB_FRIMESSAGES_PB_H_
 #define _PB_FRIMESSAGES_PB_H_
-#include <nanopb/pb.h>
+#include <pb.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -270,21 +270,21 @@ typedef struct _FRICommandMessage {
 #define FRICommandMessage_endOfMessageData_tag   15
 
 /* Struct field encoding specification for nanopb */
-extern const pb_field_t JointValues_fields[2];
-extern const pb_field_t TimeStamp_fields[3];
-extern const pb_field_t CartesianVector_fields[2];
-extern const pb_field_t Checksum_fields[2];
-extern const pb_field_t Transformation_fields[4];
-extern const pb_field_t FriIOValue_fields[6];
-extern const pb_field_t MessageHeader_fields[4];
-extern const pb_field_t ConnectionInfo_fields[5];
-extern const pb_field_t RobotInfo_fields[6];
-extern const pb_field_t MessageMonitorData_fields[8];
-extern const pb_field_t MessageIpoData_fields[5];
-extern const pb_field_t MessageCommandData_fields[6];
-extern const pb_field_t MessageEndOf_fields[3];
-extern const pb_field_t FRIMonitoringMessage_fields[8];
-extern const pb_field_t FRICommandMessage_fields[4];
+extern const pb_msgdesc_t JointValues_fields[2];
+extern const pb_msgdesc_t TimeStamp_fields[3];
+extern const pb_msgdesc_t CartesianVector_fields[2];
+extern const pb_msgdesc_t Checksum_fields[2];
+extern const pb_msgdesc_t Transformation_fields[4];
+extern const pb_msgdesc_t FriIOValue_fields[6];
+extern const pb_msgdesc_t MessageHeader_fields[4];
+extern const pb_msgdesc_t ConnectionInfo_fields[5];
+extern const pb_msgdesc_t RobotInfo_fields[6];
+extern const pb_msgdesc_t MessageMonitorData_fields[8];
+extern const pb_msgdesc_t MessageIpoData_fields[5];
+extern const pb_msgdesc_t MessageCommandData_fields[6];
+extern const pb_msgdesc_t MessageEndOf_fields[3];
+extern const pb_msgdesc_t FRIMonitoringMessage_fields[8];
+extern const pb_msgdesc_t FRICommandMessage_fields[4];
 
 /* Maximum encoded size of messages (where known) */
 #define TimeStamp_size                           12

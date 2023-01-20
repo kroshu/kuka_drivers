@@ -16,13 +16,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(nanopb REQUIRED)
 
 ### Append CMAKE_MODULE_PATH by custom find file
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
-
-### Third party dependency
-add_subdirectory(third_party/nanopb)
-
 
 include_directories(include src)
 
@@ -41,30 +38,6 @@ add_library(fri_client SHARED
     src/pb_frimessages_callbacks.c
 )
 
-if(MSVC)
-    target_compile_options(fri_client
-        PRIVATE
-            -DPB_SYSTEM_HEADER=<nanopb/pb_syshdr_win.h>
-            -DPB_FIELD_16BIT
-            -DWIN32
-            -DHAVE_STDINT_H
-            -DHAVE_STDBOOL_H
-    )
-else()
-    target_compile_options(fri_client
-        PRIVATE
-            -O2
-            -Wall
-            -DHAVE_SOCKLEN_T
-            -DPB_SYSTEM_HEADER=<nanopb/pb_syshdr.h>
-            -DPB_FIELD_16BIT
-            -DHAVE_STDINT_H
-            -DHAVE_STDDEF_H
-            -DHAVE_STDBOOL_H
-            -DHAVE_STDLIB_H
-            -DHAVE_STRING_H 
-    ) 
-endif()
 
 file(GLOB private_headers
   LIST_DIRECTORIES FALSE
@@ -76,7 +49,7 @@ file(GLOB private_headers
   src/pb_frimessages_callbacks.h
   )
 
-target_link_libraries(fri_client PRIVATE NanoPB::nanopb)
+target_link_libraries(fri_client PRIVATE nanopb)
 
 ament_export_targets(fri_client HAS_LIBRARY_TARGET)
 
