@@ -5,10 +5,10 @@ agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software “KUKA Sunrise.Connectivity FRI Client SDK” is targeted to work in
-conjunction with the “KUKA Sunrise.Connectivity FastRobotInterface” toolkit.
-In the following, the term “software” refers to all material directly
-belonging to the provided SDK “Software development kit”, particularly source
+The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
+conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
+In the following, the term "software" refers to all material directly
+belonging to the provided SDK "Software development kit", particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
