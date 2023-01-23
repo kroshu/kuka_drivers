@@ -51,7 +51,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
-  hw_stiffness_.resize(info_.joints.size(), 10);
+  hw_stiffness_.resize(info_.joints.size(), 30);
   hw_damping_.resize(info_.joints.size(), 0.7);
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
@@ -135,21 +135,22 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
-  start_control_thread_ = std::thread(
-    [this]()
-    {
-      OpenControlChannelRequest request;
-      OpenControlChannelResponse response;
-      grpc::ClientContext context;
+  OpenControlChannelRequest request;
+  OpenControlChannelResponse response;
+  grpc::ClientContext context;
 
       request.set_ip_address("<insert ip of your client here>");
-      request.set_timeout(5000);
-      request.set_cycle_time(4);
-      request.set_external_control_mode(
-        kuka::motion::external::ExternalControlMode::
-        JOINT_IMPEDANCE_CONTROL);
-      stub_->OpenControlChannel(&context, request, &response);
-    });
+  request.set_timeout(5000);
+  request.set_cycle_time(4);
+  request.set_external_control_mode(
+    kuka::motion::external::ExternalControlMode::
+    JOINT_IMPEDANCE_CONTROL);
+  if (stub_->OpenControlChannel(
+      &context, request,
+      &response).error_code() != grpc::StatusCode::OK)
+  {
+    return CallbackReturn::ERROR;
+  }
 #endif
 
   return CallbackReturn::SUCCESS;
@@ -202,7 +203,7 @@ return_type KukaRoXHardwareInterface::read(
         req_message.first, req_message.second, motion_state_external_))
     {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Decoding request failed");
-      return return_type::ERROR;
+      throw std::runtime_error("Decoding request failed");
     }
     control_signal_ext_.header.ipoc = motion_state_external_.header.ipoc;
 
@@ -243,14 +244,14 @@ return_type KukaRoXHardwareInterface::write(
     RCLCPP_ERROR(
       rclcpp::get_logger(
         "KukaRoXHardwareInterface"), "Encoding of control signal to out_buffer failed.");
-    return return_type::ERROR;
+    throw std::runtime_error("Encoding of control signal to out_buffer failed.");
   }
 
   if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    return return_type::ERROR;
+    throw std::runtime_error("Error sending reply");
   }
   return return_type::OK;
 }

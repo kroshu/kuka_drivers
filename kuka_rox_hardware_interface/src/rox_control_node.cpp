@@ -43,14 +43,18 @@ int main(int argc, char ** argv)
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
       std::chrono::milliseconds dt_ms {1000 / controller_manager->get_update_rate()};
 
-      while (rclcpp::ok()) {
-        if (is_configured) {
-          controller_manager->read(controller_manager->now(), dt);
-          controller_manager->update(controller_manager->now(), dt);
-          controller_manager->write(controller_manager->now(), dt);
-        } else {
-          std::this_thread::sleep_for(dt_ms);
+      try {
+        while (rclcpp::ok()) {
+          if (is_configured) {
+            controller_manager->read(controller_manager->now(), dt);
+            controller_manager->update(controller_manager->now(), dt);
+            controller_manager->write(controller_manager->now(), dt);
+          } else {
+            std::this_thread::sleep_for(dt_ms);
+          }
         }
+      } catch (std::exception& e) {
+            std::cout << "Error: quitting control loop due to:" << e.what() << std::endl;
       }
     });
 
