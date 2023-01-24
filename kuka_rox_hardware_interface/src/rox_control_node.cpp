@@ -53,8 +53,8 @@ int main(int argc, char ** argv)
             std::this_thread::sleep_for(dt_ms);
           }
         }
-      } catch (std::exception& e) {
-            std::cout << "Error: quitting control loop due to:" << e.what() << std::endl;
+      } catch (std::exception & e) {
+        std::cout << "Error: quitting control loop due to:" << e.what() << std::endl;
       }
     });
 
