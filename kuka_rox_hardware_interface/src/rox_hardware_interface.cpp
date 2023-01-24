@@ -194,7 +194,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
+  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(6)) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_.GetRequestMessage();
@@ -210,14 +210,18 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
-      if (!msg_received_) {hw_commands_[i] = hw_states_[i];}
+      if (!msg_received_) {hw_commands_[i] = hw_states_[i];} //TODO: new flag for first tick
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
+    msg_received_ = true;
+  } else {
+    RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
+    RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
+    msg_received_ = false;
   }
-  msg_received_ = true;
   return return_type::OK;
 }
 
