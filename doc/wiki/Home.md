@@ -87,6 +87,7 @@ The configuration files for the IP adresses are not used yet, so one has to edit
   - modify the IP address and port at rox_hardware_interface.cpp L49 to the IP and port of your controller
   - modify the IP address at rox_hardware_interface.cpp L142 to the IP of your ROS2 client machine
   - modify the IP address and port at rox_hardware_interface.hpp L100 to the IP and port of your ROS2 client machine
+
 Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98")
 The control mode of the robot is also hard-coded in the hardware interface, you can choose either the POSITION_CONTROL or JOINT_IMPEDANCE_CONTROL enum (rox_hardware_interface.hpp L147). A rebuild is needed after control mode changes.
 By default, the mock libraries are used, this can be changed in the Cmakelists.txt at L18 by changing to set(MOCK_KUKA_LIBS FALSE) before building.
