@@ -3,6 +3,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+
 def generate_launch_description():
 
     impedance_config = PathJoinSubstitution(
@@ -11,8 +12,9 @@ def generate_launch_description():
             "config",
             "dummy_impedance_publisher.yaml",
         ]
-    ) 
-    return LaunchDescription( ## TODO: create a dummy publisher script in the ros2_control_test_nodes repo
+    )
+    # TODO: create a dummy publisher script in the ros2_control_test_nodes repo
+    return LaunchDescription(
         [
             Node(
                 package="ros2_control_test_nodes",
