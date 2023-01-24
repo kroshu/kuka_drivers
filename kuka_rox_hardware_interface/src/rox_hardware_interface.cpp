@@ -53,6 +53,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   hw_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_.resize(info_.joints.size(), 30);
   hw_damping_.resize(info_.joints.size(), 0.7);
+  motion_state_external_.header.ipoc = 0;
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
@@ -144,7 +145,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_cycle_time(4);
   request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode::
-    JOINT_IMPEDANCE_CONTROL);
+    POSITION_CONTROL);
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)
@@ -210,7 +211,7 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
-      if (!msg_received_) {hw_commands_[i] = hw_states_[i];} //TODO: new flag for first tick
+      if (!msg_received_ && motion_state_external_.header.ipoc ==  0) {hw_commands_[i] = hw_states_[i];}
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
@@ -232,6 +233,7 @@ return_type KukaRoXHardwareInterface::write(
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
+  // If control is not started or a request is missed, do not send back anything
   if (!msg_received_) {
     return return_type::OK;
   }
