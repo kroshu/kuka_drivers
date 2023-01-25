@@ -21,7 +21,10 @@ add_definitions(-DCLIENT_IP="<insert_client_ip>")
 add_definitions(-DCLIENT_PORT=-1)  # insert client port here
 add_definitions(-DCONTROLLER_IP="<insert_controller_ip>")
 add_definitions(-DGRPC_PORT=-1)  # insert client port here
-
+# Change control mode
+#  1: joint position control
+#  3: joint impedance control
+add_definitions(-DCONTROL_MODE=1)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)

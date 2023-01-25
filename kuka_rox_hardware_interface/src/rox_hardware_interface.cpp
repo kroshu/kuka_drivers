@@ -139,8 +139,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    kuka::motion::external::ExternalControlMode::
-    POSITION_CONTROL);
+    static_cast<kuka::motion::external::ExternalControlMode>(CONTROL_MODE));
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)
