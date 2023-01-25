@@ -46,7 +46,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
-      "<insert ip of KRC here>:<insert external grpc port of KRC here>",
+      std::string(CONTROLLER_IP) + ":" + std::to_string(GRPC_PORT),
       grpc::InsecureChannelCredentials()));
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
@@ -140,7 +140,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   OpenControlChannelResponse response;
   grpc::ClientContext context;
 
-  request.set_ip_address("<insert ip of your client here>");
+  request.set_ip_address(CLIENT_IP);
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
@@ -195,7 +195,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(6)) ==
+  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(100)) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_.GetRequestMessage();
@@ -211,7 +211,9 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
-      if (!msg_received_ && motion_state_external_.header.ipoc ==  0) {hw_commands_[i] = hw_states_[i];}
+      if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
+        hw_commands_[i] = hw_states_[i];
+      }
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
@@ -220,7 +222,9 @@ return_type KukaRoXHardwareInterface::read(
     msg_received_ = true;
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
-    RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
+    RCLCPP_WARN(
+      rclcpp::get_logger(
+        "KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
     msg_received_ = false;
   }
   return return_type::OK;
