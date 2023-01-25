@@ -23,13 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "nanopb-helpers/nanopb_serialization_helper.h"
 
-// TODO(Svastits): mock this out properly
-#ifdef NON_MOCK_SETUP
-  #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
-#else
-  #include "nanopb/nanopb_helper.h"
-#endif
 
 using namespace kuka::ecs::v1;  // NOLINT
 
@@ -195,7 +190,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(100)) ==
+  if (udp_replier_.ReceiveRequestOrTimeout(receive_timeout_) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_.GetRequestMessage();
@@ -220,6 +215,7 @@ return_type KukaRoXHardwareInterface::read(
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
     msg_received_ = true;
+    receive_timeout_ = std::chrono::milliseconds(6);
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
     RCLCPP_WARN(
