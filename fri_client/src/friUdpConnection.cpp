@@ -179,7 +179,7 @@ int UdpConnection::receive(char *buffer, int maxSize)
 #ifdef HAVE_SOCKLEN_T
       socklen_t sockAddrSize;
 #else
-      int sockAddrSize;
+      unsigned int sockAddrSize;
 #endif
       sockAddrSize = sizeof(struct sockaddr_in);
       /** check for timeout
