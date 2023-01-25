@@ -23,13 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "nanopb-helpers/nanopb_serialization_helper.h"
 
-// TODO(Svastits): mock this out properly
-#ifdef NON_MOCK_SETUP
-  #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
-#else
-  #include "nanopb/nanopb_helper.h"
-#endif
 
 using namespace kuka::ecs::v1;  // NOLINT
 
@@ -46,13 +41,14 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
-      "<insert ip of KRC here>:<insert external grpc port of KRC here>",
+      std::string(CONTROLLER_IP) + ":" + std::to_string(GRPC_PORT),
       grpc::InsecureChannelCredentials()));
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_.resize(info_.joints.size(), 30);
   hw_damping_.resize(info_.joints.size(), 0.7);
+  motion_state_external_.header.ipoc = 0;
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
@@ -139,12 +135,11 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   OpenControlChannelResponse response;
   grpc::ClientContext context;
 
-  request.set_ip_address("<insert ip of your client here>");
+  request.set_ip_address(CLIENT_IP);
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    kuka::motion::external::ExternalControlMode::
-    JOINT_IMPEDANCE_CONTROL);
+    static_cast<kuka::motion::external::ExternalControlMode>(CONTROL_MODE));
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)
@@ -194,7 +189,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(std::chrono::milliseconds(4000)) ==
+  if (udp_replier_.ReceiveRequestOrTimeout(receive_timeout_) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_.GetRequestMessage();
@@ -210,14 +205,23 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
-      if (!msg_received_) {hw_commands_[i] = hw_states_[i];}
+      if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
+        hw_commands_[i] = hw_states_[i];
+      }
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
+    msg_received_ = true;
+    receive_timeout_ = std::chrono::milliseconds(6);
+  } else {
+    RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
+    RCLCPP_WARN(
+      rclcpp::get_logger(
+        "KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
+    msg_received_ = false;
   }
-  msg_received_ = true;
   return return_type::OK;
 }
 
@@ -228,6 +232,7 @@ return_type KukaRoXHardwareInterface::write(
   size_t MTU = 1500;
   uint8_t out_buff_arr[MTU];
 
+  // If control is not started or a request is missed, do not send back anything
   if (!msg_received_) {
     return return_type::OK;
   }
