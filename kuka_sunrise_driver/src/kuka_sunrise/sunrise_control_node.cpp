@@ -28,22 +28,30 @@ int main(int argc, char ** argv)
     executor,
     "controller_manager");
 
-  auto callback = [controller_manager](std_msgs::msg::Bool::SharedPtr) {
-      RCLCPP_INFO(controller_manager->get_logger(), "Robot manager node shut down, terminating");
-      rclcpp::shutdown();
-    };
-  auto sub =
-    controller_manager->create_subscription<std_msgs::msg::Bool>("control_ended", 1, callback);
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
+  qos.best_effort();
+
+  std::atomic_bool is_configured = false;
+  auto is_configured_sub = controller_manager->create_subscription<std_msgs::msg::Bool>(
+    "robot_manager/is_configured", qos,
+    [&is_configured](std_msgs::msg::Bool::SharedPtr msg) {
+      is_configured = msg->data;
+    });
 
 
-  std::thread control_loop([controller_manager]() {
+  std::thread control_loop([controller_manager, &is_configured]() {
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
+      std::chrono::milliseconds dt_ms {1000 / controller_manager->get_update_rate()};
 
       while (rclcpp::ok()) {
-        controller_manager->read(controller_manager->now(), dt);
-        controller_manager->update(controller_manager->now(), dt);
-        controller_manager->write(controller_manager->now(), dt);
+        if (is_configured) {
+          controller_manager->read(controller_manager->now(), dt);
+          controller_manager->update(controller_manager->now(), dt);
+          controller_manager->write(controller_manager->now(), dt);
+        } else {
+          std::this_thread::sleep_for(dt_ms);
+        }
       }
     });
 
