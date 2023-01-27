@@ -26,7 +26,7 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
 #include "fri/friLBRClient.h"
 #include "fri/HWIFClientApplication.hpp"
@@ -92,7 +92,7 @@ private:
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
 
-  rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
+  rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
 
   // Command interface must be of type double, but controller can set only integers

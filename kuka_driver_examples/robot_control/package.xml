@@ -12,7 +12,7 @@
   <build_depend>rclcpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>rclcpp_lifecycle</build_depend>
-  <build_depend>kuka_sunrise_interfaces</build_depend>
+  <build_depend>kuka_driver_interfaces</build_depend>
   <build_depend>kroshu_ros2_core</build_depend>
   
   <exec_depend>rclcpp</exec_depend>

@@ -22,7 +22,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
-#include "kuka_sunrise_interfaces/msg/robot_state.hpp"
+#include "kuka_driver_interfaces/msg/robot_state.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp/duration.hpp"
 
@@ -55,8 +55,8 @@ public:
 
 private:
   int counter_ = 0;
-  rclcpp::Publisher<kuka_sunrise_interfaces::msg::RobotState>::SharedPtr robot_state_publisher_;
-  kuka_sunrise_interfaces::msg::RobotState state_msg_;
+  rclcpp::Publisher<kuka_driver_interfaces::msg::RobotState>::SharedPtr robot_state_publisher_;
+  kuka_driver_interfaces::msg::RobotState state_msg_;
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__ROBOT_STATE_BROADCASTER_HPP_

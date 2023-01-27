@@ -107,8 +107,8 @@ JointControllerBase::JointControllerBase(
     });
 
   auto send_period_callback = [this](
-    kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
-    kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
+    kuka_driver_interfaces::srv::SetInt::Request::SharedPtr request,
+    kuka_driver_interfaces::srv::SetInt::Response::SharedPtr response) {
       if (this->get_current_state().label() != "active") {
         send_period_ms_ = request->data;
         loop_period_ms_ = send_period_ms_ * receive_multiplier_;
@@ -126,11 +126,11 @@ JointControllerBase::JointControllerBase(
     };
 
   sync_send_period_service_ = this->create_service<
-    kuka_sunrise_interfaces::srv::SetInt>("sync_send_period", send_period_callback);
+    kuka_driver_interfaces::srv::SetInt>("sync_send_period", send_period_callback);
 
   auto receive_multiplier_callback = [this](
-    kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
-    kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
+    kuka_driver_interfaces::srv::SetInt::Request::SharedPtr request,
+    kuka_driver_interfaces::srv::SetInt::Response::SharedPtr response) {
       if (this->get_current_state().label() != "active") {
         receive_multiplier_ = request->data;
         loop_period_ms_ = send_period_ms_ * receive_multiplier_;
@@ -148,7 +148,7 @@ JointControllerBase::JointControllerBase(
     };
 
   sync_receive_multiplier_service_ = this->create_service<
-    kuka_sunrise_interfaces::srv::SetInt>("sync_receive_multiplier", receive_multiplier_callback);
+    kuka_driver_interfaces::srv::SetInt>("sync_receive_multiplier", receive_multiplier_callback);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn JointControllerBase::

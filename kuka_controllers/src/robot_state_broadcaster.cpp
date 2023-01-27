@@ -18,7 +18,7 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn RobotStateBroadcaster::on_init()
 {
-  robot_state_publisher_ = get_node()->create_publisher<kuka_sunrise_interfaces::msg::RobotState>(
+  robot_state_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::RobotState>(
     "robot_state", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;
 }

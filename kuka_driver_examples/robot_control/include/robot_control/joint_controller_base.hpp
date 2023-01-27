@@ -22,8 +22,8 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "kuka_sunrise_interfaces/srv/set_double.hpp"
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_double.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -72,8 +72,8 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::JointState>::SharedPtr
     joint_command_publisher_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr measured_joint_state_listener_;
-  rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
-  rclcpp::Service<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;
+  rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr sync_send_period_service_;
+  rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr sync_receive_multiplier_service_;
 
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     joint_controller_is_active_publisher_;

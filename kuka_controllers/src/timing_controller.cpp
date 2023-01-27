@@ -18,13 +18,13 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn TimingController::on_init()
 {
-  auto callback = [this](kuka_sunrise_interfaces::srv::SetInt::Request::SharedPtr request,
-      kuka_sunrise_interfaces::srv::SetInt::Response::SharedPtr response) {
+  auto callback = [this](kuka_driver_interfaces::srv::SetInt::Request::SharedPtr request,
+      kuka_driver_interfaces::srv::SetInt::Response::SharedPtr response) {
       resend_multiplier_ = true;
       receive_multiplier_ = request->data;
       response->success = true;
     };
-  receive_multiplier_service_ = get_node()->create_service<kuka_sunrise_interfaces::srv::SetInt>(
+  receive_multiplier_service_ = get_node()->create_service<kuka_driver_interfaces::srv::SetInt>(
     "set_receive_multiplier", callback);
   // TODO(Svastits): create service to get multiplier changes (or perpaps parameter??)
   //   and set resend_multiplier_ to true in the callback

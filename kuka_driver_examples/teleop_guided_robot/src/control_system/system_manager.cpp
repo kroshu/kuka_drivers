@@ -42,7 +42,7 @@ SystemManager::SystemManager(
     });
 
   get_state_client_ =
-    this->create_client<kuka_sunrise_interfaces::srv::GetState>(
+    this->create_client<kuka_driver_interfaces::srv::GetState>(
     "robot_control/get_fri_state");
   manage_processing_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
     "system_manager/manage", 1);
@@ -311,11 +311,11 @@ void SystemManager::getFRIState()
     RCLCPP_INFO(this->get_logger(), "service not available, waiting again...");
   }
   auto request = std::make_shared<
-    kuka_sunrise_interfaces::srv::GetState::Request>();
+    kuka_driver_interfaces::srv::GetState::Request>();
 
   auto response_received_callback =
     [this](
-    rclcpp::Client<kuka_sunrise_interfaces::srv::GetState>::SharedFuture future) {
+    rclcpp::Client<kuka_driver_interfaces::srv::GetState>::SharedFuture future) {
       auto result = future.get();
       lbr_state_ = static_cast<int>(result->data);
 

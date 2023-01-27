@@ -23,8 +23,8 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "kuka_sunrise_interfaces/srv/set_double.hpp"
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_double.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
 
 #include "robot_control/interpolating_controller.hpp"
 
@@ -46,7 +46,7 @@ private:
   void setSlowStart();
   bool OnReferenceRateChangeRequest(const double & reference_rate);
 
-  rclcpp::Service<kuka_sunrise_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
+  rclcpp::Service<kuka_driver_interfaces::srv::SetDouble>::SharedPtr set_rate_service_;
 
   std::vector<double> prev_ref_joint_pos_ = std::vector<double>(n_dof_);
   std::vector<double> pprev_ref_joint_pos_ = std::vector<double>(n_dof_);

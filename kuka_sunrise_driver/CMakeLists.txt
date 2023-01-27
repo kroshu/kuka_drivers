@@ -23,7 +23,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(kuka_sunrise_interfaces REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(fri REQUIRED)
 find_package(hardware_interface REQUIRED)
@@ -51,25 +51,25 @@ add_library(robot_manager SHARED
 add_library(kuka_fri_hw_interface SHARED
   src/kuka_sunrise/kuka_fri_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_fri_hw_interface kuka_sunrise_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+ament_target_dependencies(kuka_fri_hw_interface kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
 target_link_libraries(kuka_fri_hw_interface fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
+ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
                           controller_manager_msgs)
 
 
 add_executable(robot_manager_node
   src/kuka_sunrise/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
+ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
 target_link_libraries(robot_manager_node
   robot_manager
   configuration_manager)
 
 add_executable(sunrise_control_node
   src/kuka_sunrise/sunrise_control_node.cpp)
-ament_target_dependencies(sunrise_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle controller_manager)
+ament_target_dependencies(sunrise_control_node kuka_driver_interfaces rclcpp rclcpp_lifecycle controller_manager)
 
 add_executable(position_controller_node
   test/position_controller.cpp)

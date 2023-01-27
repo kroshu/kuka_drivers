@@ -25,7 +25,7 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
 #include "controller_manager_msgs/srv/list_controllers.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
@@ -50,7 +50,7 @@ private:
   std::shared_ptr<RobotManager> robot_manager_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
-  rclcpp::Client<kuka_sunrise_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
+  rclcpp::Client<kuka_driver_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
   rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
 

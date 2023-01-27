@@ -23,8 +23,8 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "kuka_sunrise_interfaces/srv/set_double.hpp"
-#include "kuka_sunrise_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_double.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
 
 #include "robot_control/joint_controller_base.hpp"
 

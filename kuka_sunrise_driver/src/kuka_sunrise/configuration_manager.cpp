@@ -34,7 +34,7 @@ ConfigurationManager::ConfigurationManager(
   param_cbg_ = robot_manager_node->create_callback_group(
     rclcpp::CallbackGroupType::MutuallyExclusive);
   receive_multiplier_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
+    kuka_driver_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
     cbg_);
 
@@ -262,9 +262,9 @@ bool ConfigurationManager::setCommandMode(const std::string & command_mode) cons
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
 {
   // Set receive multiplier of hardware interface through controller manager service
-  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
+  auto request = std::make_shared<kuka_driver_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
-  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
+  auto response = kuka_sunrise::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
     receive_multiplier_client_, request, 0, 1000);
 
   if (!response || !response->success) {

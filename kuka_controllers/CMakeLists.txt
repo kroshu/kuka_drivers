@@ -10,7 +10,7 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(kuka_sunrise_interfaces REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 
 include_directories(include)
 
@@ -23,7 +23,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp controller_interface std_msgs kuka_sunrise_interfaces
+ament_target_dependencies(${PROJECT_NAME} rclcpp controller_interface std_msgs kuka_driver_interfaces
 )
 
 pluginlib_export_plugin_description_file(controller_interface controller_plugins.xml)
