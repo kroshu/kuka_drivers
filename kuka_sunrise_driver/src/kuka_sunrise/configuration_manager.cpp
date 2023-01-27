@@ -207,7 +207,7 @@ bool ConfigurationManager::onControllerNameChangeRequest(
 {
   auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
   auto response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
     get_controllers_client_, request, 0, 1000);
 
   if (!response) {
@@ -264,7 +264,7 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
   // Set receive multiplier of hardware interface through controller manager service
   auto request = std::make_shared<kuka_driver_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
-  auto response = kuka_sunrise::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
+  auto response = kroshu_ros2_core::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
     receive_multiplier_client_, request, 0, 1000);
 
   if (!response || !response->success) {

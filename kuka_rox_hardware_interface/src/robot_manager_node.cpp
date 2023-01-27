@@ -50,7 +50,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   hw_request->name = "iisy_hardware";
   hw_request->target_state.label = "inactive";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000
     );
   if (!hw_response || !hw_response->ok) {
@@ -73,7 +73,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   hw_request->name = "iisy_hardware";
   hw_request->target_state.label = "inactive";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000
     );
   if (!hw_response || !hw_response->ok) {
@@ -120,7 +120,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   hw_request->name = "iisy_hardware";
   hw_request->target_state.label = "active";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000
     );
   if (!hw_response || !hw_response->ok) {
@@ -137,7 +137,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers = std::vector<std::string>{"joint_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -162,7 +162,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers = controller_names_;
   controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -185,7 +185,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->name = "iisy_hardware";
   hw_request->target_state.label = "inactive";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000
     );
   if (!hw_response || !hw_response->ok) {
@@ -204,7 +204,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
   controller_request->deactivate_controllers = controller_names_;
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {

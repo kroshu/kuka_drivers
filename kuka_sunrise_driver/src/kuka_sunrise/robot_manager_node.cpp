@@ -68,7 +68,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   hw_request->name = "iiwa_hardware";
   hw_request->target_state.label = "inactive";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
@@ -93,7 +93,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   controller_request->activate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 3000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start controllers");
@@ -115,7 +115,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (result == SUCCESS) {
     auto trigger_request =
       std::make_shared<std_srvs::srv::Trigger::Request>();
-    auto response = kuka_sunrise::sendRequest<std_srvs::srv::Trigger::Response>(
+    auto response = kroshu_ros2_core::sendRequest<std_srvs::srv::Trigger::Response>(
       set_parameter_client_, trigger_request, 0, 1000);
 
     if (!response || !response->success) {
@@ -151,7 +151,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   controller_request->deactivate_controllers =
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -165,7 +165,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   hw_request->name = "iiwa_hardware";
   hw_request->target_state.label = "unconfigured";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not cleanup hardware interface");
@@ -233,7 +233,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   hw_request->name = "iiwa_hardware";
   hw_request->target_state.label = "active";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
@@ -258,7 +258,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers = std::vector<std::string>{"joint_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
@@ -274,7 +274,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
   controller_request->activate_controllers = std::vector<std::string>{controller_name_};
   controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate controller");
@@ -317,7 +317,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->name = "iiwa_hardware";
   hw_request->target_state.label = "inactive";
   auto hw_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
@@ -334,7 +334,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   controller_request->deactivate_controllers =
     std::vector<std::string>{controller_name_, "joint_state_broadcaster"};
   auto controller_response =
-    kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
