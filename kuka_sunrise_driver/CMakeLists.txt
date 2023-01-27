@@ -15,7 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-option(MOCK_FRI "Use mock classes instead of the FRI Client Library" ON)
+set(MOCK_FRI OFF)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
