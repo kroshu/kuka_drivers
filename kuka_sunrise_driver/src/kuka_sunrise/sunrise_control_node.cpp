@@ -46,7 +46,8 @@ int main(int argc, char ** argv)
 
       while (rclcpp::ok()) {
         if (is_configured) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));  // TODO(Svastits): temporary workaround
+          // TODO(Svastits): temporary workaround
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
           controller_manager->read(controller_manager->now(), dt);
           controller_manager->update(controller_manager->now(), dt);
           controller_manager->write(controller_manager->now(), dt);
