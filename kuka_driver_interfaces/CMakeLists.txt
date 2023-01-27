@@ -22,7 +22,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetInt.srv"
-  "srv/GetState.srv"
+  "srv/GetInt.srv"
   "srv/SetDouble.srv"
   "msg/RobotState.msg"
 )
