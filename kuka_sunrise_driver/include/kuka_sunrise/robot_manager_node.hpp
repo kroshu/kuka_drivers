@@ -75,6 +75,8 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     command_state_changed_publisher_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
+  std_msgs::msg::Bool is_configured_msg_;
   std::string controller_name_;
 
   void handleControlEndedError();

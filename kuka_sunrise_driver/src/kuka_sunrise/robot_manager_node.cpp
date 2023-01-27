@@ -50,6 +50,13 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/commanding_state_changed", qos);
   set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
     "configuration_manager/set_params", ::rmw_qos_profile_default, cbg_);
+
+  auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
+  is_configured_qos.best_effort();
+
+  is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
+    "robot_manager/is_configured",
+    is_configured_qos);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -87,7 +94,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
   auto controller_response =
     kuka_sunrise::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000);
+    change_controller_state_client_, controller_request, 0, 3000);
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start controllers");
     result = FAILURE;
@@ -119,6 +126,11 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (result != SUCCESS) {
     this->on_cleanup(get_current_state());
   }
+
+  is_configured_pub_->on_activate();
+  is_configured_msg_.data = true;
+  is_configured_pub_->publish(is_configured_msg_);
+
   return result;
 }
 
@@ -160,6 +172,12 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  if (is_configured_pub_->is_activated()) {
+    is_configured_pub_->on_deactivate();
+    is_configured_msg_.data = false;
+    is_configured_pub_->publish(is_configured_msg_);
+  }
+
   return SUCCESS;
 }
 
@@ -192,6 +210,7 @@ RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
 }
 
 // TODO(Svastits): activation fails after deactivation
+// TODO(Svastits): check if we have to send unconfigured msg to control node
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
