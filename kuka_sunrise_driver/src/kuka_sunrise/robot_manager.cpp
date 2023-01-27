@@ -18,7 +18,7 @@
 #include <chrono>
 
 #include "kuka_sunrise/robot_manager.hpp"
-#include "kuka_sunrise/internal/serialization.hpp"
+#include "communication_helpers/serialization.hpp"
 #include "kuka_sunrise/tcp_connection.hpp"
 
 namespace kuka_sunrise

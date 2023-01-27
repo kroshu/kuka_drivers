@@ -27,7 +27,6 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include "kuka_driver_interfaces/srv/set_int.hpp"
-#include "kuka_sunrise/internal/activatable_interface.hpp"
 #include "fri/friLBRClient.h"
 #include "fri/HWIFClientApplication.hpp"
 #include "fri/friUdpConnection.h"
@@ -53,9 +52,8 @@ static std::unordered_map<std::string,
 {{"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
 
 class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
-  public KUKA::FRI::LBRClient,
-  public ActivatableInterface  // TODO(Svastits): is this necessary in current state?
-{
+  public KUKA::FRI::LBRClient
+  {
 public:
   KUKAFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
@@ -89,6 +87,7 @@ public:
   };
 
 private:
+  bool is_active_ = false;
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
 

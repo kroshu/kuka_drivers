@@ -31,15 +31,14 @@
 
 #include "kuka_sunrise/robot_manager.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
-#include "kuka_sunrise/internal/activatable_interface.hpp"
-#include "kuka_sunrise/internal/service_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
 namespace kuka_sunrise
 {
 
-class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode, public ActivatableInterface
+class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();

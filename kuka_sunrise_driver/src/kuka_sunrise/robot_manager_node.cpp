@@ -300,7 +300,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (this->isActive() && !this->deactivateControl()) {
+  if (!this->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return ERROR;
   }
@@ -350,14 +350,12 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::activateControl()
 {
-  this->ActivatableInterface::activate();
   if (!robot_manager_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "Not connected");
     return false;
   }
 
   if (!robot_manager_->activateControl()) {
-    this->ActivatableInterface::deactivate();
     RCLCPP_ERROR(get_logger(), "Could not activate control");
     return false;
   }
@@ -374,11 +372,10 @@ bool RobotManagerNode::deactivateControl()
     return false;
   }
 
-  if (this->isActive() && !robot_manager_->deactivateControl()) {
+  if (!robot_manager_->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return false;
   }
-  this->ActivatableInterface::deactivate();
 
   std_msgs::msg::Bool command_state;
   command_state.data = false;

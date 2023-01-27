@@ -14,7 +14,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# option(MOCK_KUKA_LIBS "Use mock classes instead of the kuka lib classes" ON)
 set(MOCK_KUKA_LIBS TRUE)
 
 find_package(ament_cmake REQUIRED)
@@ -28,7 +27,6 @@ find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-find_package(kuka_sunrise) # TODO: move internal lib to another package
 include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
@@ -73,7 +71,7 @@ target_link_libraries(rox_control_node kuka_rox_hw_interface)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_rox_hw_interface kuka_sunrise::internal)
+target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
