@@ -4,4 +4,14 @@
       This controller sets the joint impedance parameters in real time
     </description>
   </class>
+  <class name="kuka_controllers/TimingController" type="kuka_controllers::TimingController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller sets the receive multiplier of the hardware interface
+    </description>
+  </class>
+  <class name="kuka_controllers/RobotStateBroadcaster" type="kuka_controllers::RobotStateBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the state changes of FRI
+    </description>
+  </class>
 </library>

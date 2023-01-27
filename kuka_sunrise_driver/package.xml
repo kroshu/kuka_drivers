@@ -12,21 +12,18 @@
 	<buildtool_depend>ament_cmake_python</buildtool_depend>
 	<buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-	<build_depend>rclcpp</build_depend>
-	<build_depend>rclcpp_lifecycle</build_depend>
-	<build_depend>std_msgs</build_depend>
-	<build_depend>std_srvs</build_depend>
-	<build_depend>sensor_msgs</build_depend>
-	<build_depend>kuka_sunrise_interfaces</build_depend>
-	<build_depend>kroshu_ros2_core</build_depend>
+	<depend>fri</depend>
+	<depend>rclcpp</depend>
+	<depend>rclcpp_lifecycle</depend>
+	<depend>std_msgs</depend>
+	<depend>std_srvs</depend>
+	<depend>sensor_msgs</depend>
+	<depend>kuka_driver_interfaces</depend>
+	<depend>kroshu_ros2_core</depend>
+	<depend>hardware_interface</depend>
+	<depend>controller_manager</depend>
 
-	<exec_depend>rclcpp</exec_depend>
-	<exec_depend>rclcpp_lifecycle</exec_depend>
-	<exec_depend>std_msgs</exec_depend>
-	<exec_depend>std_srvs</exec_depend>
-	<exec_depend>sensor_msgs</exec_depend>
 	<exec_depend>rosidl_default_runtime</exec_depend>
-	<exec_depend>kuka_sunrise_interfaces</exec_depend>
 
 	<test_depend>ament_cmake_copyright</test_depend>
 	<test_depend>ament_cmake_cppcheck</test_depend>

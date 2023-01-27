@@ -83,9 +83,13 @@ Two additional packages (not listed in package.xml) must be installed with apt:
 
 ### Setup
 
-The configuration files for the IP adresses are not used yet, so one has to edit the IP adresses in the hardware interface manually:
-  - modify the IP address at rox_hardware_interface.cpp L42 to the IP of your controller
-  - modify the IP address at rox_hardware_interface.hpp L98 to the IP of your ROS2 client machine
+The configuration files for the IP adresses are not used yet, so one has to edit the IP adresses and ports in the hardware interface cmake file and rebuild afterwards. The CLIENT_IP, CLIENT_PORT, CONTROLLER_IP and GRPC_PORT cmake variables must be modified to your used network setup.
+
+
+The control mode of the robot is also hard-coded in the Cmakelists.txt, you can choose either 1 (POSITION_CONTROL) or 3 (JOINT_IMPEDANCE_CONTROL). A rebuild is needed after control mode changes, run-time configurability is in progress.
+
+By default, the mock libraries are used, this can be also changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
+
 Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98")
 
 ### Usage
