@@ -31,12 +31,12 @@ int main(int argc, char ** argv)
   auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
   qos.best_effort();
 
-  std::atomic_bool is_configured = false;
-  auto is_configured_sub = controller_manager->create_subscription<std_msgs::msg::Bool>(
-    "robot_manager/is_configured", qos,
-    [&is_configured](std_msgs::msg::Bool::SharedPtr msg) {
-      is_configured = msg->data;
-    });
+  std::atomic_bool is_configured = true;
+  // auto is_configured_sub = controller_manager->create_subscription<std_msgs::msg::Bool>(
+  //   "robot_manager/is_configured", qos,
+  //   [&is_configured](std_msgs::msg::Bool::SharedPtr msg) {
+  //     is_configured = msg->data;
+  //   });
 
 
   std::thread control_loop([controller_manager, &is_configured]() {
@@ -46,6 +46,7 @@ int main(int argc, char ** argv)
 
       while (rclcpp::ok()) {
         if (is_configured) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));  // TODO(Svastits): temporary workaround
           controller_manager->read(controller_manager->now(), dt);
           controller_manager->update(controller_manager->now(), dt);
           controller_manager->write(controller_manager->now(), dt);
