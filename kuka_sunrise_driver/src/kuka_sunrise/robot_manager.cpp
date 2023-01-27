@@ -18,7 +18,7 @@
 #include <chrono>
 
 #include "kuka_sunrise/robot_manager.hpp"
-#include "kuka_sunrise/internal/serialization.hpp"
+#include "communication_helpers/serialization.hpp"
 #include "kuka_sunrise/tcp_connection.hpp"
 
 namespace kuka_sunrise
@@ -115,11 +115,11 @@ bool RobotManager::setJointImpedanceControlMode(
   }
   for (double js : joint_stiffness) {
     printf("js = %lf\n", js);
-    msg_size += serializeNext(js, serialized);
+    msg_size += kroshu_ros2_core::serializeNext(js, serialized);
   }
   for (double jd : joint_damping) {
     printf("jd = %lf\n", jd);
-    msg_size += serializeNext(jd, serialized);
+    msg_size += kroshu_ros2_core::serializeNext(jd, serialized);
   }
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
@@ -139,12 +139,9 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
     serialized.emplace_back(byte);
     msg_size++;
   }
-  msg_size += serializeNext(remote_port, serialized);
-  msg_size += serializeNext(send_period_ms, serialized);
-  msg_size += serializeNext(receive_multiplier, serialized);
-  for (std::uint8_t byte : serialized) {
-    printf("%x-", byte);
-  }
+  msg_size += kroshu_ros2_core::serializeNext(remote_port, serialized);
+  msg_size += kroshu_ros2_core::serializeNext(send_period_ms, serialized);
+  msg_size += kroshu_ros2_core::serializeNext(receive_multiplier, serialized);
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 

@@ -1,7 +1,0 @@
-joint_controller:
-  ros__parameters:
-    n_dof: 6
-    velocity_limits_deg: [360.0, 300.0, 360.0, 381.0, 388.0, 615.0]
-    lower_limits_deg: [-170.0, -190.0, -120.0, -185.0, -120.0, -350.0]
-    upper_limits_deg: [170.0, 45.0, 156.0, 185.0, 120.0, 350.0]
-

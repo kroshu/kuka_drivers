@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "kuka_sunrise/configuration_manager.hpp"
-#include "kuka_sunrise/internal/service_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 #include "kuka_sunrise/robot_manager.hpp"
 
 namespace kuka_sunrise
@@ -33,19 +33,9 @@ ConfigurationManager::ConfigurationManager(
     rclcpp::CallbackGroupType::MutuallyExclusive);
   param_cbg_ = robot_manager_node->create_callback_group(
     rclcpp::CallbackGroupType::MutuallyExclusive);
-  command_mode_client_ = robot_manager_node->create_client<std_srvs::srv::SetBool>(
-    "set_command_mode", qos.get_rmw_qos_profile(), cbg_);
   receive_multiplier_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
+    kuka_driver_interfaces::srv::SetInt>(
     "set_receive_multiplier", qos.get_rmw_qos_profile(),
-    cbg_);
-  sync_receive_multiplier_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
-    "sync_receive_multiplier", qos.get_rmw_qos_profile(),
-    cbg_);
-  sync_send_period_client_ = robot_manager_node->create_client<
-    kuka_sunrise_interfaces::srv::SetInt>(
-    "sync_send_period", qos.get_rmw_qos_profile(),
     cbg_);
 
   robot_manager_node_->registerParameter<std::string>(
@@ -60,16 +50,20 @@ ConfigurationManager::ConfigurationManager(
       std_srvs::srv::Trigger::Response::SharedPtr response) {
       this->setParameters(response);
     }, ::rmw_qos_profile_default, param_cbg_);
+
+  get_controllers_client_ =
+    robot_manager_node->create_client<controller_manager_msgs::srv::ListControllers>(
+    "controller_manager/list_controllers", qos.get_rmw_qos_profile(), cbg_);
 }
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
 {
-  if (command_mode == "position") {
-    if (!setCommandMode("position")) {
+  if (command_mode == POSITION_COMMAND) {
+    if (!position_controller_available_ || !setCommandMode(POSITION_COMMAND)) {
       return false;
     }
-  } else if (command_mode == "torque") {
-    if (robot_manager_node_->get_parameter("control_mode").as_string() != "joint_impedance") {
+  } else if (command_mode == TORQUE_COMMAND) {
+    if (robot_manager_node_->get_parameter("control_mode").as_string() != IMPEDANCE_CONTROL) {
       RCLCPP_ERROR(
         robot_manager_node_->get_logger(),
         "Unable to set torque command mode, if control mode is not 'joint impedance'");
@@ -81,12 +75,13 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
         "Unable to set torque command mode, if send period is bigger than 5 [ms]");
       return false;
     }
-    if (!setCommandMode("torque")) {
+    if (!torque_controller_available_ || !setCommandMode(TORQUE_COMMAND)) {
       return false;
     }
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Command mode should be 'position' or 'torque'");
+      robot_manager_node_->get_logger(), "Command mode should be '%s' or '%s'",
+      POSITION_COMMAND.c_str(), TORQUE_COMMAND.c_str());
     return false;
   }
   RCLCPP_INFO(robot_manager_node_->get_logger(), "Successfully set command mode");
@@ -95,9 +90,9 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
 
 bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
-  if (control_mode == "position") {
+  if (control_mode == POSITION_CONTROL) {
     return robot_manager_->setPositionControlMode();
-  } else if (control_mode == "joint_impedance") {
+  } else if (control_mode == IMPEDANCE_CONTROL) {
     try {
       return robot_manager_->setJointImpedanceControlMode(
         joint_stiffness_,
@@ -108,7 +103,8 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
     return false;
   } else {
     RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Control mode should be 'position' or 'joint_impedance'");
+      robot_manager_node_->get_logger(), "Control mode should be '%s' or '%s'",
+      POSITION_CONTROL.c_str(), IMPEDANCE_CONTROL.c_str());
     return false;
   }
 }
@@ -159,9 +155,6 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) co
       "Send period milliseconds must be >=1 && <=100");
     return false;
   }
-  if (!setSendPeriod(send_period)) {
-    return false;
-  }
   return true;
 }
 
@@ -191,7 +184,7 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   split_ip.push_back(controller_ip.substr(i, controller_ip.length()));
 
   if (split_ip.size() != 4) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Valid ip must have 3 '.' delimiters");
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Valid IP must have 3 '.' delimiters");
     return false;
   }
 
@@ -208,25 +201,53 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
   return true;
 }
 
-bool ConfigurationManager::setCommandMode(const std::string & control_mode) const
+bool ConfigurationManager::onControllerNameChangeRequest(
+  const std::string & controller_name,
+  bool position)
 {
-  auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
+  auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
+  auto response =
+    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
+    get_controllers_client_, request, 0, 1000);
+
+  if (!response) {
+    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not get controller names");
+    return false;
+  }
+
+  if (controller_name == "") {
+    RCLCPP_WARN(
+      robot_manager_node_->get_logger(), "Controller for %s command mode not available",
+      position ? POSITION_COMMAND.c_str() : TORQUE_COMMAND.c_str());
+    if (position) {position_controller_available_ = false;} else {
+      torque_controller_available_ = false;
+    }
+    return true;
+  }
+
+  for (const auto & controller : response->controller) {
+    if (controller_name == controller.name) {
+      if (position) {position_controller_available_ = true;} else {
+        torque_controller_available_ = true;
+      }
+      return true;
+    }
+  }
+  RCLCPP_ERROR(
+    robot_manager_node_->get_logger(), "Controller name '%s' not available",
+    controller_name.c_str());
+  return false;
+}
+
+bool ConfigurationManager::setCommandMode(const std::string & command_mode) const
+{
   ClientCommandModeID client_command_mode;
-  if (control_mode == "position") {
-    request->data = false;
+  if (command_mode == POSITION_COMMAND) {
     client_command_mode = POSITION_COMMAND_MODE;
-  } else if (control_mode == "torque") {
-    request->data = true;
+  } else if (command_mode == TORQUE_COMMAND) {
     client_command_mode = TORQUE_COMMAND_MODE;
   } else {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
-    return false;
-  }
-  auto response = kuka_sunrise::sendRequest<std_srvs::srv::SetBool::Response>(
-    command_mode_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set command mode");
     return false;
   }
   if (robot_manager_) {
@@ -240,42 +261,14 @@ bool ConfigurationManager::setCommandMode(const std::string & control_mode) cons
 
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
 {
-  // Set parameter of control client
-  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
+  // Set receive multiplier of hardware interface through controller manager service
+  auto request = std::make_shared<kuka_driver_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
-  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
+  auto response = kroshu_ros2_core::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
     receive_multiplier_client_, request, 0, 1000);
 
   if (!response || !response->success) {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set receive_multiplier");
-    return false;
-  }
-
-  // TODO(Svastits): if monitoring mode is intended, no joint_controller is necessary
-  // syncing these parameters should be optional (applies also for send_period)
-
-  // Sync with joint controller
-  response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
-    sync_receive_multiplier_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync receive_multiplier");
-    return false;
-  }
-  return true;
-}
-
-bool ConfigurationManager::setSendPeriod(int send_period) const
-{
-  // Sync with joint controller
-  auto request = std::make_shared<kuka_sunrise_interfaces::srv::SetInt::Request>();
-  request->data = send_period;
-
-  auto response = kuka_sunrise::sendRequest<kuka_sunrise_interfaces::srv::SetInt::Response>(
-    sync_send_period_client_, request, 0, 1000);
-
-  if (!response || !response->success) {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not sync send_period");
     return false;
   }
   return true;
@@ -312,13 +305,25 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "control_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "command_mode", "position", kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, true);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+      false, false, true}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, false);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "command_mode", POSITION_COMMAND, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & command_mode) {
       return this->onCommandModeChangeRequest(command_mode);
     });
