@@ -59,7 +59,6 @@ add_library(configuration_manager SHARED
 ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
                           controller_manager_msgs)
 
-
 add_executable(robot_manager_node
   src/kuka_sunrise/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
@@ -71,22 +70,9 @@ add_executable(sunrise_control_node
   src/kuka_sunrise/sunrise_control_node.cpp)
 ament_target_dependencies(sunrise_control_node kuka_driver_interfaces rclcpp rclcpp_lifecycle controller_manager)
 
-add_executable(position_controller_node
-  test/position_controller.cpp)
-ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
-
-add_executable(torque_controller_node
-  test/torque_controller.cpp)
-ament_target_dependencies(torque_controller_node rclcpp sensor_msgs)
-
-add_executable(lifecycle_client_node
-  test/lifecycle_client_test.cpp)
-ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
-
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node position_controller_node torque_controller_node
-        lifecycle_client_node sunrise_control_node
+install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node sunrise_control_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
@@ -113,26 +99,13 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  # install custom copyright name
-  install(CODE
-    "execute_process(
-      COMMAND
-        \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\"
-        \"egg_info\" \"--egg-base\" \"${PROJECT_BINARY_DIR}\"
-        \"build\" \"--build-base\" \"${PROJECT_BINARY_DIR}/build\"
-        \"install\" \"--prefix\" \"${CMAKE_INSTALL_PREFIX}\"
-        \"--record\" \"${PROJECT_BINARY_DIR}/install_copyright.log\"
-        \"--single-version-externally-managed\"
-      WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
-  )
-
-  ament_copyright(--exclude include/fri_client/*)
+  ament_copyright()
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify(--exclude include/fri_client/*)
+  ament_uncrustify()
   ament_xmllint()
 endif()
 
