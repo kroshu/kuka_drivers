@@ -33,20 +33,11 @@ find_package(controller_manager_msgs)
 
 include_directories(include)
 
-add_library(internal SHARED
-  include/kuka_sunrise/internal/activatable_interface.hpp
-  include/kuka_sunrise/internal/serialization.hpp
-  include/kuka_sunrise/internal/service_tools.hpp)
-ament_target_dependencies(internal rclcpp)
-set_target_properties(internal PROPERTIES LINKER_LANGUAGE CXX)
-
-ament_export_targets(internal HAS_LIBRARY_TARGET)
-ament_export_dependencies(rclcpp)
-
-
 add_library(robot_manager SHARED
   src/kuka_sunrise/robot_manager.cpp
   src/kuka_sunrise/tcp_connection.cpp)
+target_link_libraries(robot_manager
+  kroshu_ros2_core::communication_helpers)
 
 add_library(kuka_fri_hw_interface SHARED
   src/kuka_sunrise/kuka_fri_hardware_interface.cpp
@@ -80,14 +71,6 @@ install(DIRECTORY launch config
 
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
-
-install(DIRECTORY include/kuka_sunrise/internal DESTINATION include/kuka_sunrise)
-install(
-  TARGETS internal
-  EXPORT internal
-  LIBRARY DESTINATION lib
-  INCLUDES DESTINATION include
-)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_copyright REQUIRED)

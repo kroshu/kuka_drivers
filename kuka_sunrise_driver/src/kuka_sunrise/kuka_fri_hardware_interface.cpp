@@ -125,14 +125,14 @@ CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Could not connect");
     return CallbackReturn::FAILURE;
   }
-  this->ActivatableInterface::activate();
+  is_active_= true;
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KUKAFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   client_application_.disconnect();
-  this->ActivatableInterface::deactivate();
+  is_active_= false;
   return CallbackReturn::SUCCESS;
 }
 

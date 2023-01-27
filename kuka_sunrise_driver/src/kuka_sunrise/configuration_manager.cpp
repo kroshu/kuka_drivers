@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "kuka_sunrise/configuration_manager.hpp"
-#include "kuka_sunrise/internal/service_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 #include "kuka_sunrise/robot_manager.hpp"
 
 namespace kuka_sunrise
