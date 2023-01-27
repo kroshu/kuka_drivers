@@ -49,7 +49,7 @@ file(GLOB private_headers
   src/pb_frimessages_callbacks.h
   )
 
-target_link_libraries(fri_client PRIVATE nanopb)
+target_link_libraries(fri_client PRIVATE protobuf-nanopb)
 
 ament_export_targets(fri_client HAS_LIBRARY_TARGET)
 
