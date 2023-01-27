@@ -53,7 +53,7 @@ static std::unordered_map<std::string,
 
 class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
   public KUKA::FRI::LBRClient
-  {
+{
 public:
   KUKAFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
