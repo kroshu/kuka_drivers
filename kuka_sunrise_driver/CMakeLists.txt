@@ -15,8 +15,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-option(MOCK_FRI "Use mock classes instead of the FRI Client Library" ON)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -25,28 +23,15 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(kuka_sunrise_interfaces REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
+find_package(fri REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(controller_manager)
+find_package(controller_manager_msgs)
 
 include_directories(include)
-
-if(NOT MOCK_FRI)
-  find_library(fri_client_library
-    libFRIClient.a
-    PATHS /home/rosdeveloper/Documents/fri_client_source/lib)
-  message("Using real fri lib")
-else()
-  add_library(fri_client
-    src/fri_client_mock/friClientApplication_mock.cpp
-    src/fri_client_mock/friLBRClient_mock.cpp
-    src/fri_client_mock/friLBRCommand_mock.cpp
-    src/fri_client_mock/friLBRState_mock.cpp
-    src/fri_client_mock/friTransformationClient_mock.cpp
-    src/fri_client_mock/friUdpConnection_mock.cpp)
-  set(fri_client_library fri_client)
-  message("Using mock fri lib")
-endif()
-
 
 add_library(internal SHARED
   include/kuka_sunrise/internal/activatable_interface.hpp
@@ -63,49 +48,37 @@ add_library(robot_manager SHARED
   src/kuka_sunrise/robot_manager.cpp
   src/kuka_sunrise/tcp_connection.cpp)
 
-add_library(robot_control_client SHARED
-  src/kuka_sunrise/robot_control_client.cpp
-  src/kuka_sunrise/robot_observer.cpp
-  src/kuka_sunrise/robot_commander.cpp)
-ament_target_dependencies(robot_control_client kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs)
+add_library(kuka_fri_hw_interface SHARED
+  src/kuka_sunrise/kuka_fri_hardware_interface.cpp
+)
+ament_target_dependencies(kuka_fri_hw_interface kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+target_link_libraries(kuka_fri_hw_interface fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/kuka_sunrise/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core)
-
+ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
+                          controller_manager_msgs)
 
 add_executable(robot_manager_node
   src/kuka_sunrise/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core)
+ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
 target_link_libraries(robot_manager_node
   robot_manager
   configuration_manager)
 
-add_executable(robot_control_node
-  src/kuka_sunrise/robot_control_node.cpp)
-ament_target_dependencies(robot_control_node kuka_sunrise_interfaces rclcpp rclcpp_lifecycle std_msgs sensor_msgs std_srvs kroshu_ros2_core)
-target_link_libraries(robot_control_node
-  robot_control_client
-  ${fri_client_library})
+add_executable(sunrise_control_node
+  src/kuka_sunrise/sunrise_control_node.cpp)
+ament_target_dependencies(sunrise_control_node kuka_driver_interfaces rclcpp rclcpp_lifecycle controller_manager)
 
-add_executable(position_controller_node
-  test/position_controller.cpp)
-ament_target_dependencies(position_controller_node rclcpp sensor_msgs)
+pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-add_executable(torque_controller_node
-  test/torque_controller.cpp)
-ament_target_dependencies(torque_controller_node rclcpp sensor_msgs)
-
-add_executable(lifecycle_client_node
-  test/lifecycle_client_test.cpp)
-ament_target_dependencies(lifecycle_client_node rclcpp rclcpp_lifecycle std_msgs)
-
-
-install(TARGETS robot_manager robot_control_client robot_manager_node robot_control_node position_controller_node torque_controller_node
-        lifecycle_client_node
+install(TARGETS robot_manager kuka_fri_hw_interface robot_manager_node sunrise_control_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/kuka_sunrise/internal DESTINATION include/kuka_sunrise)
@@ -126,26 +99,13 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  # install custom copyright name
-  install(CODE
-    "execute_process(
-      COMMAND
-        \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\"
-        \"egg_info\" \"--egg-base\" \"${PROJECT_BINARY_DIR}\"
-        \"build\" \"--build-base\" \"${PROJECT_BINARY_DIR}/build\"
-        \"install\" \"--prefix\" \"${CMAKE_INSTALL_PREFIX}\"
-        \"--record\" \"${PROJECT_BINARY_DIR}/install_copyright.log\"
-        \"--single-version-externally-managed\"
-      WORKING_DIRECTORY \"${PROJECT_SOURCE_DIR}\")"
-  )
-
-  ament_copyright(--exclude include/fri_client/*)
+  ament_copyright()
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
   ament_cpplint()
   ament_lint_cmake()
-  ament_uncrustify(--exclude include/fri_client/*)
+  ament_uncrustify()
   ament_xmllint()
 endif()
 
@@ -176,9 +136,3 @@ if(TEST_COVERAGE)
   set_coverage_output_dir()
 endif()
 
-if(TEST_COVERAGE)
-  # Define a coverage target with some libs and executables to check
-  # NAME    Name of coverage target. Default: coverage. Only works with default currently.
-  # TARGETS Library and executable targets for which coverage reports are requested.
-  # add_coverage_gcov(NAME coverage TARGETS mypkg_lib mypkg_node)
-endif()

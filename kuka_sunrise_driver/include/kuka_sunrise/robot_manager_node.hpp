@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <memory>
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
@@ -25,10 +26,13 @@
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
+#include "controller_manager_msgs/srv/switch_controller.hpp"
 
 #include "kuka_sunrise/robot_manager.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
 #include "kuka_sunrise/internal/activatable_interface.hpp"
+#include "kuka_sunrise/internal/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -55,22 +59,26 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &);
 
-  bool activate();
-  bool deactivate();
+  // TODO(Svastits): implement on_error callback to clean up node
+
+  bool activateControl();
+  bool deactivateControl();
 
 private:
   std::shared_ptr<RobotManager> robot_manager_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
-  rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr change_robot_control_state_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
-  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr set_commanding_state_client_;
+  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
+    change_hardware_state_client_;
+  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
+    change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr change_robot_commanding_state_service_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
     command_state_changed_publisher_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
+  std_msgs::msg::Bool is_configured_msg_;
+  std::string controller_name_;
 
-  bool requestRobotControlNodeStateTransition(std::uint8_t transition);
-  bool setRobotControlNodeCommandState(bool active);
   void handleControlEndedError();
   void handleFRIEndedError();
 };

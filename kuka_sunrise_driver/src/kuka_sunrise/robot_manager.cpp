@@ -142,9 +142,6 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
   msg_size += serializeNext(remote_port, serialized);
   msg_size += serializeNext(send_period_ms, serialized);
   msg_size += serializeNext(receive_multiplier, serialized);
-  for (std::uint8_t byte : serialized) {
-    printf("%x-", byte);
-  }
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 
