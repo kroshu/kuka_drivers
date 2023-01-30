@@ -5,11 +5,10 @@ name: CI
 
 # or more fine-grained
 on:
-  # When master or melodic-devel branch is pushed to
   push:
     branches:
       - master
-      - humble
+      - sunrise_driver_original
       - feature/**
       - fix/**
     paths-ignore:
@@ -21,7 +20,6 @@ on:
   pull_request:
     branches:
       - master
-      - humble
       - feature/**
       - fix/**
     paths-ignore:

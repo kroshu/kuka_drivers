@@ -50,9 +50,6 @@ public:
   on_cleanup(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
-
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn

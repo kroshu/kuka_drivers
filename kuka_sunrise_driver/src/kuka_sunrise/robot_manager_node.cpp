@@ -34,7 +34,6 @@ RobotManagerNode::RobotManagerNode()
   // RT controllers are started after interface activation
   // non-RT controllers are started after interface configuration
 
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   robot_manager_ = std::make_shared<RobotManager>(
     [this]
     {this->handleControlEndedError();}, [this]
@@ -183,33 +182,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
-{
-  switch (state.id()) {
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      if (this->on_deactivate(get_current_state()) != SUCCESS) {
-        break;
-      }
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      break;
-    default:
-      return SUCCESS;
-  }
-
-  // Publish message to notify other nodes about shutdown
-  auto control_ended_pub = create_publisher<std_msgs::msg::Bool>("control_ended", rclcpp::QoS(1));
-  std_msgs::msg::Bool end;
-  end.data = true;
-  control_ended_pub->publish(end);
-
-  return SUCCESS;
-}
 
 // TODO(Svastits): activation fails after deactivation
 // TODO(Svastits): check if we have to send unconfigured msg to control node
@@ -401,7 +373,7 @@ void RobotManagerNode::handleFRIEndedError()
 
 int main(int argc, char * argv[])
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
