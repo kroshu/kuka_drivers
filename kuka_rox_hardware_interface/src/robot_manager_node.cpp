@@ -22,7 +22,6 @@ namespace kuka_rox
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -86,28 +85,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     is_configured_msg_.data = false;
     is_configured_pub_->publish(is_configured_msg_);
   }
-  return SUCCESS;
-}
-
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
-{
-  switch (state.id()) {
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      if (this->on_deactivate(get_current_state()) != SUCCESS) {
-        break;
-      }
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      break;
-    default:
-      return SUCCESS;
-  }
-
   return SUCCESS;
 }
 
@@ -215,7 +192,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 int main(int argc, char * argv[])
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;

@@ -79,11 +79,6 @@ private:
   std::vector<double> hw_stiffness_;
   std::vector<double> hw_damping_;
 
-  uint64_t ipoc_ = 0;
-  unsigned char token_[16];
-  int32_t timeout_;
-  bool stopped_ = true;
-
 #ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
@@ -104,9 +99,6 @@ private:
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
-
-  nanopb::kuka::core::motion::JointPositions start_pos_{
-    nanopb::kuka::core::motion::JointPositions_init_default};
 
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
