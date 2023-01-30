@@ -93,7 +93,8 @@ JointImpedanceController::on_configure(const rclcpp_lifecycle::State &)
 
   if (params_.joints.empty())
   {
-    RCLCPP_WARN(get_node()->get_logger(), "'joints' parameter is empty.");
+    RCLCPP_ERROR(get_node()->get_logger(), "The JointImpedanceController does not support working while 'joints' parameter is empty");
+    return CallbackReturn::FAILURE;
   }
 
   // Set dof_
