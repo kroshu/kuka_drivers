@@ -1,5 +1,0 @@
-robot_manager:
-  ros__parameters:
-    controller_ip: "<insert controller ip here>"
-    client_ip: "<insert client ip here>"
-    command_mode: "position"

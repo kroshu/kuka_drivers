@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="LBR3R760iisy">
+<!-- Import iisy urdf file  -->
+<xacro:include filename="$(find kuka_iisy_support)/urdf/iisy.ros2_control.urdf.xacro"/>
+
+<xacro:eci_config client_ip="10.36.60.228" 
+                  controller_ip="10.36.60.227" 
+                  control_mode="position_control"/>
+</robot>

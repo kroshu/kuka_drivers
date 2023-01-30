@@ -19,16 +19,35 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.actions import LifecycleNode
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+from launch.actions import DeclareLaunchArgument
+
 
 
 def generate_launch_description():
 
     # Get URDF via xacro
-    robot_description_path = os.path.join(
-        get_package_share_directory('kuka_iisy_support'), 'urdf', 'iisy.urdf')
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [FindPackageShare("kuka_rox_hw_interface"), "config", "iisy.urdf.xacro"]
+            ),
+            " ",
+        ]
+    )
+    
 
-    with open(robot_description_path, 'r') as desc:
-        robot_description = {'robot_description': desc.read()}
+    # Get URDF via xacro
+    ###
+    #robot_description_path = os.path.join(
+    #    get_package_share_directory('kuka_iisy_support'), 'urdf', 'iisy.urdf.xacro')
+
+    #with open(robot_description_path, 'r') as desc:
+    #    robot_description = {'robot_description': desc.read()}
+    robot_description = {'robot_description': robot_description_content }
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                          "/config/ros2_controller_config.yaml")
