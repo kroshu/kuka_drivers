@@ -11,7 +11,7 @@
   </class>
   <class name="kuka_controllers/RobotStateBroadcaster" type="kuka_controllers::RobotStateBroadcaster" base_class_type="controller_interface::ControllerInterface">
     <description>
-      This broadcaster publishes the state changes of FRI
+      This broadcaster publishes the state changes of ECI
     </description>
   </class>
 </library>

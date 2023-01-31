@@ -52,18 +52,18 @@ RobotManagerNode::RobotManagerNode()
     });
   this->registerParameter<std::string>(
     POSITION_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
-    false, false}, [this](const std::string & /*controller_name*/){
-      return true;
+    false, false}, [this](const std::string & controller_name){
+      return this->onControllerNameChangeRequest(controller_name, POSITION_CONTROLLER_NAME_PARAM);
     });
   this->registerParameter<std::string>(
     IMPEDANCE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
-    false, false}, [this](const std::string & /*controller_name*/){
-      return true;
+    false, false}, [this](const std::string & controller_name){
+      return this->onControllerNameChangeRequest(controller_name, IMPEDANCE_CONTROLLER_NAME_PARAM);
     });
   this->registerParameter<std::string>(
     TORQUE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false, 
-    false, false}, [this](const std::string & /*controller_name*/){
-      return true;
+    false, false}, [this](const std::string & controller_name){
+      return this->onControllerNameChangeRequest(controller_name, TORQUE_CONTROLLER_NAME_PARAM);
     });
 
 
@@ -225,10 +225,15 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mode)
 {
-  if(control_mode == POSITION_CONTROL ||
-     control_mode == IMPEDANCE_CONTROL ||
-     control_mode == TORQUE_CONTROL)
+  if(control_mode_map_.find(control_mode) != control_mode_map_.end())
   {
+    //TODO(komaromi): Remove this when torque is available
+    if(control_mode == TORQUE_CONTROL)
+    {
+      RCLCPP_WARN(get_logger(), "'%s' control mode is not available. Control mode not changed.", control_mode.c_str());
+      return false;
+    }
+
     RCLCPP_INFO(get_logger(), "Control mode changed to %s", control_mode.c_str());
     return true;
   }
@@ -237,6 +242,31 @@ bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mo
     RCLCPP_WARN(get_logger(), "Could not change control mode, %s is not a valid control mode", control_mode.c_str());
     return false;
   }
+}
+
+bool RobotManagerNode::onControllerNameChangeRequest(const std::string & controller_name, const std::string & controller_name_param)
+{
+  if (controller_name_param == POSITION_CONTROLLER_NAME_PARAM)
+  {
+    control_mode_map_.at(POSITION_CONTROL)[0] = controller_name;
+    control_mode_map_.at(IMPEDANCE_CONTROL)[0] = controller_name;
+  }
+  else if (controller_name_param == IMPEDANCE_CONTROLLER_NAME_PARAM)
+  {
+    control_mode_map_.at(IMPEDANCE_CONTROL)[1] = controller_name;
+  }
+  else if (controller_name_param == TORQUE_CONTROLLER_NAME_PARAM)
+  {
+    //TODO(komaromi): Remove this when torque is available
+    RCLCPP_WARN(get_logger(), "Torque controller name is set to %s, althought torque control is not implemented yet.");
+    control_mode_map_.at(TORQUE_CONTROL)[0] = controller_name;
+  }
+  else
+  {
+    RCLCPP_WARN(get_logger(), "Unknown controller name param added.");
+    return false;
+  }
+  return true;
 }
 
 }  // namespace kuka_rox

@@ -52,6 +52,7 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(const std::string & control_mode);
+  bool onControllerNameChangeRequest(const std::string & controller_name, const std::string & controller_name_param);
 
 private:
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
