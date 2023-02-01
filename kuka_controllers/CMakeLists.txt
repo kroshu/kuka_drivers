@@ -10,6 +10,7 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(joint_impedance_controller_parameters
@@ -28,7 +29,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 target_link_libraries(${PROJECT_NAME} joint_impedance_controller_parameters)
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp controller_interface std_msgs generate_parameter_library
+ament_target_dependencies(${PROJECT_NAME} rclcpp controller_interface std_msgs generate_parameter_library kuka_driver_interfaces
 )
 
 pluginlib_export_plugin_description_file(controller_interface controller_plugins.xml)
