@@ -46,16 +46,12 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
    udp_replier_ = std::make_unique<os::core::udp::communication::UDPReplier>(
     os::core::udp::communication::SocketAddress(info_.hardware_parameters.at("client_ip"), 44444));
 
-  for (auto params : info_.hardware_parameters) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Params: %s", params.second.c_str());
-
-  }
 #ifdef NON_MOCK_SETUP
 
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
-      "10.36.61.210:49335",
+      info_.hardware_parameters.at("controller_ip") + ":49335",
       grpc::InsecureChannelCredentials()));
 
 #endif
@@ -150,12 +146,11 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   OpenControlChannelResponse response;
   grpc::ClientContext context;
 
-  request.set_ip_address("10.36.61.228");
+  request.set_ip_address(info_.hardware_parameters.at("controller_ip"));
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    kuka::motion::external::ExternalControlMode::
-    POSITION_CONTROL);
+    std::stoi(info_.hardware_parameters.at("control_mode")));
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)

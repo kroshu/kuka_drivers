@@ -4,6 +4,9 @@
 <xacro:include filename="$(find kuka_iisy_support)/urdf/iisy.ros2_control.urdf.xacro"/>
 
 <xacro:eci_config client_ip="10.36.60.228" 
-                  controller_ip="10.36.60.227" 
-                  control_mode="position_control"/>
+                  controller_ip="10.36.60.208" 
+                  control_mode="1"/>
+<!-- 1 - position control
+     2 - torque control
+     3 - joint impedance control  -->
 </robot>

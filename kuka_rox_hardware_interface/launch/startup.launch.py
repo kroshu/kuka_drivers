@@ -41,12 +41,6 @@ def generate_launch_description():
     
 
     # Get URDF via xacro
-    ###
-    #robot_description_path = os.path.join(
-    #    get_package_share_directory('kuka_iisy_support'), 'urdf', 'iisy.urdf.xacro')
-
-    #with open(robot_description_path, 'r') as desc:
-    #    robot_description = {'robot_description': desc.read()}
     robot_description = {'robot_description': robot_description_content }
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
@@ -55,13 +49,8 @@ def generate_launch_description():
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
 
-    eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                  "/config/eci_config.yaml")
 
     controller_manager_node = '/controller_manager'
-
-    # rviz_config_file = os.path.join(
-    #    get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf_wo_planning_scene.rviz')
 
     return LaunchDescription([
         Node(
@@ -74,7 +63,7 @@ def generate_launch_description():
             namespace='',
             package="kuka_rox_hw_interface",
             executable="robot_manager_node",
-            parameters=[eci_config,
+            parameters=[
                         {'position_controller_name': 'joint_trajectory_controller'},
                         {'impedance_controller_name': 'joint_impedance_controller'},
                         {'torque_controller_name': ''}]
@@ -102,11 +91,4 @@ def generate_launch_description():
             executable="spawner",
             arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
-        # Node(
-        #     package="rviz2",
-        #     executable="rviz2",
-        #     name="rviz2",
-        #     output="log",
-        #     arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
-        # )
     ])

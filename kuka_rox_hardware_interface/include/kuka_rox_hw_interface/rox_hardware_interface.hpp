@@ -106,6 +106,7 @@ private:
   nanopb::kuka::core::motion::JointPositions start_pos_{
     nanopb::kuka::core::motion::JointPositions_init_default};
 
+
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
 };
