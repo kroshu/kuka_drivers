@@ -99,9 +99,6 @@ private:
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
 
-  nanopb::kuka::core::motion::JointPositions start_pos_{
-    nanopb::kuka::core::motion::JointPositions_init_default};
-
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
 };
