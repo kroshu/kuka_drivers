@@ -146,11 +146,11 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   OpenControlChannelResponse response;
   grpc::ClientContext context;
 
-  request.set_ip_address(info_.hardware_parameters.at("controller_ip"));
+  request.set_ip_address(info_.hardware_parameters.at("client_ip"));
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    std::stoi(info_.hardware_parameters.at("control_mode")));
+    kuka::motion::external::ExternalControlMode(stoi(info_.hardware_parameters.at("control_mode"))));
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)
