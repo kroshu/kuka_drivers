@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "nanopb-helpers/nanopb_serialization_helper.h"
+#include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
 
 using namespace kuka::ecs::v1;  // NOLINT
 
