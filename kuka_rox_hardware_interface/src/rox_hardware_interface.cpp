@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "nanopb-helpers/nanopb_serialization_helper.h"
+#include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
 
 
 using namespace kuka::ecs::v1;  // NOLINT
@@ -196,7 +196,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(receive_timeout_) ==
+  if (udp_replier_->ReceiveRequestOrTimeout(receive_timeout_) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_->GetRequestMessage();
@@ -225,7 +225,6 @@ return_type KukaRoXHardwareInterface::read(
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
-    udp_replier_->Reset();
     msg_received_ = false;
   }
   return return_type::OK;

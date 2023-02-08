@@ -7,6 +7,8 @@
                   controller_ip="0.0.0.0" 
                   control_mode="1"/>
 <!-- 1 - position control
-     2 - torque control
-     3 - joint impedance control  -->
+     2 - cartesian overlay (not supported yet)
+     3 - joint impedance control
+     4 - cartesian impedance control
+     5 - torque control  -->
 </robot>
