@@ -24,7 +24,6 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 
 
-
 def generate_launch_description():
 
     # Get URDF via xacro
@@ -33,22 +32,21 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_rox_hw_interface"), "config", "iisy.urdf.xacro"]
+                [FindPackageShare("kuka_rox_hw_interface"),
+                 "config", "iisy.urdf.xacro"]
             ),
             " ",
         ]
     )
-    
 
     # Get URDF via xacro
-    robot_description = {'robot_description': robot_description_content }
+    robot_description = {'robot_description': robot_description_content}
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                          "/config/ros2_controller_config.yaml")
 
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
-
 
     controller_manager_node = '/controller_manager'
 
@@ -64,9 +62,9 @@ def generate_launch_description():
             package="kuka_rox_hw_interface",
             executable="robot_manager_node",
             parameters=[
-                        {'position_controller_name': 'joint_trajectory_controller'},
-                        {'impedance_controller_name': 'joint_impedance_controller'},
-                        {'torque_controller_name': ''}]
+                {'position_controller_name': 'joint_trajectory_controller'},
+                {'impedance_controller_name': 'joint_impedance_controller'},
+                {'torque_controller_name': ''}]
         ),
         Node(
             package='robot_state_publisher',
@@ -81,14 +79,15 @@ def generate_launch_description():
                        joint_traj_controller_config, "--inactive"]
         ),
         Node(
-           package="controller_manager",
-           executable="spawner",
-           arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-                      "kuka_controllers/JointImpedanceController", "--inactive"],
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
+                       "kuka_controllers/JointImpedanceController", "--inactive"],
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
+            arguments=["joint_state_broadcaster", "-c",
+                       controller_manager_node, "--inactive"],
         ),
     ])
