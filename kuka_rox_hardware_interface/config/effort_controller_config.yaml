@@ -7,5 +7,28 @@
     - joint_a4
     - joint_a5
     - joint_a6
-
-    interface_name: "effort"
+    gains:
+      joint_a1:
+        p: 5.0
+        i: 0.0
+        d: 0.1
+      joint_a2:
+        p: 5.0
+        i: 0.0
+        d: 0.1
+      joint_a3:
+        p: 5.0
+        i: 0.0
+        d: 0.1
+      joint_a4:
+        p: 5.0
+        i: 0.0
+        d: 0.1
+      joint_a5:
+        p: 5.0
+        i: 0.0
+        d: 0.1
+      joint_a6:
+        p: 5.0
+        i: 0.0
+        d: 0.1
