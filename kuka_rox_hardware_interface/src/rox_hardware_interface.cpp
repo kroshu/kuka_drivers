@@ -90,7 +90,7 @@ namespace kuka_rox
     return CallbackReturn::SUCCESS;
   }
 
-  std::vector<hardware_interface::StateInterface> 
+  std::vector<hardware_interface::StateInterface>
     KukaRoXHardwareInterface::export_state_interfaces()
   {
     RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Export state interfaces");

@@ -14,17 +14,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(MOCK_KUKA_LIBS TRUE)
-
-# Specify necessary IP-s and ports
-add_definitions(-DCLIENT_IP="<insert_client_ip>")
-add_definitions(-DCLIENT_PORT=-1)  # insert client port here
-add_definitions(-DCONTROLLER_IP="<insert_controller_ip>")
-add_definitions(-DGRPC_PORT=-1)  # insert client port here
-# Change control mode
-#  1: joint position control
-#  3: joint impedance control
-add_definitions(-DCONTROL_MODE=1)
+set(MOCK_KUKA_LIBS FALSE)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
