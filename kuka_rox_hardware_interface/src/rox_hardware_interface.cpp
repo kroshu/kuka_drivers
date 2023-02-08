@@ -25,7 +25,7 @@
 
 #include "nanopb-helpers/nanopb_serialization_helper.h"
 
-using namespace kuka::ecs::v1; // NOLINT
+using namespace kuka::ecs::v1;  // NOLINT
 
 using os::core::udp::communication::UDPSocket;
 
@@ -39,7 +39,8 @@ namespace kuka_rox
     }
 
     udp_replier_ = std::make_unique<os::core::udp::communication::UDPReplier>(
-        os::core::udp::communication::SocketAddress(info_.hardware_parameters.at("client_ip"), 44444));
+        os::core::udp::communication::SocketAddress(
+          info_.hardware_parameters.at("client_ip"), 44444));
 
 #ifdef NON_MOCK_SETUP
 
@@ -150,7 +151,8 @@ namespace kuka_rox
     request.set_timeout(5000);
     request.set_cycle_time(4);
     request.set_external_control_mode(
-        kuka::motion::external::ExternalControlMode(stoi(info_.hardware_parameters.at("control_mode"))));
+        kuka::motion::external::ExternalControlMode(
+          std::stoi(info_.hardware_parameters.at("control_mode"))));
 
     if (stub_->OpenControlChannel(
                  &context, request,
@@ -240,11 +242,10 @@ namespace kuka_rox
       }
       msg_received_ = true;
       receive_timeout_ = std::chrono::milliseconds(6);
-    }
-    else
-    {
+    } else {
       RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
-      RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
+      RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), 
+        "Previous ipoc: %i", motion_state_external_.header.ipoc);
       msg_received_ = false;
     }
     return return_type::OK;
@@ -317,7 +318,7 @@ namespace kuka_rox
             rclcpp::get_logger(
                 "KukaRoXHardwareInterface"),
             "Event streamed from external control service");
-        std::unique_lock<std::mutex> lck(observe_mutex_); // TODO(Svastits): is this necessary?
+        std::unique_lock<std::mutex> lck(observe_mutex_);  // TODO(Svastits): is this necessary?
         command_state_ = response;
         RCLCPP_INFO(
             rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
@@ -347,9 +348,7 @@ namespace kuka_rox
         default:
           break;
         }
-      }
-      else
-      {
+      } else {
         // WORKAROUND: Ec is starting later so we have some errors before stable work.
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
       }
@@ -357,7 +356,7 @@ namespace kuka_rox
 #endif
   }
 
-} // namespace namespace kuka_rox
+}  // namespace namespace kuka_rox
 
 PLUGINLIB_EXPORT_CLASS(
     kuka_rox::KukaRoXHardwareInterface,
