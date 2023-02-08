@@ -90,7 +90,8 @@ namespace kuka_rox
     return CallbackReturn::SUCCESS;
   }
 
-  std::vector<hardware_interface::StateInterface> KukaRoXHardwareInterface::export_state_interfaces()
+  std::vector<hardware_interface::StateInterface> 
+    KukaRoXHardwareInterface::export_state_interfaces()
   {
     RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Export state interfaces");
     std::vector<hardware_interface::StateInterface> state_interfaces;
@@ -244,7 +245,7 @@ namespace kuka_rox
       receive_timeout_ = std::chrono::milliseconds(6);
     } else {
       RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
-      RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), 
+      RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"),
         "Previous ipoc: %i", motion_state_external_.header.ipoc);
       msg_received_ = false;
     }
