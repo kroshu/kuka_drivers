@@ -65,8 +65,6 @@ RobotManagerNode::RobotManagerNode()
     false, false}, [this](const std::string & controller_name){
       return this->onControllerNameChangeRequest(controller_name, TORQUE_CONTROLLER_NAME_PARAM);
     });
-
-
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
