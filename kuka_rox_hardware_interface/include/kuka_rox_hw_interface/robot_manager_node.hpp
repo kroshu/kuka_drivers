@@ -27,7 +27,7 @@
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-#include "kuka_sunrise/internal/service_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -39,20 +39,17 @@ class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 public:
   RobotManagerNode();
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &);
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_configure(const rclcpp_lifecycle::State &) override;
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &);
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_cleanup(const rclcpp_lifecycle::State &) override;
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State &) override;
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &);
-
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &);
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State &) override;
 
 private:
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr

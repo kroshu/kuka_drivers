@@ -1,0 +1,16 @@
+/joint_trajectory_controller:
+  ros__parameters:
+    joints: 
+      - LBRiiwa7Joint1 
+      - LBRiiwa7Joint2 
+      - LBRiiwa7Joint3 
+      - LBRiiwa7Joint4 
+      - LBRiiwa7Joint5 
+      - LBRiiwa7Joint6 
+      - LBRiiwa7Joint7 
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0

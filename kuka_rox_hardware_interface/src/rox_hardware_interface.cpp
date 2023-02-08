@@ -23,13 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "nanopb-helpers/nanopb_serialization_helper.h"
 
-// TODO(Svastits): mock this out properly
-#ifdef NON_MOCK_SETUP
-  #include "kuka/nanopb-helpers-0.0/nanopb-helpers/nanopb_serialization_helper.h"
-#else
-  #include "nanopb/nanopb_helper.h"
-#endif
 
 using namespace kuka::ecs::v1;  // NOLINT
 
@@ -151,6 +146,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_cycle_time(4);
   request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(stoi(info_.hardware_parameters.at("control_mode"))));
+
   if (stub_->OpenControlChannel(
       &context, request,
       &response).error_code() != grpc::StatusCode::OK)
@@ -200,7 +196,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_->ReceiveRequestOrTimeout(std::chrono::milliseconds(15)) ==
+  if (udp_replier_.ReceiveRequestOrTimeout(receive_timeout_) ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_->GetRequestMessage();
@@ -216,13 +212,16 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
-      if (!msg_received_ && motion_state_external_.header.ipoc ==  0) {hw_commands_[i] = hw_states_[i];}
+      if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
+        hw_commands_[i] = hw_states_[i];
+      }
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
     msg_received_ = true;
+    receive_timeout_ = std::chrono::milliseconds(6);
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);

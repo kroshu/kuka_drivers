@@ -79,11 +79,6 @@ private:
   std::vector<double> hw_stiffness_;
   std::vector<double> hw_damping_;
 
-  uint64_t ipoc_ = 0;
-  unsigned char token_[16];
-  int32_t timeout_;
-  bool stopped_ = true;
-
 #ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
@@ -95,8 +90,9 @@ private:
   std::atomic<bool> terminate_{false};
   std::mutex observe_mutex_;
 
-  // insert port of your client instead of -1
   std::unique_ptr<os::core::udp::communication::UDPReplier> udp_replier_;
+  std::chrono::milliseconds receive_timeout_ {100};
+
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
@@ -105,7 +101,6 @@ private:
 
   nanopb::kuka::core::motion::JointPositions start_pos_{
     nanopb::kuka::core::motion::JointPositions_init_default};
-
 
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
