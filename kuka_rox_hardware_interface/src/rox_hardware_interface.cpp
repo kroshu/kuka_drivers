@@ -60,6 +60,8 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
+  control_signal_ext_.control_signal.has_joint_torque_command = true;
+  control_signal_ext_.control_signal.joint_torque_command.values_count = 6;
   control_signal_ext_.control_signal.has_joint_attributes = true;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
@@ -259,6 +261,7 @@ return_type KukaRoXHardwareInterface::write(
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
     control_signal_ext_.control_signal.joint_command.values[i] = hw_position_commands_[i];
+    control_signal_ext_.control_signal.joint_torque_command.values[i] = hw_torque_commands_[i];
     // TODO(Svastits): should we separate control modes somehow?
     control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
     control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];

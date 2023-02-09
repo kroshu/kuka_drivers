@@ -42,8 +42,8 @@ if(NOT MOCK_KUKA_LIBS)
 else()
   include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
-  src/mock/os-core-udp-communication/udp_replier_mock.cpp
-  src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+    src/mock/os-core-udp-communication/udp_replier_mock.cpp
+    src/mock/os-core-udp-communication/udp_socket_mock.cpp)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
@@ -57,13 +57,12 @@ else()
   remove_definitions(-DNON_MOCK_SETUP)
 endif()
 
-
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
-                      motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication)
+  motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)
@@ -83,11 +82,10 @@ install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
-
 if(BUILD_TESTING)
   file(GLOB_RECURSE mock_headers
-  LIST_DIRECTORIES FALSE
-  RELATIVE "${PROJECT_SOURCE_DIR}"
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${PROJECT_SOURCE_DIR}"
     include/mock/*)
 
   file(GLOB_RECURSE mock_src
