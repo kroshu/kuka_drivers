@@ -25,7 +25,6 @@
 
 #include "nanopb-helpers/nanopb_serialization_helper.h"
 
-
 using namespace kuka::ecs::v1;  // NOLINT
 
 using os::core::udp::communication::UDPSocket;
@@ -37,12 +36,19 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
+
+  udp_replier_ = std::make_unique<os::core::udp::communication::UDPReplier>(
+    os::core::udp::communication::SocketAddress(
+      info_.hardware_parameters.at("client_ip"), 44444));
+
 #ifdef NON_MOCK_SETUP
+
   stub_ =
     ExternalControlService::NewStub(
     grpc::CreateChannel(
-      std::string(CONTROLLER_IP) + ":" + std::to_string(GRPC_PORT),
+      info_.hardware_parameters.at("controller_ip") + ":49335",
       grpc::InsecureChannelCredentials()));
+
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
@@ -57,7 +63,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
 #ifdef NON_MOCK_SETUP
-  if (udp_replier_.Setup() != UDPSocket::ErrorCode::kSuccess) {
+  if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::ERROR;
   }
@@ -81,7 +87,8 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> KukaRoXHardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::StateInterface>
+KukaRoXHardwareInterface::export_state_interfaces()
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Export state interfaces");
   std::vector<hardware_interface::StateInterface> state_interfaces;
@@ -127,7 +134,6 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
 
-
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
@@ -135,14 +141,17 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   OpenControlChannelResponse response;
   grpc::ClientContext context;
 
-  request.set_ip_address(CLIENT_IP);
+  request.set_ip_address(info_.hardware_parameters.at("client_ip"));
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    static_cast<kuka::motion::external::ExternalControlMode>(CONTROL_MODE));
+    kuka::motion::external::ExternalControlMode(
+      std::stoi(info_.hardware_parameters.at("control_mode"))));
+
   if (stub_->OpenControlChannel(
       &context, request,
-      &response).error_code() != grpc::StatusCode::OK)
+      &response)
+    .error_code() != grpc::StatusCode::OK)
   {
     return CallbackReturn::ERROR;
   }
@@ -157,12 +166,16 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
 
   control_signal_ext_.control_signal.stop_ipo = true;
-  while (is_active_) {std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+  while (is_active_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 
   terminate_ = true;
-  #ifdef NON_MOCK_SETUP
-  if (context_ != nullptr) {context_->TryCancel();}
-  #endif
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
 
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -174,13 +187,13 @@ return_type KukaRoXHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  #ifndef NON_MOCK_SETUP
+#ifndef NON_MOCK_SETUP
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     hw_states_[i] = hw_commands_[i];
   }
   return return_type::OK;
-  #endif
+#endif
 
   if (!is_active_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -189,10 +202,10 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_.ReceiveRequestOrTimeout(receive_timeout_) ==
+  if (udp_replier_->ReceiveRequestOrTimeout(receive_timeout_) ==
     UDPSocket::ErrorCode::kSuccess)
   {
-    auto req_message = udp_replier_.GetRequestMessage();
+    auto req_message = udp_replier_->GetRequestMessage();
 
     if (!nanopb::Decode<nanopb::kuka::ecs::v1::MotionStateExternal>(
         req_message.first, req_message.second, motion_state_external_))
@@ -218,8 +231,8 @@ return_type KukaRoXHardwareInterface::read(
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
     RCLCPP_WARN(
-      rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "Previous ipoc: %i", motion_state_external_.header.ipoc);
+      rclcpp::get_logger("KukaRoXHardwareInterface"),
+      "Previous ipoc: %i", motion_state_external_.header.ipoc);
     msg_received_ = false;
   }
   return return_type::OK;
@@ -248,11 +261,12 @@ return_type KukaRoXHardwareInterface::write(
   if (encoded_bytes < 0) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "Encoding of control signal to out_buffer failed.");
+        "KukaRoXHardwareInterface"),
+      "Encoding of control signal to out_buffer failed.");
     throw std::runtime_error("Encoding of control signal to out_buffer failed.");
   }
 
-  if (udp_replier_.SendReply(out_buff_arr, encoded_bytes) !=
+  if (udp_replier_->SendReply(out_buff_arr, encoded_bytes) !=
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
@@ -268,10 +282,11 @@ bool KukaRoXHardwareInterface::isActive() const
 
 void KukaRoXHardwareInterface::ObserveControl()
 {
-  #ifdef NON_MOCK_SETUP
+#ifdef NON_MOCK_SETUP
   RCLCPP_INFO(
     rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "Observe control");
+      "KukaRoXHardwareInterface"),
+    "Observe control");
   while (!terminate_) {
     context_ = std::make_unique<::grpc::ClientContext>();
     ObserveControlStateRequest obs_control;
@@ -283,8 +298,9 @@ void KukaRoXHardwareInterface::ObserveControl()
     if (reader->Read(&response)) {
       RCLCPP_INFO(
         rclcpp::get_logger(
-          "KukaRoXHardwareInterface"), "Event streamed from external control service");
-      std::unique_lock<std::mutex> lck(observe_mutex_);  // TODO(Svastits): is this necessary?
+          "KukaRoXHardwareInterface"),
+        "Event streamed from external control service");
+      std::unique_lock<std::mutex> lck(observe_mutex_);    // TODO(Svastits): is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
         rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
@@ -305,25 +321,24 @@ void KukaRoXHardwareInterface::ObserveControl()
         case CommandEvent::ERROR:
           RCLCPP_ERROR(
             rclcpp::get_logger(
-              "KukaRoXHardwareInterface"), "External control stopped by an error");
+              "KukaRoXHardwareInterface"),
+            "External control stopped by an error");
           RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
           is_active_ = false;
           break;
         default:
           break;
       }
-
     } else {
       // WORKAROUND: Ec is starting later so we have some errors before stable work.
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
   }
-  #endif
+#endif
 }
 
 }  // namespace namespace kuka_rox
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_rox::KukaRoXHardwareInterface,
-  hardware_interface::SystemInterface
-)
+  hardware_interface::SystemInterface)
