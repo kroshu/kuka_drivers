@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -46,6 +48,8 @@ def generate_launch_description():
                                     "/config/joint_trajectory_controller_config.yaml")
     effort_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                 "/config/effort_controller_config.yaml")
+    rviz_config_file = os.path.join(
+        get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf_wo_planning_scene.rviz')
 
     controller_manager_node = '/controller_manager'
 
@@ -95,4 +99,12 @@ def generate_launch_description():
             arguments=["effort_controller", "-c", controller_manager_node, "-p",
                        effort_controller_config, "--inactive"]
         ),
+        Node(
+            package="rviz2",
+            executable="rviz2",
+            name="rviz2",
+            output="log",
+            arguments=["-d", rviz_config_file,
+                       "--ros-args", "--log-level", "error"],
+        )
     ])
