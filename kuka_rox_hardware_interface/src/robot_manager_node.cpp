@@ -151,15 +151,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // Select control modes
-  auto position_controller_name = this->get_parameter(POSITION_CONTROLLER_NAME_PARAM).as_string();
-  auto impedance_controller_name = this->get_parameter(IMPEDANCE_CONTROLLER_NAME_PARAM).as_string();
-  auto torque_controller_name = this->get_parameter(TORQUE_CONTROLLER_NAME_PARAM).as_string();
   auto control_mode = this->get_parameter("control_mode").as_string();
-
-  control_mode_map_.at(POSITION_CONTROL) = {position_controller_name};
-  control_mode_map_.at(IMPEDANCE_CONTROL) = {position_controller_name, impedance_controller_name};
-  control_mode_map_.at(TORQUE_CONTROL) = {torque_controller_name};
 
   if (control_mode_map_.find(control_mode) == control_mode_map_.end()) {
     RCLCPP_ERROR(
