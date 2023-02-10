@@ -18,140 +18,175 @@
 #include <cstring>
 #include <string>
 
-namespace os::core::udp::communication {
+namespace os::core::udp::communication
+{
 
-SocketAddress::SocketAddress() {
+SocketAddress::SocketAddress()
+{
   // only a mock
 }
 
-SocketAddress::SocketAddress(const std::string& ip, int port) {
+SocketAddress::SocketAddress(const std::string & ip, int port)
+{
   // only a mock
 }
 
-SocketAddress::SocketAddress(const std::string& ip) {
+SocketAddress::SocketAddress(const std::string & ip)
+{
   // only a mock
 }
 
-SocketAddress::SocketAddress(int port) {
+SocketAddress::SocketAddress(int port)
+{
   // only a mock
 }
 
-SocketAddress::SocketAddress(const struct sockaddr_in* raw_address) {
+SocketAddress::SocketAddress(const struct sockaddr_in * raw_address)
+{
   // only a mock
 }
 
-struct sockaddr* SocketAddress::RawAddr() {
+struct sockaddr * SocketAddress::RawAddr()
+{
   return nullptr;
 }
 
-const struct sockaddr* SocketAddress::RawAddr() const {
+const struct sockaddr * SocketAddress::RawAddr() const
+{
   return nullptr;
 }
 
-struct sockaddr_in* SocketAddress::RawInetAddr() {
+struct sockaddr_in * SocketAddress::RawInetAddr()
+{
   return nullptr;
 }
 
-const struct sockaddr_in* SocketAddress::RawInetAddr() const { return nullptr; }
+const struct sockaddr_in * SocketAddress::RawInetAddr() const {return nullptr;}
 
-size_t SocketAddress::Size() const { return 0; }
-const std::string SocketAddress::Ip() const { return ""; }
-uint16_t SocketAddress::Port() const { return 0; }
+size_t SocketAddress::Size() const {return 0;}
+const std::string SocketAddress::Ip() const {return "";}
+uint16_t SocketAddress::Port() const {return 0;}
 
-UDPSocket::~UDPSocket() {
+UDPSocket::~UDPSocket()
+{
   // only a mock
 }
 
-int UDPSocket::Map(int flags) {
+int UDPSocket::Map(int flags)
+{
   return 0;
 }
 
-int UDPSocket::SetSocketOption(int level, int optname, const void* optval, socklen_t optlen) {
+int UDPSocket::SetSocketOption(int level, int optname, const void * optval, socklen_t optlen)
+{
   return 0;
 }
 
-int UDPSocket::SetReuseAddress(int flag) {
+int UDPSocket::SetReuseAddress(int flag)
+{
   return 0;
 }
 
-int UDPSocket::SetReceiveBufferSize(int size) {
+int UDPSocket::SetReceiveBufferSize(int size)
+{
   return 0;
 }
 
-int UDPSocket::SetSendTimeout(const std::chrono::microseconds& timeout) {
+int UDPSocket::SetSendTimeout(const std::chrono::microseconds & timeout)
+{
   return 0;
 }
 
-int UDPSocket::SetReceiveTimeout(const std::chrono::microseconds& timeout) {
+int UDPSocket::SetReceiveTimeout(const std::chrono::microseconds & timeout)
+{
   return 0;
 }
 
-int UDPSocket::JoinMulticastGroup(const SocketAddress& multicast_address) {
+int UDPSocket::JoinMulticastGroup(const SocketAddress & multicast_address)
+{
   return 0;
 }
 
-int UDPSocket::LeaveMulticastGroup(const SocketAddress& multicast_address) {
+int UDPSocket::LeaveMulticastGroup(const SocketAddress & multicast_address)
+{
   return 0;
 }
 
-int UDPSocket::SetTTLForMulticast(int ttl) {
+int UDPSocket::SetTTLForMulticast(int ttl)
+{
   return 0;
 }
 
-int UDPSocket::SetTTLForUnicast(int ttl) {
+int UDPSocket::SetTTLForUnicast(int ttl)
+{
   return 0;
 }
 
-int UDPSocket::Bind(const SocketAddress& local_address) {
+int UDPSocket::Bind(const SocketAddress & local_address)
+{
   return 0;
 }
 
-int UDPSocket::Connect(const SocketAddress& remote_address) {
+int UDPSocket::Connect(const SocketAddress & remote_address)
+{
   return 0;
 }
 
-int UDPSocket::Select(std::chrono::microseconds timeout, bool read) {
+int UDPSocket::Select(std::chrono::microseconds timeout, bool read)
+{
   // TODO(kovacsge): check
   return 1;
 }
 
-int UDPSocket::Send(const unsigned char* raw_data, int raw_data_size, int flags) {
+int UDPSocket::Send(const unsigned char * raw_data, int raw_data_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::SendTo(const SocketAddress& remote_address, const unsigned char* raw_data,
-                      int raw_data_size, int flags) {
+int UDPSocket::SendTo(
+  const SocketAddress & remote_address, const unsigned char * raw_data,
+  int raw_data_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::Receive(unsigned char* buffer, int buffer_size, int flags) {
+int UDPSocket::Receive(unsigned char * buffer, int buffer_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::ReceiveOrTimeout(const std::chrono::microseconds& timeout, unsigned char* buffer,
-                                int buffer_size, int flags) {
+int UDPSocket::ReceiveOrTimeout(
+  const std::chrono::microseconds & timeout, unsigned char * buffer,
+  int buffer_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::ReceiveFrom(SocketAddress& incoming_remote_address, unsigned char* buffer,
-                           int buffer_size, int flags) {
+int UDPSocket::ReceiveFrom(
+  SocketAddress & incoming_remote_address, unsigned char * buffer,
+  int buffer_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::ReceiveFromOrTimeout(const std::chrono::microseconds& timeout,
-                                    SocketAddress& incoming_remote_address, unsigned char* buffer,
-                                    int buffer_size, int flags) {
+int UDPSocket::ReceiveFromOrTimeout(
+  const std::chrono::microseconds & timeout,
+  SocketAddress & incoming_remote_address, unsigned char * buffer,
+  int buffer_size, int flags)
+{
   return 0;
 }
 
-int UDPSocket::Close() {
+int UDPSocket::Close()
+{
   return ErrorCode::kSuccess;
 }
 
-int UDPSocket::GetErrorCode() const { return errno; }
-std::string UDPSocket::GetErrorText() const { return ""; }
+int UDPSocket::GetErrorCode() const {return errno;}
+std::string UDPSocket::GetErrorText() const {return "";}
 
-bool UDPSocket::IsReadable() const {
+bool UDPSocket::IsReadable() const
+{
   return false;
 }
 
