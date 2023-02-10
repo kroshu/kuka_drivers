@@ -247,10 +247,6 @@ bool RobotManagerNode::onControllerNameChangeRequest(
   } else if (controller_name_param == IMPEDANCE_CONTROLLER_NAME_PARAM) {
     control_mode_map_.at(IMPEDANCE_CONTROL)[1] = controller_name;
   } else if (controller_name_param == TORQUE_CONTROLLER_NAME_PARAM) {
-    //TODO(komaromi): Remove this when torque is available
-    RCLCPP_WARN(
-      get_logger(),
-      "Torque controller name is set to %s, althought torque control is not implemented yet.");
     control_mode_map_.at(TORQUE_CONTROL)[0] = controller_name;
   } else {
     RCLCPP_WARN(get_logger(), "Unknown controller name param added.");
