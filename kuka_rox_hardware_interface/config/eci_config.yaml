@@ -1,8 +1,0 @@
-robot_manager:
-  ros__parameters:
-    controller_ip: "<insert controller ip here>"
-    client_ip: "<insert client ip here>"
-    control_mode: "position"
-    position_controller_name: "joint_trajectory_controller"
-    impedance_controller_name: "joint_impedance_controller"
-    torque_controller_name: ""
