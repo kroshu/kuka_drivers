@@ -112,7 +112,7 @@ export_command_interfaces()
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
       &hw_commands_[i]);
-      
+
     command_interfaces.emplace_back(
       info_.joints[i].name,
       HW_IF_STIFFNESS,
@@ -123,7 +123,7 @@ export_command_interfaces()
       HW_IF_DAMPING,
       &hw_damping_[i]);
   }
-  
+
   return command_interfaces;
 }
 

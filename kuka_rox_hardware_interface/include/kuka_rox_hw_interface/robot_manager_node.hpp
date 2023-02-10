@@ -18,6 +18,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
@@ -52,7 +53,9 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(const std::string & control_mode);
-  bool onControllerNameChangeRequest(const std::string & controller_name, const std::string & controller_name_param);
+  bool onControllerNameChangeRequest(
+    const std::string & controller_name,
+    const std::string & controller_name_param);
 
 private:
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
@@ -61,11 +64,10 @@ private:
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::vector<std::string> controller_names_;
-  std::map<std::string,std::vector<std::string>> control_mode_map_;
+  std::map<std::string, std::vector<std::string>> control_mode_map_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
-
 
 
   const std::string POSITION_CONTROL = "position";
