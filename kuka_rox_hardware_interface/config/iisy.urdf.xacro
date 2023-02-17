@@ -3,9 +3,14 @@
 <!-- Import iisy urdf file  -->
 <xacro:include filename="$(find kuka_iisy_support)/urdf/iisy.ros2_control.urdf.xacro"/>
 
+<xacro:property name="yaml_file" value="$(find kuka_rox_hw_interface)/config/eci_config.yaml" />
+<xacro:property name="config_dict" value="${xacro.load_yaml(yaml_file)}"/>
+<xacro:property name="ctrl_mode" value="${config_dict['control_mode']}" />
+
+
 <xacro:eci_config client_ip="0.0.0.0" 
                   controller_ip="0.0.0.0" 
-                  control_mode="1"/>
+                  control_mode="${ctrl_mode}"/>
 <!-- 1 - position control
      2 - cartesian overlay (not supported yet)
      3 - joint impedance control
