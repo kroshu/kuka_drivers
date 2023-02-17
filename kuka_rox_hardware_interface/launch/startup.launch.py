@@ -45,6 +45,9 @@ def generate_launch_description():
     joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
 
+    joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
+                                   "/config/joint_impedance_controller_config.yaml")
+
     controller_manager_node = '/controller_manager'
 
     return LaunchDescription([
@@ -78,8 +81,8 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-                       "kuka_controllers/JointImpedanceController", "--inactive"],
+            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-p",
+                       joint_imp_controller_config, "--inactive"],
         ),
         Node(
             package="controller_manager",
