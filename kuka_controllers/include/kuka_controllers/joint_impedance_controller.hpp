@@ -28,6 +28,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
+#include "joint_impedance_controller_parameters.hpp"
+
 namespace kuka_controllers
 {
 class JointImpedanceController : public controller_interface::ControllerInterface
@@ -56,6 +58,22 @@ private:
   rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr joint_impedance_subscriber_;
   std::vector<double> stiffness_;
   std::vector<double> damping_;
+
+  // Degrees of freedom
+  size_t dof_;
+
+  // Storing command joint names for interfaces
+  std::vector<std::string> command_joint_names_;
+
+  // Parameters from ROS for joint_impedance_controller
+  std::shared_ptr<joint_impedance_controller::ParamListener> param_listener_;
+  joint_impedance_controller::Params params_;
+
+  // Private consts
+  const std::vector<std::string> command_interfaces_param = {"stiffness", "damping"};
+  static constexpr double STIFFNESS_DEFAULT = 30;
+  static constexpr double DAMPING_DEFAULT = 0.7;
+
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__JOINT_IMPEDANCE_CONTROLLER_HPP_

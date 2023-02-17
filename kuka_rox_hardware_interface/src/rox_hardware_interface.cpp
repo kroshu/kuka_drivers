@@ -115,9 +115,7 @@ export_command_interfaces()
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
       &hw_position_commands_[i]);
-  }
 
-  for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
       info_.joints[i].name,
       hardware_interface::HW_IF_EFFORT,
@@ -129,14 +127,13 @@ export_command_interfaces()
       info_.joints[i].name,
       HW_IF_STIFFNESS,
       &hw_stiffness_[i]);
-  }
 
-  for (size_t i = 0; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(
       info_.joints[i].name,
       HW_IF_DAMPING,
       &hw_damping_[i]);
   }
+
   return command_interfaces;
 }
 

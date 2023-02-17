@@ -6,6 +6,8 @@
       type: joint_trajectory_controller/JointTrajectoryController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+    joint_impedance_controller:
+      type: kuka_controllers/JointImpedanceController
     effort_controller:
       type: effort_controllers/JointGroupPositionController
   

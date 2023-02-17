@@ -22,6 +22,10 @@ namespace kuka_rox
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
+  RCLCPP_INFO(
+    get_logger(), "Starting Robot Manager Node init"
+  );
+
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -40,6 +44,38 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  control_mode_map_.emplace(std::make_pair(POSITION_CONTROL, std::vector<std::string>()));
+  control_mode_map_.emplace(std::make_pair(IMPEDANCE_CONTROL, std::vector<std::string>()));
+  control_mode_map_.emplace(std::make_pair(TORQUE_CONTROL, std::vector<std::string>()));
+  control_mode_map_.at(POSITION_CONTROL).resize(1);
+  control_mode_map_.at(IMPEDANCE_CONTROL).resize(2);
+  control_mode_map_.at(TORQUE_CONTROL).resize(1);
+
+  this->registerParameter<std::string>(
+    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+      false, false}, [this](const std::string & control_mode) {
+      return this->onControlModeChangeRequest(control_mode);
+    });
+  this->registerParameter<std::string>(
+    POSITION_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false, false}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, POSITION_CONTROLLER_NAME_PARAM);
+    });
+  this->registerParameter<std::string>(
+    IMPEDANCE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false, false}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, IMPEDANCE_CONTROLLER_NAME_PARAM);
+    });
+  this->registerParameter<std::string>(
+    TORQUE_CONTROLLER_NAME_PARAM, "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+      false, false}, [this](const std::string & controller_name) {
+      return this->onControllerNameChangeRequest(controller_name, TORQUE_CONTROLLER_NAME_PARAM);
+    });
+
+  RCLCPP_INFO(
+    get_logger(), "Robot Manager Node init finished without error"
+  );
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -124,15 +160,15 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  // auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
-  // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
-  //     ? position_controller_name : torque_controller_name;
-  controller_names_.clear();
-  controller_names_.emplace_back("joint_trajectory_controller");
-  if (is_joint_imp_contr_) {
-    controller_names_.emplace_back("joint_impedance_controller");
+  auto control_mode = this->get_parameter("control_mode").as_string();
+
+  if (control_mode_map_.find(control_mode) == control_mode_map_.end()) {
+    RCLCPP_ERROR(
+      get_logger(), "Not valid control mode, control mode set to: %s",
+      control_mode.c_str());
+    return ERROR;
   }
+  controller_names_ = control_mode_map_.at(control_mode);
 
   // Activate RT commander
   controller_request->strictness = SwitchController::Request::STRICT;
@@ -187,6 +223,45 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
   return SUCCESS;
+}
+
+bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mode)
+{
+  if (control_mode_map_.find(control_mode) != control_mode_map_.end()) {
+    RCLCPP_INFO(get_logger(), "Control mode changed to %s", control_mode.c_str());
+    return true;
+  } else {
+    RCLCPP_WARN(
+      get_logger(), "Could not change control mode, %s is not a valid control mode",
+      control_mode.c_str());
+    return false;
+  }
+}
+
+bool RobotManagerNode::onControllerNameChangeRequest(
+  const std::string & controller_name,
+  const std::string & controller_name_param)
+{
+  try {
+    if (controller_name_param == POSITION_CONTROLLER_NAME_PARAM) {
+      control_mode_map_.at(POSITION_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(IMPEDANCE_CONTROL).at(0) = controller_name;
+    } else if (controller_name_param == IMPEDANCE_CONTROLLER_NAME_PARAM) {
+      control_mode_map_.at(IMPEDANCE_CONTROL).at(1) = controller_name;
+    } else if (controller_name_param == TORQUE_CONTROLLER_NAME_PARAM) {
+      control_mode_map_.at(TORQUE_CONTROL).at(0) = controller_name;
+    } else {
+      RCLCPP_WARN(get_logger(), "Unknown controller name param added.");
+      return false;
+    }
+    RCLCPP_INFO(
+      get_logger(), "The %s parameter changed to %s.",
+      controller_name_param.c_str(), controller_name.c_str()
+    );
+  } catch (const std::out_of_range & e) {
+    RCLCPP_ERROR(get_logger(), "Out of range error: %s", e.what());
+  }
+  return true;
 }
 }  // namespace kuka_rox
 
