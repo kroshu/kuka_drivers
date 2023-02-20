@@ -65,7 +65,8 @@ RobotManagerNode::RobotManagerNode()
   control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).resize(2);
   control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).resize(1);
 
-  this->registerParameter<int>(
+  // TODO(Svastits): change to dynamic parameter after control mode changes are supported
+  this->registerStaticParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
     kroshu_ros2_core::ParameterSetAccessRights(), [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
