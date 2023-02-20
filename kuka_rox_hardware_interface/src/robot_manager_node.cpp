@@ -14,7 +14,11 @@
 
 #include "kuka_rox_hw_interface/robot_manager_node.hpp"
 
+#include "kuka/motion/external/external_control_mode.pb.h"
+
+
 using namespace controller_manager_msgs::srv;  // NOLINT
+using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_rox
 {
@@ -45,16 +49,25 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/is_configured",
     is_configured_qos);
 
-  control_mode_map_.emplace(std::make_pair(POSITION_CONTROL, std::vector<std::string>()));
-  control_mode_map_.emplace(std::make_pair(IMPEDANCE_CONTROL, std::vector<std::string>()));
-  control_mode_map_.emplace(std::make_pair(TORQUE_CONTROL, std::vector<std::string>()));
-  control_mode_map_.at(POSITION_CONTROL).resize(1);
-  control_mode_map_.at(IMPEDANCE_CONTROL).resize(2);
-  control_mode_map_.at(TORQUE_CONTROL).resize(1);
+  control_mode_map_.emplace(
+    std::make_pair(
+      ExternalControlMode::POSITION_CONTROL,
+      std::vector<std::string>()));
+  control_mode_map_.emplace(
+    std::make_pair(
+      ExternalControlMode::JOINT_IMPEDANCE_CONTROL,
+      std::vector<std::string>()));
+  control_mode_map_.emplace(
+    std::make_pair(
+      ExternalControlMode::TORQUE_CONTROL,
+      std::vector<std::string>()));
+  control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).resize(1);
+  control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).resize(2);
+  control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).resize(1);
 
-  this->registerParameter<std::string>(
-    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
-      false, false}, [this](const std::string & control_mode) {
+  this->registerParameter<int>(
+    "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
+    kroshu_ros2_core::ParameterSetAccessRights(), [this](const int & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
@@ -160,12 +173,13 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  auto control_mode = this->get_parameter("control_mode").as_string();
+  auto control_mode = this->get_parameter("control_mode").as_int();
 
+  // TODO(Svastits): link lib of ExternalControlMode_Name
   if (control_mode_map_.find(control_mode) == control_mode_map_.end()) {
     RCLCPP_ERROR(
       get_logger(), "Not valid control mode, control mode set to: %s",
-      control_mode.c_str());
+      /*ExternalControlMode_Name(control_mode)*/ "");
     return ERROR;
   }
   controller_names_ = control_mode_map_.at(control_mode);
@@ -225,15 +239,16 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-bool RobotManagerNode::onControlModeChangeRequest(const std::string & control_mode)
+bool RobotManagerNode::onControlModeChangeRequest(const int & control_mode)
 {
   if (control_mode_map_.find(control_mode) != control_mode_map_.end()) {
-    RCLCPP_INFO(get_logger(), "Control mode changed to %s", control_mode.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Control mode changed to %s", /*ExternalControlMode_Name(control_mode)*/ "");
     return true;
   } else {
     RCLCPP_WARN(
       get_logger(), "Could not change control mode, %s is not a valid control mode",
-      control_mode.c_str());
+      /*ExternalControlMode_Name(control_mode)*/ "");
     return false;
   }
 }
@@ -244,12 +259,12 @@ bool RobotManagerNode::onControllerNameChangeRequest(
 {
   try {
     if (controller_name_param == POSITION_CONTROLLER_NAME_PARAM) {
-      control_mode_map_.at(POSITION_CONTROL).at(0) = controller_name;
-      control_mode_map_.at(IMPEDANCE_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(0) = controller_name;
     } else if (controller_name_param == IMPEDANCE_CONTROLLER_NAME_PARAM) {
-      control_mode_map_.at(IMPEDANCE_CONTROL).at(1) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(1) = controller_name;
     } else if (controller_name_param == TORQUE_CONTROLLER_NAME_PARAM) {
-      control_mode_map_.at(TORQUE_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(0) = controller_name;
     } else {
       RCLCPP_WARN(get_logger(), "Unknown controller name param added.");
       return false;

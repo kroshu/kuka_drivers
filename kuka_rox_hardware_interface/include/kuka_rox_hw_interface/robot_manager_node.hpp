@@ -52,7 +52,7 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  bool onControlModeChangeRequest(const std::string & control_mode);
+  bool onControlModeChangeRequest(const int & control_mode);
   bool onControllerNameChangeRequest(
     const std::string & controller_name,
     const std::string & controller_name_param);
@@ -64,21 +64,14 @@ private:
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::vector<std::string> controller_names_;
-  std::map<std::string, std::vector<std::string>> control_mode_map_;
+  std::map<int, std::vector<std::string>> control_mode_map_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-
-  const std::string POSITION_CONTROL = "position";
-  const std::string TORQUE_CONTROL = "torque";
-  const std::string IMPEDANCE_CONTROL = "impedance";
-
   const std::string POSITION_CONTROLLER_NAME_PARAM = "position_controller_name";
   const std::string IMPEDANCE_CONTROLLER_NAME_PARAM = "impedance_controller_name";
   const std::string TORQUE_CONTROLLER_NAME_PARAM = "torque_controller_name";
-
-  static constexpr bool is_joint_imp_contr_ = true;
 };
 
 }  // namespace kuka_rox
