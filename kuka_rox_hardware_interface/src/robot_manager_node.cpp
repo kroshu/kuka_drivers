@@ -67,7 +67,7 @@ RobotManagerNode::RobotManagerNode()
 
   this->registerParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
-    kroshu_ros2_core::ParameterSetAccessRights(), [this](const int & control_mode) {
+    kroshu_ros2_core::ParameterSetAccessRights(), [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
@@ -125,7 +125,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not cleanup hardware interface");
+    RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
 
@@ -239,7 +239,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-bool RobotManagerNode::onControlModeChangeRequest(const int & control_mode)
+bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
   if (control_mode_map_.find(control_mode) != control_mode_map_.end()) {
     RCLCPP_INFO(

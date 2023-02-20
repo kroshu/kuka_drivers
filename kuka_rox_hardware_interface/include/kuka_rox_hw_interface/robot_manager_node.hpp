@@ -52,7 +52,7 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  bool onControlModeChangeRequest(const int & control_mode);
+  bool onControlModeChangeRequest(int control_mode);
   bool onControllerNameChangeRequest(
     const std::string & controller_name,
     const std::string & controller_name_param);

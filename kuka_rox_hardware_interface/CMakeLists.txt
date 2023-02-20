@@ -72,7 +72,7 @@ target_link_libraries(rox_control_node kuka_rox_hw_interface)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers)
+target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
