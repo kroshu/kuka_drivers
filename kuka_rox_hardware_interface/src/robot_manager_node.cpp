@@ -68,8 +68,7 @@ RobotManagerNode::RobotManagerNode()
   // TODO(Svastits): change to dynamic parameter after control mode changes are supported
   this->registerStaticParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
-    kroshu_ros2_core::ParameterSetAccessRights{true, false,
-      false, false, false}, [this](int control_mode) {
+    [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerParameter<std::string>(
