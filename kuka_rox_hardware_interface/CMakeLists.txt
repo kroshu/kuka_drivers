@@ -27,12 +27,16 @@ find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+find_package(Protobuf REQUIRED)
+
+
 include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
   find_package(os-core-udp-communication REQUIRED)
   find_package(motion-services-ecs-proto-api-cpp REQUIRED)
   find_package(motion-external-proto-api-nanopb REQUIRED)
+  find_package(motion-external-proto-api-cpp REQUIRED)
   find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
   find_package(nanopb-helpers REQUIRED)
   include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
@@ -72,7 +76,8 @@ target_link_libraries(rox_control_node kuka_rox_hw_interface)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
+# TODO: remove motion-external-proto-api-cpp and protobuf links (motion-services-ecs transitive link should work)
+target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp motion-external-proto-api-cpp protobuf::libprotobuf)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 

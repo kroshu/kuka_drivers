@@ -118,7 +118,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  // Cleanup hardware interface
+  // Clean up hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
   hw_request->name = "iisy_hardware";
@@ -177,11 +177,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   auto control_mode = this->get_parameter("control_mode").as_int();
 
-  // TODO(Svastits): link lib of ExternalControlMode_Name
   if (control_mode_map_.find(control_mode) == control_mode_map_.end()) {
     RCLCPP_ERROR(
       get_logger(), "Not valid control mode, control mode set to: %s",
-      /*ExternalControlMode_Name(control_mode)*/ "");
+      ExternalControlMode_Name(control_mode).c_str());
     return ERROR;
   }
   controller_names_ = control_mode_map_.at(control_mode);
@@ -245,12 +244,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
   if (control_mode_map_.find(control_mode) != control_mode_map_.end()) {
     RCLCPP_INFO(
-      get_logger(), "Control mode changed to %s", /*ExternalControlMode_Name(control_mode)*/ "");
+      get_logger(), "Control mode changed to %s", ExternalControlMode_Name(control_mode).c_str());
     return true;
   } else {
     RCLCPP_WARN(
       get_logger(), "Could not change control mode, %s is not a valid control mode",
-      /*ExternalControlMode_Name(control_mode)*/ "");
+      ExternalControlMode_Name(control_mode).c_str());
     return false;
   }
 }
