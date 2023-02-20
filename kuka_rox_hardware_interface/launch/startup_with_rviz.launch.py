@@ -18,87 +18,19 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch_ros.actions import LifecycleNode
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
+from launch.actions.include_launch_description import IncludeLaunchDescription
+from launch.launch_description_sources.python_launch_description_source import PythonLaunchDescriptionSource  # noqa: E501
 
 
 def generate_launch_description():
-
-    # Get URDF via xacro
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("kuka_rox_hw_interface"),
-                 "config", "iisy.urdf.xacro"]
-            ),
-            " ",
-        ]
-    )
-
-    # Get URDF via xacro
-    robot_description = {'robot_description': robot_description_content}
-
-    controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                         "/config/ros2_controller_config.yaml")
-
-    joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                                    "/config/joint_trajectory_controller_config.yaml")
-    effort_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                                "/config/effort_controller_config.yaml")
     rviz_config_file = os.path.join(
         get_package_share_directory('kuka_iisy_support'), 'launch', 'urdf_wo_planning_scene.rviz')
 
-    controller_manager_node = '/controller_manager'
+    startup_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
+        [get_package_share_directory('kuka_rox_hw_interface'), '/launch/startup.launch.py']))
 
     return LaunchDescription([
-        Node(
-            package='kuka_rox_hw_interface',
-            executable='rox_control_node',
-            parameters=[robot_description, controller_config]
-        ),
-        LifecycleNode(
-            name=['robot_manager'],
-            namespace='',
-            package="kuka_rox_hw_interface",
-            executable="robot_manager_node",
-            parameters=[
-                {'position_controller_name': 'joint_trajectory_controller'},
-                {'impedance_controller_name': 'joint_impedance_controller'},
-                {'torque_controller_name': ''}]
-        ),
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            output='both',
-            parameters=[robot_description]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
-                       joint_traj_controller_config, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_impedance_controller", "-c", controller_manager_node, "-t",
-                       "kuka_controllers/JointImpedanceController", "--inactive"],
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_state_broadcaster", "-c",
-                       controller_manager_node, "--inactive"],
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["effort_controller", "-c", controller_manager_node, "-p",
-                       effort_controller_config, "--inactive"]
-        ),
+        startup_launch,
         Node(
             package="rviz2",
             executable="rviz2",
