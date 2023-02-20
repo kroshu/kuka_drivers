@@ -1,1 +1,5 @@
-control_mode: 5
+robot_manager:
+  ros__parameters:
+    control_mode: 5
+    client_ip: "0.0.0.0"
+    controller_ip: "0.0.0.0"
