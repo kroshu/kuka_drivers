@@ -66,7 +66,7 @@ def generate_launch_description():
             parameters=[
                 {'position_controller_name': 'joint_trajectory_controller'},
                 {'impedance_controller_name': 'joint_impedance_controller'},
-                {'torque_controller_name': ''}]
+                {'torque_controller_name': 'effort_controller'}]
         ),
         Node(
             package='robot_state_publisher',
