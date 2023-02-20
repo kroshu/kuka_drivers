@@ -51,7 +51,8 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 
 #endif
   hw_states_.resize(info_.joints.size(), 0.0);
-  hw_commands_.resize(info_.joints.size(), 0.0);
+  hw_position_commands_.resize(info_.joints.size(), 0.0);
+  hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_.resize(info_.joints.size(), 30);
   hw_damping_.resize(info_.joints.size(), 0.7);
   motion_state_external_.header.ipoc = 0;
@@ -59,6 +60,8 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
   control_signal_ext_.control_signal.joint_command.values_count = 6;
+  control_signal_ext_.control_signal.has_joint_torque_command = true;
+  control_signal_ext_.control_signal.joint_torque_command.values_count = 6;
   control_signal_ext_.control_signal.has_joint_attributes = true;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
   control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
@@ -111,7 +114,12 @@ export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
-      &hw_commands_[i]);
+      &hw_position_commands_[i]);
+
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      hardware_interface::HW_IF_EFFORT,
+      &hw_torque_commands_[i]);
 
     command_interfaces.emplace_back(
       info_.joints[i].name,
@@ -187,7 +195,7 @@ return_type KukaRoXHardwareInterface::read(
 #ifndef NON_MOCK_SETUP
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_states_[i] = hw_commands_[i];
+    hw_states_[i] = hw_position_commands_[i];
   }
   return return_type::OK;
 #endif
@@ -216,7 +224,7 @@ return_type KukaRoXHardwareInterface::read(
       hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
       if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
-        hw_commands_[i] = hw_states_[i];
+        hw_position_commands_[i] = hw_states_[i];
       }
     }
 
@@ -247,7 +255,8 @@ return_type KukaRoXHardwareInterface::write(
     return return_type::OK;
   }
   for (size_t i = 0; i < info_.joints.size(); i++) {
-    control_signal_ext_.control_signal.joint_command.values[i] = hw_commands_[i];
+    control_signal_ext_.control_signal.joint_command.values[i] = hw_position_commands_[i];
+    control_signal_ext_.control_signal.joint_torque_command.values[i] = hw_torque_commands_[i];
     // TODO(Svastits): should we separate control modes somehow?
     control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
     control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];

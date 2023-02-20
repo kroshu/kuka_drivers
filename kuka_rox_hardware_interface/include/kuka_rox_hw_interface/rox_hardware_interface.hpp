@@ -74,7 +74,8 @@ private:
   bool is_active_ = false;
   bool msg_received_ = false;
 
-  std::vector<double> hw_commands_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_torque_commands_;
   std::vector<double> hw_states_;
   std::vector<double> hw_stiffness_;
   std::vector<double> hw_damping_;
