@@ -87,10 +87,27 @@ RobotManagerNode::RobotManagerNode()
       false, false}, [this](const std::string & controller_name) {
       return this->onControllerNameChangeRequest(controller_name, TORQUE_CONTROLLER_NAME_PARAM);
     });
+  this->registerStaticParameter<std::string>(
+    "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {true, false, false,
+      false, false}, [this](const std::string &) {
+      return true;
+    });
 
   RCLCPP_INFO(
     get_logger(), "Robot Manager Node init finished without error"
   );
+
+  RCLCPP_INFO(
+    get_logger(), "IP address of controller: %s", this->get_parameter(
+      "controller_ip").as_string().c_str());
+#ifdef NON_MOCK_SETUP
+
+  stub_ =
+    kuka::ecs::v1::ExternalControlService::NewStub(
+    grpc::CreateChannel(
+      this->get_parameter("controller_ip").as_string() + ":49335",
+      grpc::InsecureChannelCredentials()));
+#endif
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -159,7 +176,7 @@ void RobotManagerNode::ObserveControl()
         case kuka::ecs::v1::CommandEvent::STOPPED:
         case kuka::ecs::v1::CommandEvent::ERROR:
           terminate_ = true;
-          this->on_deactivate(get_current_state());
+          if (this->get_current_state().label() == "active") {this->deactivate();}
           break;
         default:
           break;
@@ -175,6 +192,10 @@ void RobotManagerNode::ObserveControl()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  // Join observe thread
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
   terminate_ = false;
   // Subscribe to stream of state changes
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
@@ -216,7 +237,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   if (control_mode_map_.find(control_mode) == control_mode_map_.end()) {
     RCLCPP_ERROR(
-      get_logger(), "Not valid control mode, control mode set to: %s",
+      get_logger(), "%s is not a supported control mode",
       ExternalControlMode_Name(control_mode).c_str());
     return ERROR;
   }
@@ -236,6 +257,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     is_configured_pub_->publish(is_configured_msg_);
     return FAILURE;
   }
+
+  // Return failure if control is stopped while in state activating
+  if (terminate_) {return FAILURE;}
 
   return SUCCESS;
 }
@@ -275,9 +299,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (observe_thread_.joinable()) {
-    observe_thread_.join();
-  }
+  RCLCPP_INFO(get_logger(), "Successfully stopped controllers");
   return SUCCESS;
 }
 
