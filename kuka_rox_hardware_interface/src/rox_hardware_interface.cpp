@@ -51,6 +51,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 
 #endif
   hw_position_states_.resize(info_.joints.size(), 0.0);
+  hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
@@ -100,6 +101,11 @@ KukaRoXHardwareInterface::export_state_interfaces()
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
       &hw_position_states_[i]);
+
+    state_interfaces.emplace_back(
+      info_.joints[i].name,
+      hardware_interface::HW_IF_EFFORT,
+      &hw_torque_states_[i]);
   }
   return state_interfaces;
 }
@@ -222,6 +228,7 @@ return_type KukaRoXHardwareInterface::read(
 
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_position_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
+      hw_torque_states_[i] = motion_state_external_.motion_state.measured_torques.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
       if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
         hw_position_commands_[i] = hw_position_states_[i];

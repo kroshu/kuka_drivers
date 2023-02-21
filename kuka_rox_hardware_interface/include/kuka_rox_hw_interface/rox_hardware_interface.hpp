@@ -80,6 +80,7 @@ private:
   std::vector<double> hw_damping_commands_;
 
   std::vector<double> hw_position_states_;
+  std::vector<double> hw_torque_states_;
 
 #ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
