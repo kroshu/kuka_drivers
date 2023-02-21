@@ -1,5 +1,13 @@
 robot_manager:
   ros__parameters:
-    control_mode: 5
+    control_mode: 1
     client_ip: "0.0.0.0"
     controller_ip: "0.0.0.0"
+
+# 1 - position control
+# 2 - cartesian overlay (not supported yet)
+# 3 - joint impedance control
+# 4 - cartesian impedance control (not supported yet)
+# 5 - torque control  
+
+
