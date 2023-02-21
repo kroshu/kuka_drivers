@@ -19,7 +19,7 @@ endif()
 # TODO: find better solution
 SET(CMAKE_EXE_LINKER_FLAGS  "-Wl,--copy-dt-needed-entries")
 
-set(MOCK_KUKA_LIBS FALSE)
+set(MOCK_KUKA_LIBS TRUE)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -45,6 +45,7 @@ if(NOT MOCK_KUKA_LIBS)
   message("Using real kuka libs")
   add_definitions(-DNON_MOCK_SETUP)
 else()
+  find_package(Protobuf)
   include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
     src/mock/os-core-udp-communication/udp_replier_mock.cpp
@@ -52,6 +53,7 @@ else()
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
+  target_link_libraries(motion-services-ecs-proto-api-cpp INTERFACE protobuf::libprotobuf)
 
   add_library(motion-external-proto-api-nanopb INTERFACE)
   target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)

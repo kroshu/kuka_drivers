@@ -76,7 +76,7 @@ constexpr ExternalControlMode ExternalControlMode_MIN = EXTERNAL_CONTROL_MODE_UN
 constexpr ExternalControlMode ExternalControlMode_MAX = TORQUE_CONTROL;
 constexpr int ExternalControlMode_ARRAYSIZE = ExternalControlMode_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor(){};
 template<typename T>
 inline const std::string& ExternalControlMode_Name(T enum_t_value) {
   static_assert(::std::is_same<T, ExternalControlMode>::value ||
