@@ -152,6 +152,12 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(
       std::stoi(info_.hardware_parameters.at("control_mode"))));
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaRoXHardwareInterface"), "Starting control in %s",
+    kuka::motion::external::ExternalControlMode_Name(
+      std::stoi(
+        info_.hardware_parameters.at(
+          "control_mode"))).c_str());
 
   if (stub_->OpenControlChannel(
       &context, request,
