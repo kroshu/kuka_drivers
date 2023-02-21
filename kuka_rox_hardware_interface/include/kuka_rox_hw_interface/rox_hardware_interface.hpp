@@ -96,6 +96,7 @@ private:
   std::unique_ptr<os::core::udp::communication::UDPReplier> udp_replier_;
   std::chrono::milliseconds receive_timeout_ {100};
 
+  uint8_t out_buff_arr_[1500];
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};

@@ -254,23 +254,26 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  size_t MTU = 1500;
-  uint8_t out_buff_arr[MTU];
-
   // If control is not started or a request is missed, do not send back anything
   if (!msg_received_) {
     return return_type::OK;
   }
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    control_signal_ext_.control_signal.joint_command.values[i] = hw_position_commands_[i];
-    control_signal_ext_.control_signal.joint_torque_command.values[i] = hw_torque_commands_[i];
-    // TODO(Svastits): should we separate control modes somehow?
-    control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_commands_[i];
-    control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_commands_[i];
-  }
+
+  std::copy(
+    hw_position_commands_.begin(),
+    hw_position_commands_.end(), control_signal_ext_.control_signal.joint_command.values);
+  std::copy(
+    hw_torque_commands_.begin(),
+    hw_torque_commands_.end(), control_signal_ext_.control_signal.joint_torque_command.values);
+  std::copy(
+    hw_stiffness_commands_.begin(),
+    hw_stiffness_commands_.end(), control_signal_ext_.control_signal.joint_attributes.stiffness);
+  std::copy(
+    hw_damping_commands_.begin(),
+    hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
-    control_signal_ext_, out_buff_arr, MTU);
+    control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
   if (encoded_bytes < 0) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
@@ -279,7 +282,7 @@ return_type KukaRoXHardwareInterface::write(
     throw std::runtime_error("Encoding of control signal to out_buffer failed.");
   }
 
-  if (udp_replier_->SendReply(out_buff_arr, encoded_bytes) !=
+  if (udp_replier_->SendReply(out_buff_arr_, encoded_bytes) !=
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
