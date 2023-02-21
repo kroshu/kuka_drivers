@@ -32,6 +32,8 @@
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
+#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
+
 namespace kuka_rox
 {
 
@@ -58,6 +60,8 @@ public:
     const std::string & controller_name_param);
 
 private:
+  void ObserveControl();
+
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
@@ -65,6 +69,13 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::vector<std::string> controller_names_;
   std::map<int, std::vector<std::string>> control_mode_map_;
+
+  std::thread observe_thread_;
+  std::atomic<bool> terminate_{false};
+#ifdef NON_MOCK_SETUP
+  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
+  std::unique_ptr<grpc::ClientContext> context_;
+#endif
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;

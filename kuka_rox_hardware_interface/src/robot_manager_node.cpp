@@ -15,7 +15,7 @@
 #include "kuka_rox_hw_interface/robot_manager_node.hpp"
 
 #include "kuka/motion/external/external_control_mode.pb.h"
-
+#include <grpcpp/create_channel.h>
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace kuka::motion::external;  // NOLINT
@@ -139,9 +139,56 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
+void RobotManagerNode::ObserveControl()
+{
+  #ifdef NON_MOCK_SETUP
+  while (!terminate_) {
+    context_ = std::make_unique<::grpc::ClientContext>();
+    kuka::ecs::v1::ObserveControlStateRequest obs_control;
+    std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
+      stub_->ObserveControlState(context_.get(), obs_control));
+
+    kuka::ecs::v1::CommandState response;
+
+    if (reader->Read(&response)) {
+      RCLCPP_INFO(
+        get_logger(), "New state: %s",
+        CommandEvent_Name(response.event()).c_str());
+
+      switch (static_cast<int>(response.event())) {
+        case kuka::ecs::v1::CommandEvent::COMMAND_READY:
+          RCLCPP_INFO(get_logger(), "Command accepted");
+          break;
+        case kuka::ecs::v1::CommandEvent::SAMPLING:
+          RCLCPP_INFO(get_logger(), "External control is active");
+          break;
+        case kuka::ecs::v1::CommandEvent::STOPPED:
+          RCLCPP_INFO(get_logger(), "External control finished");
+          terminate_ = true;
+          break;
+        case kuka::ecs::v1::CommandEvent::ERROR:
+          terminate_ = true;
+          RCLCPP_ERROR(
+            get_logger(), "External control stopped by an error");
+          RCLCPP_ERROR(get_logger(), response.message().c_str());
+          break;
+        default:
+          break;
+      }
+    } else {
+      // WORKAROUND: Ec is starting later so we have some errors before stable work.
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+  }
+#endif
+}
+
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  // Subscribe to stream of state changes
+  observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
+
   // Activate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
@@ -236,6 +283,10 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
+  }
+
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
   }
   return SUCCESS;
 }

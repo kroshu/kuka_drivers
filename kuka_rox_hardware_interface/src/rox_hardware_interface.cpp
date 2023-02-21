@@ -309,8 +309,8 @@ void KukaRoXHardwareInterface::ObserveControl()
       std::unique_lock<std::mutex> lck(observe_mutex_);    // TODO(Svastits): is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
-        rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
-        static_cast<int>(response.event()));
+        rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %s",
+        CommandEvent_Name(response.event()).c_str());
 
       switch (static_cast<int>(response.event())) {
         case CommandEvent::COMMAND_READY:
