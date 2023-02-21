@@ -156,21 +156,10 @@ void RobotManagerNode::ObserveControl()
         CommandEvent_Name(response.event()).c_str());
 
       switch (static_cast<int>(response.event())) {
-        case kuka::ecs::v1::CommandEvent::COMMAND_READY:
-          RCLCPP_INFO(get_logger(), "Command accepted");
-          break;
-        case kuka::ecs::v1::CommandEvent::SAMPLING:
-          RCLCPP_INFO(get_logger(), "External control is active");
-          break;
         case kuka::ecs::v1::CommandEvent::STOPPED:
-          RCLCPP_INFO(get_logger(), "External control finished");
-          terminate_ = true;
-          break;
         case kuka::ecs::v1::CommandEvent::ERROR:
           terminate_ = true;
-          RCLCPP_ERROR(
-            get_logger(), "External control stopped by an error");
-          RCLCPP_ERROR(get_logger(), response.message().c_str());
+          this->on_deactivate(get_current_state());
           break;
         default:
           break;
@@ -186,6 +175,7 @@ void RobotManagerNode::ObserveControl()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  terminate_ = false;
   // Subscribe to stream of state changes
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
 

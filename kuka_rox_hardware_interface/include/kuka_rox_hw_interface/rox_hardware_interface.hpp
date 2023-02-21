@@ -67,10 +67,9 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   bool isActive() const;
-
+private:
   void ObserveControl();
 
-private:
   bool is_active_ = false;
   bool msg_received_ = false;
 
@@ -85,7 +84,6 @@ private:
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
 #endif
-
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
