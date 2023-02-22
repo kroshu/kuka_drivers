@@ -1,8 +1,8 @@
 robot_manager:
   ros__parameters:
     control_mode: 1
-    client_ip: "10.36.60.10"
-    controller_ip: "10.36.60.208"
+    client_ip: "0.0.0.0"
+    controller_ip: "0.0.0.0"
 
 # 1 - position control
 # 2 - cartesian overlay (not supported yet)
