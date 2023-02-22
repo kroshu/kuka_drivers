@@ -22,7 +22,6 @@ using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_rox
 {
-
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
@@ -110,6 +109,13 @@ RobotManagerNode::RobotManagerNode()
 #endif
 }
 
+RobotManagerNode::~RobotManagerNode()
+{
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
+}
+
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
@@ -161,22 +167,23 @@ void RobotManagerNode::ObserveControl()
   #ifdef NON_MOCK_SETUP
   while (!terminate_) {
     context_ = std::make_unique<::grpc::ClientContext>();
-    kuka::ecs::v1::ObserveControlStateRequest obs_control;
+    kuka::ecs::v1::ObserveControlStateRequest observe_request;
     std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
-      stub_->ObserveControlState(context_.get(), obs_control));
+      stub_->ObserveControlState(context_.get(), observe_request));
 
     kuka::ecs::v1::CommandState response;
 
     if (reader->Read(&response)) {
-      RCLCPP_INFO(
-        get_logger(), "New state: %s",
-        CommandEvent_Name(response.event()).c_str());
-
       switch (static_cast<int>(response.event())) {
         case kuka::ecs::v1::CommandEvent::STOPPED:
         case kuka::ecs::v1::CommandEvent::ERROR:
+          RCLCPP_INFO(get_logger(), "External control stopped");
           terminate_ = true;
-          if (this->get_current_state().label() == "active") {this->deactivate();}
+          if (this->get_current_state().label() == "active") {
+            this->deactivate();
+          } else if (this->get_current_state().label() == "activating") {
+            this->on_deactivate(get_current_state());
+          }
           break;
         default:
           break;
@@ -257,9 +264,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     is_configured_pub_->publish(is_configured_msg_);
     return FAILURE;
   }
+  RCLCPP_INFO(get_logger(), "Successfully activated controllers");
+
 
   // Return failure if control is stopped while in state activating
-  if (terminate_) {return FAILURE;}
+  if (terminate_) {
+    RCLCPP_ERROR(get_logger(), "UDP communication could not be set up");
+    return FAILURE;
+  }
 
   return SUCCESS;
 }

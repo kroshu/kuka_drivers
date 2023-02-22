@@ -135,9 +135,20 @@ export_command_interfaces()
   return command_interfaces;
 }
 
+CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+{
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Configuring hardware interface");
+  // TODO(Svastits): Set QoS profile here
+  //  should be using another configuration file read from xacro
+  return CallbackReturn::SUCCESS;
+}
+
+
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
+  terminate_ = false;
+  control_signal_ext_.control_signal.stop_ipo = false;
 
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
@@ -164,6 +175,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       &response)
     .error_code() != grpc::StatusCode::OK)
   {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
     return CallbackReturn::ERROR;
   }
 #endif
@@ -175,6 +187,9 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
+
+  // Reset timeout to catch first tick message
+  receive_timeout_ = std::chrono::milliseconds(100);
 
   control_signal_ext_.control_signal.stop_ipo = true;
   while (is_active_) {
@@ -308,15 +323,13 @@ void KukaRoXHardwareInterface::ObserveControl()
     CommandState response;
 
     if (reader->Read(&response)) {
-      RCLCPP_INFO(
-        rclcpp::get_logger(
-          "KukaRoXHardwareInterface"),
-        "Event streamed from external control service");
       std::unique_lock<std::mutex> lck(observe_mutex_);    // TODO(Svastits): is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
-        rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %s",
-        CommandEvent_Name(response.event()).c_str());
+        rclcpp::get_logger(
+          "KukaRoXHardwareInterface"),
+        "Event streamed from external control service: %s", CommandEvent_Name(
+          response.event()).c_str());
 
       switch (static_cast<int>(response.event())) {
         case CommandEvent::COMMAND_READY:

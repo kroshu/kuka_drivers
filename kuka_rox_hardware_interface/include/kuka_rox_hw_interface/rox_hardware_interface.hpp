@@ -58,6 +58,8 @@ public:
 
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
+  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
@@ -67,6 +69,7 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   bool isActive() const;
+
 private:
   void ObserveControl();
 
