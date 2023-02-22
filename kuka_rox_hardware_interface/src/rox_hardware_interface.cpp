@@ -79,13 +79,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   //   return CallbackReturn::ERROR;
   // }
 
-  struct sched_param param;
-  param.sched_priority = 95;
-  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
-    return CallbackReturn::ERROR;
-  }
+
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
   return CallbackReturn::SUCCESS;
