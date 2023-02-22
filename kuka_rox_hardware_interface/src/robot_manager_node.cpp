@@ -203,8 +203,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
-  RCLCPP_INFO(get_logger(), "Thread joined");
-
   terminate_ = false;
   // Subscribe to stream of state changes
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
