@@ -68,7 +68,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
 #endif
 
@@ -83,7 +83,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
@@ -137,7 +137,6 @@ export_command_interfaces()
 
 CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Configuring hardware interface");
   // TODO(Svastits): Set QoS profile here
   //  should be using another configuration file read from xacro
   return CallbackReturn::SUCCESS;
@@ -176,7 +175,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     .error_code() != grpc::StatusCode::OK)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
 #endif
 
