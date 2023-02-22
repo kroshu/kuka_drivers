@@ -14,8 +14,8 @@
 
 #include "kuka_rox_hw_interface/robot_manager_node.hpp"
 
-#include "kuka/motion/external/external_control_mode.pb.h"
 #include <grpcpp/create_channel.h>
+#include "kuka/motion/external/external_control_mode.pb.h"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace kuka::motion::external;  // NOLINT
@@ -203,6 +203,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
+  RCLCPP_INFO(get_logger(), "Thread joined");
+
   terminate_ = false;
   // Subscribe to stream of state changes
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
