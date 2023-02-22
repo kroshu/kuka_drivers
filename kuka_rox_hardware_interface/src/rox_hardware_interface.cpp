@@ -14,11 +14,8 @@
 
 #include "kuka_rox_hw_interface/rox_hardware_interface.hpp"
 
-#include <sched.h>
-#include <sys/mman.h>
 #include <grpcpp/create_channel.h>
 
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
