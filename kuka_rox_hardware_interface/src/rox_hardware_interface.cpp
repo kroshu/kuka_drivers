@@ -149,6 +149,10 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   terminate_ = false;
   control_signal_ext_.control_signal.stop_ipo = false;
 
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
+
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
@@ -175,6 +179,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     .error_code() != grpc::StatusCode::OK)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
+    terminate_ = true;
     return CallbackReturn::FAILURE;
   }
 #endif
