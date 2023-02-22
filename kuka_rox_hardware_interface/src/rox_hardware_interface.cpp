@@ -257,6 +257,9 @@ return_type KukaRoXHardwareInterface::write(
   std::copy(
     hw_torque_commands_.begin(),
     hw_torque_commands_.end(), control_signal_ext_.control_signal.joint_torque_command.values);
+
+  // TODO (Svastitis): should we seperte control modes somehow?
+
   std::copy(
     hw_stiffness_commands_.begin(),
     hw_stiffness_commands_.end(), control_signal_ext_.control_signal.joint_attributes.stiffness);
