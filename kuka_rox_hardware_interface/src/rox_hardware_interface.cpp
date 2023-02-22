@@ -14,11 +14,8 @@
 
 #include "kuka_rox_hw_interface/rox_hardware_interface.hpp"
 
-#include <sched.h>
-#include <sys/mman.h>
 #include <grpcpp/create_channel.h>
 
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -50,11 +47,12 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
       grpc::InsecureChannelCredentials()));
 
 #endif
-  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_position_states_.resize(info_.joints.size(), 0.0);
+  hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
-  hw_stiffness_.resize(info_.joints.size(), 30);
-  hw_damping_.resize(info_.joints.size(), 0.7);
+  hw_stiffness_commands_.resize(info_.joints.size(), 30);
+  hw_damping_commands_.resize(info_.joints.size(), 0.7);
   motion_state_external_.header.ipoc = 0;
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
@@ -78,13 +76,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   //   return CallbackReturn::ERROR;
   // }
 
-  struct sched_param param;
-  param.sched_priority = 95;
-  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
-    return CallbackReturn::ERROR;
-  }
+
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
   return CallbackReturn::SUCCESS;
@@ -99,7 +91,12 @@ KukaRoXHardwareInterface::export_state_interfaces()
     state_interfaces.emplace_back(
       info_.joints[i].name,
       hardware_interface::HW_IF_POSITION,
-      &hw_states_[i]);
+      &hw_position_states_[i]);
+
+    state_interfaces.emplace_back(
+      info_.joints[i].name,
+      hardware_interface::HW_IF_EFFORT,
+      &hw_torque_states_[i]);
   }
   return state_interfaces;
 }
@@ -124,12 +121,12 @@ export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name,
       HW_IF_STIFFNESS,
-      &hw_stiffness_[i]);
+      &hw_stiffness_commands_[i]);
 
     command_interfaces.emplace_back(
       info_.joints[i].name,
       HW_IF_DAMPING,
-      &hw_damping_[i]);
+      &hw_damping_commands_[i]);
   }
 
   return command_interfaces;
@@ -195,7 +192,7 @@ return_type KukaRoXHardwareInterface::read(
 #ifndef NON_MOCK_SETUP
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_states_[i] = hw_position_commands_[i];
+    hw_position_states_[i] = hw_position_commands_[i];
   }
   return return_type::OK;
 #endif
@@ -221,10 +218,11 @@ return_type KukaRoXHardwareInterface::read(
     control_signal_ext_.header.ipoc = motion_state_external_.header.ipoc;
 
     for (size_t i = 0; i < info_.joints.size(); i++) {
-      hw_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
+      hw_position_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
+      hw_torque_states_[i] = motion_state_external_.motion_state.measured_torques.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
       if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
-        hw_position_commands_[i] = hw_states_[i];
+        hw_position_commands_[i] = hw_position_states_[i];
       }
     }
 
@@ -247,23 +245,27 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  size_t MTU = 1500;
-  uint8_t out_buff_arr[MTU];
-
   // If control is not started or a request is missed, do not send back anything
   if (!msg_received_) {
     return return_type::OK;
   }
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    control_signal_ext_.control_signal.joint_command.values[i] = hw_position_commands_[i];
-    control_signal_ext_.control_signal.joint_torque_command.values[i] = hw_torque_commands_[i];
-    // TODO(Svastits): should we separate control modes somehow?
-    control_signal_ext_.control_signal.joint_attributes.stiffness[i] = hw_stiffness_[i];
-    control_signal_ext_.control_signal.joint_attributes.damping[i] = hw_damping_[i];
-  }
+
+  // TODO(Svastits): should we separate control modes somehow?
+  std::copy(
+    hw_position_commands_.begin(),
+    hw_position_commands_.end(), control_signal_ext_.control_signal.joint_command.values);
+  std::copy(
+    hw_torque_commands_.begin(),
+    hw_torque_commands_.end(), control_signal_ext_.control_signal.joint_torque_command.values);
+  std::copy(
+    hw_stiffness_commands_.begin(),
+    hw_stiffness_commands_.end(), control_signal_ext_.control_signal.joint_attributes.stiffness);
+  std::copy(
+    hw_damping_commands_.begin(),
+    hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
-    control_signal_ext_, out_buff_arr, MTU);
+    control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
   if (encoded_bytes < 0) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
@@ -272,7 +274,7 @@ return_type KukaRoXHardwareInterface::write(
     throw std::runtime_error("Encoding of control signal to out_buffer failed.");
   }
 
-  if (udp_replier_->SendReply(out_buff_arr, encoded_bytes) !=
+  if (udp_replier_->SendReply(out_buff_arr_, encoded_bytes) !=
     UDPSocket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
