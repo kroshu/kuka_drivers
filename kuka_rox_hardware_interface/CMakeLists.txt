@@ -17,7 +17,7 @@ endif()
 # A few (transitive) dependencies are available only in one of the dependencies
 # Set flag to suppress linker error
 # TODO: find better solution
-SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
 set(MOCK_KUKA_LIBS TRUE)
 
