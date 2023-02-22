@@ -253,6 +253,7 @@ return_type KukaRoXHardwareInterface::write(
     return return_type::OK;
   }
 
+  // TODO(Svastits): should we separate control modes somehow?
   std::copy(
     hw_position_commands_.begin(),
     hw_position_commands_.end(), control_signal_ext_.control_signal.joint_command.values);
