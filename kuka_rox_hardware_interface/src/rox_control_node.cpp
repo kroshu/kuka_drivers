@@ -44,7 +44,8 @@ int main(int argc, char ** argv)
     RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
     RCLCPP_ERROR(controller_manager->get_logger(), strerror(errno));
     RCLCPP_WARN(
-      controller_manager->get_logger(), "You can use the driver but scheduler priority was not set")
+      controller_manager->get_logger(),
+      "You can use the driver but scheduler priority was not set");
   }
 
   std::thread control_loop([controller_manager, &is_configured]() {
