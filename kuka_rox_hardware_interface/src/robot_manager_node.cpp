@@ -220,6 +220,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     // 'unset config' does not exist, safe to return
     is_configured_msg_.data = false;
     is_configured_pub_->publish(is_configured_msg_);
+    terminate_ = true;
     return FAILURE;
   }
 
