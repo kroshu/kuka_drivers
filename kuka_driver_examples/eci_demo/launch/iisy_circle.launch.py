@@ -54,7 +54,7 @@ def generate_launch_description():
     robot_description = {'robot_description': robot_description_config}
 
     rviz_config_file = get_package_share_directory(
-        'kuka_iisy_support') + "/launch/urdf.rviz"
+        'kuka_iisy_support') + "/config/urdf_planning_scene.rviz"
 
     controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                          "/config/ros2_controller_config.yaml")

@@ -29,16 +29,18 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+
+#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
 namespace kuka_rox
 {
-
 class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();
+  ~RobotManagerNode();
+
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State &) override;
@@ -52,33 +54,34 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  bool onControlModeChangeRequest(const std::string & control_mode);
-  bool onControllerNameChangeRequest(
-    const std::string & controller_name,
-    const std::string & controller_name_param);
+  bool onControlModeChangeRequest(int control_mode);
 
 private:
+  void ObserveControl();
+
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::vector<std::string> controller_names_;
-  std::map<std::string, std::vector<std::string>> control_mode_map_;
+  std::map<int, std::vector<std::string>> control_mode_map_;
+
+  std::thread observe_thread_;
+  std::atomic<bool> terminate_{false};
+#ifdef NON_MOCK_SETUP
+  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
+  std::unique_ptr<grpc::ClientContext> context_;
+#endif
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-
-  const std::string POSITION_CONTROL = "position";
-  const std::string TORQUE_CONTROL = "torque";
-  const std::string IMPEDANCE_CONTROL = "impedance";
-
-  const std::string POSITION_CONTROLLER_NAME_PARAM = "position_controller_name";
-  const std::string IMPEDANCE_CONTROLLER_NAME_PARAM = "impedance_controller_name";
-  const std::string TORQUE_CONTROLLER_NAME_PARAM = "torque_controller_name";
-
-  static constexpr bool is_joint_imp_contr_ = true;
+  // There are two kinds of control modes with different number of necessary interfaces to be set:
+  //  - in standard modes (position, torque), only the control signal to the used interface (1)
+  //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)
+  static constexpr int STANDARD_MODE_IF_SIZE = 1;
+  static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
 }  // namespace kuka_rox

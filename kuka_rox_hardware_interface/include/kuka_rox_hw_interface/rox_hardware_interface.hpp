@@ -58,6 +58,8 @@ public:
 
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
+  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
@@ -68,9 +70,9 @@ public:
 
   bool isActive() const;
 
+private:
   void ObserveControl();
 
-private:
   bool is_active_ = false;
   bool msg_received_ = false;
 
@@ -87,7 +89,6 @@ private:
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
 #endif
-
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};

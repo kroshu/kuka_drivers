@@ -57,16 +57,16 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
   control_signal_ext_.control_signal.has_joint_command = true;
-  control_signal_ext_.control_signal.joint_command.values_count = 6;
+  control_signal_ext_.control_signal.joint_command.values_count = info_.joints.size();
   control_signal_ext_.control_signal.has_joint_torque_command = true;
-  control_signal_ext_.control_signal.joint_torque_command.values_count = 6;
+  control_signal_ext_.control_signal.joint_torque_command.values_count = info_.joints.size();
   control_signal_ext_.control_signal.has_joint_attributes = true;
-  control_signal_ext_.control_signal.joint_attributes.stiffness_count = 6;
-  control_signal_ext_.control_signal.joint_attributes.damping_count = 6;
+  control_signal_ext_.control_signal.joint_attributes.stiffness_count = info_.joints.size();
+  control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
 #endif
 
@@ -75,7 +75,6 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
   //   return CallbackReturn::ERROR;
   // }
-
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
@@ -132,9 +131,23 @@ export_command_interfaces()
   return command_interfaces;
 }
 
+CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+{
+  // TODO(Svastits): Set QoS profile here
+  //  should be using another configuration file read from xacro
+  return CallbackReturn::SUCCESS;
+}
+
+
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
+  terminate_ = false;
+  control_signal_ext_.control_signal.stop_ipo = false;
+
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
 
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
@@ -149,13 +162,21 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(
       std::stoi(info_.hardware_parameters.at("control_mode"))));
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaRoXHardwareInterface"), "Starting control in %s",
+    kuka::motion::external::ExternalControlMode_Name(
+      std::stoi(
+        info_.hardware_parameters.at(
+          "control_mode"))).c_str());
 
   if (stub_->OpenControlChannel(
       &context, request,
       &response)
     .error_code() != grpc::StatusCode::OK)
   {
-    return CallbackReturn::ERROR;
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
+    terminate_ = true;
+    return CallbackReturn::FAILURE;
   }
 #endif
 
@@ -166,6 +187,9 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
+
+  // Reset timeout to catch first tick message
+  receive_timeout_ = std::chrono::milliseconds(100);
 
   control_signal_ext_.control_signal.stop_ipo = true;
   while (is_active_) {
@@ -304,15 +328,13 @@ void KukaRoXHardwareInterface::ObserveControl()
     CommandState response;
 
     if (reader->Read(&response)) {
-      RCLCPP_INFO(
-        rclcpp::get_logger(
-          "KukaRoXHardwareInterface"),
-        "Event streamed from external control service");
       std::unique_lock<std::mutex> lck(observe_mutex_);    // TODO(Svastits): is this necessary?
       command_state_ = response;
       RCLCPP_INFO(
-        rclcpp::get_logger("KukaRoXHardwareInterface"), "New state: %i",
-        static_cast<int>(response.event()));
+        rclcpp::get_logger(
+          "KukaRoXHardwareInterface"),
+        "Event streamed from external control service: %s", CommandEvent_Name(
+          response.event()).c_str());
 
       switch (static_cast<int>(response.event())) {
         case CommandEvent::COMMAND_READY:

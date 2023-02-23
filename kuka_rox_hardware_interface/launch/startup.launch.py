@@ -29,8 +29,8 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_rox_hw_interface"),
-                 "config", "iisy.urdf.xacro"]
+                [FindPackageShare("kuka_iisy_support"),
+                 "urdf", "iisy.urdf.xacro"]
             ),
             " ",
         ]
@@ -50,6 +50,9 @@ def generate_launch_description():
     joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                    "/config/joint_impedance_controller_config.yaml")
 
+    eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
+                  "/config/eci_config.yaml")
+
     controller_manager_node = '/controller_manager'
 
     return LaunchDescription([
@@ -63,10 +66,7 @@ def generate_launch_description():
             namespace='',
             package="kuka_rox_hw_interface",
             executable="robot_manager_node",
-            parameters=[
-                {'position_controller_name': 'joint_trajectory_controller'},
-                {'impedance_controller_name': 'joint_impedance_controller'},
-                {'torque_controller_name': 'effort_controller'}]
+            parameters=[eci_config]
         ),
         Node(
             package='robot_state_publisher',

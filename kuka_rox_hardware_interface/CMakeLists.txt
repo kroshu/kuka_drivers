@@ -14,6 +14,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# A few (transitive) dependencies are available only in one of the dependencies
+# Set flag to suppress linker error
+# TODO: find better solution
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
+
 set(MOCK_KUKA_LIBS TRUE)
 
 find_package(ament_cmake REQUIRED)
@@ -40,6 +45,7 @@ if(NOT MOCK_KUKA_LIBS)
   message("Using real kuka libs")
   add_definitions(-DNON_MOCK_SETUP)
 else()
+  find_package(Protobuf)
   include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
     src/mock/os-core-udp-communication/udp_replier_mock.cpp
@@ -47,6 +53,7 @@ else()
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
+  target_link_libraries(motion-services-ecs-proto-api-cpp INTERFACE protobuf::libprotobuf)
 
   add_library(motion-external-proto-api-nanopb INTERFACE)
   target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
@@ -72,7 +79,7 @@ target_link_libraries(rox_control_node kuka_rox_hw_interface)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers)
+target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
