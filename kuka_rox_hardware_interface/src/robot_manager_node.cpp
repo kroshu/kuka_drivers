@@ -235,7 +235,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // The control mode parameter validity is checked at parameter init/changes, no need to check again
+  // The control mode parameter validity is checked at parameter init/changes,
+  //  no need to check again
   auto control_mode = this->get_parameter("control_mode").as_int();
   controller_names_ = control_mode_map_.at(control_mode);
 
