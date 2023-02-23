@@ -173,9 +173,12 @@ void RobotManagerNode::ObserveControl()
         case kuka::ecs::v1::CommandEvent::ERROR:
           RCLCPP_INFO(get_logger(), "External control stopped");
           terminate_ = true;
-          if (this->get_current_state().label() == "active") {
+          if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
             this->deactivate();
-          } else if (this->get_current_state().label() == "activating") {
+          } else if (this->get_current_state().id() ==
+            lifecycle_msgs::msg::State::TRANSITION_STATE_ACTIVATING)
+          {
+            // TODO(Svastits): this can be removed if rollback is implemented properly
             this->on_deactivate(get_current_state());
           }
           break;
