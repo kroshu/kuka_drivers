@@ -17,6 +17,7 @@
 #include <grpcpp/create_channel.h>
 
 using namespace controller_manager_msgs::srv;  // NOLINT
+using namespace lifecycle_msgs::msg;  // NOLINT
 using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_rox
@@ -173,11 +174,9 @@ void RobotManagerNode::ObserveControl()
         case kuka::ecs::v1::CommandEvent::ERROR:
           RCLCPP_INFO(get_logger(), "External control stopped");
           terminate_ = true;
-          if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+          if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
             this->deactivate();
-          } else if (this->get_current_state().id() ==
-            lifecycle_msgs::msg::State::TRANSITION_STATE_ACTIVATING)
-          {
+          } else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING) {
             // TODO(Svastits): this can be removed if rollback is implemented properly
             this->on_deactivate(get_current_state());
           }
