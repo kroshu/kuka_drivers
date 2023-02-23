@@ -118,7 +118,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
   hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
@@ -140,7 +140,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
   hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
@@ -150,9 +150,9 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   if (is_configured_pub_->is_activated()) {
-    is_configured_pub_->on_deactivate();
     is_configured_msg_.data = false;
     is_configured_pub_->publish(is_configured_msg_);
+    is_configured_pub_->on_deactivate();
   }
   return SUCCESS;
 }
@@ -208,7 +208,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
   hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "active";
+  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
@@ -274,7 +274,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
   hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
