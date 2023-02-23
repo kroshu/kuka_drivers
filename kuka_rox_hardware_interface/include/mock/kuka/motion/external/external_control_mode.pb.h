@@ -61,6 +61,8 @@ namespace kuka {
 namespace motion {
 namespace external {
 
+std::string control_mode_string;
+
 enum ExternalControlMode : int {
   EXTERNAL_CONTROL_MODE_UNSPECIFIED = 0,
   POSITION_CONTROL = 1,
@@ -76,14 +78,34 @@ constexpr ExternalControlMode ExternalControlMode_MIN = EXTERNAL_CONTROL_MODE_UN
 constexpr ExternalControlMode ExternalControlMode_MAX = TORQUE_CONTROL;
 constexpr int ExternalControlMode_ARRAYSIZE = ExternalControlMode_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor(){};
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor();
 template<typename T>
 inline const std::string& ExternalControlMode_Name(T enum_t_value) {
   static_assert(::std::is_same<T, ExternalControlMode>::value ||
     ::std::is_integral<T>::value,
     "Incorrect type passed to function ExternalControlMode_Name.");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    ExternalControlMode_descriptor(), enum_t_value);
+  switch(enum_t_value)
+  {
+    case ExternalControlMode::POSITION_CONTROL:
+      control_mode_string = "POSITION_CONTROL";
+      break;
+    case ExternalControlMode::CARTESIAN_OVERLAY:
+      control_mode_string = "CARTESIAN_OVERLAY";
+      break;
+    case ExternalControlMode::JOINT_IMPEDANCE_CONTROL:
+      control_mode_string = "JOINT_IMPEDANCE_CONTROL";
+      break;
+    case ExternalControlMode::CARTESIAN_IMPEDANCE_CONTROL:
+      control_mode_string = "CARTESIAN_IMPEDANCE_CONTROL";
+      break;
+    case ExternalControlMode::TORQUE_CONTROL:
+      control_mode_string = "TORQUE_CONTROL";
+      break;
+    default:
+     control_mode_string = "EXTERNAL_CONTROL_MODE_UNSPECIFIED";
+      break;
+  }
+  return control_mode_string;
 }
 inline bool ExternalControlMode_Parse(
     const std::string& name, ExternalControlMode* value) {

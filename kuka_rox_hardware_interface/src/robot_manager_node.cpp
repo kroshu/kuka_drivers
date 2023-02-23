@@ -25,9 +25,7 @@ namespace kuka_rox
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
-  RCLCPP_INFO(
-    get_logger(), "Starting Robot Manager Node init"
-  );
+  RCLCPP_INFO(get_logger(), "Starting Robot Manager Node init");
 
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
