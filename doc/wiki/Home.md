@@ -83,14 +83,11 @@ Two additional packages (not listed in package.xml) must be installed with apt:
 
 ### Setup
 
-The configuration files for the IP adresses are not used yet, so one has to edit the IP adresses and ports in the hardware interface cmake file and rebuild afterwards. The CLIENT_IP, CLIENT_PORT, CONTROLLER_IP and GRPC_PORT cmake variables must be modified to your used network setup.
+By default, the mock libraries are used, this can be changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
 
+The IP addresses of the client machine and controller must be given in the *config/eci_config.yaml* configuration file. A rebuild is not needed after the changes, but the file has to be modified before starting the nodes. The control mode of the robot can also be modified in the same configuration file: you can choose either 1 (POSITION_CONTROL), 3 (JOINT_IMPEDANCE_CONTROL) or 5 (TORQUE_CONTROL). This also sets the control_mode parameter of the robot manager node, which can be only modified at startup, control mode changes are not supported in runtime at the current state.
 
-The control mode of the robot is also hard-coded in the Cmakelists.txt, you can choose either 1 (POSITION_CONTROL) or 3 (JOINT_IMPEDANCE_CONTROL). A rebuild is needed after control mode changes, run-time configurability is in progress.
-
-By default, the mock libraries are used, this can be also changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
-
-Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98")
+Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98" and restart) to enable real-time performance.
 
 ### Usage
 
