@@ -29,7 +29,6 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
@@ -56,9 +55,6 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(int control_mode);
-  bool onControllerNameChangeRequest(
-    const std::string & controller_name,
-    const std::string & controller_name_param);
 
 private:
   void ObserveControl();
@@ -81,9 +77,11 @@ private:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-  const std::string POSITION_CONTROLLER_NAME_PARAM = "position_controller_name";
-  const std::string IMPEDANCE_CONTROLLER_NAME_PARAM = "impedance_controller_name";
-  const std::string TORQUE_CONTROLLER_NAME_PARAM = "torque_controller_name";
+  // There are two kinds of control modes with different number of necessary interfaces to be set:
+  //  - in standard modes (position, torque), only the control signal to the used interface (1)
+  //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)
+  static constexpr int STANDARD_MODE_IF_SIZE = 1;
+  static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
 }  // namespace kuka_rox
