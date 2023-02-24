@@ -154,6 +154,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     is_configured_pub_->publish(is_configured_msg_);
     is_configured_pub_->on_deactivate();
   }
+  // TODO(Svastits): add else branch, and throw exception(?)
   return SUCCESS;
 }
 
@@ -215,8 +216,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     // 'unset config' does not exist, safe to return
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
     terminate_ = true;
     return FAILURE;
   }
@@ -232,8 +231,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
     return FAILURE;
   }
 
@@ -251,8 +248,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not  activate controller");
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Successfully activated controllers");
