@@ -145,7 +145,10 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
   set_consequent_lost_packets(std::stoi(info_.hardware_parameters.at("consequent_lost_packets")));
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
-  set_lost_packets_in_timeframe(std::stoi(info_.hardware_parameters.at("lost_packets_in_timeframe")));
+  set_lost_packets_in_timeframe(
+    std::stoi(
+      info_.hardware_parameters.at(
+        "lost_packets_in_timeframe")));
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->set_timeframe_ms(
     std::stoi(
       info_.hardware_parameters.at(
@@ -157,10 +160,11 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
   }
 
   RCLCPP_INFO(
-    rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "Set QoS profile with %s consequent and %s packet losses allowed in %s milliseconds", info_.hardware_parameters.at(
-      "consequent_lost_packets").c_str(), info_.hardware_parameters.at(
-      "lost_packets_in_timeframe").c_str(), info_.hardware_parameters.at("timeframe_ms").c_str());
+    rclcpp::get_logger("KukaRoXHardwareInterface"),
+    "Set QoS profile with %s consequent and %s packet losses allowed in %s milliseconds",
+    info_.hardware_parameters.at("consequent_lost_packets").c_str(),
+    info_.hardware_parameters.at("lost_packets_in_timeframe").c_str(),
+    info_.hardware_parameters.at("timeframe_ms").c_str());
   #endif
   return CallbackReturn::SUCCESS;
 }
