@@ -142,6 +142,8 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
 CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
+  // Reset timeout to catch first tick message
+  receive_timeout_ = std::chrono::milliseconds(100);
   terminate_ = false;
   control_signal_ext_.control_signal.stop_ipo = false;
 
@@ -187,9 +189,6 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Deactivating");
-
-  // Reset timeout to catch first tick message
-  receive_timeout_ = std::chrono::milliseconds(100);
 
   control_signal_ext_.control_signal.stop_ipo = true;
   while (is_active_) {
