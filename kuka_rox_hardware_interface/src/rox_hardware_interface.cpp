@@ -135,6 +135,33 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
 {
   // TODO(Svastits): Set QoS profile here
   //  should be using another configuration file read from xacro
+ #ifdef NON_MOCK_SETUP
+  SetQoSProfileRequest request;
+  SetQoSProfileResponse response;
+  grpc::ClientContext context;
+
+  request.add_qos_profiles();
+
+  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
+  set_consequent_lost_packets(std::stoi(info_.hardware_parameters.at("consequent_lost_packets")));
+  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
+  set_lost_packets_in_timeframe(std::stoi(info_.hardware_parameters.at("lost_packets_in_timeframe")));
+  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->set_timeframe_ms(
+    std::stoi(
+      info_.hardware_parameters.at(
+        "timeframe_ms")));
+
+  if (stub_->SetQoSProfile(&context, request, &response).error_code() != grpc::StatusCode::OK) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "SetQoSProfile failed");
+    return CallbackReturn::FAILURE;
+  }
+
+  RCLCPP_INFO(
+    rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "Set QoS profile with %s consequent and %s packet losses allowed in %s milliseconds", info_.hardware_parameters.at(
+      "consequent_lost_packets").c_str(), info_.hardware_parameters.at(
+      "lost_packets_in_timeframe").c_str(), info_.hardware_parameters.at("timeframe_ms").c_str());
+  #endif
   return CallbackReturn::SUCCESS;
 }
 
