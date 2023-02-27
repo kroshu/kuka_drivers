@@ -70,12 +70,6 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   }
 #endif
 
-  // if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
-  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "mlockall error");
-  //   RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
-  //   return CallbackReturn::ERROR;
-  // }
-
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
 
   return CallbackReturn::SUCCESS;
@@ -231,7 +225,6 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
     context_->TryCancel();
   }
 #endif
-
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
@@ -385,7 +378,6 @@ void KukaRoXHardwareInterface::ObserveControl()
     }
   }
 #endif
-  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe thread end");
 }
 
 }  // namespace namespace kuka_rox
