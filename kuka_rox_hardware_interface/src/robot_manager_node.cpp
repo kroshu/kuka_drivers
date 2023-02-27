@@ -106,6 +106,11 @@ RobotManagerNode::RobotManagerNode()
 
 RobotManagerNode::~RobotManagerNode()
 {
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
@@ -197,6 +202,11 @@ void RobotManagerNode::ObserveControl()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
   // Join observe thread, necessary if previous activation failed
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -215,7 +225,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    // 'unset config' does not exist, safe to return
     terminate_ = true;
     return FAILURE;
   }

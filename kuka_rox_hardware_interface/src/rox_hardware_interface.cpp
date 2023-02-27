@@ -175,12 +175,16 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
   // Reset timeout to catch first tick message
   receive_timeout_ = std::chrono::milliseconds(100);
-  terminate_ = false;
   control_signal_ext_.control_signal.stop_ipo = false;
-
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
+  terminate_ = false;
 
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
