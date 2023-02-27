@@ -91,8 +91,6 @@ private:
 #endif
 
   std::thread observe_thread_;
-  std::atomic<bool> terminate_{false};
-  std::mutex observe_mutex_;
 
   std::unique_ptr<os::core::udp::communication::UDPReplier> udp_replier_;
   std::chrono::milliseconds receive_timeout_ {100};

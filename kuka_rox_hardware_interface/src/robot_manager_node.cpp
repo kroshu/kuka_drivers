@@ -106,6 +106,11 @@ RobotManagerNode::RobotManagerNode()
 
 RobotManagerNode::~RobotManagerNode()
 {
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
@@ -161,33 +166,28 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 void RobotManagerNode::ObserveControl()
 {
   #ifdef NON_MOCK_SETUP
-  while (!terminate_) {
-    context_ = std::make_unique<::grpc::ClientContext>();
-    kuka::ecs::v1::ObserveControlStateRequest observe_request;
-    std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
-      stub_->ObserveControlState(context_.get(), observe_request));
+  context_ = std::make_unique<::grpc::ClientContext>();
+  kuka::ecs::v1::ObserveControlStateRequest observe_request;
+  std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
+    stub_->ObserveControlState(context_.get(), observe_request));
 
-    kuka::ecs::v1::CommandState response;
+  kuka::ecs::v1::CommandState response;
 
-    if (reader->Read(&response)) {
-      switch (static_cast<int>(response.event())) {
-        case kuka::ecs::v1::CommandEvent::STOPPED:
-        case kuka::ecs::v1::CommandEvent::ERROR:
-          RCLCPP_INFO(get_logger(), "External control stopped");
-          terminate_ = true;
-          if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
-            this->deactivate();
-          } else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING) {
-            // TODO(Svastits): this can be removed if rollback is implemented properly
-            this->on_deactivate(get_current_state());
-          }
-          break;
-        default:
-          break;
-      }
-    } else {
-      // WORKAROUND: Ec is starting later so we have some errors before stable work.
-      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  while (reader->Read(&response)) {
+    switch (static_cast<int>(response.event())) {
+      case kuka::ecs::v1::CommandEvent::STOPPED:
+      case kuka::ecs::v1::CommandEvent::ERROR:
+        RCLCPP_INFO(get_logger(), "External control stopped");
+        terminate_ = true;
+        if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
+          this->deactivate();
+        } else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING) {
+          // TODO(Svastits): this can be removed if rollback is implemented properly
+          this->on_deactivate(get_current_state());
+        }
+        break;
+      default:
+        break;
     }
   }
 #endif
@@ -197,6 +197,11 @@ void RobotManagerNode::ObserveControl()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
   // Join observe thread, necessary if previous activation failed
   if (observe_thread_.joinable()) {
     observe_thread_.join();
@@ -215,8 +220,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    // 'unset config' does not exist, safe to return
-    terminate_ = true;
     return FAILURE;
   }
 
@@ -231,6 +234,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
 
@@ -248,6 +253,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Successfully activated controllers");
@@ -272,7 +279,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
+    change_hardware_state_client_, hw_request, 0, 3000);  // was not stable with 2000 ms timeout
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
