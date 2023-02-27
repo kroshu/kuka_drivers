@@ -352,7 +352,7 @@ void KukaRoXHardwareInterface::ObserveControl()
 
   CommandState response;
 
-  if (reader->Read(&response)) {
+  while (reader->Read(&response)) {
     command_state_ = response;
     RCLCPP_INFO(
       rclcpp::get_logger(

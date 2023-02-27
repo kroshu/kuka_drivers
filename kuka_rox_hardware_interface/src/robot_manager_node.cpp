@@ -173,7 +173,7 @@ void RobotManagerNode::ObserveControl()
 
   kuka::ecs::v1::CommandState response;
 
-  if (reader->Read(&response)) {
+  while (reader->Read(&response)) {
     switch (static_cast<int>(response.event())) {
       case kuka::ecs::v1::CommandEvent::STOPPED:
       case kuka::ecs::v1::CommandEvent::ERROR:
@@ -275,7 +275,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
+    change_hardware_state_client_, hw_request, 0, 3000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
