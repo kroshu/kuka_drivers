@@ -234,6 +234,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
 
@@ -251,6 +253,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     );
   if (!controller_response || !controller_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
   RCLCPP_INFO(get_logger(), "Successfully activated controllers");
@@ -275,7 +279,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 3000);
+    change_hardware_state_client_, hw_request, 0, 3000);  // was not stable with 2000 ms timeout
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
