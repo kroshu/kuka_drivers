@@ -133,8 +133,6 @@ export_command_interfaces()
 
 CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  // TODO(Svastits): Set QoS profile here
-  //  should be using another configuration file read from xacro
  #ifdef NON_MOCK_SETUP
   SetQoSProfileRequest request;
   SetQoSProfileResponse response;
@@ -184,7 +182,6 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
-  terminate_ = false;
 
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
@@ -212,7 +209,6 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     .error_code() != grpc::StatusCode::OK)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
-    terminate_ = true;
     return CallbackReturn::FAILURE;
   }
 #endif
@@ -230,7 +226,6 @@ CallbackReturn KukaRoXHardwareInterface::on_deactivate(
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  terminate_ = true;
 #ifdef NON_MOCK_SETUP
   if (context_ != nullptr) {
     context_->TryCancel();
@@ -349,56 +344,48 @@ bool KukaRoXHardwareInterface::isActive() const
 void KukaRoXHardwareInterface::ObserveControl()
 {
 #ifdef NON_MOCK_SETUP
-  RCLCPP_INFO(
-    rclcpp::get_logger(
-      "KukaRoXHardwareInterface"),
-    "Observe control");
-  while (!terminate_) {
-    context_ = std::make_unique<::grpc::ClientContext>();
-    ObserveControlStateRequest obs_control;
-    std::unique_ptr<grpc::ClientReader<CommandState>> reader(
-      stub_->ObserveControlState(context_.get(), obs_control));
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe control");
+  context_ = std::make_unique<::grpc::ClientContext>();
+  ObserveControlStateRequest obs_control;
+  std::unique_ptr<grpc::ClientReader<CommandState>> reader(
+    stub_->ObserveControlState(context_.get(), obs_control));
 
-    CommandState response;
+  CommandState response;
 
-    if (reader->Read(&response)) {
-      std::unique_lock<std::mutex> lck(observe_mutex_);    // TODO(Svastits): is this necessary?
-      command_state_ = response;
-      RCLCPP_INFO(
-        rclcpp::get_logger(
-          "KukaRoXHardwareInterface"),
-        "Event streamed from external control service: %s", CommandEvent_Name(
-          response.event()).c_str());
+  if (reader->Read(&response)) {
+    command_state_ = response;
+    RCLCPP_INFO(
+      rclcpp::get_logger(
+        "KukaRoXHardwareInterface"),
+      "Event streamed from external control service: %s", CommandEvent_Name(
+        response.event()).c_str());
 
-      switch (static_cast<int>(response.event())) {
-        case CommandEvent::COMMAND_READY:
-          RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Command accepted");
-          break;
-        case CommandEvent::SAMPLING:
-          RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
-          is_active_ = true;
-          break;
-        case CommandEvent::STOPPED:
-          RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
-          is_active_ = false;
-          break;
-        case CommandEvent::ERROR:
-          RCLCPP_ERROR(
-            rclcpp::get_logger(
-              "KukaRoXHardwareInterface"),
-            "External control stopped by an error");
-          RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
-          is_active_ = false;
-          break;
-        default:
-          break;
-      }
-    } else {
-      // WORKAROUND: Ec is starting later so we have some errors before stable work.
-      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    switch (static_cast<int>(response.event())) {
+      case CommandEvent::COMMAND_READY:
+        RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Command accepted");
+        break;
+      case CommandEvent::SAMPLING:
+        RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
+        is_active_ = true;
+        break;
+      case CommandEvent::STOPPED:
+        RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
+        is_active_ = false;
+        break;
+      case CommandEvent::ERROR:
+        RCLCPP_ERROR(
+          rclcpp::get_logger(
+            "KukaRoXHardwareInterface"),
+          "External control stopped by an error");
+        RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), response.message().c_str());
+        is_active_ = false;
+        break;
+      default:
+        break;
     }
   }
 #endif
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe thread end");
 }
 
 }  // namespace namespace kuka_rox
