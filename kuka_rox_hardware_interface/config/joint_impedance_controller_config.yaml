@@ -1,4 +1,4 @@
-/joint_impedance_controller:
+joint_impedance_controller:
   ros__parameters:
     joints: 
     - joint_a1
