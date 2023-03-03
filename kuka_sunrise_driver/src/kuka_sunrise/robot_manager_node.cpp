@@ -174,9 +174,9 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   if (is_configured_pub_->is_activated()) {
-    is_configured_pub_->on_deactivate();
     is_configured_msg_.data = false;
     is_configured_pub_->publish(is_configured_msg_);
+    is_configured_pub_->on_deactivate();
   }
 
   return SUCCESS;

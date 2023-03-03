@@ -165,7 +165,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   // Read is called in inactive state, check is necessary
   if (!is_active_) {
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return hardware_interface::return_type::OK;
   }
 
