@@ -20,7 +20,8 @@ from launch_ros.actions import LifecycleNode
 from launch_ros.descriptions import ParameterValue
 from launch.substitutions import Command
 
-fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
+fri_config_file = get_package_share_directory(
+    'kuka_sunrise') + "/config/fri_config.yaml"
 
 
 def load_file(absolute_file_path):
@@ -39,8 +40,8 @@ def generate_launch_description():
     robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
                               "/urdf/lbriiwa7.xacro")
     robot_description = {'robot_description': ParameterValue(
-            Command(['xacro ', str(robot_description_path)]), value_type=str
-        )}
+        Command(['xacro ', str(robot_description_path)]), value_type=str
+    )}
 
     conntroller_manager_node = '/controller_manager'
 
@@ -48,6 +49,7 @@ def generate_launch_description():
         Node(
             package='kuka_sunrise',
             executable='sunrise_control_node',
+            output='both',
             parameters=[robot_description, controller_config]
         ),
         LifecycleNode(
@@ -67,7 +69,8 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
+            arguments=["joint_state_broadcaster", "-c",
+                       conntroller_manager_node, "--inactive"]
         ),
         Node(
             package="controller_manager",
@@ -78,11 +81,13 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["timing_controller", "-c", conntroller_manager_node, "--inactive"]
+            arguments=["timing_controller", "-c",
+                       conntroller_manager_node, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["robot_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
+            arguments=["robot_state_broadcaster", "-c",
+                       conntroller_manager_node, "--inactive"]
         )
     ])
