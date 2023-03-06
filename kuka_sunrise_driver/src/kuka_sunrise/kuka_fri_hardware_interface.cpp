@@ -199,6 +199,10 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   for (auto & output : gpio_outputs_) {
     output.getValue();
   }
+
+  // Call the appropriate callback for the actual state (e.g. updateCommand)
+  // this updates the command to be sent based on the output of the controller update
+  client_application_.client_app_update();
   return hardware_interface::return_type::OK;
 }
 
@@ -212,11 +216,9 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
     return hardware_interface::return_type::OK;
   }
 
-  // Call the appropriate callback for the actual state (e.g. updateCommand)
-  // this updates the command to be sent based on the output of the controller update
-  client_application_.client_app_update();
 
   client_application_.client_app_write();
+  // TODO(Svastits): check return values
 
   return hardware_interface::return_type::OK;
 }

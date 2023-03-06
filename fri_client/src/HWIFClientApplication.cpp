@@ -35,7 +35,8 @@ bool HWIFClientApplication::client_app_read()
   // check message type (so that our wrappers match)
   if (_data->expectedMonitorMsgID != _data->monitoringMsg.header.messageIdentifier) {
     std::cout << "Error: incompatible IDs for received message, got: " <<
-      _data->monitoringMsg.header.messageIdentifier << " expected: " << _data->expectedMonitorMsgID;
+      _data->monitoringMsg.header.messageIdentifier << " expected: " <<
+      _data->expectedMonitorMsgID << std::endl;
     return false;
   }
 
@@ -98,6 +99,11 @@ bool HWIFClientApplication::client_app_write()
       _data->monitoringMsg.header.sequenceCounter;
 
     if (!_data->encoder.encode(_data->sendBuffer, size_)) {
+      return false;
+    }
+
+    if (!_connection.isOpen()) {
+      std::cout << "Warn: client application is not connected!" << std::endl;
       return false;
     }
 
