@@ -89,8 +89,8 @@ public:
 private:
   bool is_active_ = false;
   bool active_read_ = false;
-  KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
+  KUKA::FRI::HWIFClientApplication client_application_;
 
   rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
   rclcpp::Clock ros_clock_;
