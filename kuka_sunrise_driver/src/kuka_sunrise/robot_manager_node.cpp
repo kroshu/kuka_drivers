@@ -183,7 +183,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 }
 
 
-// TODO(Svastits): activation fails after deactivation
+// TODO(Svastits): can we check if necessary 5s has passed after deactivation?
 // TODO(Svastits): check if we have to send unconfigured msg to control node
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
@@ -319,6 +319,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     command_state_changed_publisher_->on_deactivate();
   }
 
+  RCLCPP_INFO(
+    get_logger(), "Successfully deactivated driver, reactivation is possible after 5 seconds");
   return SUCCESS;
 }
 
