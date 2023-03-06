@@ -103,7 +103,7 @@ bool HWIFClientApplication::client_app_write()
     }
 
     if (!_connection.isOpen()) {
-      std::cout << "Warn: client application is not connected!" << std::endl;
+      std::cout << "Client application connection closed" << std::endl;
       return false;
     }
 
