@@ -200,9 +200,6 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
     output.getValue();
   }
 
-  // Call the appropriate callback for the actual state (e.g. updateCommand)
-  // this updates the command to be sent based on the output of the controller update
-  client_application_.client_app_update();
   return hardware_interface::return_type::OK;
 }
 
@@ -210,22 +207,29 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  // Write is called in inactive state, check is necessary
+  // Client app update and read must be called if read has been called in current cycle
   if (!active_read_) {
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }
 
+  // Call the appropriate callback for the actual state (e.g. updateCommand)
+  //  this updates the command to be sent based on the output of the controller update
+  client_application_.client_app_update();
 
-  client_application_.client_app_write();
-  // TODO(Svastits): check return values
+  if (!client_application_.client_app_write() && is_active_) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Could not send command to controller");
+    return hardware_interface::return_type::ERROR;
+  }
 
   return hardware_interface::return_type::OK;
 }
 
 void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
-  if (!active_read_) {
+  if (!is_active_) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
         "KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
