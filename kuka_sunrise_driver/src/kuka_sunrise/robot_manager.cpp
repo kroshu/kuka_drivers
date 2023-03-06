@@ -61,6 +61,7 @@ bool RobotManager::connect(const char * server_addr, int server_port)
 
 bool RobotManager::disconnect()
 {
+  // TODO(Svastits): what happens if there is no connection when destructor is called
   if (sendCommandAndWait(DISCONNECT) == true) {
     tcp_connection_->closeConnection();
     tcp_connection_.reset();
