@@ -88,6 +88,7 @@ public:
 
 private:
   bool is_active_ = false;
+  bool active_read_ = false;
   KUKA::FRI::HWIFClientApplication client_application_;
   KUKA::FRI::UdpConnection udp_connection_;
 

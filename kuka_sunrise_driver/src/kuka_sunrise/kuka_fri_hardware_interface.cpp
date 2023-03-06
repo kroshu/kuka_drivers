@@ -164,10 +164,12 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
 {
   // Read is called in inactive state, check is necessary
   if (!is_active_) {
+    active_read_ = false;
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return hardware_interface::return_type::OK;
   }
+  active_read_ = true;
 
   if (!client_application_.client_app_read()) {
     RCLCPP_ERROR(
@@ -205,7 +207,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Duration &)
 {
   // Write is called in inactive state, check is necessary
-  if (!is_active_) {
+  if (!active_read_) {
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }
@@ -221,7 +223,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
 
 void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
-  if (!is_active_) {
+  if (!active_read_) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
         "KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
