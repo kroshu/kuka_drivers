@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch_ros.actions import LifecycleNode
 from launch_ros.descriptions import ParameterValue
 from launch.substitutions import Command
-
-fri_config_file = get_package_share_directory('kuka_sunrise') + "/config/fri_config.yaml"
 
 
 def load_file(absolute_file_path):
@@ -34,15 +33,16 @@ def load_file(absolute_file_path):
 def generate_launch_description():
     controller_config = (get_package_share_directory('kuka_sunrise') +
                          "/config/iiwa_ros2_controller_config.yaml")
-    joint_traj_controller_config = (get_package_share_directory('kuka_sunrise') +
-                                    "/config/joint_trajectory_controller_config.yaml")
+    forward_controller_config = (get_package_share_directory('kuka_sunrise') +
+                                 "/config/forward_controller_config.yaml")
     robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
                               "/urdf/lbriiwa7.xacro")
     robot_description = {'robot_description': ParameterValue(
-            Command(['xacro ', str(robot_description_path)]), value_type=str
-        )}
+        Command(['xacro ', str(robot_description_path)]), value_type=str
+    )}
 
-    conntroller_manager_node = '/controller_manager'
+    rviz_config_file = os.path.join(get_package_share_directory('kuka_lbr_iiwa7_support'),
+                                    'launch', 'urdf.rviz')
 
     return LaunchDescription([
         Node(
@@ -50,39 +50,29 @@ def generate_launch_description():
             executable='sunrise_control_node',
             parameters=[robot_description, controller_config]
         ),
-        LifecycleNode(
-            namespace='', package='kuka_sunrise', executable='robot_manager_node', output='screen',
-            name=['robot_manager'],
-            parameters=[fri_config_file,
-                        {'position_controller_name': 'joint_trajectory_controller'},
-                        {'torque_controller_name': ''}]
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_state_broadcaster", "-c",
+                       "/controller_manager", "--inactive"]
         ),
-        # robot_description topic is needed for rqt_joint_trajectory_controller
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["forward_command_controller", "-c", "/controller_manager", "-p",
+                       forward_controller_config, "--inactive"]
+        ),
+        Node(
+            package="rviz2",
+            executable="rviz2",
+            name="rviz2",
+            output="log",
+            arguments=["-d", rviz_config_file],
+        ),
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             output='both',
             parameters=[robot_description]
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", conntroller_manager_node, "-p",
-                       joint_traj_controller_config, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["timing_controller", "-c", conntroller_manager_node, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["robot_state_broadcaster", "-c", conntroller_manager_node, "--inactive"]
-        )
     ])

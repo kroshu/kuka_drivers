@@ -14,7 +14,7 @@
 
 #include <memory>
 
-#include "kuka_sunrise/kuka_fri_hardware_interface.hpp"
+#include "kuka_sunrise/hardware_interface.hpp"
 
 namespace kuka_sunrise
 {
@@ -164,10 +164,12 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
 {
   // Read is called in inactive state, check is necessary
   if (!is_active_) {
+    active_read_ = false;
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return hardware_interface::return_type::OK;
   }
+  active_read_ = true;
 
   if (!client_application_.client_app_read()) {
     RCLCPP_ERROR(
@@ -197,6 +199,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   for (auto & output : gpio_outputs_) {
     output.getValue();
   }
+
   return hardware_interface::return_type::OK;
 }
 
@@ -204,17 +207,22 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  // Write is called in inactive state, check is necessary
-  if (!is_active_) {
+  // Client app update and read must be called if read has been called in current cycle
+  if (!active_read_) {
     RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }
 
   // Call the appropriate callback for the actual state (e.g. updateCommand)
-  // this updates the command to be sent based on the output of the controller update
+  //  this updates the command to be sent based on the output of the controller update
   client_application_.client_app_update();
 
-  client_application_.client_app_write();
+  if (!client_application_.client_app_write() && is_active_) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KUKAFRIHardwareInterface"), "Could not send command to controller");
+    return hardware_interface::return_type::ERROR;
+  }
 
   return hardware_interface::return_type::OK;
 }

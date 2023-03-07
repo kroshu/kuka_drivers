@@ -27,6 +27,7 @@
 #include "std_srvs/srv/trigger.hpp"
 #include "kuka_driver_interfaces/srv/set_int.hpp"
 #include "controller_manager_msgs/srv/list_controllers.hpp"
+#include "kuka_sunrise/fri_connection.hpp"
 
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
 
@@ -40,14 +41,14 @@ class ConfigurationManager
 public:
   ConfigurationManager(
     std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
-    std::shared_ptr<RobotManager> robot_manager);
+    std::shared_ptr<FRIConnection> fri_connection);
 
 private:
   bool configured_ = false;
   bool position_controller_available_ = false;
   bool torque_controller_available_ = false;
   std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node_;
-  std::shared_ptr<RobotManager> robot_manager_;
+  std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetInt>::SharedPtr receive_multiplier_client_;
