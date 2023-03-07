@@ -18,14 +18,13 @@
 
 #include "kuka_sunrise/configuration_manager.hpp"
 #include "communication_helpers/service_tools.hpp"
-#include "kuka_sunrise/robot_manager.hpp"
 
 namespace kuka_sunrise
 {
 ConfigurationManager::ConfigurationManager(
   std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
-  std::shared_ptr<RobotManager> robot_manager)
-: robot_manager_node_(robot_manager_node), robot_manager_(robot_manager)
+  std::shared_ptr<FRIConnection> fri_connection)
+: robot_manager_node_(robot_manager_node), fri_connection_(fri_connection)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -91,10 +90,10 @@ bool ConfigurationManager::onCommandModeChangeRequest(const std::string & comman
 bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
 {
   if (control_mode == POSITION_CONTROL) {
-    return robot_manager_->setPositionControlMode();
+    return fri_connection_->setPositionControlMode();
   } else if (control_mode == IMPEDANCE_CONTROL) {
     try {
-      return robot_manager_->setJointImpedanceControlMode(
+      return fri_connection_->setJointImpedanceControlMode(
         joint_stiffness_,
         joint_damping_);
     } catch (const std::exception & e) {
@@ -250,8 +249,8 @@ bool ConfigurationManager::setCommandMode(const std::string & command_mode) cons
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
     return false;
   }
-  if (robot_manager_) {
-    robot_manager_->setClientCommandMode(client_command_mode);
+  if (fri_connection_) {
+    fri_connection_->setClientCommandMode(client_command_mode);
   } else {
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Robot Manager not available");
     return false;

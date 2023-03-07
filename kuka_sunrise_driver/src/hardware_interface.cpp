@@ -14,7 +14,7 @@
 
 #include <memory>
 
-#include "kuka_sunrise/kuka_fri_hardware_interface.hpp"
+#include "kuka_sunrise/hardware_interface.hpp"
 
 namespace kuka_sunrise
 {

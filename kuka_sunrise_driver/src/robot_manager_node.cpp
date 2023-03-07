@@ -34,7 +34,7 @@ RobotManagerNode::RobotManagerNode()
   // RT controllers are started after interface activation
   // non-RT controllers are started after interface configuration
 
-  robot_manager_ = std::make_shared<RobotManager>(
+  fri_connection_ = std::make_shared<FRIConnection>(
     [this]
     {this->handleControlEndedError();}, [this]
     {this->handleFRIEndedError();});
@@ -83,7 +83,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (!configuration_manager_) {
     configuration_manager_ = std::make_unique<ConfigurationManager>(
       std::dynamic_pointer_cast<kroshu_ros2_core::ROS2BaseLCNode>(
-        this->shared_from_this()), robot_manager_);
+        this->shared_from_this()), fri_connection_);
   }
   RCLCPP_INFO(get_logger(), "Successfully set 'controller_ip' parameter");
 
@@ -102,8 +102,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   }
 
   const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
-  if (!robot_manager_->isConnected()) {
-    if (!robot_manager_->connect(controller_ip, 30000)) {
+  if (!fri_connection_->isConnected()) {
+    if (!fri_connection_->connect(controller_ip, 30000)) {
       RCLCPP_ERROR(get_logger(), "could not connect");
       result = FAILURE;
     }
@@ -138,7 +138,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  if (robot_manager_->isConnected() && !robot_manager_->disconnect()) {
+  if (fri_connection_->isConnected() && !fri_connection_->disconnect()) {
     RCLCPP_ERROR(get_logger(), "could not disconnect");
     return ERROR;
   }
@@ -188,14 +188,14 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  if (!robot_manager_->isConnected()) {
+  if (!fri_connection_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
 
   auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
   auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
-  if (!robot_manager_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
+  if (!fri_connection_->setFRIConfig(30200, send_period_ms, receive_multiplier)) {
     RCLCPP_ERROR(get_logger(), "could not set FRI config");
     return FAILURE;
   }
@@ -217,7 +217,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
 
   // Start FRI (in monitoring mode)
-  if (!robot_manager_->startFRI()) {
+  if (!fri_connection_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "Could not start FRI");
     this->on_deactivate(get_current_state());
     return FAILURE;
@@ -269,7 +269,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  if (!robot_manager_->isConnected()) {
+  if (!fri_connection_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "Not connected");
     return ERROR;
   }
@@ -279,7 +279,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  if (!robot_manager_->endFRI()) {
+  if (!fri_connection_->endFRI()) {
     RCLCPP_ERROR(get_logger(), "Could not end FRI");
     return ERROR;
   }
@@ -326,12 +326,12 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::activateControl()
 {
-  if (!robot_manager_->isConnected()) {
+  if (!fri_connection_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "Not connected");
     return false;
   }
 
-  if (!robot_manager_->activateControl()) {
+  if (!fri_connection_->activateControl()) {
     RCLCPP_ERROR(get_logger(), "Could not activate control");
     return false;
   }
@@ -343,12 +343,12 @@ bool RobotManagerNode::activateControl()
 
 bool RobotManagerNode::deactivateControl()
 {
-  if (!robot_manager_->isConnected()) {
+  if (!fri_connection_->isConnected()) {
     RCLCPP_ERROR(get_logger(), "Not connected");
     return false;
   }
 
-  if (!robot_manager_->deactivateControl()) {
+  if (!fri_connection_->deactivateControl()) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control");
     return false;
   }
