@@ -34,12 +34,12 @@ def generate_launch_description():
     controller_config = (get_package_share_directory('kuka_sunrise') +
                          "/config/iiwa_ros2_controller_config.yaml")
     forward_controller_config = (get_package_share_directory('kuka_sunrise') +
-                                 "/config/forward_controller.yaml")
+                                 "/config/forward_controller_config.yaml")
     robot_description_path = (get_package_share_directory('kuka_lbr_iiwa7_support') +
                               "/urdf/lbriiwa7.xacro")
     robot_description = {'robot_description': ParameterValue(
-            Command(['xacro ', str(robot_description_path)]), value_type=str
-        )}
+        Command(['xacro ', str(robot_description_path)]), value_type=str
+    )}
 
     rviz_config_file = os.path.join(get_package_share_directory('kuka_lbr_iiwa7_support'),
                                     'launch', 'urdf.rviz')
@@ -53,13 +53,14 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", "/controller_manager", "--stopped"]
+            arguments=["joint_state_broadcaster", "-c",
+                       "/controller_manager", "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["forward_command_controller_position", "-c", "/controller_manager", "-p",
-                       forward_controller_config, "--stopped"]
+            arguments=["forward_command_controller", "-c", "/controller_manager", "-p",
+                       forward_controller_config, "--inactive"]
         ),
         Node(
             package="rviz2",
@@ -67,13 +68,6 @@ def generate_launch_description():
             name="rviz2",
             output="log",
             arguments=["-d", rviz_config_file],
-        ),
-        Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            name='joint_state_publisher_gui',
-            output='both',
-            parameters=[robot_description]
         ),
         Node(
             package='robot_state_publisher',
