@@ -22,7 +22,6 @@
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  std::cout << "Starting cm" << std::endl;
   auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
