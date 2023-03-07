@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
-#define KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_SUNRISE__HARDWARE_INTERFACE_HPP_
+#define KUKA_SUNRISE__HARDWARE_INTERFACE_HPP_
 
 #include <condition_variable>
 #include <memory>
@@ -197,4 +197,4 @@ private:
 };
 }  // namespace kuka_sunrise
 
-#endif  // KUKA_SUNRISE__KUKA_FRI_HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_SUNRISE__HARDWARE_INTERFACE_HPP_
