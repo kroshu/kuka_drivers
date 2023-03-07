@@ -10,23 +10,25 @@
 #include <friClientData.h>
 
 
-namespace KUKA {
-    namespace FRI {
+namespace KUKA
+{
+namespace FRI
+{
 
-        class HWIFClientApplication : public ClientApplication {
-            public:
-                HWIFClientApplication(IConnection& connection, IClient& client);
+class HWIFClientApplication : public ClientApplication
+{
+public:
+  HWIFClientApplication(IConnection & connection, IClient & client);
 
-                bool client_app_read();
-                void client_app_update();
-                bool client_app_write();
-                
-            private:
-                int size_;
-                };
+  bool client_app_read();
+  void client_app_update();
+  bool client_app_write();
 
-    }
-}  // namespace KUKA::FRI  
+private:
+  int size_;
+};
+
+}
+}  // namespace KUKA::FRI
 
 #endif  // FRI__HWIFCLIENTAPPLICATION_HPP_
-
