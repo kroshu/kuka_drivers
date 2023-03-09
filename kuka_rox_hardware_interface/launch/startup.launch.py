@@ -29,8 +29,8 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_iisy_support"),
-                 "urdf", "iisy.urdf.xacro"]
+                [FindPackageShare("kuka_lbr_iisy_support"),
+                 "urdf", "lbr_iisy3_r760.urdf.xacro"]
             ),
             " ",
         ]

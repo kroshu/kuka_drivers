@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
@@ -21,24 +20,13 @@ from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import PythonLaunchDescriptionSource  # noqa: E501
 
 
-def load_file(package_name, file_path):
-    package_path = get_package_share_directory(package_name)
-    absolute_file_path = os.path.join(package_path, file_path)
-
-    try:
-        with open(absolute_file_path, 'r') as file:
-            return file.read()
-    except EnvironmentError:  # parent of IOError, OSError *and* WindowsError where available
-        return None
-
-
 def generate_launch_description():
     moveit_config = (
-        MoveItConfigsBuilder("kuka_iisy")
-        .robot_description(file_path=get_package_share_directory('kuka_iisy_support')
-                           + "/urdf/iisy.urdf.xacro")
-        .robot_description_semantic(file_path=get_package_share_directory('kuka_iisy_support')
-                                    + "/urdf/iisy.srdf")
+        MoveItConfigsBuilder("kuka_lbr_iisy")
+        .robot_description(file_path=get_package_share_directory('kuka_lbr_iisy_support')
+                           + "/urdf/lbr_iisy3_r760.urdf.xacro")
+        .robot_description_semantic(get_package_share_directory('kuka_lbr_iisy_moveit_config')  # noqa: E501
+                                    + "/urdf/lbr_iisy.srdf")
         .robot_description_kinematics(file_path="config/kinematics.yaml")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .planning_scene_monitor(
@@ -48,7 +36,7 @@ def generate_launch_description():
     )
 
     rviz_config_file = get_package_share_directory(
-        'kuka_iisy_support') + "/config/urdf_planning_scene.rviz"
+        'kuka_lbr_iisy_moveit_config') + "/config/urdf_planning_scene.rviz"
 
     startup_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
         [get_package_share_directory('kuka_rox_hw_interface'), '/launch/startup.launch.py']))
