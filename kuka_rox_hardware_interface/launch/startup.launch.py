@@ -98,4 +98,11 @@ def generate_launch_description():
             arguments=["effort_controller", "-c", controller_manager_node, "-p",
                        effort_controller_config, "--inactive"]
         ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["control_mode_handler", "-c", "-p",
+                       eci_config,
+                       controller_manager_node, "--inactive"]
+        ),
     ])

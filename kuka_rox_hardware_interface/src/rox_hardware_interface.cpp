@@ -120,6 +120,11 @@ export_command_interfaces()
       info_.joints[i].name,
       HW_IF_DAMPING,
       &hw_damping_commands_[i]);
+
+    command_interfaces.emplace_back(
+      CONF_PREFIX,
+      CONTROL_MODE,
+      &control_mode_);
   }
 
   return command_interfaces;
@@ -309,6 +314,7 @@ return_type KukaRoXHardwareInterface::write(
   std::copy(
     hw_damping_commands_.begin(),
     hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
+
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
