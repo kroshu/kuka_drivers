@@ -335,11 +335,6 @@ return_type KukaRoXHardwareInterface::write(
   return return_type::OK;
 }
 
-bool KukaRoXHardwareInterface::isActive() const
-{
-  return is_active_;
-}
-
 void KukaRoXHardwareInterface::ObserveControl()
 {
 #ifdef NON_MOCK_SETUP

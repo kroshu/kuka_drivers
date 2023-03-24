@@ -68,8 +68,6 @@ public:
 
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  bool isActive() const;
-
 private:
   void ObserveControl();
 

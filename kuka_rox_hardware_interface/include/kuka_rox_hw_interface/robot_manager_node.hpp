@@ -54,8 +54,6 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  bool onControlModeChangeRequest(int control_mode);
-
 private:
   void ObserveControl();
 
@@ -64,8 +62,16 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  std::vector<std::string> controller_names_;
-  std::map<int, std::vector<std::string>> control_mode_map_;
+
+  std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
+    {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
+    {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
+    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
+    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
+    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
+    {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
+    {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
+  };
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
