@@ -39,7 +39,6 @@ int main(int argc, char ** argv)
 
 
   std::thread control_loop([controller_manager, &is_configured]() {
-
       struct sched_param param;
       param.sched_priority = 95;
       if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
