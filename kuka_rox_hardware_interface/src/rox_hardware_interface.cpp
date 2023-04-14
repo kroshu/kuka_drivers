@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "nanopb-helpers/nanopb_serialization_helper.h"
+#include "kuka/nanopb-helpers-0.1/nanopb-helpers/nanopb_serialization_helper.h"
 
 using namespace kuka::ecs::v1;  // NOLINT
 
@@ -120,12 +120,12 @@ export_command_interfaces()
       info_.joints[i].name,
       HW_IF_DAMPING,
       &hw_damping_commands_[i]);
-
-    command_interfaces.emplace_back(
-      CONF_PREFIX,
-      CONTROL_MODE,
-      &control_mode_);
   }
+
+  command_interfaces.emplace_back(
+    CONF_PREFIX,
+    CONTROL_MODE,
+    &hw_control_mode_);
 
   return command_interfaces;
 }
@@ -137,6 +137,7 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
   SetQoSProfileResponse response;
   grpc::ClientContext context;
 
+  hw_control_mode_ = std::stod(info_.hardware_parameters.at("control_mode"));
   request.add_qos_profiles();
 
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
@@ -255,7 +256,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_->ReceiveRequestOrTimeout(receive_timeout_) ==
+  if (udp_replier_->ReceiveRequest() ==
     UDPSocket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_->GetRequestMessage();
@@ -315,6 +316,12 @@ return_type KukaRoXHardwareInterface::write(
     hw_damping_commands_.begin(),
     hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
 
+  control_signal_ext_.control_signal.control_mode = kuka_motion_external_ExternalControlMode(
+    (int)hw_control_mode_);
+  RCLCPP_ERROR(
+    rclcpp::get_logger(
+      "KukaRoXHardwareInterface"),
+    "Mode: %f", hw_control_mode_);
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
@@ -361,6 +368,11 @@ void KukaRoXHardwareInterface::ObserveControl()
       case CommandEvent::SAMPLING:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
         is_active_ = true;
+        break;
+      case CommandEvent::COMMAND_MODE_SWITCH:
+        RCLCPP_INFO(
+          rclcpp::get_logger(
+            "KukaRoXHardwareInterface"), "Control mode switch is in progress");
         break;
       case CommandEvent::STOPPED:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");

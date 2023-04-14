@@ -27,6 +27,7 @@
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/u_int32.hpp"
 
 #include "communication_helpers/service_tools.hpp"
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
@@ -54,6 +55,8 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
+  bool onControlModeChangeRequest(int control_mode);
+
 private:
   void ObserveControl();
 
@@ -62,16 +65,22 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  std::vector<std::string> controller_names_;
+  std::map<kuka::motion::external::ExternalControlMode, std::vector<std::string>> control_mode_map_;
 
-  std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
-    {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
-    {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
-    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
-    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
-    {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
-    {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
-    {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
-  };
+  // std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
+  //   {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
+  //   {kuka::motion::external::POSITION_CONTROL, "control_mode_handler"},
+  //   {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
+  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
+  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "control_mode_handler"},
+  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
+  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
+  //   {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
+  //   {kuka::motion::external::TORQUE_CONTROL, "control_mode_handler"},
+  //   {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
+  // };
+
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
@@ -80,17 +89,19 @@ private:
   std::unique_ptr<grpc::ClientContext> context_;
 #endif
 
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_publisher_;
+
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
   // There are two kinds of control modes with different number of necessary interfaces to be set:
   //  - in standard modes (position, torque), only the control signal to the used interface (1)
   //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)
-  static constexpr int STANDARD_MODE_IF_SIZE = 1;
-  static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
+  static constexpr int STANDARD_MODE_IF_SIZE = 2;
+  static constexpr int IMPEDANCE_MODE_IF_SIZE = 3;
 };
 
-}  // namespace kuka_rox
+}   // namespace kuka_rox
 
 
 #endif  // KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_

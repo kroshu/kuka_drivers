@@ -101,8 +101,6 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["control_mode_handler", "-c", controller_manager_node, "-p",
-                       eci_config,
-                       "--inactive"]
+            arguments=["control_mode_handler", "-c", controller_manager_node]
         )
     ])
