@@ -37,17 +37,18 @@ int main(int argc, char ** argv)
       is_configured = msg->data;
     });
 
-  struct sched_param param;
-  param.sched_priority = 95;
-  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
-    RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
-    RCLCPP_ERROR(controller_manager->get_logger(), strerror(errno));
-    RCLCPP_WARN(
-      controller_manager->get_logger(),
-      "You can use the driver but scheduler priority was not set");
-  }
 
   std::thread control_loop([controller_manager, &is_configured]() {
+      struct sched_param param;
+      param.sched_priority = 95;
+      if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+        RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
+        RCLCPP_ERROR(controller_manager->get_logger(), strerror(errno));
+        RCLCPP_WARN(
+          controller_manager->get_logger(),
+          "You can use the driver but scheduler priority was not set");
+      }
+
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
       std::chrono::milliseconds dt_ms {1000 / controller_manager->get_update_rate()};
