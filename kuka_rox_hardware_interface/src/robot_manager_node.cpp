@@ -338,26 +338,30 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       get_logger(), "Control mode changed to %s", ExternalControlMode_Name(control_mode).c_str());
     // TODO (komaromi): change active controllers if control mode changed mid active state
     if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+      // The drier is in active state
       auto controller_request =
         std::make_shared<SwitchController::Request>();
 
-      auto new_controllers = control_mode_map_.at(ExternalControlMode(control_mode));
-      auto actualy_active_controllers = controller_names_;
+      controller_request->activate_controllers =
+        control_mode_map_.at(ExternalControlMode(control_mode));
+      controller_request->deactivate_controllers = controller_names_;
 
-      for (auto controller_it = new_controllers.begin(); controller_it != new_controllers.end();
+      // go threw every controller in the controller groupe witch will be activated
+      for (auto controller_it = controller_request->activate_controllers.begin();
+        controller_it != controller_request->activate_controllers.end();
         std::next(controller_it))
       {
-        auto temp = std::find(
-          actualy_active_controllers.begin(), actualy_active_controllers.end(),
+        // Search for the controller iterator in the actualy active contollers
+        auto controller_to_switch = std::find(
+          controller_request->deactivate_controllers.begin(),
+          controller_request->deactivate_controllers.end(),
           *controller_it);
-        if (temp != actualy_active_controllers.end()) {
-          new_controllers.erase(controller_it);
-          actualy_active_controllers.erase(temp);
+        if (controller_to_switch != controller_request->deactivate_controllers.end()) {
+          // Delete those controllers wich not need to be activated or deactivated.
+          controller_request->activate_controllers.erase(controller_it);
+          controller_request->deactivate_controllers.erase(controller_to_switch);
         }
       }
-
-      controller_request->activate_controllers = new_controllers;
-      controller_request->deactivate_controllers = actualy_active_controllers;
 
       controller_request->strictness = SwitchController::Request::STRICT;
       auto controller_response =
