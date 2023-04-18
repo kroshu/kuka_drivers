@@ -13,8 +13,6 @@
 // limitations under the License.
 
 #include "kuka_rox_hw_interface/robot_manager_node.hpp"
-#include "nanopb/kuka/motion/external/control_signal_internal.pb.hh"
-#include "nanopb/kuka/motion/external/external_command.pb.hh"
 
 
 #include <grpcpp/create_channel.h>
@@ -116,7 +114,6 @@ RobotManagerNode::RobotManagerNode()
       grpc::InsecureChannelCredentials()));
 #endif
 }
-
 RobotManagerNode::~RobotManagerNode()
 {
 #ifdef NON_MOCK_SETUP
