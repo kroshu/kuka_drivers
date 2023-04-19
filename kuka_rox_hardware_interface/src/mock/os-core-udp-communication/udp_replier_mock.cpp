@@ -6,46 +6,46 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#include "os-core-udp-communication/udp_replier.h"
+#ifndef UDP_REPLIER_H
+#define UDP_REPLIER_H
+
+#include <chrono>
+
+#include "os-core-udp-communication/socket.h"
 
 namespace os::core::udp::communication
 {
 
-UDPReplier::UDPReplier(const SocketAddress & local_address)
-: local_address_(local_address) {}
-
-UDPSocket::ErrorCode UDPReplier::Setup()
+class Replier
 {
-  // only a mock
-  return UDPSocket::ErrorCode::kSuccess;
-}
+public:
+  //<ctor>
+  Replier(const SocketAddress & local_address);
+  virtual ~Replier() = default;
+  Socket::ErrorCode Setup();
+  void Reset();
 
-void UDPReplier::Reset()
-{
-  // only a mock
-}
+public:
+  //<operations>
+  Socket::ErrorCode ReceiveRequest();
+  Socket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
+  Socket::ErrorCode SendReply(uint8_t * reply_msg_data, size_t reply_msg_size);
 
-UDPSocket::ErrorCode UDPReplier::ReceiveRequest()
-{
-  // only a mock
-  return UDPSocket::ErrorCode::kSuccess;
-}
+public:
+  //<properties>
+  std::pair<const uint8_t *, size_t> GetRequestMessage() const;
 
-UDPSocket::ErrorCode UDPReplier::ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout)
-{
-  // only a mock
-  return UDPSocket::ErrorCode::kSuccess;
-}
+protected:
+  static constexpr uint16_t kMaxBufferSize = 1500;
+  uint8_t server_buffer_[kMaxBufferSize];
 
-UDPSocket::ErrorCode UDPReplier::SendReply(uint8_t * reply_msg_data, size_t reply_msg_size)
-{
-  // only a mock
-  return UDPSocket::ErrorCode::kSuccess;
-}
+  Socket socket_;
+  SocketAddress local_address_;
 
-std::pair<const uint8_t *, size_t> UDPReplier::GetRequestMessage() const
-{
-  return {nullptr, 0};
-}
-
+  bool active_request_ = false;
+  SocketAddress last_remote_address_;
+  int last_request_size_ = 0;
+};
 }  // namespace os::core::udp::communication
+
+#endif  // UDP_REPLIER_H

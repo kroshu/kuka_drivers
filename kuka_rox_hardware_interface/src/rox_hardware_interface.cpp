@@ -24,7 +24,7 @@
 
 using namespace kuka::ecs::v1;  // NOLINT
 
-using os::core::udp::communication::UDPSocket;
+using os::core::udp::communication::Socket;
 
 namespace kuka_rox
 {
@@ -34,7 +34,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
-  udp_replier_ = std::make_unique<os::core::udp::communication::UDPReplier>(
+  udp_replier_ = std::make_unique<os::core::udp::communication::Replier>(
     os::core::udp::communication::SocketAddress(
       info_.hardware_parameters.at("client_ip"), 44444));
 
@@ -64,7 +64,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = info_.joints.size();
   control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
 #ifdef NON_MOCK_SETUP
-  if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
+  if (udp_replier_->Setup() != Socket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::FAILURE;
   }
@@ -257,7 +257,7 @@ return_type KukaRoXHardwareInterface::read(
   }
 
   if (udp_replier_->ReceiveRequest() ==
-    UDPSocket::ErrorCode::kSuccess)
+    Socket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_->GetRequestMessage();
 
@@ -334,7 +334,7 @@ return_type KukaRoXHardwareInterface::write(
   }
 
   if (udp_replier_->SendReply(out_buff_arr_, encoded_bytes) !=
-    UDPSocket::ErrorCode::kSuccess)
+    Socket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
     throw std::runtime_error("Error sending reply");

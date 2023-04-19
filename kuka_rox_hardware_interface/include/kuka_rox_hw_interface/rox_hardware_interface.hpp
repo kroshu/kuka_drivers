@@ -39,7 +39,7 @@
 #include "nanopb/kuka/core/motion/joint.pb.hh"
 #include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
-#include "os-core-udp-communication/udp_replier.h"
+#include "os-core-udp-communication/replier.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -91,7 +91,7 @@ private:
 
   std::thread observe_thread_;
 
-  std::unique_ptr<os::core::udp::communication::UDPReplier> udp_replier_;
+  std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
   std::chrono::milliseconds receive_timeout_ {100};
 
   uint8_t out_buff_arr_[1500];
