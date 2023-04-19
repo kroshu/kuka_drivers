@@ -61,6 +61,12 @@ def generate_launch_description():
             executable='rox_control_node',
             parameters=[robot_description, controller_config]
         ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["control_mode_handler", "-c",
+                       controller_manager_node, "--inactive"]
+        ),
         LifecycleNode(
             name=['robot_manager'],
             namespace='',
@@ -97,10 +103,5 @@ def generate_launch_description():
             executable="spawner",
             arguments=["effort_controller", "-c", controller_manager_node, "-p",
                        effort_controller_config, "--inactive"]
-        ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["control_mode_handler", "-c", controller_manager_node]
         )
     ])

@@ -47,7 +47,7 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/is_configured",
     is_configured_qos);
 
-  control_mode_publisher_ = this->create_publisher<std_msgs::msg::UInt32>(
+  control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode", rclcpp::SystemDefaultsQoS()
   );
 
@@ -141,6 +141,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
+  RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
   // Activate Control Mode Handler
   auto control_mode_request =
@@ -380,7 +381,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     // TODO (komaromi): publish the control mode to controller handler
     auto message = std_msgs::msg::UInt32();
     message.data = control_mode;
-    control_mode_publisher_->publish(message);
+    control_mode_pub_->publish(message);
     return true;
   } else {
     RCLCPP_WARN(

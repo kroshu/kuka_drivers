@@ -89,7 +89,7 @@ private:
   std::unique_ptr<grpc::ClientContext> context_;
 #endif
 
-  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_publisher_;
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
