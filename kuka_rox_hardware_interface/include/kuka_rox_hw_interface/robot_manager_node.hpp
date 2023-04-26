@@ -55,6 +55,7 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(int control_mode);
+  bool onRobotModelChangeRequest(std::string robot_model);
 
 private:
   void ObserveControl();
@@ -66,6 +67,7 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::vector<std::string> controller_names_;
   std::map<int, std::vector<std::string>> control_mode_map_;
+  std::string robot_model_;
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
