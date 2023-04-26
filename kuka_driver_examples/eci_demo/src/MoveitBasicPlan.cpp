@@ -23,7 +23,7 @@
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 
-#define CIRCLE true
+#define CIRCLE false
 
 
 int main(int argc, char * argv[])
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
   auto const logger = rclcpp::get_logger("moveit_basic_plan");
 
   // Create Planning group
-  static const std::string PLANNING_GROUP = "iisy_arm";
+  static const std::string PLANNING_GROUP = "lbr_iisy_arm";
 
   // Next step goes here
   // Create the MoveIt MoveGroup Interface
