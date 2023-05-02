@@ -69,6 +69,10 @@ RobotManagerNode::RobotManagerNode()
   control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(0) =
     "joint_state_broadcaster";
   control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(0) = "joint_state_broadcaster";
+  control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(1) = "control_mode_handler";
+  control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(1) =
+    "control_mode_handler";
+  control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(1) = "control_mode_handler";
 
   // Register parameters
   this->registerParameter<int>(
@@ -80,20 +84,20 @@ RobotManagerNode::RobotManagerNode()
   this->registerParameter<std::string>(
     "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
       false, false, false}, [this](const std::string & controller_name) {
-      control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(1) = controller_name;
-      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(1) = controller_name;
+      control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(2) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(2) = controller_name;
       return true;
     });
   this->registerParameter<std::string>(
     "impedance_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
       false, false, false}, [this](const std::string & controller_name) {
-      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(2) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(3) = controller_name;
       return true;
     });
   this->registerParameter<std::string>(
     "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
       false, false}, [this](const std::string & controller_name) {
-      control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(1) = controller_name;
+      control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(2) = controller_name;
       return true;
     });
   this->registerStaticParameter<std::string>(
@@ -129,6 +133,11 @@ RobotManagerNode::~RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Publish control mode paramater
+  auto message = std_msgs::msg::UInt32();
+  message.data = this->get_parameter("control_mode").as_int();
+  control_mode_pub_->publish(message);
+
   // Configure hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
@@ -143,19 +152,19 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   }
   RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
-  // Activate Control Mode Handler
-  auto control_mode_request =
-    std::make_shared<SwitchController::Request>();
-  control_mode_request->strictness = SwitchController::Request::STRICT;
-  control_mode_request->activate_controllers = {"control_mode_handler"};
-  auto control_mode_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, control_mode_request, 0, 2000
-    );
-  if (!control_mode_response || !control_mode_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  activate control_mode_handler");
-  }
-  RCLCPP_INFO(get_logger(), "Successfully activated control_mode_handler");
+  // // Activate Control Mode Handler
+  // auto control_mode_request =
+  //   std::make_shared<SwitchController::Request>();
+  // control_mode_request->strictness = SwitchController::Request::STRICT;
+  // control_mode_request->activate_controllers = {"control_mode_handler"};
+  // auto control_mode_response =
+  //   kroshu_ros2_core::sendRequest<SwitchController::Response>(
+  //   change_controller_state_client_, control_mode_request, 0, 2000
+  //   );
+  // if (!control_mode_response || !control_mode_response->ok) {
+  //   RCLCPP_ERROR(get_logger(), "Could not  activate control_mode_handler");
+  // }
+  // RCLCPP_INFO(get_logger(), "Successfully activated control_mode_handler");
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -335,32 +344,34 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
   if (control_mode_map_.find(ExternalControlMode(control_mode)) != control_mode_map_.end()) {
-    RCLCPP_INFO(
-      get_logger(), "Control mode changed to %s", ExternalControlMode_Name(control_mode).c_str());
     // TODO (komaromi): change active controllers if control mode changed mid active state
     if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
-      // The drier is in active state
+      // The driver is in active state
       auto controller_request =
         std::make_shared<SwitchController::Request>();
 
+      // Set activeable and deactivable controllers
       controller_request->activate_controllers =
         control_mode_map_.at(ExternalControlMode(control_mode));
       controller_request->deactivate_controllers = controller_names_;
 
       // go threw every controller in the controller groupe witch will be activated
-      for (auto controller_it = controller_request->activate_controllers.begin();
-        controller_it != controller_request->activate_controllers.end();
-        std::next(controller_it))
+      for (auto deactivate_controllers_it = controller_request->deactivate_controllers.begin();
+        deactivate_controllers_it != controller_request->deactivate_controllers.end();
+        ++deactivate_controllers_it)
       {
-        // Search for the controller iterator in the actualy active contollers
-        auto controller_to_switch = std::find(
-          controller_request->deactivate_controllers.begin(),
-          controller_request->deactivate_controllers.end(),
-          *controller_it);
-        if (controller_to_switch != controller_request->deactivate_controllers.end()) {
-          // Delete those controllers wich not need to be activated or deactivated.
-          controller_request->activate_controllers.erase(controller_it);
-          controller_request->deactivate_controllers.erase(controller_to_switch);
+        for (auto activate_controllers_it = controller_request->activate_controllers.begin();
+          activate_controllers_it != controller_request->activate_controllers.end();
+          ++activate_controllers_it)
+        {
+          if (*activate_controllers_it == *deactivate_controllers_it) {
+            // Delete those controllers wich not need to be activated or deactivated.
+            controller_request->activate_controllers.erase(activate_controllers_it);
+            controller_request->deactivate_controllers.erase(deactivate_controllers_it);
+            --activate_controllers_it;
+            --deactivate_controllers_it;
+            break;
+          }
         }
       }
 
@@ -370,13 +381,17 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
         change_controller_state_client_, controller_request, 0, 2000
         );
       if (!controller_response || !controller_response->ok) {
-        RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+        RCLCPP_ERROR(get_logger(), "Could not  change control mode and controllers");
         // TODO(Svastits): this can be removed if rollback is implemented properly
         this->on_deactivate(get_current_state());
         return false;
       }
-      RCLCPP_INFO(get_logger(), "Successfully activated controllers");
+      controller_names_ = control_mode_map_.at(ExternalControlMode(control_mode));
     }
+
+    RCLCPP_INFO(
+      get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
+        control_mode).c_str());
 
     // TODO (komaromi): publish the control mode to controller handler
     auto message = std_msgs::msg::UInt32();
