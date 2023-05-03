@@ -81,18 +81,51 @@ int main(int argc, char * argv[])
   moveit_msgs::msg::RobotTrajectory trajectory;
   geometry_msgs::msg::Pose msg;
 
-  // Move to point near candle
+  // Move to point above workspace
   msg.orientation.x = 0.0;
-  msg.orientation.y = 0.0;
+  msg.orientation.y = 1.0;
   msg.orientation.z = 0.0;
-  msg.orientation.w = 1;
-  msg.position.x = 0.05;
+  msg.orientation.w = 0.0;
+  msg.position.x = 0.7;
   msg.position.y = 0.0;
-  msg.position.z = 1.2;
+  msg.position.z = 0.4;
   waypoints.push_back(msg);
-  
-  RCLCPP_INFO(logger, "Start planning");
+
+
   double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
+
+  if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
+    move_group_interface.execute(trajectory);
+  }
+
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+
+
+  move_group_interface.setMaxVelocityScalingFactor(0.1);
+
+  waypoints.clear();
+  // Start point
+  msg.position.x = 0.7;
+  msg.position.y = 0.2;
+  msg.position.z = 0.3;
+  waypoints.push_back(msg);
+
+  // Add weaving to path
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 + 0.01 * sin(0.2 * i * 3.1415);
+    msg.position.y -= 0.004;
+    waypoints.push_back(msg);
+  }
+
+  // End point
+  msg.position.x = 0.7;
+  msg.position.y = -0.2;
+  msg.position.z = 0.3;
+  waypoints.push_back(msg);
+
+
+  RCLCPP_INFO(logger, "Start planning");
+  fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
   RCLCPP_INFO(logger, "Planning done!");
 
   if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
