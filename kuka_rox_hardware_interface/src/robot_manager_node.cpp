@@ -141,7 +141,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Configure hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
+  hw_request->name = "LBRiisy3R760";
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -178,7 +178,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // Clean up hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
+  hw_request->name = "LBRiisy3R760";
   hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -250,7 +250,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
+  hw_request->name = "LBRiisy3R760";
   hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -307,7 +307,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Deactivate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
+  hw_request->name = "LBRiisy3R760";
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
