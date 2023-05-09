@@ -6,46 +6,38 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#ifndef UDP_REPLIER_H
-#define UDP_REPLIER_H
-
-#include <chrono>
-
-#include "os-core-udp-communication/socket.h"
+#include "os-core-udp-communication/replier.h"
 
 namespace os::core::udp::communication
 {
-
-class Replier
+Replier::Replier(const SocketAddress & local_address)
 {
-public:
-  //<ctor>
-  Replier(const SocketAddress & local_address);
-  virtual ~Replier() = default;
-  Socket::ErrorCode Setup();
-  void Reset();
+  // only a mock
+}
+Socket::ErrorCode Replier::Setup()
+{
+  // only a mock
+}
+void Replier::Reset()
+{
+  // only a mock
+}
 
-public:
-  //<operations>
-  Socket::ErrorCode ReceiveRequest();
-  Socket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
-  Socket::ErrorCode SendReply(uint8_t * reply_msg_data, size_t reply_msg_size);
+Socket::ErrorCode Replier::ReceiveRequest()
+{
+  // only a mock
+}
+Socket::ErrorCode Replier::ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout)
+{
+  // only a mock
+}
+Socket::ErrorCode Replier::SendReply(uint8_t * reply_msg_data, size_t reply_msg_size)
+{
+  // only a mock
+}
 
-public:
-  //<properties>
-  std::pair<const uint8_t *, size_t> GetRequestMessage() const;
-
-protected:
-  static constexpr uint16_t kMaxBufferSize = 1500;
-  uint8_t server_buffer_[kMaxBufferSize];
-
-  Socket socket_;
-  SocketAddress local_address_;
-
-  bool active_request_ = false;
-  SocketAddress last_remote_address_;
-  int last_request_size_ = 0;
-};
+std::pair<const uint8_t *, size_t> Replier::GetRequestMessage() const
+{
+  // only a mock
+}
 }  // namespace os::core::udp::communication
-
-#endif  // UDP_REPLIER_H
