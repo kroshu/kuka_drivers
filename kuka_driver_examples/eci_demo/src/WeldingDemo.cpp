@@ -23,6 +23,9 @@
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 
+#define SIN30 0.5
+#define SIN60 sqrt(3) / 2
+
 
 int main(int argc, char * argv[])
 {
@@ -117,9 +120,21 @@ int main(int argc, char * argv[])
     waypoints.push_back(msg);
   }
 
-  // End point
-  msg.position.x = 0.7;
-  msg.position.y = -0.2;
+  // Middle point
+  // msg.position.x = 0.7;
+  // msg.position.y = -0.2;
+  // msg.position.z = 0.3;
+  // waypoints.push_back(msg);
+
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.01 * sin(0.2 * i * 3.1415) * SIN60;
+    msg.position.y = -0.2 - 0.004 * SIN60 *i - 0.01 * sin(0.2 * i * 3.1415) * SIN30;
+    waypoints.push_back(msg);
+  }
+
+  // Endpoint
+  msg.position.x = 0.7 - 0.4 * SIN30;
+  msg.position.y = -0.2 - 0.4 * SIN60;
   msg.position.z = 0.3;
   waypoints.push_back(msg);
 
