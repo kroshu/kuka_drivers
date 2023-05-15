@@ -115,7 +115,7 @@ int main(int argc, char * argv[])
 
   // Add weaving to path
   for (int i = 0; i < 100; i++) {
-    msg.position.x = 0.7 + 0.01 * sin(0.2 * i * 3.1415);
+    msg.position.x = 0.7 + 0.005 * sin(0.4 * i * 3.1415);
     msg.position.y -= 0.004;
     waypoints.push_back(msg);
   }
@@ -127,8 +127,8 @@ int main(int argc, char * argv[])
   // waypoints.push_back(msg);
 
   for (int i = 0; i < 100; i++) {
-    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.01 * sin(0.2 * i * 3.1415) * SIN60;
-    msg.position.y = -0.2 - 0.004 * SIN60 *i - 0.01 * sin(0.2 * i * 3.1415) * SIN30;
+    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.005 * sin(0.4 * i * 3.1415) * SIN60;
+    msg.position.y = -0.2 - 0.004 * SIN60 *i - 0.005 * sin(0.4 * i * 3.1415) * SIN30;
     waypoints.push_back(msg);
   }
 
