@@ -41,15 +41,15 @@ std::vector<geometry_msgs::msg::Pose> sine_weave()
   waypoints.push_back(msg);
 
   // Add weaving to path
-  for (int i = 0; i < 1000; i++) {
-    msg.position.x = 0.7 + 0.003 * sin(0.04 * i * 3.1415);
-    msg.position.y -= 0.0004;
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 + 0.003 * sin(0.4 * i * 3.1415);
+    msg.position.y -= 0.004;
     waypoints.push_back(msg);
   }
 
-  for (int i = 0; i < 1000; i++) {
-    msg.position.x = 0.7 - 0.0004 * i * SIN30 + 0.003 * sin(0.04 * i * 3.1415) * SIN60;
-    msg.position.y = -0.2 - 0.0004 * SIN60 * i - 0.003 * sin(0.04 * i * 3.1415) * SIN30;
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.003 * sin(0.4 * i * 3.1415) * SIN60;
+    msg.position.y = -0.2 - 0.004 * SIN60 * i - 0.003 * sin(0.4 * i * 3.1415) * SIN30;
     waypoints.push_back(msg);
   }
 
@@ -183,7 +183,7 @@ int main(int argc, char * argv[])
 
   waypoints.clear();
 
-  waypoints = zigzag_weave();
+  waypoints = sine_weave();
 
   RCLCPP_INFO(logger, "Start planning");
   fraction = move_group_interface.computeCartesianPath(waypoints, 0.001, 0.0, trajectory);
