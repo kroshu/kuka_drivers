@@ -27,6 +27,81 @@
 #define SIN60 sqrt(3) / 2
 
 
+std::vector<geometry_msgs::msg::Pose> sine_weave()
+{
+  std::vector<geometry_msgs::msg::Pose> waypoints;
+  geometry_msgs::msg::Pose msg;
+  msg.orientation.x = 0.0;
+  msg.orientation.y = 1.0;
+  msg.orientation.z = 0.0;
+  msg.orientation.w = 0.0;
+  msg.position.x = 0.7;
+  msg.position.y = 0.2;
+  msg.position.z = 0.3;
+  waypoints.push_back(msg);
+
+  // Add weaving to path
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 + 0.005 * sin(0.4 * i * 3.1415);
+    msg.position.y -= 0.004;
+    waypoints.push_back(msg);
+  }
+
+  for (int i = 0; i < 100; i++) {
+    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.005 * sin(0.4 * i * 3.1415) * SIN60;
+    msg.position.y = -0.2 - 0.004 * SIN60 * i - 0.005 * sin(0.4 * i * 3.1415) * SIN30;
+    waypoints.push_back(msg);
+  }
+
+  // Endpoint
+  msg.position.x = 0.7 - 0.4 * SIN30;
+  msg.position.y = -0.2 - 0.4 * SIN60;
+  msg.position.z = 0.3;
+  waypoints.push_back(msg);
+  return waypoints;
+}
+
+
+std::vector<geometry_msgs::msg::Pose> zigzag_weave()
+{
+  const double zigzag_increment = 6.3 / 12 / 1000; // 6.3 mm -> m
+  std::vector<geometry_msgs::msg::Pose> waypoints;
+  geometry_msgs::msg::Pose msg;
+  msg.orientation.x = 0.0;
+  msg.orientation.y = 1.0;
+  msg.orientation.z = 0.0;
+  msg.orientation.w = 0.0;
+  msg.position.x = 0.7;
+  msg.position.y = 0.2;
+  msg.position.z = 0.3;
+  waypoints.push_back(msg);
+
+  int increments = 0.4 / zigzag_increment;
+  RCLCPP_INFO(rclcpp::get_logger("welding_demo"), "Creating motion with %i increments", increments);
+
+  for (int i = 0; i < increments; i++) {
+    switch (i % 4) {
+      case 0:
+      case 2:
+        msg.position.x = 0.7;
+        break;
+      case 1:
+        msg.position.x = 0.703;
+        break;
+      case 3:
+        msg.position.x = 0.697;
+        break;
+    }
+    msg.position.y = 0.2 - i * zigzag_increment;
+    waypoints.push_back(msg);
+    // RCLCPP_INFO(
+    //   rclcpp::get_logger(
+    //     "welding_demo"), "Point %lf, %lf added", msg.position.x, msg.position.y);
+
+  }
+  return waypoints;
+}
+
 int main(int argc, char * argv[])
 {
   // Setup
@@ -101,43 +176,14 @@ int main(int argc, char * argv[])
     move_group_interface.execute(trajectory);
   }
 
-  std::this_thread::sleep_for(std::chrono::seconds(5));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
 
-  move_group_interface.setMaxVelocityScalingFactor(0.1);
+  move_group_interface.setMaxVelocityScalingFactor(0.5);
 
   waypoints.clear();
-  // Start point
-  msg.position.x = 0.7;
-  msg.position.y = 0.2;
-  msg.position.z = 0.3;
-  waypoints.push_back(msg);
 
-  // Add weaving to path
-  for (int i = 0; i < 100; i++) {
-    msg.position.x = 0.7 + 0.005 * sin(0.4 * i * 3.1415);
-    msg.position.y -= 0.004;
-    waypoints.push_back(msg);
-  }
-
-  // Middle point
-  // msg.position.x = 0.7;
-  // msg.position.y = -0.2;
-  // msg.position.z = 0.3;
-  // waypoints.push_back(msg);
-
-  for (int i = 0; i < 100; i++) {
-    msg.position.x = 0.7 - 0.004 * i * SIN30 + 0.005 * sin(0.4 * i * 3.1415) * SIN60;
-    msg.position.y = -0.2 - 0.004 * SIN60 *i - 0.005 * sin(0.4 * i * 3.1415) * SIN30;
-    waypoints.push_back(msg);
-  }
-
-  // Endpoint
-  msg.position.x = 0.7 - 0.4 * SIN30;
-  msg.position.y = -0.2 - 0.4 * SIN60;
-  msg.position.z = 0.3;
-  waypoints.push_back(msg);
-
+  waypoints = zigzag_weave();
 
   RCLCPP_INFO(logger, "Start planning");
   fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
