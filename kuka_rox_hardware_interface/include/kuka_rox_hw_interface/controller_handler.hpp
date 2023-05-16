@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
+#include "rclcpp/rclcpp.hpp"
 
 namespace kuka_rox
 {
@@ -37,18 +38,30 @@ private:
   /**
    * @brief The currently active controllers that not include the fixed controllers
    */
-  std::vector<std::string> currently_active_controllers_;
+  std::vector<std::string> active_controllers_;
 
   /**
    * @brief Look up table for wich controllers needed for each control mode
    */
   std::map<kuka::motion::external::ExternalControlMode, std::vector<std::string>> control_mode_map_;
 
+  /**
+   * @brief Size of every controller for each control_mode
+   */
   static constexpr int POSITION_CONTROLLERS_SIZE = 1;
   static constexpr int IMPEDANCE_CONTROLLERS_SIZE = 2;
   static constexpr int TORQUE_CONTROLLERS_SIZE = 1;
 
+  /**
+   * @brief Controllers possition in the controllers vector
+   */
+  static constexpr int NORMAL_CONROLLERS_POS = 0;
+  static constexpr int IMPEDANCE_CONTROLLERS_POS = 1;
+
 public:
+  /**
+   * @brief Enum for identify every type of controllers
+   */
   typedef enum   //controller_type
   {
     POSITION_CONTROLLER = 0,

@@ -19,6 +19,7 @@ using namespace kuka::motion::external;  // NOLINT
 namespace kuka_rox
 {
 controller_handler::controller_handler(std::vector<std::string> fixed_controllers)
+: fixed_controllers_(fixed_controllers)
 {
   control_mode_map_.emplace(
     std::make_pair(
@@ -32,26 +33,79 @@ controller_handler::controller_handler(std::vector<std::string> fixed_controller
     std::make_pair(
       ExternalControlMode::TORQUE_CONTROL,
       std::vector<std::string>(TORQUE_CONTROLLERS_SIZE)));
+
 }
 
 bool controller_handler::Update_controller_name(
   const controller_handler::controller_type controller_type,
   const std::string & controller_name)
 {
-
+  switch (controller_type) {
+    case POSITION_CONTROLLER:
+      control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(NORMAL_CONROLLERS_POS) =
+        controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(NORMAL_CONROLLERS_POS) =
+        controller_name;
+      return true;
+      break;
+    case IMPEDANCE_CONTROLLER:
+      control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(
+        IMPEDANCE_CONTROLLERS_POS) = controller_name;
+      return true;
+      break;
+    case TORQUE_CONTROLLER:
+      control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(NORMAL_CONROLLERS_POS) =
+        controller_name;
+      return true;
+      break;
+    default:
+      RCLCPP_INFO(rclcpp::get_logger("ControllerHandler"), "Invalid Controller type");
+      return false;
+      break;
+  }
 
 }
 
 std::pair<std::vector<std::string>, std::vector<std::string>>
-controller_handler::Get_new_controllers(
-  kuka::motion::external::ExternalControlMode new_control_mode)
+controller_handler::Get_new_controllers(ExternalControlMode new_control_mode)
 {
+  std::vector<std::string> activate_controllers;
+  std::vector<std::string> deactivate_controllers;
+  if (control_mode_map_.find(new_control_mode) == control_mode_map_.end()) {
+    // Not valid control mode, threw error
 
+  }
+
+  // Set controllers wich should be activated and deactivated
+  activate_controllers = control_mode_map_.at(new_control_mode);
+  deactivate_controllers = active_controllers_;
+
+  // Goes through every controllers that should be deactivated
+  for (auto deactivate_controllers_it = deactivate_controllers.begin();
+    deactivate_controllers_it != deactivate_controllers.end(); ++deactivate_controllers_it)
+  {
+    // Goes through every controllers that should be activated
+    for (auto activate_controllers_it = activate_controllers.begin();
+      activate_controllers_it != activate_controllers.end(); ++activate_controllers_it)
+    {
+      if (*activate_controllers_it == *deactivate_controllers_it) {
+        // Delete those controllers wich not need to be activated or deactivated.
+        activate_controllers.erase(activate_controllers_it);
+        deactivate_controllers.erase(deactivate_controllers_it);
+        // Decrement iterators so it will not lose track;
+        --activate_controllers_it;
+        --deactivate_controllers_it;
+        break;
+      }
+    }
+  }
+  // TODO (komaromi): Somewhere the active_controllers have to be updated, unless it wont work.
+  return std::make_pair(activate_controllers, deactivate_controllers);
 }
 
 
 std::vector<std::string> controller_handler::Get_active_controllers()
 {
-
+  return active_controllers_;
 }
 }   // namespace kuka_rox
