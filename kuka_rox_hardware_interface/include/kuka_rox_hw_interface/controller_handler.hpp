@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 #include "rclcpp/rclcpp.hpp"
@@ -27,6 +28,10 @@ namespace kuka_rox
  * @brief This class is responsible for tracking the active controllers
  *  and on control mode change offer the controllers name that
  *  need to be activated and deactivated.
+ * The following three public function has to be called in the following order:
+ *  - Calculate_activate_deactivate_controllers() or Get_active_controllers_on_deactivation()
+ *  - ApproveControllerActivation()
+ *  - ApproveControllerDeactivation()
  */
 class controller_handler
 {
@@ -35,10 +40,22 @@ private:
    * @brief Controller names thats have to active at any control mode
    */
   std::vector<std::string> fixed_controllers_;
+
   /**
    * @brief The currently active controllers that not include the fixed controllers
+   * The controllers are stored in an std::set type
    */
-  std::vector<std::string> active_controllers_;
+  std::set<std::string> active_controllers_;
+
+  /**
+   * @brief These controllers will be activated after they get approved
+   */
+  std::vector<std::string> activate_controllers_;
+
+  /**
+   * @brief These controllers will be deactivated after they get approved
+   */
+  std::vector<std::string> deactivate_controllers_;
 
   /**
    * @brief Look up table for wich controllers needed for each control mode
@@ -57,6 +74,13 @@ private:
    */
   static constexpr int NORMAL_CONROLLERS_POS = 0;
   static constexpr int IMPEDANCE_CONTROLLERS_POS = 1;
+
+  /**
+   * @brief Retruns the currently active controllers for the user.
+   *
+   * @return std::vector<std::string>: The currently active controllers
+   */
+  std::vector<std::string> get_active_controllers();
 
 public:
   /**
@@ -100,15 +124,36 @@ public:
    * @return std::pair<std::vector<std::string>, std::vector<std::string>>:
    * Two vectors, first has the contrllers to activate, second has the controllers to deactivate
    */
-  std::pair<std::vector<std::string>, std::vector<std::string>> Get_new_controllers(
+  std::pair<std::vector<std::string>,
+    std::vector<std::string>> Get_activate_deactivate_controllers(
     kuka::motion::external::ExternalControlMode new_control_mode);
 
   /**
-   * @brief Retruns the currently active controllers for the user.
+   * @brief Returns all controllers that has active state while deactivation
    *
-   * @return std::vector<std::string>: The currently active controllers
+   * @return std::pair<std::vector<std::string>, std::vector<std::string>>:
+   * Two vectors, first has the contrllers to activate, second has the controllers to deactivate
    */
-  std::vector<std::string> Get_active_controllers();
+  std::pair<std::vector<std::string>,
+    std::vector<std::string>> Get_active_controllers_on_deactivation();
+
+  /**
+   * @brief Approves that the controller activation was succesfull
+   *
+   */
+  void ApproveControllerActivation();
+
+  /**
+   * @brief Approves that the controller deactivation was succesfull
+   *
+   */
+  void ApproveControllerDeactivation();
+
+  /**
+   * @brief Clears the controller switch action
+   *
+   */
+  void RejectControllerSwitch();
 };
 } // namespace kuka_rox
 

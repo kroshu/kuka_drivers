@@ -67,31 +67,29 @@ bool controller_handler::Update_controller_name(
 }
 
 std::pair<std::vector<std::string>, std::vector<std::string>>
-controller_handler::Get_new_controllers(ExternalControlMode new_control_mode)
+controller_handler::Get_activate_deactivate_controllers(ExternalControlMode new_control_mode)
 {
-  std::vector<std::string> activate_controllers;
-  std::vector<std::string> deactivate_controllers;
   if (control_mode_map_.find(new_control_mode) == control_mode_map_.end()) {
     // Not valid control mode, threw error
 
   }
 
   // Set controllers wich should be activated and deactivated
-  activate_controllers = control_mode_map_.at(new_control_mode);
-  deactivate_controllers = active_controllers_;
+  activate_controllers_ = control_mode_map_.at(new_control_mode);
+  deactivate_controllers_ = get_active_controllers();
 
   // Goes through every controllers that should be deactivated
-  for (auto deactivate_controllers_it = deactivate_controllers.begin();
-    deactivate_controllers_it != deactivate_controllers.end(); ++deactivate_controllers_it)
+  for (auto deactivate_controllers_it = deactivate_controllers_.begin();
+    deactivate_controllers_it != deactivate_controllers_.end(); ++deactivate_controllers_it)
   {
     // Goes through every controllers that should be activated
-    for (auto activate_controllers_it = activate_controllers.begin();
-      activate_controllers_it != activate_controllers.end(); ++activate_controllers_it)
+    for (auto activate_controllers_it = activate_controllers_.begin();
+      activate_controllers_it != activate_controllers_.end(); ++activate_controllers_it)
     {
       if (*activate_controllers_it == *deactivate_controllers_it) {
         // Delete those controllers wich not need to be activated or deactivated.
-        activate_controllers.erase(activate_controllers_it);
-        deactivate_controllers.erase(deactivate_controllers_it);
+        activate_controllers_.erase(activate_controllers_it);
+        deactivate_controllers_.erase(deactivate_controllers_it);
         // Decrement iterators so it will not lose track;
         --activate_controllers_it;
         --deactivate_controllers_it;
@@ -100,12 +98,37 @@ controller_handler::Get_new_controllers(ExternalControlMode new_control_mode)
     }
   }
   // TODO (komaromi): Somewhere the active_controllers have to be updated, unless it wont work.
-  return std::make_pair(activate_controllers, deactivate_controllers);
+  return std::make_pair(activate_controllers_, deactivate_controllers_);
 }
 
-
-std::vector<std::string> controller_handler::Get_active_controllers()
+std::pair<std::vector<std::string>,
+  std::vector<std::string>> controller_handler::Get_active_controllers_on_deactivation()
 {
-  return active_controllers_;
+  activate_controllers_ = {};
+  deactivate_controllers_ = get_active_controllers();
+  return std::make_pair(activate_controllers_, deactivate_controllers_);
+}
+
+std::vector<std::string> controller_handler::get_active_controllers()
+{
+  return std::vector<std::string>(active_controllers_.begin(), active_controllers_.end());
+}
+
+void controller_handler::ApproveControllerActivation()
+{
+  if (activate_controllers_.size() > 0) {
+    std::copy(
+      activate_controllers_.begin(), activate_controllers_.end(),
+      std::inserter(active_controllers_, active_controllers_.end()));
+  }
+}
+
+void controller_handler::ApproveControllerDeactivation()
+{
+  if (deactivate_controllers_.size() > 0) {
+    for (auto && controller : deactivate_controllers_) {
+      active_controllers_.erase(active_controllers_.find(controller));
+    }
+  }
 }
 }   // namespace kuka_rox
