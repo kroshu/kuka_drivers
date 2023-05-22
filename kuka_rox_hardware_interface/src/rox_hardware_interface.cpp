@@ -34,7 +34,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
-  if (info_.hardware_parameters.find("certificate") != info_.hardware_parameters().end()) {
+  if (info_.hardware_parameters.find("certificate") != info_.hardware_parameters.end()) {
     udp_replier_ = std::make_unique<os::core::udp::communication::SecureReplier>(
       info_.hardware_parameters.at("certificate"),
       info_.hardware_parameters.at("private_key"),

@@ -11,35 +11,14 @@
 
 #include <chrono>
 
-#include "os-core-udp-communication/socket.h"
+#include "os-core-udp-communication/replier.h"
 
 namespace os::core::udp::communication {
 
-class SecureReplier {
+class SecureReplier : public Replier{
  public:  //<ctor>
   SecureReplier(const std::string& certificate_path, const std::string& private_key_path, const SocketAddress& local_address);
   virtual ~SecureReplier() = default;
-  Socket::ErrorCode Setup();
-  void Reset();
-
- public:  //<operations>
-  Socket::ErrorCode ReceiveRequest();
-  Socket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
-  Socket::ErrorCode SendReply(uint8_t* reply_msg_data, size_t reply_msg_size);
-
- public:  //<properties>
-  std::pair<const uint8_t*, size_t> GetRequestMessage() const;
-
- protected:
-  static constexpr uint16_t kMaxBufferSize = 1500;
-  uint8_t server_buffer_[kMaxBufferSize];
-
-  Socket socket_;
-  SocketAddress local_address_;
-
-  bool active_request_ = false;
-  SocketAddress last_remote_address_;
-  int last_request_size_ = 0;
 };
 }  // namespace os::core::udp::communication
 

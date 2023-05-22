@@ -12,40 +12,7 @@ namespace os::core::udp::communication
 {
 
 SecureReplier::SecureReplier(const std::string& certificate_path, const std::string& private_key_path, const SocketAddress & local_address)
-: local_address_(local_address) {}
+: Replier(local_address) {}
 
-Socket::ErrorCode SecureReplier::Setup()
-{
-  // only a mock
-  return Socket::ErrorCode::kSuccess;
-}
-
-void SecureReplier::Reset()
-{
-  // only a mock
-}
-
-Socket::ErrorCode SecureReplier::ReceiveRequest()
-{
-  // only a mock
-  return Socket::ErrorCode::kSuccess;
-}
-
-Socket::ErrorCode SecureReplier::ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout)
-{
-  // only a mock
-  return Socket::ErrorCode::kSuccess;
-}
-
-Socket::ErrorCode SecureReplier::SendReply(uint8_t * reply_msg_data, size_t reply_msg_size)
-{
-  // only a mock
-  return Socket::ErrorCode::kSuccess;
-}
-
-std::pair<const uint8_t *, size_t> SecureReplier::GetRequestMessage() const
-{
-  return {nullptr, 0};
-}
 
 }  // namespace os::core::udp::communication
