@@ -35,9 +35,6 @@ int main(int argc, char * argv[])
     "moveit_circle",
     rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
   );
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
-  std::thread([&executor]() {executor.spin();}).detach();
 
   // Create a ROS logger
   auto const logger = rclcpp::get_logger("moveit_basic_plan");
@@ -110,9 +107,6 @@ int main(int argc, char * argv[])
       waypoints.push_back(msg);
     }
   }
-
-  // Get the current joint values
-  auto jv = move_group_interface.getCurrentJointValues();
 
   RCLCPP_INFO(logger, "Start planning");
   // Planning
