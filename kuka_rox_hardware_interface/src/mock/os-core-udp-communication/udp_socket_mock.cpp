@@ -6,7 +6,7 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#include "os-core-udp-communication/socket.h"
+#include "os-core-udp-communication/udp_socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -67,109 +67,109 @@ size_t SocketAddress::Size() const {return 0;}
 const std::string SocketAddress::Ip() const {return "";}
 uint16_t SocketAddress::Port() const {return 0;}
 
-Socket::~Socket()
+UDPSocket::~UDPSocket()
 {
   // only a mock
 }
 
-int Socket::Map(int flags)
+int UDPSocket::Map(int flags)
 {
   return 0;
 }
 
-int Socket::SetSocketOption(int level, int optname, const void * optval, socklen_t optlen)
+int UDPSocket::SetSocketOption(int level, int optname, const void * optval, socklen_t optlen)
 {
   return 0;
 }
 
-int Socket::SetReuseAddress(int flag)
+int UDPSocket::SetReuseAddress(int flag)
 {
   return 0;
 }
 
-int Socket::SetReceiveBufferSize(int size)
+int UDPSocket::SetReceiveBufferSize(int size)
 {
   return 0;
 }
 
-int Socket::SetSendTimeout(const std::chrono::microseconds & timeout)
+int UDPSocket::SetSendTimeout(const std::chrono::microseconds & timeout)
 {
   return 0;
 }
 
-int Socket::SetReceiveTimeout(const std::chrono::microseconds & timeout)
+int UDPSocket::SetReceiveTimeout(const std::chrono::microseconds & timeout)
 {
   return 0;
 }
 
-int Socket::JoinMulticastGroup(const SocketAddress & multicast_address)
+int UDPSocket::JoinMulticastGroup(const SocketAddress & multicast_address)
 {
   return 0;
 }
 
-int Socket::LeaveMulticastGroup(const SocketAddress & multicast_address)
+int UDPSocket::LeaveMulticastGroup(const SocketAddress & multicast_address)
 {
   return 0;
 }
 
-int Socket::SetTTLForMulticast(int ttl)
+int UDPSocket::SetTTLForMulticast(int ttl)
 {
   return 0;
 }
 
-int Socket::SetTTLForUnicast(int ttl)
+int UDPSocket::SetTTLForUnicast(int ttl)
 {
   return 0;
 }
 
-int Socket::Bind(const SocketAddress & local_address)
+int UDPSocket::Bind(const SocketAddress & local_address)
 {
   return 0;
 }
 
-int Socket::Connect(const SocketAddress & remote_address)
+int UDPSocket::Connect(const SocketAddress & remote_address)
 {
   return 0;
 }
 
-int Socket::Select(std::chrono::microseconds timeout, bool read)
+int UDPSocket::Select(std::chrono::microseconds timeout, bool read)
 {
   // TODO(kovacsge): check
   return 1;
 }
 
-int Socket::Send(const unsigned char * raw_data, int raw_data_size, int flags)
+int UDPSocket::Send(const unsigned char * raw_data, int raw_data_size, int flags)
 {
   return 0;
 }
 
-int Socket::SendTo(
+int UDPSocket::SendTo(
   const SocketAddress & remote_address, const unsigned char * raw_data,
   int raw_data_size, int flags)
 {
   return 0;
 }
 
-int Socket::Receive(unsigned char * buffer, int buffer_size, int flags)
+int UDPSocket::Receive(unsigned char * buffer, int buffer_size, int flags)
 {
   return 0;
 }
 
-int Socket::ReceiveOrTimeout(
+int UDPSocket::ReceiveOrTimeout(
   const std::chrono::microseconds & timeout, unsigned char * buffer,
   int buffer_size, int flags)
 {
   return 0;
 }
 
-int Socket::ReceiveFrom(
+int UDPSocket::ReceiveFrom(
   SocketAddress & incoming_remote_address, unsigned char * buffer,
   int buffer_size, int flags)
 {
   return 0;
 }
 
-int Socket::ReceiveFromOrTimeout(
+int UDPSocket::ReceiveFromOrTimeout(
   const std::chrono::microseconds & timeout,
   SocketAddress & incoming_remote_address, unsigned char * buffer,
   int buffer_size, int flags)
@@ -177,15 +177,15 @@ int Socket::ReceiveFromOrTimeout(
   return 0;
 }
 
-int Socket::Close()
+int UDPSocket::Close()
 {
   return ErrorCode::kSuccess;
 }
 
-int Socket::GetErrorCode() const {return errno;}
-std::string Socket::GetErrorText() const {return "";}
+int UDPSocket::GetErrorCode() const {return errno;}
+std::string UDPSocket::GetErrorText() const {return "";}
 
-bool Socket::IsReadable() const
+bool UDPSocket::IsReadable() const
 {
   return false;
 }

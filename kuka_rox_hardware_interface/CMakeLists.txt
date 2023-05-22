@@ -48,9 +48,8 @@ else()
   find_package(Protobuf)
   include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
-    src/mock/os-core-udp-communication/replier_mock.cpp
-    src/mock/os-core-udp-communication/secure_replier_mock.cpp
-    src/mock/os-core-udp-communication/socket_mock.cpp)
+    src/mock/os-core-udp-communication/udp_replier_mock.cpp
+    src/mock/os-core-udp-communication/udp_socket_mock.cpp)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
