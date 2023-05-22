@@ -11,21 +11,21 @@
 
 #include <chrono>
 
-#include "os-core-udp-communication/udp_socket.h"
+#include "os-core-udp-communication/socket.h"
 
 namespace os::core::udp::communication {
 
-class UDPReplier {
+class Replier {
  public:  //<ctor>
-  UDPReplier(const SocketAddress& local_address);
-  virtual ~UDPReplier() = default;
-  UDPSocket::ErrorCode Setup();
+  Replier(const SocketAddress& local_address);
+  virtual ~Replier() = default;
+  Socket::ErrorCode Setup();
   void Reset();
 
  public:  //<operations>
-  UDPSocket::ErrorCode ReceiveRequest();
-  UDPSocket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
-  UDPSocket::ErrorCode SendReply(uint8_t* reply_msg_data, size_t reply_msg_size);
+  Socket::ErrorCode ReceiveRequest();
+  Socket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
+  Socket::ErrorCode SendReply(uint8_t* reply_msg_data, size_t reply_msg_size);
 
  public:  //<properties>
   std::pair<const uint8_t*, size_t> GetRequestMessage() const;
@@ -34,7 +34,7 @@ class UDPReplier {
   static constexpr uint16_t kMaxBufferSize = 1500;
   uint8_t server_buffer_[kMaxBufferSize];
 
-  UDPSocket socket_;
+  Socket socket_;
   SocketAddress local_address_;
 
   bool active_request_ = false;

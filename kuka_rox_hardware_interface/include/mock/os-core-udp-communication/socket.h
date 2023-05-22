@@ -38,7 +38,7 @@ class SocketAddress {
   static const std::string kAnyAddress;
 };
 
-class UDPSocket {
+class Socket {
  public:
   enum ErrorCode {
     kSuccess = 0,
@@ -52,7 +52,7 @@ class UDPSocket {
   };
 
  public:
-  virtual ~UDPSocket();
+  virtual ~Socket();
 
  public:
 
