@@ -31,6 +31,7 @@
 
 #include "communication_helpers/service_tools.hpp"
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+#include "kroshu_ros2_core/ControllerHandler.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
@@ -60,26 +61,33 @@ public:
 private:
   void ObserveControl();
 
+  std::condition_variable control_mode_cv_;
+  std::mutex control_mode_cv_m_;
+  bool control_mode_change_finished_;
+
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  std::vector<std::string> controller_names_;
-  std::map<kuka::motion::external::ExternalControlMode, std::vector<std::string>> control_mode_map_;
 
-  // std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
-  //   {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
-  //   {kuka::motion::external::POSITION_CONTROL, "control_mode_handler"},
-  //   {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
-  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
-  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "control_mode_handler"},
-  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
-  //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
-  //   {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
-  //   {kuka::motion::external::TORQUE_CONTROL, "control_mode_handler"},
-  //   {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
-  // };
+  kroshu_ros2_core::ControllerHandler controller_handler_;
+
+  // std::vector<std::string> controller_names_;
+  // std::map<kuka::motion::external::ExternalControlMode, std::vector<std::string>> control_mode_map_;
+
+  // // std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
+  // //   {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
+  // //   {kuka::motion::external::POSITION_CONTROL, "control_mode_handler"},
+  // //   {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
+  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
+  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "control_mode_handler"},
+  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
+  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
+  // //   {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
+  // //   {kuka::motion::external::TORQUE_CONTROL, "control_mode_handler"},
+  // //   {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
+  // // };
 
 
   std::thread observe_thread_;
