@@ -73,8 +73,8 @@ add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp motion-services-ecs-proto-api-nanopb
-  yaml-cpp os-core-udp-communication nanopb-helpers)
+target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
+  motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication nanopb-helpers)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)
