@@ -61,9 +61,6 @@ public:
 private:
   void ObserveControl();
 
-  std::condition_variable control_mode_cv_;
-  std::mutex control_mode_cv_m_;
-  bool control_mode_change_finished_;
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -73,28 +70,15 @@ private:
 
   kroshu_ros2_core::ControllerHandler controller_handler_;
 
-  // std::vector<std::string> controller_names_;
-  // std::map<kuka::motion::external::ExternalControlMode, std::vector<std::string>> control_mode_map_;
-
-  // // std::multimap<kuka::motion::external::ExternalControlMode, std::string> control_mode_map_ = {
-  // //   {kuka::motion::external::POSITION_CONTROL, "joint_state_broadcaster"},
-  // //   {kuka::motion::external::POSITION_CONTROL, "control_mode_handler"},
-  // //   {kuka::motion::external::POSITION_CONTROL, "joint_trajectory_controller"},
-  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_state_broadcaster"},
-  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "control_mode_handler"},
-  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_trajectory_controller"},
-  // //   {kuka::motion::external::JOINT_IMPEDANCE_CONTROL, "joint_impedance_controller"},
-  // //   {kuka::motion::external::TORQUE_CONTROL, "joint_state_broadcaster"},
-  // //   {kuka::motion::external::TORQUE_CONTROL, "control_mode_handler"},
-  // //   {kuka::motion::external::TORQUE_CONTROL, "effort_controller"},
-  // // };
-
-
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
 #ifdef NON_MOCK_SETUP
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
+
+  std::condition_variable control_mode_cv_;
+  std::mutex control_mode_cv_m_;
+  bool control_mode_change_finished_;
 #endif
 
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
