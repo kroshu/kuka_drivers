@@ -42,7 +42,6 @@ jobs:
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
-      BEFORE_INIT: 'apt update && apt-get install -y libgrpc++-dev && apt-get install -y libnanopb-dev'
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
