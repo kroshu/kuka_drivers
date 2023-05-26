@@ -26,7 +26,7 @@ def generate_launch_description():
         .robot_description(file_path=get_package_share_directory('kuka_lbr_iisy_support')
                            + "/urdf/lbr_iisy3_r760.urdf.xacro")
         .robot_description_semantic(get_package_share_directory('kuka_lbr_iisy_moveit_config')  # noqa: E501
-                                    + "/urdf/lbr_iisy.srdf")
+                                    + "/urdf/lbr_iisy3_r760.srdf")
         .robot_description_kinematics(file_path="config/kinematics.yaml")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .planning_scene_monitor(
