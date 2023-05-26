@@ -70,12 +70,13 @@ enum ExternalControlMode : int {
   JOINT_IMPEDANCE_CONTROL = 3,
   CARTESIAN_IMPEDANCE_CONTROL = 4,
   TORQUE_CONTROL = 5,
+  MR_VELOCITY_CONTROL = 6,
   ExternalControlMode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   ExternalControlMode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool ExternalControlMode_IsValid(int value);
 constexpr ExternalControlMode ExternalControlMode_MIN = EXTERNAL_CONTROL_MODE_UNSPECIFIED;
-constexpr ExternalControlMode ExternalControlMode_MAX = TORQUE_CONTROL;
+constexpr ExternalControlMode ExternalControlMode_MAX = MR_VELOCITY_CONTROL;
 constexpr int ExternalControlMode_ARRAYSIZE = ExternalControlMode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor();
@@ -100,6 +101,9 @@ inline const std::string& ExternalControlMode_Name(T enum_t_value) {
       break;
     case ExternalControlMode::TORQUE_CONTROL:
       control_mode_string = "TORQUE_CONTROL";
+      break;
+    case ExternalControlMode::MR_VELOCITY_CONTROL:
+      control_mode_string = "MR_VELOCITY_CONTROL";
       break;
     default:
      control_mode_string = "EXTERNAL_CONTROL_MODE_UNSPECIFIED";
