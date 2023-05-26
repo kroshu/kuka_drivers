@@ -328,7 +328,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   }
 }
 
-bool RobotManagerNode::onRobotModelChangeRequest(const std::string &robot_model)
+bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
   robot_model_ = robot_model;
   return true;
