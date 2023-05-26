@@ -58,7 +58,10 @@ RobotManagerNode::RobotManagerNode()
     std::make_pair(
       ExternalControlMode::TORQUE_CONTROL,
       std::vector<std::string>(STANDARD_MODE_IF_SIZE)));
-
+  control_mode_map_.emplace(
+    std::make_pair(
+      ExternalControlMode::MR_VELOCITY_CONTROL,
+      std::vector<std::string>(STANDARD_MODE_IF_SIZE)));
   // TODO(Svastits): change to dynamic parameter after control mode changes are supported
   this->registerStaticParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
@@ -88,6 +91,12 @@ RobotManagerNode::RobotManagerNode()
   this->registerStaticParameter<std::string>(
     "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {true, false, false,
       false, false}, [this](const std::string &) {
+      return true;
+    });
+  this->registerParameter<std::string>(
+    "velocity_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+      false, false}, [this](const std::string & controller_name) {
+      control_mode_map_.at(ExternalControlMode::MR_VELOCITY_CONTROL).at(0) = controller_name;
       return true;
     });
 
