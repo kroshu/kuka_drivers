@@ -23,7 +23,61 @@
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 
-#define CIRCLE false
+void planThroughwaypoints(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface,
+  const rclcpp::Logger & logger)
+{
+  std::vector<geometry_msgs::msg::Pose> waypoints;
+  moveit_msgs::msg::RobotTrajectory trajectory;
+  geometry_msgs::msg::Pose msg;
+
+  // circle facing forward
+  msg.orientation.x = 0.0;
+  msg.orientation.y = sqrt(2) / 2;
+  msg.orientation.z = 0.0;
+  msg.orientation.w = sqrt(2) / 2;
+  msg.position.x = 0.4;
+  // Define waypoints in a circle
+  for (int i = 0; i < 63; i++) {
+    msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
+    msg.position.z = 0.4 + cos(0.1 * i) * 0.15;
+    waypoints.push_back(msg);
+  }
+
+  // Get the current joint values
+  auto jv = move_group_interface.getCurrentJointValues();
+
+  RCLCPP_INFO(logger, "Start planning");
+  double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
+  RCLCPP_INFO(logger, "Planning done!");
+
+  if (fraction < 1) {
+    RCLCPP_ERROR(logger, "Could not compute trajectory through all waypoints!");
+  } else {
+    move_group_interface.execute(trajectory);
+  }
+}
+
+
+void planToPoint(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface,
+  const rclcpp::Logger & logger)
+{
+  // Create planning request using pilz industrial motion planner
+  Eigen::Isometry3d pose = Eigen::Isometry3d(
+    Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
+  move_group_interface.setPlanningPipelineId("pilz_industrial_motion_planner");
+  move_group_interface.setPlannerId("PTP");
+  move_group_interface.setPoseTarget(pose);
+
+
+  moveit::planning_interface::MoveGroupInterface::Plan plan;
+  RCLCPP_INFO(logger, "Sending planning request");
+  if (!move_group_interface.plan(plan)) {RCLCPP_INFO(logger, "Planning failed");} else {
+    RCLCPP_INFO(logger, "Planning successful, starting execution");
+    move_group_interface.execute(plan);
+  }
+}
 
 
 int main(int argc, char * argv[])
@@ -82,47 +136,8 @@ int main(int argc, char * argv[])
   planning_scene_interface.addCollisionObjects(collision_objects);
   // End Collision Objects define
 
-  std::vector<geometry_msgs::msg::Pose> waypoints;
-  moveit_msgs::msg::RobotTrajectory trajectory;
-  geometry_msgs::msg::Pose msg;
-  // Add waypoints for planning
-  if (!CIRCLE) {
-    // Move to point near candle
-    msg.orientation.x = 0.0;
-    msg.orientation.y = 0.0;
-    msg.orientation.z = 0.0;
-    msg.orientation.w = 1;
-    msg.position.x = 0.05;
-    msg.position.y = 0.0;
-    msg.position.z = 0.9;
-    waypoints.push_back(msg);
-  } else {
-    // circle facing forward
-    msg.orientation.x = 0.0;
-    msg.orientation.y = sqrt(2) / 2;
-    msg.orientation.z = 0.0;
-    msg.orientation.w = sqrt(2) / 2;
-    msg.position.x = 0.4;
-    // Move in circle
-    for (int i = 0; i < 63; i++) {
-      msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
-      msg.position.z = 0.4 + cos(0.1 * i) * 0.15;
-      waypoints.push_back(msg);
-    }
-  }
-
-  // Get the current joint values
-  auto jv = move_group_interface.getCurrentJointValues();
-
-  RCLCPP_INFO(logger, "Start planning");
-  // Planning
-  // move_group_interface.setPlannerId("");
-  double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
-  RCLCPP_INFO(logger, "Planning done!");
-
-  if (fraction < 0.1) {RCLCPP_ERROR(logger, "Planning failed!");} else {
-    move_group_interface.execute(trajectory);
-  }
+  planToPoint(move_group_interface, logger);
+  planThroughwaypoints(move_group_interface, logger);
 
   // Shutdown ROS
   rclcpp::shutdown();

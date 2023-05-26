@@ -57,6 +57,7 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(int control_mode);
+  bool onRobotModelChangeRequest(const std::string & robot_model);
 
 private:
   void ObserveControl();
@@ -67,6 +68,7 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  std::string robot_model_;
 
   kroshu_ros2_core::ControllerHandler controller_handler_;
 
