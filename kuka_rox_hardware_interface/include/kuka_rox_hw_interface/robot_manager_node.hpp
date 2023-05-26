@@ -55,7 +55,7 @@ public:
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
   bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(std::string robot_model);
+  bool onRobotModelChangeRequest(const std::string &robot_model);
 
 private:
   void ObserveControl();

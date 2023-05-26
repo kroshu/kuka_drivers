@@ -27,7 +27,6 @@ void planThroughwaypoints(
   moveit::planning_interface::MoveGroupInterface & move_group_interface,
   const rclcpp::Logger & logger)
 {
-
   std::vector<geometry_msgs::msg::Pose> waypoints;
   moveit_msgs::msg::RobotTrajectory trajectory;
   geometry_msgs::msg::Pose msg;
