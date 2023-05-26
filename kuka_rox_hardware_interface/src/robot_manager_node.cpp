@@ -69,7 +69,7 @@ RobotManagerNode::RobotManagerNode()
   this->registerStaticParameter<std::string>(
     "robot_model", "LBRiisy3R760",
     kroshu_ros2_core::ParameterSetAccessRights{true, false,
-      false, false, false}, [this](std::string robot_model) {
+      false, false, false}, [this](const std::string & robot_model) {
       return this->onRobotModelChangeRequest(robot_model);
     });
   this->registerParameter<std::string>(
