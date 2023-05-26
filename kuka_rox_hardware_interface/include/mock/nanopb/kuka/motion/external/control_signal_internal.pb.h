@@ -9,27 +9,30 @@
 #endif
 
 typedef struct _kuka_motion_external_ControlSignalInternal {
-    bool stop_ipo; 
+  bool stop_ipo;
 
-    bool has_joint_command;
-    kuka_core_motion_JointPositions joint_command; 
+  bool has_joint_command;
+  kuka_core_motion_JointPositions joint_command;
 
-    bool has_cartesian_command;
-    kuka_core_motion_JointPositions cartesian_command; 
+  bool has_cartesian_command;
+  kuka_core_motion_JointPositions cartesian_command;
 
-    bool has_joint_torque_command;
-    kuka_core_motion_JointPositions joint_torque_command; 
+  bool has_joint_torque_command;
+  kuka_core_motion_JointPositions joint_torque_command;
 
-    bool has_wrench_command;
-    kuka_core_motion_JointPositions wrench_command; 
+  bool has_wrench_command;
+  kuka_core_motion_JointPositions wrench_command;
 
-    bool has_joint_attributes;
-    kuka_motion_external_JointImpedanceControlAttributes joint_attributes; 
+  bool has_velocity_command;
+  kuka_core_motion_JointVelocities velocity_command;
 
-    bool has_cartesian_attributes;
-    kuka_motion_external_CartesianImpedanceControlAttributes cartesian_attributes; 
+  bool has_joint_attributes;
+  kuka_motion_external_JointImpedanceControlAttributes joint_attributes;
 
-    bool update_attributes; 
+  bool has_cartesian_attributes;
+  kuka_motion_external_CartesianImpedanceControlAttributes cartesian_attributes;
+
+  bool update_attributes;
 } kuka_motion_external_ControlSignalInternal;
 
 
