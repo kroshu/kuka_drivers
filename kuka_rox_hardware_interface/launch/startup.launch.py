@@ -40,6 +40,7 @@ def launch_setup(context, *args, **kwargs):
         ]
     )
 
+    # TODO(Svastits): better way for robot model -> name
     if robot_model.perform(context) == "lbr_iisy3_r760":
         robot_name = "LBRiisy3R760"
     elif robot_model.perform(context) == "lbr_iisy11_r1300":
@@ -58,7 +59,6 @@ def launch_setup(context, *args, **kwargs):
                                     "/config/joint_trajectory_controller_config.yaml")
     effort_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                 "/config/effort_controller_config.yaml")
-
     joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                    "/config/joint_impedance_controller_config.yaml")
 
@@ -85,40 +85,32 @@ def launch_setup(context, *args, **kwargs):
         output='both',
         parameters=[robot_description]
     )
-    jtc_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
-                   joint_traj_controller_config, "--inactive"]
-    )
-    jic_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_impedance_controller", "-c", controller_manager_node, "-p",
-                   joint_imp_controller_config, "--inactive"],
-    )
-    jsb_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "-c",
-                   controller_manager_node, "--inactive"],
-    )
-    ec_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["effort_controller", "-c", controller_manager_node, "-p",
-                   effort_controller_config, "--inactive"]
-    )
+
+    # Spawn controllers
+    def controller_spawner(controller_with_config):
+        return Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=[controller_with_config[0], "-c", controller_manager_node, "-p",
+                       controller_with_config[1], "--inactive"]
+        )
+
+    controller_names_and_config = [
+        ("joint_state_broadcaster", []),
+        ("joint_trajectory_controller", joint_traj_controller_config),
+        ("joint_impedance_controller", joint_imp_controller_config),
+        ("effort_controller", effort_controller_config)
+    ]
+
+    controller_spawners = [controller_spawner(controllers)
+                           for controllers in controller_names_and_config]
 
     nodes_to_start = [
         control_node,
         robot_manager_node,
-        robot_state_publisher,
-        jtc_spawner,
-        jic_spawner,
-        jsb_spawner,
-        ec_spawner
-    ]
+        robot_state_publisher
+    ] + controller_spawners
+
     return nodes_to_start
 
 
