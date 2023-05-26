@@ -27,16 +27,7 @@ ament_target_dependencies(moveit_basic_plan
   moveit_visual_tools
 )
 
-
-add_executable(welding_demo src/WeldingDemo.cpp)
-ament_target_dependencies(welding_demo
-  moveit_ros_planning_interface
-  rclcpp
-  rviz_visual_tools
-  moveit_visual_tools
-)
-
-install(TARGETS moveit_basic_plan welding_demo
+install(TARGETS moveit_basic_plan
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
