@@ -318,10 +318,6 @@ return_type KukaRoXHardwareInterface::write(
 
   control_signal_ext_.control_signal.control_mode = kuka_motion_external_ExternalControlMode(
     (int)hw_control_mode_);
-  // RCLCPP_ERROR(
-  //   rclcpp::get_logger(
-  //     "KukaRoXHardwareInterface"),
-  //   "Mode: %f", hw_control_mode_);
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
