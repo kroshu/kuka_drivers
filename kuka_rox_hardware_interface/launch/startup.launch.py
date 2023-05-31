@@ -45,6 +45,8 @@ def launch_setup(context, *args, **kwargs):
         robot_name = "LBRiisy3R760"
     elif robot_model.perform(context) == "lbr_iisy11_r1300":
         robot_name = "LBRiisy11R1300"
+    elif robot_model.perform(context) == "lbr_iisy15_r930":
+        robot_name = "LBRiisy15R930"
     else:
         print("[ERROR] [launch]: robot model not recognized")
         raise Exception
