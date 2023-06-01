@@ -63,6 +63,9 @@ def launch_setup(context, *args, **kwargs):
                                 "/config/effort_controller_config.yaml")
     joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
                                    "/config/joint_impedance_controller_config.yaml")
+    
+    diff_drive_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
+                                   "/config/diff_drive_controller_config.yaml")
 
     eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
                   "/config/eci_config.yaml")
@@ -101,7 +104,8 @@ def launch_setup(context, *args, **kwargs):
         ("joint_state_broadcaster", []),
         ("joint_trajectory_controller", joint_traj_controller_config),
         ("joint_impedance_controller", joint_imp_controller_config),
-        ("effort_controller", effort_controller_config)
+        ("effort_controller", effort_controller_config),
+        ("diffbot_controller", diff_drive_controller_config)
     ]
 
     controller_spawners = [controller_spawner(controllers)

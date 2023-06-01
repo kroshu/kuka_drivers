@@ -10,5 +10,7 @@
       type: kuka_controllers/JointImpedanceController
     effort_controller:
       type: effort_controllers/JointGroupPositionController
+    diffbot_controller:
+      type: diff_drive_controller/DiffDriveController
   
     configure_components_on_start: [""]
