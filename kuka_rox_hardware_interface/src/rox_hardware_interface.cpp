@@ -37,7 +37,6 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   udp_replier_ = std::make_unique<os::core::udp::communication::UDPReplier>(
     os::core::udp::communication::SocketAddress(
       info_.hardware_parameters.at("client_ip"), 44444));
-
 #ifdef NON_MOCK_SETUP
 
   stub_ =
@@ -49,10 +48,12 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
 #endif
   hw_position_states_.resize(info_.joints.size(), 0.0);
   hw_torque_states_.resize(info_.joints.size(), 0.0);
+  hw_velocity_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
+  hw_velocity_commands_.resize(info_.joints.size(), 0.0);
   motion_state_external_.header.ipoc = 0;
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
@@ -65,6 +66,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
   control_signal_ext_.control_signal.control_mode =
     kuka_motion_external_ExternalControlMode_POSITION_CONTROL;
+  control_signal_ext_.control_signal.has_velocity_command = true;
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
@@ -92,12 +94,17 @@ KukaRoXHardwareInterface::export_state_interfaces()
       info_.joints[i].name,
       hardware_interface::HW_IF_EFFORT,
       &hw_torque_states_[i]);
+
+    state_interfaces.emplace_back(
+      info_.joints[i].name,
+      hardware_interface::HW_IF_VELOCITY,
+      &hw_velocity_states_[i]);
   }
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> KukaRoXHardwareInterface::
-export_command_interfaces()
+std::vector<hardware_interface::CommandInterface>
+KukaRoXHardwareInterface::export_command_interfaces()
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Export command interfaces");
 
@@ -122,6 +129,11 @@ export_command_interfaces()
       info_.joints[i].name,
       HW_IF_DAMPING,
       &hw_damping_commands_[i]);
+
+    command_interfaces.emplace_back(
+      info_.joints[i].name,
+      hardware_interface::HW_IF_VELOCITY,
+      &hw_velocity_commands_[i]);
   }
 
   return command_interfaces;
@@ -241,7 +253,15 @@ return_type KukaRoXHardwareInterface::read(
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
     hw_position_states_[i] = hw_position_commands_[i];
+    hw_velocity_states_[i] = hw_velocity_commands_[i];
   }
+  // DEBUG
+  RCLCPP_INFO(
+    rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "position: %f , velocity: %f ",
+    hw_position_states_[0],
+    hw_velocity_states_[0]);
+
   return return_type::OK;
 #endif
 
@@ -268,6 +288,7 @@ return_type KukaRoXHardwareInterface::read(
     for (size_t i = 0; i < info_.joints.size(); i++) {
       hw_position_states_[i] = motion_state_external_.motion_state.measured_positions.values[i];
       hw_torque_states_[i] = motion_state_external_.motion_state.measured_torques.values[i];
+      hw_velocity_states_[i] = motion_state_external_.motion_state.measured_velocities.values[i];
       // This is necessary, as joint trajectory controller is initialized with 0 command values
       if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
         hw_position_commands_[i] = hw_position_states_[i];
@@ -311,6 +332,10 @@ return_type KukaRoXHardwareInterface::write(
   std::copy(
     hw_damping_commands_.begin(),
     hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
+  std::copy(
+    hw_velocity_commands_.begin(),
+    hw_velocity_commands_.end(), control_signal_ext_.control_signal.velocity_command.values);
+
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
