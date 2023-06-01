@@ -28,8 +28,6 @@ This project centers on the development of a comprehensive ROS2 driver for exter
    
    - Real-time inter-node communication
 
-The ROS2 KUKA Sunrise driver does not include a controller; its purpose is to expose a joint-level interface of robots running on Sunrise to the ROS2 system. The control loop is then expected to be closed by a connected joint controller node. This approach is contrary to how most real-time robot interfaces to ROS and ROS2 are realized, which would be to use the ros2\_control stack. The document [3. Relationship to ros2_control](3.-Relationship-to-ros2_control.md) provides more information on this topic.
-
 ### Current state of project
 
 This project is currently experimental. The functionalities are not fully tested and the API and the internal architecture of the driver should be expected to change. This wiki is targeted at developers who would like to understand and potentially contribute to the project. Usage of this driver is discouraged except for the testing of the driver, only in controlled environment and with the proper safety configuration applied.

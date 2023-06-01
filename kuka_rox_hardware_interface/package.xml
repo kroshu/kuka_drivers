@@ -24,6 +24,8 @@
   
   <depend>yaml-cpp</depend>
   <depend>protobuf-dev</depend>
+  <depend>libnanopb-dev</depend>
+  <depend>libgrpc</depend>
 
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
 
