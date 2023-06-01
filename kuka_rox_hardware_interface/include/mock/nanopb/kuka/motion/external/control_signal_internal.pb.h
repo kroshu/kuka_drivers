@@ -3,6 +3,8 @@
 #include <pb.h>
 #include <nanopb/kuka/core/motion/joint.pb.h>
 #include <nanopb/kuka/motion/external/control_attributes.pb.h>
+#include <nanopb/kuka/motion/external/external_control_mode.pb.h>
+
 
 #if PB_PROTO_HEADER_VERSION != 40
 #error Regenerate this file with the current version of nanopb generator.
@@ -25,14 +27,14 @@ typedef struct _kuka_motion_external_ControlSignalInternal {
 
   bool has_velocity_command;
   kuka_core_motion_JointVelocities velocity_command;
-
   bool has_joint_attributes;
   kuka_motion_external_JointImpedanceControlAttributes joint_attributes;
 
   bool has_cartesian_attributes;
   kuka_motion_external_CartesianImpedanceControlAttributes cartesian_attributes;
 
-  bool update_attributes;
+  kuka_motion_external_ExternalControlMode control_mode;
+
 } kuka_motion_external_ControlSignalInternal;
 
 
@@ -41,12 +43,28 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define kuka_motion_external_ControlSignalInternal_init_default {0, false, kuka_core_motion_JointPositions_init_default, false, kuka_core_motion_JointPositions_init_default, false, kuka_core_motion_JointPositions_init_default, false, kuka_core_motion_JointPositions_init_default, false, kuka_motion_external_JointImpedanceControlAttributes_init_default, false, kuka_motion_external_CartesianImpedanceControlAttributes_init_default, 0}
-#define kuka_motion_external_ControlSignalInternal_init_zero {0, false, kuka_core_motion_JointPositions_init_zero, false, kuka_core_motion_JointPositions_init_zero, false, kuka_core_motion_JointPositions_init_zero, false, kuka_core_motion_JointPositions_init_zero, false, kuka_motion_external_JointImpedanceControlAttributes_init_zero, false, kuka_motion_external_CartesianImpedanceControlAttributes_init_zero, 0}
+#define kuka_motion_external_ControlSignalInternal_init_default {0, false, \
+    kuka_core_motion_JointPositions_init_default, false, \
+    kuka_core_motion_JointPositions_init_default, false, \
+    kuka_core_motion_JointPositions_init_default, false, \
+    kuka_core_motion_JointPositions_init_default, false, \
+    kuka_motion_external_JointImpedanceControlAttributes_init_default, false, \
+    kuka_motion_external_CartesianImpedanceControlAttributes_init_default, \
+    _kuka_motion_external_ExternalControlMode_MIN}
+#define kuka_motion_external_ControlSignalInternal_init_zero {0, false, \
+    kuka_core_motion_JointPositions_init_zero, false, kuka_core_motion_JointPositions_init_zero, \
+    false, kuka_core_motion_JointPositions_init_zero, false, \
+    kuka_core_motion_JointPositions_init_zero, false, \
+    kuka_motion_external_JointImpedanceControlAttributes_init_zero, false, \
+    kuka_motion_external_CartesianImpedanceControlAttributes_init_zero, \
+    _kuka_motion_external_ExternalControlMode_MIN}
 
 /* Maximum encoded size of messages (where known) */
-#if defined(kuka_core_motion_JointPositions_size) && defined(kuka_core_motion_CartesianTargetPose_size) && defined(kuka_core_motion_JointTorques_size)
-#define kuka_motion_external_ControlSignalInternal_size (1384 + kuka_core_motion_JointPositions_size + kuka_core_motion_CartesianTargetPose_size + kuka_core_motion_JointTorques_size)
+#if defined(kuka_core_motion_JointPositions_size) && \
+  defined(kuka_core_motion_CartesianTargetPose_size) && defined(kuka_core_motion_JointTorques_size)
+#define kuka_motion_external_ControlSignalInternal_size (1384 + \
+  kuka_core_motion_JointPositions_size + kuka_core_motion_CartesianTargetPose_size + \
+  kuka_core_motion_JointTorques_size)
 #endif
 
 #ifdef __cplusplus
