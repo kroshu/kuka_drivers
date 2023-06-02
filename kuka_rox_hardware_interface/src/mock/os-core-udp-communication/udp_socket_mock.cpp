@@ -6,7 +6,6 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#include "os-core-udp-communication/socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -17,6 +16,8 @@
 
 #include <cstring>
 #include <string>
+
+#include "os-core-udp-communication/socket.h"
 
 namespace os::core::udp::communication
 {

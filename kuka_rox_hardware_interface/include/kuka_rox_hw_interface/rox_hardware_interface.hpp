@@ -106,7 +106,6 @@ private:
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
   static constexpr char CONTROL_MODE[] = "control_mode";
-
 };
 }  // namespace kuka_rox
 

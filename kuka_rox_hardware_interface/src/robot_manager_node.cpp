@@ -263,7 +263,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     controller_request->deactivate_controllers = new_controllers.second;
     RCLCPP_ERROR(
       get_logger(),
-      "Controller handler state is improper, as active controller list is not empty before activation");
+      "Controller handler state is improper, \
+      as active controller list is not empty before activation");
   }
 
   auto controller_response =
@@ -335,7 +336,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
   try {
     RCLCPP_INFO(get_logger(), "Control mode change requested");
-    // TODO (komaromi): Remove this if a new control mode is supported
+    // TODO(komaromi): Remove this if a new control mode is supported
     if (control_mode ==
       static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL_MODE) ||
       control_mode ==

@@ -317,7 +317,7 @@ return_type KukaRoXHardwareInterface::write(
     hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
 
   control_signal_ext_.control_signal.control_mode = kuka_motion_external_ExternalControlMode(
-    (int)hw_control_mode_);
+    static_cast<int>(hw_control_mode_));
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
