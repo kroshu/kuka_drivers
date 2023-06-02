@@ -124,7 +124,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   // Publish control mode paramater
   auto message = std_msgs::msg::UInt32();
-  message.data = this->get_parameter("control_mode").as_int();
+  message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
   control_mode_pub_->publish(message);
 
   // Configure hardware interface
@@ -396,7 +396,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
 
       if (!this->control_mode_cv_.wait_for(
-          control_mode_lk, std::chrono::seconds(3), [this]() {
+          control_mode_lk, std::chrono::milliseconds(control_mode_change_timeout_), [this]() {
             return this->control_mode_change_finished_;
           }))
       {

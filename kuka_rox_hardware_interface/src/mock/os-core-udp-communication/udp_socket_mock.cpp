@@ -135,7 +135,6 @@ int Socket::Connect(const SocketAddress & remote_address)
 
 int Socket::Select(std::chrono::microseconds timeout, bool read)
 {
-  // TODO(kovacsge): check
   return 1;
 }
 
