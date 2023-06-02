@@ -137,7 +137,7 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
   SetQoSProfileResponse response;
   grpc::ClientContext context;
 
-  hw_control_mode_ = std::stod(info_.hardware_parameters.at("control_mode"));
+  hw_control_mode_command_ = std::stod(info_.hardware_parameters.at("control_mode"));
   request.add_qos_profiles();
 
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
