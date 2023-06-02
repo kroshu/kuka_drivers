@@ -1,7 +1,7 @@
 diffbot_controller:
   ros__parameters:
-    left_wheel_names: ["joint_a1"]
-    right_wheel_names: ["joint_a2"]
+    left_wheel_names: ["left_wheel_motor"]
+    right_wheel_names: ["right_wheel_motor"]
 
     wheel_separation: 0.10
     wheels_per_side: 1
@@ -45,3 +45,9 @@ diffbot_controller:
     angular.z.min_acceleration: -1.0
     angular.z.max_jerk: 0.0
     angular.z.min_jerk: 0.0
+    
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
