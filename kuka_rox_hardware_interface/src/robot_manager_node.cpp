@@ -259,12 +259,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_request->strictness = SwitchController::Request::STRICT;
   controller_request->activate_controllers = new_controllers.first;
   if (!new_controllers.second.empty()) {
-    // This shuld never happen
+    // This should never happen
     controller_request->deactivate_controllers = new_controllers.second;
+    constexpr std::string_view error_msg =
+      "Controller handler state is improper, \
+    as active controller list is not empty before activation";
     RCLCPP_ERROR(
       get_logger(),
-      "Controller handler state is improper, \
-      as active controller list is not empty before activation");
+      error_msg);
   }
 
   auto controller_response =
