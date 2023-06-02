@@ -261,12 +261,12 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   if (!new_controllers.second.empty()) {
     // This should never happen
     controller_request->deactivate_controllers = new_controllers.second;
-    constexpr std::string_view error_msg =
-      "Controller handler state is improper, \
-    as active controller list is not empty before activation";
     RCLCPP_ERROR(
       get_logger(),
-      error_msg);
+      "Controller handler state is improper");
+    RCLCPP_ERROR(
+      get_logger(),
+      "Active controller list is not empty before activation");
   }
 
   auto controller_response =
@@ -346,8 +346,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL_MODE))
     {
       RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
-      this->on_deactivate(get_current_state());
       return false;
     }
 
@@ -355,8 +353,11 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       std::make_shared<SwitchController::Request>();
     std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
 
+    bool isActiveState = get_current_state().id() ==
+      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
+
     // Activate controllers
-    if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+    if (isActiveState) {
       // The driver is in active state
 
       // Asks for witch controller to activate and deactivate
@@ -387,7 +388,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     control_mode_pub_->publish(message);
     RCLCPP_INFO(get_logger(), "Control mode change process has started");
 
-    if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+    if (isActiveState) {
       // The driver is in active state
 
 #ifdef NON_MOCK_SETUP
