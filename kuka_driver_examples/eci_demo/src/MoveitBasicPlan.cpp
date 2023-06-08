@@ -116,7 +116,7 @@ int main(int argc, char * argv[])
   // Initialize ROS and create the Node
   rclcpp::init(argc, argv);
   auto const node = std::make_shared<rclcpp::Node>(
-    "moveit_circle",
+    "moveit_basic_plan",
     rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
   );
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -137,13 +137,11 @@ int main(int argc, char * argv[])
   moveit_visual_tools.deleteAllMarkers();
   moveit_visual_tools.loadRemoteControl();
 
-  // Define lambdas for visualization
-  auto const prompt = [&moveit_visual_tools](auto text) {
-      moveit_visual_tools.prompt(text);
-    };
+  // Define lambda for visualization
   auto const draw_trajectory_tool_path =
     [&moveit_visual_tools, &move_group_interface](auto const trajectory) {
-      moveit_msgs::msg::RobotState robot_state;
+      moveit_visual_tools.deleteAllMarkers();
+      moveit_visual_tools.trigger();
       moveit_visual_tools.publishTrajectoryLine(
         trajectory,
         moveit_visual_tools.getRobotModel()->getJointModelGroup(PLANNING_GROUP));
@@ -159,7 +157,7 @@ int main(int argc, char * argv[])
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
-    prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+    moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
     move_group_interface.execute(*planned_trajectory);
   }
 
@@ -167,7 +165,7 @@ int main(int argc, char * argv[])
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
-    prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+    moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
     move_group_interface.execute(*planned_trajectory);
   }
 
