@@ -136,12 +136,12 @@ int main(int argc, char * argv[])
     move_group_interface.getRobotModel()};
   moveit_visual_tools.deleteAllMarkers();
   moveit_visual_tools.loadRemoteControl();
+  moveit_visual_tools.trigger();
 
   // Define lambda for visualization
   auto const draw_trajectory_tool_path =
     [&moveit_visual_tools, &move_group_interface](auto const trajectory) {
       moveit_visual_tools.deleteAllMarkers();
-      moveit_visual_tools.trigger();
       moveit_visual_tools.publishTrajectoryLine(
         trajectory,
         moveit_visual_tools.getRobotModel()->getJointModelGroup(PLANNING_GROUP));
