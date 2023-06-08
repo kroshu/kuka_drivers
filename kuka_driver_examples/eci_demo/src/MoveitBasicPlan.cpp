@@ -23,9 +23,10 @@
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 
-void planThroughwaypoints(
-  moveit::planning_interface::MoveGroupInterface & move_group_interface,
-  const rclcpp::Logger & logger)
+static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
+
+moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface)
 {
   std::vector<geometry_msgs::msg::Pose> waypoints;
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -44,24 +45,20 @@ void planThroughwaypoints(
     waypoints.push_back(msg);
   }
 
-  // Get the current joint values
-  auto jv = move_group_interface.getCurrentJointValues();
-
-  RCLCPP_INFO(logger, "Start planning");
+  RCLCPP_INFO(LOGGER, "Start planning");
   double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
-  RCLCPP_INFO(logger, "Planning done!");
+  RCLCPP_INFO(LOGGER, "Planning done!");
 
   if (fraction < 1) {
-    RCLCPP_ERROR(logger, "Could not compute trajectory through all waypoints!");
+    RCLCPP_ERROR(LOGGER, "Could not compute trajectory through all waypoints!");
+    return nullptr;
   } else {
-    move_group_interface.execute(trajectory);
+    return std::make_shared<moveit_msgs::msg::RobotTrajectory>(trajectory);
   }
 }
 
-
-void planToPoint(
-  moveit::planning_interface::MoveGroupInterface & move_group_interface,
-  const rclcpp::Logger & logger)
+moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface)
 {
   // Create planning request using pilz industrial motion planner
   Eigen::Isometry3d pose = Eigen::Isometry3d(
@@ -72,46 +69,24 @@ void planToPoint(
 
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
-  RCLCPP_INFO(logger, "Sending planning request");
-  if (!move_group_interface.plan(plan)) {RCLCPP_INFO(logger, "Planning failed");} else {
-    RCLCPP_INFO(logger, "Planning successful, starting execution");
-    move_group_interface.execute(plan);
+  RCLCPP_INFO(LOGGER, "Sending planning request");
+  if (!move_group_interface.plan(plan)) {
+    RCLCPP_INFO(LOGGER, "Planning failed");
+    return nullptr;
+  } else {
+    RCLCPP_INFO(LOGGER, "Planning successful");
+    return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
   }
 }
 
-
-int main(int argc, char * argv[])
+std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface)
 {
-  // Setup
-  // Initialize ROS and create the Node
-  rclcpp::init(argc, argv);
-  auto const node = std::make_shared<rclcpp::Node>(
-    "moveit_circle",
-    rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
-  );
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
-  std::thread([&executor]() {executor.spin();}).detach();
+  std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
-  // Create a ROS logger
-  auto const logger = rclcpp::get_logger("moveit_basic_plan");
-
-  // Create Planning group
-  static const std::string PLANNING_GROUP = "lbr_iisy_arm";
-
-  // Next step goes here
-  // Create the MoveIt MoveGroup Interface
-  using moveit::planning_interface::MoveGroupInterface;
-  auto move_group_interface = MoveGroupInterface(node, PLANNING_GROUP);
-
-  // Create Planning Scene Interface, witch is for adding collision boxes
-  using moveit::planning_interface::PlanningSceneInterface;
-  auto planning_scene_interface = PlanningSceneInterface();
-
-  // Collision Objects define
   moveit_msgs::msg::CollisionObject collision_object;
   collision_object.header.frame_id = move_group_interface.getPlanningFrame();
-  collision_object.id = "box1";
+  collision_object.id = "robot_stand";
   shape_msgs::msg::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
   primitive.dimensions.resize(3);
@@ -130,14 +105,74 @@ int main(int argc, char * argv[])
   collision_object.primitive_poses.push_back(stand_pose);
   collision_object.operation = collision_object.ADD;
 
-  std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
   collision_objects.push_back(collision_object);
+  return collision_objects;
+}
 
-  planning_scene_interface.addCollisionObjects(collision_objects);
+
+int main(int argc, char * argv[])
+{
+  // Setup
+  // Initialize ROS and create the Node
+  rclcpp::init(argc, argv);
+  auto const node = std::make_shared<rclcpp::Node>(
+    "moveit_circle",
+    rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
+  );
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+  std::thread([&executor]() {executor.spin();}).detach();
+
+  // Define Planning group
+  static const std::string PLANNING_GROUP = "lbr_iisy_arm";
+
+  // Create the MoveIt MoveGroup Interface
+  using moveit::planning_interface::MoveGroupInterface;
+  auto move_group_interface = MoveGroupInterface(node, PLANNING_GROUP);
+
+  // Construct and initialize MoveItVisualTools
+  auto moveit_visual_tools = moveit_visual_tools::MoveItVisualTools{
+    node, "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
+    move_group_interface.getRobotModel()};
+  moveit_visual_tools.deleteAllMarkers();
+  moveit_visual_tools.loadRemoteControl();
+
+  // Define lambdas for visualization
+  auto const prompt = [&moveit_visual_tools](auto text) {
+      moveit_visual_tools.prompt(text);
+    };
+  auto const draw_trajectory_tool_path =
+    [&moveit_visual_tools, &move_group_interface](auto const trajectory) {
+      moveit_msgs::msg::RobotState robot_state;
+      moveit_visual_tools.publishTrajectoryLine(
+        trajectory,
+        moveit_visual_tools.getRobotModel()->getJointModelGroup(PLANNING_GROUP));
+    };
+
+  // Create Planning Scene Interface, witch is for adding collision boxes
+  auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
+
+  planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
   // End Collision Objects define
 
-  planToPoint(move_group_interface, logger);
-  planThroughwaypoints(move_group_interface, logger);
+  auto planned_trajectory = planToPoint(move_group_interface);
+  if (planned_trajectory != nullptr) {
+    draw_trajectory_tool_path(*planned_trajectory);
+    moveit_visual_tools.trigger();
+    prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+    move_group_interface.execute(*planned_trajectory);
+  }
+
+  planned_trajectory = planThroughwaypoints(move_group_interface);
+  if (planned_trajectory != nullptr) {
+    draw_trajectory_tool_path(*planned_trajectory);
+    moveit_visual_tools.trigger();
+    prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+    move_group_interface.execute(*planned_trajectory);
+  }
+
+  // Get the current joint values
+  auto jv = move_group_interface.getCurrentJointValues();
 
   // Shutdown ROS
   rclcpp::shutdown();
