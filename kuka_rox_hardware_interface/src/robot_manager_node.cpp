@@ -242,45 +242,46 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   // Select controllers
   auto control_mode = this->get_parameter("control_mode").as_int();
+  std::pair<std::vector<std::string>, std::vector<std::string>> new_controllers;
 
   try {
-    auto new_controllers = controller_handler_.GetControllersForSwitch(
-      kroshu_ros2_core::ControlMode(
-        control_mode));
-
-
-    // Activate RT controller(s)
-    auto controller_request =
-      std::make_shared<SwitchController::Request>();
-    controller_request->strictness = SwitchController::Request::STRICT;
-    controller_request->activate_controllers = new_controllers.first;
-    if (!new_controllers.second.empty()) {
-      // This should never happen
-      controller_request->deactivate_controllers = new_controllers.second;
-      RCLCPP_ERROR(
-        get_logger(),
-        "Controller handler state is improper");
-      RCLCPP_ERROR(
-        get_logger(),
-        "Active controller list is not empty before activation");
-    }
-
-    auto controller_response =
-      kroshu_ros2_core::sendRequest<SwitchController::Response>(
-      change_controller_state_client_, controller_request, 0, 2000
-      );
-    if (!controller_response || !controller_response->ok) {
-      RCLCPP_ERROR(get_logger(), "Could not  activate controller");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
-      this->on_deactivate(get_current_state());
-      return FAILURE;
-    }
-    controller_handler_.ApproveControllerActivation();
-    controller_handler_.ApproveControllerDeactivation();
+    new_controllers = controller_handler_.GetControllersForSwitch(
+      kroshu_ros2_core::ControlMode(control_mode));
   } catch (const std::exception & e) {
     RCLCPP_ERROR(get_logger(), "Error while activating controllers: %s", e.what());
     return ERROR;
   }
+
+  // Activate RT controller(s)
+  auto controller_request =
+    std::make_shared<SwitchController::Request>();
+  controller_request->strictness = SwitchController::Request::STRICT;
+  controller_request->activate_controllers = new_controllers.first;
+  if (!new_controllers.second.empty()) {
+    // This should never happen
+    controller_request->deactivate_controllers = new_controllers.second;
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list not empty before activation");
+  }
+
+  auto controller_response =
+    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000
+    );
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
+    return FAILURE;
+  }
+  controller_handler_.ApproveControllerActivation();
+  if (!controller_handler_.ApproveControllerDeactivation()) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list was modified before approval");
+  }
+
   RCLCPP_INFO(get_logger(), "Successfully activated controllers");
 
 
@@ -328,7 +329,11 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }
-  controller_handler_.ApproveControllerDeactivation();
+  if (!controller_handler_.ApproveControllerDeactivation()) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list was modified before approval");
+  }
 
   RCLCPP_INFO(get_logger(), "Successfully stopped controllers");
   return SUCCESS;
@@ -336,112 +341,117 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
-  try {
-    RCLCPP_INFO(get_logger(), "Control mode change requested");
-    // TODO(komaromi): Remove this if a new control mode is supported
-    if (control_mode ==
-      static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL_MODE) ||
-      control_mode ==
-      static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL_MODE) ||
-      control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL_MODE))
-    {
-      RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
-      return false;
-    }
+
+  RCLCPP_INFO(get_logger(), "Control mode change requested");
+  // TODO(komaromi): Remove this if a new control mode is supported
+  if (control_mode ==
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL_MODE) ||
+    control_mode ==
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL_MODE) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL_MODE))
+  {
+    RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
+    return false;
+  }
 
 
-    std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
+  std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
 
-    bool isActiveState = get_current_state().id() ==
-      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
+  bool isActiveState = get_current_state().id() ==
+    lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
 
-    // Activate controllers
-    if (isActiveState) {
-      // The driver is in active state
+  // Activate controllers
+  if (isActiveState) {
+    // The driver is in active state
 
-      // Asks for witch controller to activate and deactivate
-      auto controller_request =
-        std::make_shared<SwitchController::Request>();
+    // Asks for witch controller to activate and deactivate
+    auto controller_request =
+      std::make_shared<SwitchController::Request>();
+    try {
       switch_controllers = controller_handler_.GetControllersForSwitch(
         kroshu_ros2_core::ControlMode(control_mode));
-
-      // Call request for activateing controllers for the new control mode
-      if (!switch_controllers.first.empty()) {
-        controller_request->activate_controllers = switch_controllers.first;
-        controller_request->strictness = SwitchController::Request::STRICT;
-        auto controller_response =
-          kroshu_ros2_core::sendRequest<SwitchController::Response>(
-          change_controller_state_client_, controller_request, 0, 2000
-          );
-        if (!controller_response || !controller_response->ok) {
-          RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
-          // TODO(Svastits): this can be removed if rollback is implemented properly
-          this->on_deactivate(get_current_state());
-          return false;
-        }
-      }
-      controller_handler_.ApproveControllerActivation();
+    } catch (const std::exception & e) {
+      RCLCPP_ERROR(get_logger(), "Error while control mode change: %s", e.what());
+      return false;
     }
-
-    // Publish the control mode to controller handler
-    auto message = std_msgs::msg::UInt32();
-    message.data = control_mode;
-    control_mode_pub_->publish(message);
-    RCLCPP_INFO(get_logger(), "Control mode change process has started");
-
-    if (isActiveState) {
-      // The driver is in active state
-
-#ifdef NON_MOCK_SETUP
-      // Wait for ObserControl to approve tha robot succefully changed control mode
-      std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
-
-      if (!this->control_mode_cv_.wait_for(
-          control_mode_lk, std::chrono::milliseconds(control_mode_change_timeout_), [this]() {
-            return this->control_mode_change_finished_;
-          }))
-      {
-        // Control Mode change timeout reached
-        RCLCPP_ERROR(
-          get_logger(),
-          "Timeout reached while waiting for robot to change control mode.");
+    // Call request for activating controllers for the new control mode
+    if (!switch_controllers.first.empty()) {
+      controller_request->activate_controllers = switch_controllers.first;
+      controller_request->strictness = SwitchController::Request::STRICT;
+      auto controller_response =
+        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        change_controller_state_client_, controller_request, 0, 2000
+        );
+      if (!controller_response || !controller_response->ok) {
+        RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
+        // TODO(Svastits): this can be removed if rollback is implemented properly
         this->on_deactivate(get_current_state());
         return false;
       }
-      control_mode_change_finished_ = false;
-      control_mode_lk.unlock();
-      RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
+    }
+    controller_handler_.ApproveControllerActivation();
+  }
+
+  // Publish the control mode to controller handler
+  auto message = std_msgs::msg::UInt32();
+  message.data = control_mode;
+  control_mode_pub_->publish(message);
+  RCLCPP_INFO(get_logger(), "Control mode change process has started");
+
+  if (isActiveState) {
+    // The driver is in active state
+
+#ifdef NON_MOCK_SETUP
+    // Wait for ObserControl to approve tha robot succefully changed control mode
+    std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
+
+    if (!this->control_mode_cv_.wait_for(
+        control_mode_lk, std::chrono::milliseconds(control_mode_change_timeout_), [this]() {
+          return this->control_mode_change_finished_;
+        }))
+    {
+      // Control Mode change timeout reached
+      RCLCPP_ERROR(
+        get_logger(),
+        "Timeout reached while waiting for robot to change control mode.");
+      this->on_deactivate(get_current_state());
+      return false;
+    }
+    control_mode_change_finished_ = false;
+    control_mode_lk.unlock();
+    RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
 #endif
 
-      // Deactivate controllers
-      auto controller_request =
-        std::make_shared<SwitchController::Request>();
-      // Call request for deactivating controllers for the new control mode
-      if (!switch_controllers.second.empty()) {
-        controller_request->deactivate_controllers = switch_controllers.second;
-        controller_request->strictness = SwitchController::Request::STRICT;
-        auto controller_response =
-          kroshu_ros2_core::sendRequest<SwitchController::Response>(
-          change_controller_state_client_, controller_request, 0, 2000
-          );
-        if (!controller_response || !controller_response->ok) {
-          RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
-          // TODO(Svastits): this can be removed if rollback is implemented properly
-          this->on_deactivate(get_current_state());
-          return false;
-        }
+    // Deactivate controllers
+    auto controller_request =
+      std::make_shared<SwitchController::Request>();
+    // Call request for deactivating controllers for the new control mode
+    if (!switch_controllers.second.empty()) {
+      controller_request->deactivate_controllers = switch_controllers.second;
+      controller_request->strictness = SwitchController::Request::STRICT;
+      auto controller_response =
+        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        change_controller_state_client_, controller_request, 0, 2000
+        );
+      if (!controller_response || !controller_response->ok) {
+        RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
+        // TODO(Svastits): this can be removed if rollback is implemented properly
+        this->on_deactivate(get_current_state());
+        return false;
       }
-      controller_handler_.ApproveControllerDeactivation();
     }
-
-    RCLCPP_INFO(
-      get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
-        control_mode).c_str());
-    return true;
-  } catch (const std::exception & e) {
-    RCLCPP_ERROR(get_logger(), "Error while control mode change: %s", e.what());
-    return false;
+    if (!controller_handler_.ApproveControllerDeactivation()) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Controller handler state is improper, active controller list was modified before approval");
+    }
   }
+
+  RCLCPP_INFO(
+    get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
+      control_mode).c_str());
+  return true;
+
 }
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
