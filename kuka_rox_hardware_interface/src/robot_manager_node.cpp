@@ -357,11 +357,11 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
   std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
 
-  bool isActiveState = get_current_state().id() ==
+  bool is_active_state = get_current_state().id() ==
     lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
 
   // Activate controllers
-  if (isActiveState) {
+  if (is_active_state) {
     // The driver is in active state
 
     // Asks for witch controller to activate and deactivate
@@ -398,7 +398,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   control_mode_pub_->publish(message);
   RCLCPP_INFO(get_logger(), "Control mode change process has started");
 
-  if (isActiveState) {
+  if (is_active_state) {
     // The driver is in active state
 
 #ifdef NON_MOCK_SETUP
