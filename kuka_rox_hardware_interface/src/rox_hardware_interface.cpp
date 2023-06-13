@@ -256,7 +256,7 @@ return_type KukaRoXHardwareInterface::read(
     return return_type::OK;
   }
 
-  if (udp_replier_->ReceiveRequest() ==
+  if (udp_replier_->ReceiveRequestOrTimeout(receive_timeout_) ==
     Socket::ErrorCode::kSuccess)
   {
     auto req_message = udp_replier_->GetRequestMessage();
@@ -369,6 +369,7 @@ void KukaRoXHardwareInterface::ObserveControl()
         RCLCPP_INFO(
           rclcpp::get_logger(
             "KukaRoXHardwareInterface"), "Control mode switch is in progress");
+        receive_timeout_ = std::chrono::milliseconds(100);
         break;
       case CommandEvent::STOPPED:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
