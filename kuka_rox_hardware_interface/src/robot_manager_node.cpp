@@ -402,11 +402,11 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     // The driver is in active state
 
 #ifdef NON_MOCK_SETUP
-    // Wait for ObserControl to approve tha robot succefully changed control mode
+    // Wait for ObserveControl to approve that the robot succefully changed control mode
     std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
 
     if (!this->control_mode_cv_.wait_for(
-        control_mode_lk, std::chrono::milliseconds(control_mode_change_timeout_), [this]() {
+        control_mode_lk, std::chrono::milliseconds(2000), [this]() {
           return this->control_mode_change_finished_;
         }))
     {
@@ -451,7 +451,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
       control_mode).c_str());
   return true;
-
 }
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)

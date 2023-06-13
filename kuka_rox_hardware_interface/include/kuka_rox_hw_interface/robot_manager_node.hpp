@@ -81,8 +81,6 @@ private:
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_;
-
-  std::chrono::milliseconds control_mode_change_timeout_ {2000};  // in ms
 #endif
 
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
