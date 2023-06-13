@@ -369,7 +369,7 @@ void KukaRoXHardwareInterface::ObserveControl()
         RCLCPP_INFO(
           rclcpp::get_logger(
             "KukaRoXHardwareInterface"), "Control mode switch is in progress");
-        receive_timeout_ = std::chrono::milliseconds(100);
+        is_active_ = false;
         break;
       case CommandEvent::STOPPED:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control finished");
