@@ -57,7 +57,7 @@ RobotManagerNode::RobotManagerNode()
 
   // Register parameters
   this->registerParameter<int>(
-    "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
+    "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
     kroshu_ros2_core::ParameterSetAccessRights{true, true,
       true, false, false}, [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
