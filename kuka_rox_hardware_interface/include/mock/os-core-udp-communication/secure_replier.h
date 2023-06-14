@@ -13,11 +13,16 @@
 
 #include "os-core-udp-communication/replier.h"
 
-namespace os::core::udp::communication {
+namespace os::core::udp::communication
+{
 
-class SecureReplier : public Replier{
- public:  //<ctor>
-  SecureReplier(const std::string& certificate_path, const std::string& private_key_path, const SocketAddress& local_address);
+class SecureReplier : public Replier
+{
+public:
+  //<ctor>
+  SecureReplier(
+    const std::string & certificate_path, const std::string & private_key_path,
+    const SocketAddress & local_address);
   virtual ~SecureReplier() = default;
 };
 }  // namespace os::core::udp::communication

@@ -38,10 +38,14 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     udp_replier_ = std::make_unique<os::core::udp::communication::SecureReplier>(
       info_.hardware_parameters.at("certificate"),
       info_.hardware_parameters.at("private_key"),
-      os::core::udp::communication::SocketAddress(info_.hardware_parameters.at("client_ip"), 44444));
+      os::core::udp::communication::SocketAddress(
+        info_.hardware_parameters.at("client_ip"),
+        44444));
   } else {
     udp_replier_ = std::make_unique<os::core::udp::communication::Replier>(
-      os::core::udp::communication::SocketAddress(info_.hardware_parameters.at("client_ip"), 44444));
+      os::core::udp::communication::SocketAddress(
+        info_.hardware_parameters.at("client_ip"),
+        44444));
   }
 
 #ifdef NON_MOCK_SETUP

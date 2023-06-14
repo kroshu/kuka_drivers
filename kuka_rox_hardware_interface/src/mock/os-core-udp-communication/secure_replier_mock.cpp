@@ -11,7 +11,10 @@
 namespace os::core::udp::communication
 {
 
-SecureReplier::SecureReplier(const std::string& certificate_path, const std::string& private_key_path, const SocketAddress & local_address)
+SecureReplier::SecureReplier(
+  const std::string & certificate_path,
+  const std::string & private_key_path,
+  const SocketAddress & local_address)
 : Replier(local_address) {}
 
 
