@@ -345,10 +345,10 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   RCLCPP_INFO(get_logger(), "Control mode change requested");
   // TODO(komaromi): Remove this if a new control mode is supported
   if (control_mode ==
-    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL_MODE) ||
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
     control_mode ==
-    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL_MODE) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL_MODE))
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
     return false;
