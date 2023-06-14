@@ -341,6 +341,10 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 {
+  if (param_declared_ && this->get_parameter("control_mode").as_int() == control_mode) {
+    RCLCPP_WARN(get_logger(), "Tried to change control mode to the one currently used");
+    return true;
+  }
 
   RCLCPP_INFO(get_logger(), "Control mode change requested");
   // TODO(komaromi): Remove this if a new control mode is supported
@@ -348,7 +352,9 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
     control_mode ==
     static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL))
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::JOINT_VELOCITY_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
     return false;
@@ -450,6 +456,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   RCLCPP_INFO(
     get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
       control_mode).c_str());
+  param_declared_ = true;
   return true;
 }
 

@@ -74,6 +74,7 @@ private:
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
+  bool param_declared_ = false;
 #ifdef NON_MOCK_SETUP
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
