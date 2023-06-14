@@ -17,6 +17,7 @@ Replier::Replier(const SocketAddress & local_address)
 Socket::ErrorCode Replier::Setup()
 {
   // only a mock
+  return Socket::ErrorCode::kSuccess;
 }
 void Replier::Reset()
 {
