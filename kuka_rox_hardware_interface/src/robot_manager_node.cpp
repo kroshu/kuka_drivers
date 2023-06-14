@@ -449,7 +449,8 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     if (!controller_handler_.ApproveControllerDeactivation()) {
       RCLCPP_ERROR(
         get_logger(),
-        "Controller handler state is improper, active controller list was modified before approval");
+        "Controller handler state is improper, active controller list was modified"
+        "before approval");
     }
   }
 
