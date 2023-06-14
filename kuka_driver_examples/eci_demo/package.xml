@@ -14,6 +14,10 @@
   <depend>moveit_msgs</depend>
   <depend>rclcpp</depend>
   <depend>moveit_visual_tools</depend>
+  <depend>moveit_configs_utils</depend>
+
+  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>moveit</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

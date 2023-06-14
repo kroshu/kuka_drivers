@@ -6,31 +6,36 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#ifndef UDP_REPLIER_H
-#define UDP_REPLIER_H
+#ifndef REPLIER_H
+#define REPLIER_H
 
 #include <chrono>
 
 #include "os-core-udp-communication/socket.h"
 
-namespace os::core::udp::communication {
+namespace os::core::udp::communication
+{
 
-class Replier {
- public:  //<ctor>
-  Replier(const SocketAddress& local_address);
+class Replier
+{
+public:
+  //<ctor>
+  Replier(const SocketAddress & local_address);
   virtual ~Replier() = default;
   Socket::ErrorCode Setup();
   void Reset();
 
- public:  //<operations>
+public:
+  //<operations>
   Socket::ErrorCode ReceiveRequest();
   Socket::ErrorCode ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout);
-  Socket::ErrorCode SendReply(uint8_t* reply_msg_data, size_t reply_msg_size);
+  Socket::ErrorCode SendReply(uint8_t * reply_msg_data, size_t reply_msg_size);
 
- public:  //<properties>
-  std::pair<const uint8_t*, size_t> GetRequestMessage() const;
+public:
+  //<properties>
+  std::pair<const uint8_t *, size_t> GetRequestMessage() const;
 
- protected:
+protected:
   static constexpr uint16_t kMaxBufferSize = 1500;
   uint8_t server_buffer_[kMaxBufferSize];
 
@@ -43,4 +48,4 @@ class Replier {
 };
 }  // namespace os::core::udp::communication
 
-#endif  // UDP_REPLIER_H
+#endif  // REPLIER_H

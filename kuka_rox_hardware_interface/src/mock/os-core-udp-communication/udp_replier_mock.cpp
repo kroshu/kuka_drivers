@@ -10,16 +10,15 @@
 
 namespace os::core::udp::communication
 {
-
 Replier::Replier(const SocketAddress & local_address)
-: local_address_(local_address) {}
-
+{
+  // only a mock
+}
 Socket::ErrorCode Replier::Setup()
 {
   // only a mock
   return Socket::ErrorCode::kSuccess;
 }
-
 void Replier::Reset()
 {
   // only a mock
@@ -30,13 +29,11 @@ Socket::ErrorCode Replier::ReceiveRequest()
   // only a mock
   return Socket::ErrorCode::kSuccess;
 }
-
 Socket::ErrorCode Replier::ReceiveRequestOrTimeout(std::chrono::microseconds recv_timeout)
 {
   // only a mock
   return Socket::ErrorCode::kSuccess;
 }
-
 Socket::ErrorCode Replier::SendReply(uint8_t * reply_msg_data, size_t reply_msg_size)
 {
   // only a mock
@@ -45,7 +42,7 @@ Socket::ErrorCode Replier::SendReply(uint8_t * reply_msg_data, size_t reply_msg_
 
 std::pair<const uint8_t *, size_t> Replier::GetRequestMessage() const
 {
+  // only a mock
   return {nullptr, 0};
 }
-
 }  // namespace os::core::udp::communication

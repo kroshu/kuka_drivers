@@ -6,7 +6,6 @@
 // Copyright (C)
 // KUKA Deutschland GmbH, Germany. All Rights Reserved.
 
-#include "os-core-udp-communication/socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -17,6 +16,8 @@
 
 #include <cstring>
 #include <string>
+
+#include "os-core-udp-communication/socket.h"
 
 namespace os::core::udp::communication
 {
@@ -134,7 +135,6 @@ int Socket::Connect(const SocketAddress & remote_address)
 
 int Socket::Select(std::chrono::microseconds timeout, bool read)
 {
-  // TODO(kovacsge): check
   return 1;
 }
 
