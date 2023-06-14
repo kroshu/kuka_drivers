@@ -101,7 +101,8 @@ def launch_setup(context, *args, **kwargs):
         ("joint_state_broadcaster", []),
         ("joint_trajectory_controller", joint_traj_controller_config),
         ("joint_impedance_controller", joint_imp_controller_config),
-        ("effort_controller", effort_controller_config)
+        ("effort_controller", effort_controller_config),
+        ("control_mode_handler", [])
     ]
 
     controller_spawners = [controller_spawner(controllers)
