@@ -253,13 +253,14 @@ return_type KukaRoXHardwareInterface::read(
 #ifndef NON_MOCK_SETUP
   std::this_thread::sleep_for(std::chrono::microseconds(3900));
   for (size_t i = 0; i < info_.joints.size(); i++) {
-    hw_position_states_[i] = hw_position_commands_[i];
+    //hw_position_states_[i] = hw_position_commands_[i];
     hw_velocity_states_[i] = hw_velocity_commands_[i];
+    hw_position_states_[i] += hw_velocity_states_[i]*0.004; 
   }
   // DEBUG
   RCLCPP_INFO(
     rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "position: %f , velocity: %f ",
+      "KukaRoXHardwareInterface"), "wheel position: %f , velocity: %f ",
     hw_position_states_[0],
     hw_velocity_states_[0]);
 
@@ -294,6 +295,11 @@ return_type KukaRoXHardwareInterface::read(
       if (!msg_received_ && motion_state_external_.header.ipoc == 0) {
         hw_position_commands_[i] = hw_position_states_[i];
       }
+      
+      RCLCPP_INFO( rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "STATE position: %f, %f --- velocity: %f , %f ",
+          hw_position_states_[0],hw_position_states_[1],
+          hw_velocity_states_[0],hw_velocity_states_[1]);
     }
 
     if (motion_state_external_.motion_state.ipo_stopped) {
@@ -337,6 +343,10 @@ return_type KukaRoXHardwareInterface::write(
     hw_velocity_commands_.begin(),
     hw_velocity_commands_.end(), control_signal_ext_.control_signal.velocity_command.values);
 
+  RCLCPP_INFO( rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "COMMAND position: %f, %f --- velocity: %f , %f ",
+          hw_position_commands_[0],hw_position_commands_[1],
+          control_signal_ext_.control_signal.velocity_command.values[0],control_signal_ext_.control_signal.velocity_command.values[1]);
 
   auto encoded_bytes = nanopb::Encode<nanopb::kuka::ecs::v1::ControlSignalExternal>(
     control_signal_ext_, out_buff_arr_, sizeof(out_buff_arr_));
@@ -372,6 +382,8 @@ void KukaRoXHardwareInterface::ObserveControl()
     stub_->ObserveControlState(context_.get(), obs_control));
 
   CommandState response;
+  //RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe control reader response %i", reader->Read(&response));
+  is_active_ = true;
 
   while (reader->Read(&response)) {
     command_state_ = response;
