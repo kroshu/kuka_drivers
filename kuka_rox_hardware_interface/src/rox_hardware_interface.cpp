@@ -57,16 +57,17 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   motion_state_external_.header.ipoc = 0;
   control_signal_ext_.has_header = true;
   control_signal_ext_.has_control_signal = true;
-  control_signal_ext_.control_signal.has_joint_command = true;
+  control_signal_ext_.control_signal.has_joint_command = false;
   control_signal_ext_.control_signal.joint_command.values_count = info_.joints.size();
-  control_signal_ext_.control_signal.has_joint_torque_command = true;
+  control_signal_ext_.control_signal.has_joint_torque_command = false;
   control_signal_ext_.control_signal.joint_torque_command.values_count = info_.joints.size();
-  control_signal_ext_.control_signal.has_joint_attributes = true;
+  control_signal_ext_.control_signal.has_joint_attributes = false;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = info_.joints.size();
   control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
+  control_signal_ext_.control_signal.has_velocity_command = true;
+  control_signal_ext_.control_signal.velocity_command.values_count = info_.joints.size();
   control_signal_ext_.control_signal.control_mode =
     kuka_motion_external_ExternalControlMode_POSITION_CONTROL;
-  control_signal_ext_.control_signal.has_velocity_command = true;
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != UDPSocket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
