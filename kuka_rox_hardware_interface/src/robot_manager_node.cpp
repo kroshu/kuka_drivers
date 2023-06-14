@@ -48,7 +48,7 @@ RobotManagerNode::RobotManagerNode()
 
   control_mode_map_.emplace(
     std::make_pair(
-      ExternalControlMode::POSITION_CONTROL,
+      ExternalControlMode::JOINT_POSITION_CONTROL,
       std::vector<std::string>(STANDARD_MODE_IF_SIZE)));
   control_mode_map_.emplace(
     std::make_pair(
@@ -56,12 +56,12 @@ RobotManagerNode::RobotManagerNode()
       std::vector<std::string>(IMPEDANCE_MODE_IF_SIZE)));
   control_mode_map_.emplace(
     std::make_pair(
-      ExternalControlMode::TORQUE_CONTROL,
+      ExternalControlMode::JOINT_TORQUE_CONTROL,
       std::vector<std::string>(STANDARD_MODE_IF_SIZE)));
 
   // TODO(Svastits): change to dynamic parameter after control mode changes are supported
   this->registerStaticParameter<int>(
-    "control_mode", static_cast<int>(ExternalControlMode::POSITION_CONTROL),
+    "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
     kroshu_ros2_core::ParameterSetAccessRights{true, false,
       false, false, false}, [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
@@ -75,7 +75,7 @@ RobotManagerNode::RobotManagerNode()
   this->registerParameter<std::string>(
     "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
       false, false, false}, [this](const std::string & controller_name) {
-      control_mode_map_.at(ExternalControlMode::POSITION_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_POSITION_CONTROL).at(0) = controller_name;
       control_mode_map_.at(ExternalControlMode::JOINT_IMPEDANCE_CONTROL).at(0) = controller_name;
       return true;
     });
@@ -88,7 +88,7 @@ RobotManagerNode::RobotManagerNode()
   this->registerParameter<std::string>(
     "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
       false, false}, [this](const std::string & controller_name) {
-      control_mode_map_.at(ExternalControlMode::TORQUE_CONTROL).at(0) = controller_name;
+      control_mode_map_.at(ExternalControlMode::JOINT_TORQUE_CONTROL).at(0) = controller_name;
       return true;
     });
   this->registerStaticParameter<std::string>(

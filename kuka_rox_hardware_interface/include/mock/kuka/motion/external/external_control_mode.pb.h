@@ -65,17 +65,20 @@ std::string control_mode_string;
 
 enum ExternalControlMode : int {
   EXTERNAL_CONTROL_MODE_UNSPECIFIED = 0,
-  POSITION_CONTROL = 1,
-  CARTESIAN_OVERLAY = 2,
-  JOINT_IMPEDANCE_CONTROL = 3,
-  CARTESIAN_IMPEDANCE_CONTROL = 4,
-  TORQUE_CONTROL = 5,
+  JOINT_POSITION_CONTROL = 1,
+  JOINT_IMPEDANCE_CONTROL = 2,
+  JOINT_VELOCITY_CONTROL = 3,
+  JOINT_TORQUE_CONTROL = 4,
+  CARTESIAN_POSITION_CONTROL = 5,
+  CARTESIAN_IMPEDANCE_CONTROL = 6,
+  CARTESIAN_VELOCITY_CONTROL = 7,
+  WRENCH_CONTROL = 8,
   ExternalControlMode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   ExternalControlMode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool ExternalControlMode_IsValid(int value);
 constexpr ExternalControlMode ExternalControlMode_MIN = EXTERNAL_CONTROL_MODE_UNSPECIFIED;
-constexpr ExternalControlMode ExternalControlMode_MAX = TORQUE_CONTROL;
+constexpr ExternalControlMode ExternalControlMode_MAX = WRENCH_CONTROL;
 constexpr int ExternalControlMode_ARRAYSIZE = ExternalControlMode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ExternalControlMode_descriptor();
@@ -86,20 +89,29 @@ inline const std::string& ExternalControlMode_Name(T enum_t_value) {
     "Incorrect type passed to function ExternalControlMode_Name.");
   switch(enum_t_value)
   {
-    case ExternalControlMode::POSITION_CONTROL:
-      control_mode_string = "POSITION_CONTROL";
-      break;
-    case ExternalControlMode::CARTESIAN_OVERLAY:
-      control_mode_string = "CARTESIAN_OVERLAY";
+    case ExternalControlMode::JOINT_POSITION_CONTROL:
+      control_mode_string = "JOINT_POSITION_CONTROL";
       break;
     case ExternalControlMode::JOINT_IMPEDANCE_CONTROL:
       control_mode_string = "JOINT_IMPEDANCE_CONTROL";
       break;
+    case ExternalControlMode::JOINT_VELOCITY_CONTROL:
+      control_mode_string = "JOINT_VELOCITY_CONTROL";
+      break;
+    case ExternalControlMode::JOINT_TORQUE_CONTROL:
+      control_mode_string = "JOINT_TORQUE_CONTROL";
+      break;
+    case ExternalControlMode::CARTESIAN_POSITION_CONTROL:
+      control_mode_string = "CARTESIAN_POSITION_CONTROL";
+      break;
     case ExternalControlMode::CARTESIAN_IMPEDANCE_CONTROL:
       control_mode_string = "CARTESIAN_IMPEDANCE_CONTROL";
       break;
-    case ExternalControlMode::TORQUE_CONTROL:
-      control_mode_string = "TORQUE_CONTROL";
+    case ExternalControlMode::CARTESIAN_VELOCITY_CONTROL:
+      control_mode_string = "CARTESIAN_VELOCITY_CONTROL";
+      break;
+    case ExternalControlMode::WRENCH_CONTROL:
+      control_mode_string = "WRENCH_CONTROL";
       break;
     default:
      control_mode_string = "EXTERNAL_CONTROL_MODE_UNSPECIFIED";
