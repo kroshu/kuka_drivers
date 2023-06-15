@@ -144,6 +144,24 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
+
+  // Activate control mode handler
+  auto controller_request =
+    std::make_shared<SwitchController::Request>();
+  controller_request->strictness = SwitchController::Request::STRICT;
+  controller_request->activate_controllers = {"control_mode_handler"};
+  auto controller_response =
+    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, 2000
+    );
+  if (!controller_response || !controller_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
+    return FAILURE;
+  }
+  RCLCPP_INFO(get_logger(), "Activated controller handler");
+
   return SUCCESS;
 }
 
@@ -256,7 +274,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   auto controller_request =
     std::make_shared<SwitchController::Request>();
   controller_request->strictness = SwitchController::Request::STRICT;
+  auto controller_it = std::find(
+    new_controllers.first.begin(),
+    new_controllers.first.end(), "control_mode_handler");
+  if (controller_it != new_controllers.first.end()) {
+    new_controllers.first.erase(controller_it);
+  }
   controller_request->activate_controllers = new_controllers.first;
+
   if (!new_controllers.second.empty()) {
     // This should never happen
     controller_request->deactivate_controllers = new_controllers.second;
