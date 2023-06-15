@@ -123,7 +123,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   // Publish control mode paramater
-  // TODO(Svastits): this is not necessary
   auto message = std_msgs::msg::UInt32();
   message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
   control_mode_pub_->publish(message);
@@ -228,6 +227,19 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Subscribe to stream of state changes
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
 
+  // Activate hardware interface
+  auto hw_request =
+    std::make_shared<SetHardwareComponentState::Request>();
+  hw_request->name = robot_model_;
+  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
+  auto hw_response =
+    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    change_hardware_state_client_, hw_request, 0, 2000);
+  if (!hw_response || !hw_response->ok) {
+    RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
+    return FAILURE;
+  }
+
   // Select controllers
   auto control_mode = this->get_parameter("control_mode").as_int();
   std::pair<std::vector<std::string>, std::vector<std::string>> new_controllers;
@@ -272,18 +284,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(get_logger(), "Successfully activated controllers");
 
-  // Activate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
-  auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    return FAILURE;
-  }
 
   // Return failure if control is stopped while in state activating
   if (terminate_) {

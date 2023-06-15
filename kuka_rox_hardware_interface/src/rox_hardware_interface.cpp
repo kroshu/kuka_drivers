@@ -357,7 +357,6 @@ void KukaRoXHardwareInterface::ObserveControl()
     switch (static_cast<int>(response.event())) {
       case CommandEvent::COMMAND_READY:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Command accepted");
-        is_active_ = true;
         break;
       case CommandEvent::SAMPLING:
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
