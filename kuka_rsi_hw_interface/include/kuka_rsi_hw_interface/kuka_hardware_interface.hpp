@@ -101,6 +101,7 @@ public:
   bool isActive() const;
 
 private:
+  bool stop_flag_ = false;
   bool is_active_ = false;
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;

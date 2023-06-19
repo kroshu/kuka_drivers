@@ -131,6 +131,7 @@ export_command_interfaces()
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  stop_flag_ = false;
   // Wait for connection from robot
   server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
 
@@ -154,7 +155,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   }
   ipoc_ = rsi_state_.ipoc;
 
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
+  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   server_->set_timeout(1000);  // Set receive timeout to 1 second
 
@@ -167,12 +168,8 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State &)
 {
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, true).xml_doc;
-  ipoc_ = 0;  // necessary to disable write-first scenarios after reactivation
-  server_->send(out_buffer_);
-  server_.reset();
-  is_active_ = false;
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System successfully stopped!");
+  stop_flag_ = true;
+  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Stop flag was set!");
   return CallbackReturn::SUCCESS;
 }
 
@@ -210,12 +207,14 @@ return_type KukaRSIHardwareInterface::write(
     return return_type::OK;
   }
 
+  if (stop_flag_) is_active_ = false;
+
   for (size_t i = 0; i < info_.joints.size(); i++) {
     joint_pos_correction_deg_[i] = (hw_commands_[i] - initial_joint_pos_[i]) *
       KukaRSIHardwareInterface::R2D;
   }
 
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_).xml_doc;
+  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   return return_type::OK;
 }
