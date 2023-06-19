@@ -46,9 +46,14 @@ add_executable(rsi_control_node
   src/rsi_control_node.cpp)
 ament_target_dependencies(rsi_control_node rclcpp rclcpp_lifecycle controller_manager)
 
+add_executable(robot_manager_node
+  src/robot_manager_node.cpp)
+ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
+target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers)
+
 pluginlib_export_plugin_description_file(hardware_interface kuka_rsi_hw_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} rsi_control_node
+install(TARGETS ${PROJECT_NAME} rsi_control_node robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

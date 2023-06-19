@@ -38,6 +38,11 @@ def generate_launch_description():
             parameters=[robot_description, controller_config]
         ),
         Node(
+            package='kuka_rsi_hw_interface',
+            namespace='',
+            executable='robot_manager_node'
+        ),
+        Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             output='both',
@@ -46,13 +51,13 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", controller_manager_node],
+            arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
         ),
         Node(
             package="controller_manager",
             executable="spawner",
             arguments=["joint_trajectory_controller", "-c", controller_manager_node, "-p",
-                       joint_traj_controller_config]
+                       joint_traj_controller_config, "--inactive"]
         ),
         Node(
             package="rviz2",
