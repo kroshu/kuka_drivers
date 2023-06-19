@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_SUNRISE__ROBOT_MANAGER_HPP_
-#define KUKA_SUNRISE__ROBOT_MANAGER_HPP_
+#ifndef KUKA_SUNRISE__FRI_CONNECTION_HPP_
+#define KUKA_SUNRISE__FRI_CONNECTION_HPP_
 
 #include <memory>
 #include <functional>
@@ -55,13 +55,13 @@ enum ClientCommandModeID : std::uint8_t
 static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
 static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
 
-class RobotManager
+class FRIConnection
 {
 public:
-  RobotManager(
+  FRIConnection(
     std::function<void(void)> handle_control_ended_error_callback,
     std::function<void(void)> handle_fri_ended_callback);
-  ~RobotManager();
+  ~FRIConnection();
   bool connect(const char * server_addr, int server_port);
   bool disconnect();
   bool startFRI();
@@ -105,4 +105,4 @@ private:
 
 }  // namespace kuka_sunrise
 
-#endif  // KUKA_SUNRISE__ROBOT_MANAGER_HPP_
+#endif  // KUKA_SUNRISE__FRI_CONNECTION_HPP_

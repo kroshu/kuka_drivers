@@ -14,15 +14,24 @@
 
 #include "kuka_rox_hw_interface/robot_manager_node.hpp"
 
+
+#include <grpcpp/create_channel.h>
+
 using namespace controller_manager_msgs::srv;  // NOLINT
+using namespace lifecycle_msgs::msg;  // NOLINT
+using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_rox
 {
-
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
+: kroshu_ros2_core::ROS2BaseLCNode("robot_manager"), controller_handler_({"joint_state_broadcaster",
+      "control_mode_handler"})
+#ifdef NON_MOCK_SETUP
+  , control_mode_change_finished_(false)
+#endif
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  RCLCPP_INFO(get_logger(), "Starting Robot Manager Node init");
+
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -41,16 +50,88 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
+    "control_mode", rclcpp::SystemDefaultsQoS()
+  );
+
+  // Register parameters
+  this->registerParameter<int>(
+    "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
+    kroshu_ros2_core::ParameterSetAccessRights{true, true,
+      true, false, false}, [this](int control_mode) {
+      return this->onControlModeChangeRequest(control_mode);
+    });
+  this->registerStaticParameter<std::string>(
+    "robot_model", "LBRiisy3R760",
+    kroshu_ros2_core::ParameterSetAccessRights{true, false,
+      false, false, false}, [this](const std::string & robot_model) {
+      return this->onRobotModelChangeRequest(robot_model);
+    });
+  this->registerParameter<std::string>(
+    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false, false}, [this](const std::string & controller_name) {
+      return this->controller_handler_.UpdateControllerName(
+        kroshu_ros2_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE,
+        controller_name);
+    });
+  this->registerParameter<std::string>(
+    "impedance_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+      false, false, false}, [this](const std::string & controller_name) {
+      return this->controller_handler_.UpdateControllerName(
+        kroshu_ros2_core::ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE,
+        controller_name);
+    });
+  this->registerParameter<std::string>(
+    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+      false, false}, [this](const std::string & controller_name) {
+      return this->controller_handler_.UpdateControllerName(
+        kroshu_ros2_core::ControllerType::TORQUE_CONTROLLER_TYPE,
+        controller_name);
+    });
+  this->registerStaticParameter<std::string>(
+    "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {true, false, false,
+      false, false}, [this](const std::string &) {
+      return true;
+    });
+
+#ifdef NON_MOCK_SETUP
+  RCLCPP_INFO(
+    get_logger(), "IP address of controller: %s", this->get_parameter(
+      "controller_ip").as_string().c_str());
+
+  stub_ =
+    kuka::ecs::v1::ExternalControlService::NewStub(
+    grpc::CreateChannel(
+      this->get_parameter("controller_ip").as_string() + ":49335",
+      grpc::InsecureChannelCredentials()));
+#endif
+}
+RobotManagerNode::~RobotManagerNode()
+{
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Publish control mode paramater
+  auto message = std_msgs::msg::UInt32();
+  message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
+  control_mode_pub_->publish(message);
+
   // Configure hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->name = robot_model_;
+  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
@@ -58,6 +139,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
+  RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -68,107 +150,144 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  // Cleanup hardware interface
+  // Clean up hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->name = robot_model_;
+  hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not cleanup hardware interface");
+    RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
 
   if (is_configured_pub_->is_activated()) {
-    is_configured_pub_->on_deactivate();
     is_configured_msg_.data = false;
     is_configured_pub_->publish(is_configured_msg_);
+    is_configured_pub_->on_deactivate();
   }
+  // TODO(Svastits): add else branch, and throw exception(?)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_shutdown(const rclcpp_lifecycle::State & state)
+void RobotManagerNode::ObserveControl()
 {
-  switch (state.id()) {
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
-      if (this->on_deactivate(get_current_state()) != SUCCESS) {
-        break;
-      }
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-      this->on_cleanup(get_current_state());
-      break;
-    case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-      break;
-    default:
-      return SUCCESS;
-  }
+  #ifdef NON_MOCK_SETUP
+  context_ = std::make_unique<::grpc::ClientContext>();
+  kuka::ecs::v1::ObserveControlStateRequest observe_request;
+  std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
+    stub_->ObserveControlState(context_.get(), observe_request));
 
-  return SUCCESS;
+  kuka::ecs::v1::CommandState response;
+
+  while (reader->Read(&response)) {
+    switch (static_cast<int>(response.event())) {
+      case kuka::ecs::v1::CommandEvent::COMMAND_MODE_SWITCH:
+        {
+          std::lock_guard<std::mutex> lk(control_mode_cv_m_);
+          control_mode_change_finished_ = true;
+        }
+        RCLCPP_INFO(get_logger(), "Command mode switched in the robot controller");
+        control_mode_cv_.notify_all();
+        break;
+      case kuka::ecs::v1::CommandEvent::STOPPED:
+      case kuka::ecs::v1::CommandEvent::ERROR:
+        RCLCPP_INFO(get_logger(), "External control stopped");
+        terminate_ = true;
+        if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
+          this->deactivate();
+        } else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING) {
+          // TODO(Svastits): this can be removed if rollback is implemented properly
+          this->on_deactivate(get_current_state());
+        }
+        break;
+      default:
+        break;
+    }
+  }
+#endif
 }
 
+// TODO(Svastits): rollback in case of failures
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+#ifdef NON_MOCK_SETUP
+  if (context_ != nullptr) {
+    context_->TryCancel();
+  }
+#endif
+  // Join observe thread, necessary if previous activation failed
+  if (observe_thread_.joinable()) {
+    observe_thread_.join();
+  }
+  terminate_ = false;
+  // Subscribe to stream of state changes
+  observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
+
   // Activate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "active";
+  hw_request->name = robot_model_;
+  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    // 'unset config' does not exist, safe to return
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
     return FAILURE;
   }
 
-  // Activate joint state broadcaster
+  // Select controllers
+  auto control_mode = this->get_parameter("control_mode").as_int();
+  std::pair<std::vector<std::string>, std::vector<std::string>> new_controllers;
+
+  try {
+    new_controllers = controller_handler_.GetControllersForSwitch(
+      kroshu_ros2_core::ControlMode(control_mode));
+  } catch (const std::exception & e) {
+    RCLCPP_ERROR(get_logger(), "Error while activating controllers: %s", e.what());
+    return ERROR;
+  }
+
+  // Activate RT controller(s)
   auto controller_request =
     std::make_shared<SwitchController::Request>();
   controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = std::vector<std::string>{"joint_state_broadcaster"};
+  controller_request->activate_controllers = new_controllers.first;
+  if (!new_controllers.second.empty()) {
+    // This should never happen
+    controller_request->deactivate_controllers = new_controllers.second;
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list not empty before activation");
+  }
+
   auto controller_response =
     kroshu_ros2_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
-    // TODO(Svastits): deactivate HW interface
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
+    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
-
-  // auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  // auto impedance_controller_name = this->get_parameter("impedance_controller_name").as_string();
-  // controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
-  //     ? position_controller_name : torque_controller_name;
-  controller_names_.clear();
-  controller_names_.emplace_back("joint_trajectory_controller");
-  if (is_joint_imp_contr_) {
-    controller_names_.emplace_back("joint_impedance_controller");
+  controller_handler_.ApproveControllerActivation();
+  if (!controller_handler_.ApproveControllerDeactivation()) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list was modified before approval");
   }
 
-  // Activate RT commander
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = controller_names_;
-  controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
-    // TODO(Svastits): deactivate HW interface
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
+  RCLCPP_INFO(get_logger(), "Successfully activated controllers");
+
+
+  // Return failure if control is stopped while in state activating
+  if (terminate_) {
+    RCLCPP_ERROR(get_logger(), "UDP communication could not be set up");
     return FAILURE;
   }
 
@@ -181,11 +300,11 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Deactivate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iisy_hardware";
-  hw_request->target_state.label = "inactive";
+  hw_request->name = robot_model_;
+  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
+    change_hardware_state_client_, hw_request, 0, 3000);   // was not stable with 2000 ms timeout
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
@@ -193,14 +312,15 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
 
+
   // Stop RT controllers
-  controller_names_.emplace_back("joint_state_broadcaster");
   auto controller_request =
     std::make_shared<SwitchController::Request>();
   // With best effort strictness, deactivation succeeds if specific controller is not active
   controller_request->strictness =
     SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers = controller_names_;
+  controller_request->deactivate_controllers =
+    controller_handler_.GetControllersForDeactivation();
   auto controller_response =
     kroshu_ros2_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
@@ -209,13 +329,148 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }
+  if (!controller_handler_.ApproveControllerDeactivation()) {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Controller handler state is improper, active controller list was modified before approval");
+  }
+
+  RCLCPP_INFO(get_logger(), "Successfully stopped controllers");
   return SUCCESS;
+}
+
+bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
+{
+  if (param_declared_ && this->get_parameter("control_mode").as_int() == control_mode) {
+    RCLCPP_WARN(get_logger(), "Tried to change control mode to the one currently used");
+    return true;
+  }
+
+  RCLCPP_INFO(get_logger(), "Control mode change requested");
+  // TODO(komaromi): Remove this if a new control mode is supported
+  if (control_mode ==
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
+    control_mode ==
+    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::JOINT_VELOCITY_CONTROL) ||
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
+  {
+    RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
+    return false;
+  }
+
+
+  std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
+
+  bool is_active_state = get_current_state().id() ==
+    lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
+
+  // Activate controllers
+  if (is_active_state) {
+    // The driver is in active state
+
+    // Asks for witch controller to activate and deactivate
+    auto controller_request =
+      std::make_shared<SwitchController::Request>();
+    try {
+      switch_controllers = controller_handler_.GetControllersForSwitch(
+        kroshu_ros2_core::ControlMode(control_mode));
+    } catch (const std::exception & e) {
+      RCLCPP_ERROR(get_logger(), "Error while control mode change: %s", e.what());
+      return false;
+    }
+    // Call request for activating controllers for the new control mode
+    if (!switch_controllers.first.empty()) {
+      controller_request->activate_controllers = switch_controllers.first;
+      controller_request->strictness = SwitchController::Request::STRICT;
+      auto controller_response =
+        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        change_controller_state_client_, controller_request, 0, 2000
+        );
+      if (!controller_response || !controller_response->ok) {
+        RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
+        // TODO(Svastits): this can be removed if rollback is implemented properly
+        this->on_deactivate(get_current_state());
+        return false;
+      }
+    }
+    controller_handler_.ApproveControllerActivation();
+  }
+
+  // Publish the control mode to controller handler
+  auto message = std_msgs::msg::UInt32();
+  message.data = control_mode;
+  control_mode_pub_->publish(message);
+  RCLCPP_INFO(get_logger(), "Control mode change process has started");
+
+  if (is_active_state) {
+    // The driver is in active state
+
+#ifdef NON_MOCK_SETUP
+    // Wait for ObserveControl to approve that the robot succefully changed control mode
+    std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
+
+    if (!this->control_mode_cv_.wait_for(
+        control_mode_lk, std::chrono::milliseconds(2000), [this]() {
+          return this->control_mode_change_finished_;
+        }))
+    {
+      // Control Mode change timeout reached
+      RCLCPP_ERROR(
+        get_logger(),
+        "Timeout reached while waiting for robot to change control mode.");
+      this->on_deactivate(get_current_state());
+      return false;
+    }
+    control_mode_change_finished_ = false;
+    control_mode_lk.unlock();
+    RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
+#endif
+
+    // Deactivate controllers
+    auto controller_request =
+      std::make_shared<SwitchController::Request>();
+    // Call request for deactivating controllers for the new control mode
+    if (!switch_controllers.second.empty()) {
+      controller_request->deactivate_controllers = switch_controllers.second;
+      controller_request->strictness = SwitchController::Request::STRICT;
+      auto controller_response =
+        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        change_controller_state_client_, controller_request, 0, 2000
+        );
+      if (!controller_response || !controller_response->ok) {
+        RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
+        // TODO(Svastits): this can be removed if rollback is implemented properly
+        this->on_deactivate(get_current_state());
+        return false;
+      }
+    }
+    if (!controller_handler_.ApproveControllerDeactivation()) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Controller handler state is improper, active controller list was modified"
+        "before approval");
+    }
+  }
+
+  RCLCPP_INFO(
+    get_logger(), "Successfully changed control mode to %s", ExternalControlMode_Name(
+      control_mode).c_str());
+  param_declared_ = true;
+  return true;
+}
+
+bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  robot_model_ = robot_model;
+  return true;
 }
 }  // namespace kuka_rox
 
 int main(int argc, char * argv[])
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;

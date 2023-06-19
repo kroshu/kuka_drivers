@@ -29,7 +29,7 @@
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 
-#include "kuka_sunrise/robot_manager.hpp"
+#include "kuka_sunrise/fri_connection.hpp"
 #include "kuka_sunrise/configuration_manager.hpp"
 #include "communication_helpers/service_tools.hpp"
 
@@ -50,9 +50,6 @@ public:
   on_cleanup(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State &);
-
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State &);
 
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -64,7 +61,7 @@ public:
   bool deactivateControl();
 
 private:
-  std::shared_ptr<RobotManager> robot_manager_;
+  std::shared_ptr<FRIConnection> fri_connection_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr

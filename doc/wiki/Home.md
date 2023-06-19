@@ -28,8 +28,6 @@ This project centers on the development of a comprehensive ROS2 driver for exter
    
    - Real-time inter-node communication
 
-The ROS2 KUKA Sunrise driver does not include a controller; its purpose is to expose a joint-level interface of robots running on Sunrise to the ROS2 system. The control loop is then expected to be closed by a connected joint controller node. This approach is contrary to how most real-time robot interfaces to ROS and ROS2 are realized, which would be to use the ros2\_control stack. The document [3. Relationship to ros2_control](3.-Relationship-to-ros2_control.md) provides more information on this topic.
-
 ### Current state of project
 
 This project is currently experimental. The functionalities are not fully tested and the API and the internal architecture of the driver should be expected to change. This wiki is targeted at developers who would like to understand and potentially contribute to the project. Usage of this driver is discouraged except for the testing of the driver, only in controlled environment and with the proper safety configuration applied.
@@ -68,7 +66,7 @@ The following features of the FRI are exposed to ROS2:
 
 Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The structure of the driver is similiar to that of the Sunrise driver and the same interfaces are opened, so the same joint controller can be used to move robots. Howewer this controller should be improved, as it allows big torques that stop the robot for machine protection reasons.
 
-## KUKA RoX driver (ECI)
+## iiQKA driver (ECI)
 
 The third project in the repo is the driver for iiQKA robots. 
 
@@ -83,14 +81,11 @@ Two additional packages (not listed in package.xml) must be installed with apt:
 
 ### Setup
 
-The configuration files for the IP adresses are not used yet, so one has to edit the IP adresses and ports in the hardware interface cmake file and rebuild afterwards. The CLIENT_IP, CLIENT_PORT, CONTROLLER_IP and GRPC_PORT cmake variables must be modified to your used network setup.
+By default, the mock libraries are used, this can be changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
 
+The IP addresses of the client machine and controller must be given in the *config/eci_config.yaml* configuration file. A rebuild is not needed after the changes, but the file has to be modified before starting the nodes. The control mode of the robot can also be modified in the same configuration file: you can choose either 1 (POSITION_CONTROL), 3 (JOINT_IMPEDANCE_CONTROL) or 5 (TORQUE_CONTROL). This also sets the control_mode parameter of the robot manager node, which can be only modified at startup, control mode changes are not supported in runtime at the current state.
 
-The control mode of the robot is also hard-coded in the Cmakelists.txt, you can choose either 1 (POSITION_CONTROL) or 3 (JOINT_IMPEDANCE_CONTROL). A rebuild is needed after control mode changes, run-time configurability is in progress.
-
-By default, the mock libraries are used, this can be also changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
-
-Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98")
+Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98" and restart) to enable real-time performance.
 
 ### Usage
 

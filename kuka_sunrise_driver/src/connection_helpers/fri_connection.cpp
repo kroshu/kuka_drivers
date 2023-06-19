@@ -17,14 +17,14 @@
 #include <thread>
 #include <chrono>
 
-#include "kuka_sunrise/robot_manager.hpp"
+#include "kuka_sunrise/fri_connection.hpp"
 #include "communication_helpers/serialization.hpp"
 #include "kuka_sunrise/tcp_connection.hpp"
 
 namespace kuka_sunrise
 {
 
-RobotManager::RobotManager(
+FRIConnection::FRIConnection(
   std::function<void(void)> handle_control_ended_error_callback,
   std::function<void(void)> handle_fri_ended_callback)
 : handleControlEndedError_(handle_control_ended_error_callback),
@@ -34,12 +34,12 @@ RobotManager::RobotManager(
 {
 }
 
-RobotManager::~RobotManager()
+FRIConnection::~FRIConnection()
 {
   disconnect();
 }
 
-bool RobotManager::connect(const char * server_addr, int server_port)
+bool FRIConnection::connect(const char * server_addr, int server_port)
 {
   // TODO(resizoltan) check if already connected
   try {
@@ -59,8 +59,9 @@ bool RobotManager::connect(const char * server_addr, int server_port)
   return sendCommandAndWait(CONNECT);
 }
 
-bool RobotManager::disconnect()
+bool FRIConnection::disconnect()
 {
+  if (tcp_connection_ == nullptr) {return true;}
   if (sendCommandAndWait(DISCONNECT) == true) {
     tcp_connection_->closeConnection();
     tcp_connection_.reset();
@@ -70,33 +71,33 @@ bool RobotManager::disconnect()
   }
 }
 
-bool RobotManager::startFRI()
+bool FRIConnection::startFRI()
 {
   return sendCommandAndWait(START_FRI);
 }
 
-bool RobotManager::endFRI()
+bool FRIConnection::endFRI()
 {
   return sendCommandAndWait(END_FRI);
 }
 
-bool RobotManager::activateControl()
+bool FRIConnection::activateControl()
 {
   return sendCommandAndWait(ACTIVATE_CONTROL);
 }
 
-bool RobotManager::deactivateControl()
+bool FRIConnection::deactivateControl()
 {
   return sendCommandAndWait(DEACTIVATE_CONTROL);
 }
 
-bool RobotManager::setPositionControlMode()
+bool FRIConnection::setPositionControlMode()
 {
   std::vector<std::uint8_t> command_data = {POSITION_CONTROL_MODE};
   return sendCommandAndWait(SET_CONTROL_MODE, command_data);
 }
 
-bool RobotManager::setJointImpedanceControlMode(
+bool FRIConnection::setJointImpedanceControlMode(
   const std::vector<double> & joint_stiffness,
   const std::vector<double> & joint_damping)
 {
@@ -124,13 +125,13 @@ bool RobotManager::setJointImpedanceControlMode(
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
 
-bool RobotManager::setClientCommandMode(ClientCommandModeID client_command_mode)
+bool FRIConnection::setClientCommandMode(ClientCommandModeID client_command_mode)
 {
   std::vector<std::uint8_t> command_data = {client_command_mode};
   return sendCommandAndWait(SET_COMMAND_MODE, command_data);
 }
 
-bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier)
+bool FRIConnection::setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier)
 {
   std::vector<std::uint8_t> serialized;
   serialized.reserve(FRI_CONFIG_HEADER.size() + 3 * sizeof(int));
@@ -145,7 +146,7 @@ bool RobotManager::setFRIConfig(int remote_port, int send_period_ms, int receive
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 
-bool RobotManager::isConnected()
+bool FRIConnection::isConnected()
 {
   if (tcp_connection_) {
     return true;
@@ -155,7 +156,7 @@ bool RobotManager::isConnected()
 }
 
 
-bool RobotManager::assertLastCommandSuccess(CommandID command_id)
+bool FRIConnection::assertLastCommandSuccess(CommandID command_id)
 {
   // TODO(resizoltan) more sophisticated introspection
   if (last_command_state_ == ACCEPTED && last_command_id_ == command_id &&
@@ -167,7 +168,7 @@ bool RobotManager::assertLastCommandSuccess(CommandID command_id)
   }
 }
 
-bool RobotManager::sendCommandAndWait(CommandID command_id)
+bool FRIConnection::sendCommandAndWait(CommandID command_id)
 {
   answer_wanted_ = true;
   tcp_connection_->sendByte(command_id);
@@ -180,7 +181,7 @@ bool RobotManager::sendCommandAndWait(CommandID command_id)
   return assertLastCommandSuccess(command_id);
 }
 
-bool RobotManager::sendCommandAndWait(
+bool FRIConnection::sendCommandAndWait(
   CommandID command_id,
   const std::vector<std::uint8_t> & command_data)
 {
@@ -198,7 +199,7 @@ bool RobotManager::sendCommandAndWait(
   return assertLastCommandSuccess(command_id);
 }
 
-void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
+void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
 {
   if (data.size() == 0) {
     return;
@@ -241,7 +242,7 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
           &handler_thread,
           nullptr,
           [](void * self) -> void * {
-            static_cast<RobotManager *>(self)->handleControlEndedError_();
+            static_cast<FRIConnection *>(self)->handleControlEndedError_();
             return nullptr;
           },
           this);
@@ -258,7 +259,7 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
           &handler_thread,
           nullptr,
           [](void * self) -> void * {
-            static_cast<RobotManager *>(self)->handleFRIEndedError_();
+            static_cast<FRIConnection *>(self)->handleFRIEndedError_();
             return nullptr;
           },
           this);
@@ -273,7 +274,7 @@ void RobotManager::handleReceivedTCPData(const std::vector<std::uint8_t> & data)
   }
 }
 
-void RobotManager::connectionLostCallback(const char * server_addr, int server_port)
+void FRIConnection::connectionLostCallback(const char * server_addr, int server_port)
 {
   printf("Connection lost, trying to reconnect");
   connect(server_addr, server_port);

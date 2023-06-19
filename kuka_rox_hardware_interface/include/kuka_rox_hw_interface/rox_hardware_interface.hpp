@@ -39,7 +39,7 @@
 #include "nanopb/kuka/core/motion/joint.pb.hh"
 #include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
-#include "os-core-udp-communication/udp_replier.h"
+#include "os-core-udp-communication/replier.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -58,6 +58,8 @@ public:
 
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
+  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
@@ -66,23 +68,21 @@ public:
 
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  bool isActive() const;
-
+private:
   void ObserveControl();
 
-private:
   bool is_active_ = false;
   bool msg_received_ = false;
 
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_states_;
-  std::vector<double> hw_stiffness_;
-  std::vector<double> hw_damping_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_torque_commands_;
+  std::vector<double> hw_stiffness_commands_;
+  std::vector<double> hw_damping_commands_;
 
-  uint64_t ipoc_ = 0;
-  unsigned char token_[16];
-  int32_t timeout_;
-  bool stopped_ = true;
+  std::vector<double> hw_position_states_;
+  std::vector<double> hw_torque_states_;
+
+  double hw_control_mode_command_;
 
 #ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
@@ -90,26 +90,23 @@ private:
   std::unique_ptr<grpc::ClientContext> context_;
 #endif
 
-
   std::thread observe_thread_;
-  std::atomic<bool> terminate_{false};
-  std::mutex observe_mutex_;
 
+  std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
   std::chrono::milliseconds receive_timeout_ {100};
 
-  os::core::udp::communication::UDPReplier udp_replier_ = os::core::udp::communication::UDPReplier(
-    os::core::udp::communication::SocketAddress(CLIENT_IP, CLIENT_PORT));
+  uint8_t out_buff_arr_[1500];
 
   nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
 
-  nanopb::kuka::core::motion::JointPositions start_pos_{
-    nanopb::kuka::core::motion::JointPositions_init_default};
+  static constexpr char CONF_PREFIX[] = "runtime_config";
 
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
+  static constexpr char CONTROL_MODE[] = "control_mode";
 };
 }  // namespace kuka_rox
 

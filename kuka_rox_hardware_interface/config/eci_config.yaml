@@ -1,5 +1,16 @@
 robot_manager:
   ros__parameters:
-    controller_ip: "<insert controller ip here>"
-    client_ip: "<insert client ip here>"
-    command_mode: "position"
+    control_mode: 1
+    client_ip: "0.0.0.0"
+    controller_ip: "0.0.0.0"
+    position_controller_name: "joint_trajectory_controller"
+    impedance_controller_name: "joint_impedance_controller"
+    torque_controller_name: "effort_controller"
+# Control mode enums:
+#  1 - position control
+#  2 - cartesian overlay (not supported yet)
+#  3 - joint impedance control
+#  4 - cartesian impedance control (not supported yet)
+#  5 - torque control  
+
+

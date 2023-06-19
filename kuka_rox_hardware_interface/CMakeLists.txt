@@ -14,17 +14,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(MOCK_KUKA_LIBS TRUE)
+# A few (transitive) dependencies are available only in one of the dependencies
+# Set flag to suppress linker error
+# TODO: find better solution
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
-# Specify necessary IP-s and ports
-add_definitions(-DCLIENT_IP="<insert_client_ip>")
-add_definitions(-DCLIENT_PORT=-1)  # insert client port here
-add_definitions(-DCONTROLLER_IP="<insert_controller_ip>")
-add_definitions(-DGRPC_PORT=-1)  # insert client port here
-# Change control mode
-#  1: joint position control
-#  3: joint impedance control
-add_definitions(-DCONTROL_MODE=1)
+set(MOCK_KUKA_LIBS TRUE)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -50,30 +45,36 @@ if(NOT MOCK_KUKA_LIBS)
   message("Using real kuka libs")
   add_definitions(-DNON_MOCK_SETUP)
 else()
+  find_package(Protobuf)
   include_directories(include/mock)
   add_library(os-core-udp-communication SHARED
-  src/mock/os-core-udp-communication/udp_replier_mock.cpp
-  src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+    src/mock/os-core-udp-communication/udp_replier_mock.cpp
+    src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+
+  add_library(nanopb-helpers INTERFACE)
+  target_include_directories(nanopb-helpers INTERFACE include/mock/nanopb-helpers)
+  target_link_libraries(nanopb-helpers INTERFACE protobuf::libprotobuf)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
-  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock)
+  target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock/kuka)
 
   add_library(motion-external-proto-api-nanopb INTERFACE)
-  target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock)
+  target_include_directories(motion-external-proto-api-nanopb INTERFACE include/mock/nanopb/kuka/motion/external)
+  target_link_libraries(motion-external-proto-api-nanopb INTERFACE protobuf::libprotobuf)
 
   add_library(motion-services-ecs-proto-api-nanopb INTERFACE)
-  target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock)
+  target_include_directories(motion-services-ecs-proto-api-nanopb INTERFACE include/mock/nanopb/kuka/ecs/v1)
+  target_link_libraries(motion-external-proto-api-nanopb INTERFACE motion-external-proto-api-nanopb)
   message("Using mock kuka libs")
   remove_definitions(-DNON_MOCK_SETUP)
 endif()
-
 
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
-                      motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication)
+  motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication nanopb-helpers)
 
 add_executable(rox_control_node
   src/rox_control_node.cpp)
@@ -83,7 +84,7 @@ target_link_libraries(rox_control_node kuka_rox_hw_interface)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_rox_hw_interface kroshu_ros2_core::communication_helpers)
+target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
@@ -93,11 +94,10 @@ install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
-
 if(BUILD_TESTING)
   file(GLOB_RECURSE mock_headers
-  LIST_DIRECTORIES FALSE
-  RELATIVE "${PROJECT_SOURCE_DIR}"
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${PROJECT_SOURCE_DIR}"
     include/mock/*)
 
   file(GLOB_RECURSE mock_src

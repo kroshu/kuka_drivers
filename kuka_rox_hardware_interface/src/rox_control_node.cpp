@@ -22,7 +22,6 @@
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  std::cout << "Starting cm" << std::endl;
   auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   auto controller_manager = std::make_shared<controller_manager::ControllerManager>(
     executor,
@@ -38,7 +37,18 @@ int main(int argc, char ** argv)
       is_configured = msg->data;
     });
 
+
   std::thread control_loop([controller_manager, &is_configured]() {
+      struct sched_param param;
+      param.sched_priority = 95;
+      if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+        RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
+        RCLCPP_ERROR(controller_manager->get_logger(), strerror(errno));
+        RCLCPP_WARN(
+          controller_manager->get_logger(),
+          "You can use the driver but scheduler priority was not set");
+      }
+
       const rclcpp::Duration dt =
       rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
       std::chrono::milliseconds dt_ms {1000 / controller_manager->get_update_rate()};
@@ -54,7 +64,9 @@ int main(int argc, char ** argv)
           }
         }
       } catch (std::exception & e) {
-        std::cout << "Error: quitting control loop due to:" << e.what() << std::endl;
+        RCLCPP_ERROR(
+          controller_manager->get_logger(), "Quitting control loop due to: %s",
+          e.what());
       }
     });
 
