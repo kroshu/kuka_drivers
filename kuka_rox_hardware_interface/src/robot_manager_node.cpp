@@ -23,10 +23,11 @@ using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_rox
 {
-// TODO (Komaromi): Remove this comment after controller handler poperly implemented with working initial control mode change
+// TODO(Komaromi): Readd "control_mode_handler" controller to controller_handlers constrctor
+//                 after controller handler poperly implemented with working initial control mode change
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager"), controller_handler_({"joint_state_broadcaster" /*,
-      "control_mode_handler"*/})
+: kroshu_ros2_core::ROS2BaseLCNode("robot_manager"),
+  controller_handler_({"joint_state_broadcaster", })
 #ifdef NON_MOCK_SETUP
   , control_mode_change_finished_(false)
 #endif
