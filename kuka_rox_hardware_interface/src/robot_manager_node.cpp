@@ -24,7 +24,7 @@ using namespace kuka::motion::external;  // NOLINT
 namespace kuka_rox
 {
 // TODO(Komaromi): Readd "control_mode_handler" controller to controller_handlers constrctor
-//                 after controller handler poperly implemented with working initial control mode change
+// after controller handler poperly implemented with working initial control mode change
 RobotManagerNode::RobotManagerNode()
 : kroshu_ros2_core::ROS2BaseLCNode("robot_manager"),
   controller_handler_({"joint_state_broadcaster", })
