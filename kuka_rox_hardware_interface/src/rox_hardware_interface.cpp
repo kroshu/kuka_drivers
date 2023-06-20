@@ -47,6 +47,7 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
       grpc::InsecureChannelCredentials()));
 
 #endif
+  hw_control_mode_command_ = std::stod(info_.hardware_parameters.at("control_mode"));
   hw_position_states_.resize(info_.joints.size(), 0.0);
   hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
@@ -137,7 +138,6 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
   SetQoSProfileResponse response;
   grpc::ClientContext context;
 
-  hw_control_mode_command_ = std::stod(info_.hardware_parameters.at("control_mode"));
   request.add_qos_profiles();
 
   request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
@@ -194,14 +194,11 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_timeout(5000);
   request.set_cycle_time(4);
   request.set_external_control_mode(
-    kuka::motion::external::ExternalControlMode(
-      std::stoi(info_.hardware_parameters.at("control_mode"))));
+    kuka::motion::external::ExternalControlMode(hw_control_mode_command_));
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRoXHardwareInterface"), "Starting control in %s",
     kuka::motion::external::ExternalControlMode_Name(
-      std::stoi(
-        info_.hardware_parameters.at(
-          "control_mode"))).c_str());
+      static_cast<int>(hw_control_mode_command_)).c_str());
 
   if (stub_->OpenControlChannel(
       &context, request,
