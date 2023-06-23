@@ -87,8 +87,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   }
 
   // RSI
-  in_buffer_.resize(1024);  // udp_server.h --> #define BUFSIZE 1024
-  out_buffer_.resize(1024);
 
   initial_joint_pos_.resize(info_.joints.size(), 0.0);
   joint_pos_correction_deg_.resize(info_.joints.size(), 0.0);
@@ -207,7 +205,7 @@ return_type KukaRSIHardwareInterface::write(
     return return_type::OK;
   }
 
-  if (stop_flag_) is_active_ = false;
+  if (stop_flag_) {is_active_ = false;}
 
   for (size_t i = 0; i < info_.joints.size(); i++) {
     joint_pos_correction_deg_[i] = (hw_commands_[i] - initial_joint_pos_[i]) *

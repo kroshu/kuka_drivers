@@ -102,12 +102,12 @@ public:
     }
   }
 
-  ssize_t send(std::string & buffer)
+  ssize_t send(char * buffer)
   {
     ssize_t bytes = 0;
     bytes = sendto(
-      sockfd_, buffer.c_str(),
-      buffer.size(), 0, (struct sockaddr *) &clientaddr_, clientlen_);
+      sockfd_, buffer,
+      strlen(buffer), 0, (struct sockaddr *) &clientaddr_, clientlen_);
     if (bytes < 0) {
       RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in send");
     }
@@ -115,7 +115,7 @@ public:
     return bytes;
   }
 
-  ssize_t recv(std::string & buffer)
+  ssize_t recv(char * buffer)
   {
     ssize_t bytes = 0;
 
@@ -151,7 +151,7 @@ public:
       }
     }
 
-    buffer = std::string(buffer_);
+    strncpy(buffer, buffer_, BUFSIZE);
 
     return bytes;
   }

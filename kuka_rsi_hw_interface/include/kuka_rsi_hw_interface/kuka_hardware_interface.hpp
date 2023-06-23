@@ -117,8 +117,8 @@ private:
   RSIState rsi_state_;
   RSICommand rsi_command_;
   std::unique_ptr<UDPServer> server_;
-  std::string in_buffer_;
-  std::string out_buffer_;
+  char in_buffer_[BUFSIZE];  // udp_server.h --> #define BUFSIZE 1024
+  char out_buffer_[BUFSIZE];
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
