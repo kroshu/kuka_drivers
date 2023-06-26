@@ -39,7 +39,7 @@
 #include "nanopb/kuka/core/motion/joint.pb.hh"
 #include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
-#include "os-core-udp-communication/udp_replier.h"
+#include "os-core-udp-communication/replier.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -68,8 +68,6 @@ public:
 
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  bool isActive() const;
-
 private:
   void ObserveControl();
 
@@ -84,6 +82,8 @@ private:
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
 
+  double hw_control_mode_command_;
+
 #ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
@@ -92,7 +92,7 @@ private:
 
   std::thread observe_thread_;
 
-  std::unique_ptr<os::core::udp::communication::UDPReplier> udp_replier_;
+  std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
   std::chrono::milliseconds receive_timeout_ {100};
 
   uint8_t out_buff_arr_[1500];
@@ -102,8 +102,11 @@ private:
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
 
+  static constexpr char CONF_PREFIX[] = "runtime_config";
+
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
+  static constexpr char CONTROL_MODE[] = "control_mode";
 };
 }  // namespace kuka_rox
 

@@ -6,7 +6,6 @@ robot_manager:
     position_controller_name: "joint_trajectory_controller"
     impedance_controller_name: "joint_impedance_controller"
     torque_controller_name: "effort_controller"
-
 # Control mode enums:
 #  1 - position control
 #  2 - cartesian overlay (not supported yet)
