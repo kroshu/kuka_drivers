@@ -144,6 +144,8 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     bytes = server_->recv(in_buffer_);
   }
 
+  //TODO (Komáromi): Decode received msg struct and create a struct
+  //TODO (Komáromi): Receive msg
   rsi_state_ = RSIState(in_buffer_);
 
   for (size_t i = 0; i < info_.joints.size(); ++i) {
@@ -153,6 +155,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   }
   ipoc_ = rsi_state_.ipoc;
 
+  //TODO (Komáromi): construct and send msg
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   server_->set_timeout(1000);  // Set receive timeout to 1 second

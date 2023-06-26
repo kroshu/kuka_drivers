@@ -88,7 +88,7 @@ public:
     RIst_el->Attribute("A", &cart_position[3]);
     RIst_el->Attribute("B", &cart_position[4]);
     RIst_el->Attribute("C", &cart_position[5]);
-    // Extract cartesian actual position
+    // Extract cartesian setpoint position
     TiXmlElement * RSol_el = rob->FirstChildElement("RSol");
     RSol_el->Attribute("X", &initial_cart_position[0]);
     RSol_el->Attribute("Y", &initial_cart_position[1]);
