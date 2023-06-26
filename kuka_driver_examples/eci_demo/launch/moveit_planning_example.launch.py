@@ -35,6 +35,8 @@ def launch_setup(context, *args, **kwargs):
         .planning_scene_monitor(
             publish_robot_description=True, publish_robot_description_semantic=True
         )
+        .joint_limits(file_path=get_package_share_directory('kuka_lbr_iisy_support')
+                      + "/config/{}_joint_limits.yaml".format(robot_model.perform(context)))
         .to_moveit_configs()
     )
 

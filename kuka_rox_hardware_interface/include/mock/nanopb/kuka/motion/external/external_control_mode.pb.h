@@ -10,22 +10,24 @@
 typedef enum _kuka_motion_external_ExternalControlMode
 {
   kuka_motion_external_ExternalControlMode_EXTERNAL_CONTROL_MODE_UNSPECIFIED = 0,
-  kuka_motion_external_ExternalControlMode_POSITION_CONTROL = 1,
-  kuka_motion_external_ExternalControlMode_CARTESIAN_OVERLAY = 2,
-  kuka_motion_external_ExternalControlMode_JOINT_IMPEDANCE_CONTROL = 3,
-  kuka_motion_external_ExternalControlMode_CARTESIAN_IMPEDANCE_CONTROL = 4,
-  kuka_motion_external_ExternalControlMode_TORQUE_CONTROL = 5,
-  kuka_motion_external_ExternalControlMode_MR_VELOCITY_CONTROL = 6
+  kuka_motion_external_ExternalControlMode_JOINT_POSITION_CONTROL = 1,
+  kuka_motion_external_ExternalControlMode_JOINT_IMPEDANCE_CONTROL = 2,
+  kuka_motion_external_ExternalControlMode_JOINT_VELOCITY_CONTROL = 3,
+  kuka_motion_external_ExternalControlMode_JOINT_TORQUE_CONTROL = 4,
+  kuka_motion_external_ExternalControlMode_CARTESIAN_POSITION_CONTROL = 5,
+  kuka_motion_external_ExternalControlMode_CARTESIAN_IMPEDANCE_CONTROL = 6,
+  kuka_motion_external_ExternalControlMode_CARTESIAN_VELOCITY_CONTROL = 7,
+  kuka_motion_external_ExternalControlMode_WRENCH_CONTROL = 8
 } kuka_motion_external_ExternalControlMode;
 
 /* Helper constants for enums */
 #define _kuka_motion_external_ExternalControlMode_MIN \
   kuka_motion_external_ExternalControlMode_EXTERNAL_CONTROL_MODE_UNSPECIFIED
 #define _kuka_motion_external_ExternalControlMode_MAX \
-  kuka_motion_external_ExternalControlMode_MR_VELOCITY_CONTROL
+  kuka_motion_external_ExternalControlMode_WRENCH_CONTROL
 #define _kuka_motion_external_ExternalControlMode_ARRAYSIZE (( \
     kuka_motion_external_ExternalControlMode)( \
-    kuka_motion_external_ExternalControlMode_MR_VELOCITY_CONTROL + 1))
+    kuka_motion_external_ExternalControlMode_WRENCH_CONTROL + 1))
 
 
 #ifdef __cplusplus

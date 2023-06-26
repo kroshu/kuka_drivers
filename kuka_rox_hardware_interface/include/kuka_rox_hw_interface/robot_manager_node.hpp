@@ -27,9 +27,11 @@
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/u_int32.hpp"
 
 #include "communication_helpers/service_tools.hpp"
 #include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+#include "kroshu_ros2_core/ControllerHandler.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
@@ -60,21 +62,29 @@ public:
 private:
   void ObserveControl();
 
+
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  std::vector<std::string> controller_names_;
-  std::map<int, std::vector<std::string>> control_mode_map_;
   std::string robot_model_;
+
+  kroshu_ros2_core::ControllerHandler controller_handler_;
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
+  bool param_declared_ = false;
 #ifdef NON_MOCK_SETUP
   std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
   std::unique_ptr<grpc::ClientContext> context_;
+
+  std::condition_variable control_mode_cv_;
+  std::mutex control_mode_cv_m_;
+  bool control_mode_change_finished_;
 #endif
+
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
@@ -86,7 +96,7 @@ private:
   static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
-}  // namespace kuka_rox
+}   // namespace kuka_rox
 
 
 #endif  // KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
