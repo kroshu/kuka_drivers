@@ -59,7 +59,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#define BUFSIZE 1024
+constexpr size_t BUFFER_SIZE = 1024;
 
 class UDPServer
 {
@@ -133,9 +133,9 @@ public:
       }
 
       if (FD_ISSET(sockfd_, &read_fds)) {
-        memset(buffer_, 0, BUFSIZE);
+        memset(buffer_, 0, BUFFER_SIZE);
         bytes =
-          recvfrom(sockfd_, buffer_, BUFSIZE, 0, (struct sockaddr *) &clientaddr_, &clientlen_);
+          recvfrom(sockfd_, buffer_, BUFFER_SIZE, 0, (struct sockaddr *) &clientaddr_, &clientlen_);
         if (bytes < 0) {
           RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
         }
@@ -144,14 +144,16 @@ public:
       }
 
     } else {
-      memset(buffer_, 0, BUFSIZE);
-      bytes = recvfrom(sockfd_, buffer_, BUFSIZE, 0, (struct sockaddr *) &clientaddr_, &clientlen_);
+      memset(buffer_, 0, BUFFER_SIZE);
+      bytes = recvfrom(
+        sockfd_, buffer_, BUFFER_SIZE, 0, (struct sockaddr *) &clientaddr_,
+        &clientlen_);
       if (bytes < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
       }
     }
 
-    strncpy(buffer, buffer_, BUFSIZE);
+    strncpy(buffer, buffer_, BUFFER_SIZE);
 
     return bytes;
   }
@@ -166,7 +168,7 @@ private:
   socklen_t clientlen_;
   struct sockaddr_in serveraddr_;
   struct sockaddr_in clientaddr_;
-  char buffer_[BUFSIZE];
+  char buffer_[BUFFER_SIZE];
   int optval;
 };
 
