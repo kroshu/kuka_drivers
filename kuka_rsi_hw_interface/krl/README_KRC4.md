@@ -52,6 +52,7 @@ The files **ros_rsi.rsi** and **ros_rsi.rsi.diagram** should not be edited. All 
 At this point you are ready to test the RSI interface. Before the test, make sure that:
 
 * You have specified the `rsi_ip_address` and `rsi_port` tags in the urdf (kuka_kr6_support/urdf/kr6r700sixx_macro_ros2_control.xacro) to correspond with the KRL files on the controller.
+* This IP address is available on the client machine (see Network configuration)
 
 The next steps describe how to start external control using RSI:
 

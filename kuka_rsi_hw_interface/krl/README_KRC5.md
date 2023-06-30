@@ -31,7 +31,7 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
    * Select the IPV4 properties and their the **Advanced** settings.
    * In the new window, you can **Add** new IP addresses.
 
-## 2. KRL Files
+## 3. KRL Files
 
 The files included in this folder specifies the data transferred via RSI. Some of the files needs to be modified to work for your specific configuration.
 
@@ -61,10 +61,11 @@ Method 2:
 5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in the WorkVisual
 6. Deploy the project, and follow the orders
 
-## 3. Testing
+## 4. Testing
 At this point you are ready to test the RSI interface. Before the test, make sure that:
 
 * You have specified the `rsi_ip_address` and `rsi_port` tags in the urdf (kuka_kr6_support/urdf/kr6r700sixx_macro_ros2_control.xacro) to correspond with the KRL files on the controller.
+* This IP address is available on the client machine (see Network configuration)
 
 The next steps describe how to start external control using RSI:
 
