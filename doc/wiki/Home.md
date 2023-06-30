@@ -64,7 +64,7 @@ The following features of the FRI are exposed to ROS2:
 
 ## KUKA KSS driver (RSI)
 
-Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The structure of the driver is similiar to that of the Sunrise driver and the same interfaces are opened, so the same joint controller can be used to move robots. Howewer this controller should be improved, as it allows big torques that stop the robot for machine protection reasons.
+Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The guide to set up this driver can be found in kuka_rsi_hw_interface\krl for both KCR4 and KRC5 controllers.
 
 ## iiQKA driver (ECI)
 
