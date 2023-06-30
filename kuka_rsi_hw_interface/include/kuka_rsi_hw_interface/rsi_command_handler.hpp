@@ -59,7 +59,7 @@ public:
   rsi_command_handler();
   ~rsi_command_handler() = default;
 
-  void Decode(char * buffer, size_t buffer_size);
+  bool Decode(char * buffer, size_t buffer_size);
   void Encode(char * buffer);
 };
 }  // namespace kuka_rsi_hw_interface

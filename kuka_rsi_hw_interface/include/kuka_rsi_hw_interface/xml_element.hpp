@@ -40,29 +40,99 @@
 #ifndef  XML__XML_ELEMENT_H_
 #define  XML__XML_ELEMENT_H_
 
-#include <variant>
 #include <map>
 #include <string>
 #include <vector>
-
-#define XML_STRING_TYPE std::pair<char *, size_t>
+#include <variant>
+#include <cstring>
 
 namespace XML
 {
 
+enum class XMLType : size_t
+{
+  BOOL = 0,
+  LONG = 1,
+  DOUBLE = 2,
+  STRING = 3
+};
+
+struct xml_string
+{
+  char * data_ptr_;
+  size_t length_;
+  xml_string(char * data_ptr = nullptr, size_t length = 0)
+  : data_ptr_(data_ptr), length_(length) {}
+};
+
+template<typename T>
+struct xml_param
+{
+  typedef T ParamType;
+  std::variant<bool, long, double, xml_string> param_;
+};
+
+
+struct xml_string_comperator
+{
+  bool operator()(const std::string & a, const xml_string & b) const
+  {
+    memcmp(a.c_str, b.data_ptr_, b.length_) == 0;
+
+    (a.length() == b.length_ &&
+    memcmp(a.c_str, b.data_ptr_, b.length_) == 0) ? return true : return false;
+  }
+};
+
 class xml_element
 {
 public:
+  std::map<std::string, xml_param<int>, xml_string_comperator> params_;
   std::string name_;
-  // Extend feature with string type param
-  std::map<std::string, std::variant<bool, int, long, double, XML_STRING_TYPE>> params_;
-  std::variant<bool, int, long, double, XML_STRING_TYPE> data_;
   std::vector<xml_element> childs_;
 
   xml_element(std::string name)
   : name_(name) {}
   xml_element() = default;
   ~xml_element() = default;
+
+  // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
+  template<typename T> bool GetParam(std::string key, T & param)
+  {
+    auto param_it = params_.find(key);
+    if (param_it != params_.end()) {
+      param = std::get<T>(param_it->second);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
+  template<typename T> bool SetParam(std::string key, const T & param)
+  {
+    auto param_it = params_.find(key);
+    if (param_it != params_.end()) {
+      param_it->second = param;
+      return true;
+    } else {
+      return false
+    }
+  }
+  int GetLongParam(std::string key)
+  {
+    decltype(params_.find(key)->second)::ParamType;
+    params_.find(key)->second.param_
+  }
+  int GetDoubleParam(std::string key)
+  {
+    return strtod(params_.find(key)->second.data_, NULL, 0);
+  }
+  xml_string GetStringParam(std::string key)
+  {
+    return strtod(params_.find(key)->second.data_, NULL, 0);
+  }
+
 };
 }
 
