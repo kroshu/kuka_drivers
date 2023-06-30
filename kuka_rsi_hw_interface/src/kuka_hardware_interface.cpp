@@ -99,7 +99,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRSIHardwareInterface"),
-    "robot location: %s:%d", rsi_ip_address_.c_str(), rsi_port_);
+    "IP of client machine: %s:%d", rsi_ip_address_.c_str(), rsi_port_);
 
   return CallbackReturn::SUCCESS;
 }
