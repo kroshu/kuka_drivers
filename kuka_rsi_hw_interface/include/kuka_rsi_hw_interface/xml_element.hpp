@@ -46,7 +46,7 @@
 #include <variant>
 #include <cstring>
 
-namespace XML
+namespace xml
 {
 
 enum class XMLType : size_t
@@ -57,80 +57,98 @@ enum class XMLType : size_t
   STRING = 3
 };
 
-struct xml_string
+struct XMLString
 {
   char * data_ptr_;
   size_t length_;
-  xml_string(char * data_ptr = nullptr, size_t length = 0)
+  XMLString(char * data_ptr = nullptr, size_t length = 0)
   : data_ptr_(data_ptr), length_(length) {}
 };
 
-template<typename T>
-struct xml_param
+struct XMLParam
 {
-  typedef T ParamType;
-  std::variant<bool, long, double, xml_string> param_;
+  XMLType param_type_;
+  std::variant<bool, long, double, XMLString> param_;
+  XMLParam(XMLType type)
+  : param_type_(type) {}
 };
 
+// struct XMLStringComparator
+// {
+//   bool operator()(const char * a, const char * b) const
+//   {
+//     return a.length() == b.length_ && memcmp(a.data(), b.data_ptr_, b.length_) > 0;
+//   }
+// };
 
-struct xml_string_comperator
-{
-  bool operator()(const std::string & a, const xml_string & b) const
-  {
-    memcmp(a.c_str, b.data_ptr_, b.length_) == 0;
-
-    (a.length() == b.length_ &&
-    memcmp(a.c_str, b.data_ptr_, b.length_) == 0) ? return true : return false;
-  }
-};
-
-class xml_element
+class XMLElement
 {
 public:
-  std::map<std::string, xml_param<int>, xml_string_comperator> params_;
+  std::map<std::string, XMLParam> params_;
   std::string name_;
-  std::vector<xml_element> childs_;
+  std::vector<XMLElement> childs_;
 
-  xml_element(std::string name)
+  XMLElement(std::string name)
   : name_(name) {}
-  xml_element() = default;
-  ~xml_element() = default;
+  XMLElement() = default;
+  ~XMLElement() = default;
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
-  template<typename T> bool GetParam(std::string key, T & param)
+  template<typename T>
+  bool GetParam(std::string key, T & param)
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      param = std::get<T>(param_it->second);
-      return true;
-    } else {
-      return false;
+      if (std::is_same<T, bool>() || std::is_same<T, long>() ||
+        std::is_same<T, double>() || std::is_same<T, XMLString>)
+      {
+        param = std::get<T>(param_it->second.param_);
+        return true;
+      }
     }
+    return false;
   }
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
-  template<typename T> bool SetParam(std::string key, const T & param)
+  template<typename T>
+  bool SetParam(std::string key, const T & param)
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      param_it->second = param;
-      return true;
-    } else {
-      return false
+      if (std::is_same<T, bool>() || std::is_same<T, long>() ||
+        std::is_same<T, double>() || std::is_same<T, XMLString>)
+      {
+        param_it->second.param_ = param;
+        return true;
+      }
     }
+    return false;
   }
-  int GetLongParam(std::string key)
+
+  void CastParam(XMLString key, const char * str_start_ptr, char ** end_ptr)
   {
-    decltype(params_.find(key)->second)::ParamType;
-    params_.find(key)->second.param_
-  }
-  int GetDoubleParam(std::string key)
-  {
-    return strtod(params_.find(key)->second.data_, NULL, 0);
-  }
-  xml_string GetStringParam(std::string key)
-  {
-    return strtod(params_.find(key)->second.data_, NULL, 0);
+    char key_c_str[key.length_];
+    strncpy(key_c_str, key.data_ptr_, key.length_);
+
+    auto param_it = params_.find(key_c_str);
+    if (param_it != params_.end()) {
+      switch (param_it->second.param_type_) {
+        case XMLType::BOOL:
+        case XMLType::LONG:
+          param_it->second.param_ = strtol(str_start_ptr, end_ptr, 0);
+          break;
+        case XMLType::DOUBLE:
+          param_it->second.param_ = strtod(str_start_ptr, end_ptr);
+          break;
+        case XMLType::STRING:
+          // TODO (Komaromi): write a cast func for casting XMLString
+          //param_it->second.param_ = XMLString...
+          break;
+        default:
+          break;
+      }
+    }
+
   }
 
 };
