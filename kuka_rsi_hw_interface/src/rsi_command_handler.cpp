@@ -18,83 +18,276 @@
 
 namespace kuka_rsi_hw_interface
 {
-rsi_command_handler::rsi_command_handler()
+RSICommandHandler::RSICommandHandler()
 {
-  // Later thi should be defined by the rsi xml
-  command_data_structure_.name_ = "Rob";
-  command_data_structure_.params_["TYPE"] = XML::xml_param(XML::XMLType::STRING);
+  // Later this should be defined by the rsi xml
+  state_data_structure_.name_ = "Rob";
+  state_data_structure_.params_["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
-  XML::xml_element Out("Out");
-  Out.params_["01"] = XML::xml_param(XML::XMLType::BOOL);
-  Out.params_["02"] = XML::xml_param(XML::XMLType::BOOL);
-  Out.params_["03"] = XML::xml_param(XML::XMLType::BOOL);
-  Out.params_["04"] = XML::xml_param(XML::XMLType::BOOL);
-  Out.params_["05"] = XML::xml_param(XML::XMLType::BOOL);
-  XML::xml_element Override("Overrride");
-  Override.params_["Override"] = XML::xml_param(XML::XMLType::LONG);
-  command_data_structure_.childs_.emplace_back(Out);
-  command_data_structure_.childs_.emplace_back(Override);
+  xml::XMLElement Out("Out");
+  Out.params_["01"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.params_["02"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.params_["03"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.params_["04"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.params_["05"] = xml::XMLParam(xml::XMLType::BOOL);
+  xml::XMLElement Override("Overrride");
+  Override.params_["Override"] = xml::XMLParam(xml::XMLType::LONG);
+  state_data_structure_.childs_.emplace_back(Out);
+  state_data_structure_.childs_.emplace_back(Override);
 }
 
-bool rsi_command_handler::Decode(char * buffer, size_t buffer_size)
+bool RSICommandHandler::Decode(char * buffer, size_t buffer_size)
 {
-  char * string_start_ptr = buffer;
-  size_t string_length = 0;
-  size_t i = 0;
-  size_t node_depth = 0;
+  int buffer_idx = 0;
+  detectNode(state_data_structure_, buffer, buffer_idx, buffer_size);
 
+  // xml::XMLString decoded_str(buffer, 0);
+  // char * buffer_it = buffer;
+  // size_t node_depth = 0;
+
+  // // fast forward for the first open bracket
+  // for (; *buffer_it != '\0' && *buffer_it != '<'; buffer_it++) {
+  // }
+
+  // bool isBaseLessNode = false;
+  // // Check one node
+  // // Get string
+  // buffer_it++;
+  // if (!state_data_structure_.IsNameValid(decoded_str, buffer_it)) {
+  //   // Do something when failed
+  // }
+  // string_start_ptr = &buffer[i];
+  // for (; i < buffer_size || buffer[i] != ' '; i++, string_length++) {
+  // }
+  // // Compare string with char* to check node name
+
+  // // Check params
+  // bool isNoMoreParam = false;
+  // while (!isNoMoreParam || i < buffer_size) {
+  //   // Serching for params
+  //   // goes to the next atribute
+  //   for (; i < buffer_size || buffer[i] == ' '; i++) {
+  //   }
+
+  //   // checks for the node hadder end characters
+  //   if (buffer[i] == '/' && buffer[i + 1] == '>') {
+  //     isBaseLessNode = true;
+  //     isNoMoreParam = true;
+  //   } else if (buffer[i] == '>') {
+  //     isNoMoreParam = true;
+  //   } else {
+  //     string_start_ptr = &buffer[i];
+  //     string_length = 0;
+  //     for (; i < buffer_size || buffer[i] != '='; i++, string_length++) {
+  //     }
+  //     // check the field is present if it is present save the data else go to next param
+  //     // move to param start bracket
+  //     for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++) {
+  //     }
+
+  //     i++; // move to params first character
+  //     string_start_ptr = &buffer[i];
+  //     string_length = 0;
+  //     for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++, string_length++) {
+  //     }
+  //     // save param
+
+  //   }
+
+
+  // }
+  // if (buffer[i - 1] == '/') {
+  //   /* code */
+  // }
+}
+
+void RSICommandHandler::detectNode(
+  xml::XMLElement & element, char * buffer, int & buffer_idx, const size_t buffer_size)
+{
+  xml::XMLString node_name(buffer, 0);
   // fast forward for the first open bracket
-  for (; i < buffer_size || buffer[i] != '<'; i++) {
+  for (; buffer_idx < buffer_size && *(buffer + buffer_idx) != '<'; buffer_idx++) {
+  }
+  if (buffer_idx < buffer_size == '\0') {
+    // TODO (Komaromi): Do something when end of string
+  }
+  buffer_idx++;
+  // Validate nodes name
+  if (!element.IsNameValid(node_name, buffer, buffer_idx)) {
+    // TODO (Komaromi): Do something when not valid
   }
 
+  // Validate nodes params
+  size_t numOfParam = 0;
   bool isBaseLessNode = false;
-  // Check one node
-  // Get string
-  i++;
-  string_start_ptr = &buffer[i];
-  for (; i < buffer_size || buffer[i] != ' '; i++, string_length++) {
-  }
-  // Compare string with char* to check node name
-
-  // Check params
   bool isNoMoreParam = false;
-  while (!isNoMoreParam || i < buffer_size) {
-    // Serching for params
-    // goes to the next atribute
-    for (; i < buffer_size || buffer[i] == ' '; i++) {
+  xml::XMLString node_param;
+  while (!isNoMoreParam && buffer_idx < buffer_size) {
+    // fast forward to the next non-space character
+    for (; *(buffer + buffer_idx) == ' '; buffer_idx++) {
     }
-
-    // checks for the node hadder end characters
-    if (buffer[i] == '/' && buffer[i + 1] == '>') {
+    if (buffer_idx >= buffer_size) {
+      // TODO (Komaromi): Do something when end of string
+    }
+    // Check for the nodes hadders end characters
+    if (*(buffer + buffer_idx) == '/' && *(buffer + buffer_idx + 1) == '>') {
       isBaseLessNode = true;
       isNoMoreParam = true;
-    } else if (buffer[i] == '>') {
+    } else if (*(buffer + buffer_idx) == '>') {
       isNoMoreParam = true;
     } else {
-      string_start_ptr = &buffer[i];
-      string_length = 0;
-      for (; i < buffer_size || buffer[i] != '='; i++, string_length++) {
+      // If not the end of the nodes hadder decode param
+      if (!element.IsParamNameValid(node_param, buffer, buffer_idx)) {
+        // TODO (Komaromi): Do something when not valid
       }
-      // check the field is present if it is present save the data else go to next param
-      // move to param start bracket
-      for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++) {
+      for (; buffer_idx < buffer_size && *(buffer + buffer_idx) != '"'; buffer_idx++) {
       }
-
-      i++; // move to params first character
-      string_start_ptr = &buffer[i];
-      string_length = 0;
-      for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++, string_length++) {
+      if (buffer_idx >= buffer_size) {
+        // TODO (Komaromi): Do something when end of string
       }
-      // save param
-
+      buffer_idx++;
+      if (!element.CastParam(node_param, buffer, buffer_idx)) {
+        // TODO (Komaromi): Do something when not valid
+      }
+      buffer_idx++;
+      numOfParam++;
     }
-
-
   }
-  if (buffer[i - 1] == '/') {
-    /* code */
+  for (; buffer_idx < buffer_size && *(buffer + buffer_idx) != '>'; buffer_idx++) {
+  }
+  if (buffer_idx >= buffer_size) {
+    // TODO (Komaromi): Do something when end of string
+  }
+  buffer_idx++;
+
+  if (isBaseLessNode && numOfParam != element.params_.size()) {
+    // TODO (Komaromi): Do something when not valid
+  }
+  // fast forward if
+  for (; *(buffer + buffer_idx) == ' '; buffer_idx++) {
+  }
+  if (buffer_idx >= buffer_size) {
+    // TODO (Komaromi): Do something when end of string
+  }
+  if (!isBaseLessNode) {
+    if (*(buffer + buffer_idx) != '<') {
+      // Node base is data
+      if (!element.CastParam(node_name, buffer, buffer_idx)) {
+        // TODO (Komaromi): Do something when not valid
+      }
+    } else {
+      // node base has childs
+      for (auto && child : element.childs_) {
+        detectNode(child, buffer, buffer_idx, buffer_size);
+      }
+    }
+    for (; buffer_idx < buffer_size && *(buffer + buffer_idx) != '<'; buffer_idx++) {// maybe use strstr()
+    }
+    if (buffer_idx >= buffer_size) {
+      // TODO (Komaromi): Do something when end of string
+    }
+    if (*(buffer + buffer_idx + 1) != '/') {
+      // TODO (Komaromi): Do something when wrong chield number
+    }
+    buffer_idx += 2;
+    if (!element.IsNameValid(node_name, buffer, buffer_idx)) {
+      // TODO (Komaromi): Do something when not valid
+    }
   }
 
 
+//########### Copy #####################
+
+
+  // xml::XMLString node_name(buffer, 0);
+  // // fast forward for the first open bracket
+  // for (; **buffer_it != '\0' && **buffer_it != '<'; *buffer_it++) {
+  // }
+  // if (**buffer_it == '\0') {
+  //   // TODO (Komaromi): Do something when end of string
+  // }
+  // *buffer_it++;
+  // // Validate nodes name
+  // if (!element.IsNameValid(node_name, buffer_it)) {
+  //   // TODO (Komaromi): Do something when not valid
+  // }
+
+  // // Validate nodes params
+  // size_t numOfParam = 0;
+  // bool isBaseLessNode = false;
+  // bool isNoMoreParam = false;
+  // xml::XMLString node_param;
+  // while (!isNoMoreParam && **buffer_it != '\0') {
+  //   // fast forward to the next non-space character
+  //   for (; **buffer_it == ' '; *buffer_it++) {
+  //   }
+  //   if (**buffer_it == '\0') {
+  //     // TODO (Komaromi): Do something when end of string
+  //   }
+  //   // Check for the nodes hadders end characters
+  //   if (**buffer_it == '/' && *(*buffer_it + 1) == '>') {
+  //     isBaseLessNode = true;
+  //     isNoMoreParam = true;
+  //   } else if (**buffer_it == '>') {
+  //     isNoMoreParam = true;
+  //   } else {
+  //     // If not the end of the nodes hadder decode param
+  //     if (!element.IsParamNameValid(node_param, buffer_it)) {
+  //       // TODO (Komaromi): Do something when not valid
+  //     }
+  //     for (; **buffer_it != '\0' && **buffer_it != '"'; *buffer_it++) {
+  //     }
+  //     if (**buffer_it == '\0') {
+  //       // TODO (Komaromi): Do something when end of string
+  //     }
+  //     *buffer_it++;
+  //     if (!element.CastParam(node_param, buffer_it)) {
+  //       // TODO (Komaromi): Do something when not valid
+  //     }
+  //     *buffer_it++;
+  //     numOfParam++;
+  //   }
+  // }
+  // for (; **buffer_it != '\0' && **buffer_it != '>'; *buffer_it++) {
+  // }
+  // if (**buffer_it == '\0') {
+  //   // TODO (Komaromi): Do something when end of string
+  // }
+  // *buffer_it++;
+
+  // if (isBaseLessNode && numOfParam != element.params_.size()) {
+  //   // TODO (Komaromi): Do something when not valid
+  // }
+  // // fast forward if
+  // for (; **buffer_it == ' '; *buffer_it++) {
+  // }
+  // if (**buffer_it == '\0') {
+  //   // TODO (Komaromi): Do something when end of string
+  // }
+  // if (!isBaseLessNode) {
+  //   if (**buffer_it != '<') {
+  //     // Node base is data
+  //     if (!element.CastParam(node_name, buffer_it)) {
+  //       // TODO (Komaromi): Do something when not valid
+  //     }
+  //   } else {
+  //     // node base has childs
+  //     for (auto && child : element.childs_) {
+  //       detectNode(child, buffer_it);
+  //     }
+  //   }
+  //   for (; **buffer_it != '\0' && **buffer_it != '<'; *buffer_it++) {// maybe use strstr()
+  //   }
+  //   if (**buffer_it == '\0') {
+  //     // TODO (Komaromi): Do something when end of string
+  //   }
+  //   if (*(*buffer_it + 1) != '/') {
+  //     // TODO (Komaromi): Do something when wrong chield number
+  //   }
+  //   *buffer_it += 2;
+  //   if (!element.IsNameValid(node_name, buffer_it)) {
+  //     // TODO (Komaromi): Do something when not valid
+  //   }
+  // }
 }
 }

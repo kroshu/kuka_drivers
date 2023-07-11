@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include <variant>
+#include <string>
 
 namespace xml
 {
@@ -36,6 +37,9 @@ struct XMLString
   size_t length_;
   XMLString(char * data_ptr = nullptr, size_t length = 0)
   : data_ptr_(data_ptr), length_(length) {}
+  bool operator==(const XMLString & rhs);
+  bool operator==(const std::string & rhs);
+  bool operator==(const char * rhs);
 };
 
 struct XMLParam
@@ -57,7 +61,7 @@ struct XMLParam
 class XMLElement
 {
 private:
-  static XMLString castXMLString(char ** str_ptr);
+  static XMLString castXMLString(char * str_ptr, int & idx);
 
 public:
   std::string name_;
@@ -69,10 +73,10 @@ public:
   XMLElement() = default;
   ~XMLElement() = default;
 
-  bool CastParam(XMLString key, char ** str_ptr);
+  bool CastParam(XMLString key, char * str_ptr, int & idx);
 
-  bool IsParamNameValid(XMLString & key, char ** str_ptr);
-  bool IsNameValid(XMLString & key, char ** str_ptr);
+  bool IsParamNameValid(XMLString & key, char * str_ptr, int & idx);
+  bool IsNameValid(XMLString & key, char * str_ptr, int & idx);
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>

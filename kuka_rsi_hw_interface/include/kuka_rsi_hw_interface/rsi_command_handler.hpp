@@ -46,18 +46,21 @@
 namespace kuka_rsi_hw_interface
 {
 
-class rsi_command_handler
+class RSICommandHandler
 {
 private:
-  XML::xml_element command_data_structure_;
-  XML::xml_element state_data_structure_;
+  xml::XMLElement command_data_structure_;
+  xml::XMLElement state_data_structure_;
 
   // void updateDataPlace();
   // void updateData();
+  static void detectNode(
+    xml::XMLElement & element, char * buffer, int & buffer_idx,
+    const size_t buffer_size);
 
 public:
-  rsi_command_handler();
-  ~rsi_command_handler() = default;
+  RSICommandHandler();
+  ~RSICommandHandler() = default;
 
   bool Decode(char * buffer, size_t buffer_size);
   void Encode(char * buffer);
