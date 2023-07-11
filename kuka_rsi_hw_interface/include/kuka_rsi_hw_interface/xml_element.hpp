@@ -1,50 +1,23 @@
-/*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014 Norwegian University of Science and Technology
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Norwegian University of Science and
-*     Technology, nor the names of its contributors may be used to
-*     endorse or promote products derived from this software without
-*     specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
-
-/*
- * Author: Komaromi Sandor
- */
+// Copyright 2023 Komáromi Sándor
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef  XML__XML_ELEMENT_H_
 #define  XML__XML_ELEMENT_H_
 
 #include <map>
-#include <string>
 #include <vector>
 #include <variant>
-#include <cstring>
 
 namespace xml
 {
@@ -83,15 +56,23 @@ struct XMLParam
 
 class XMLElement
 {
+private:
+  static XMLString castXMLString(char ** str_ptr);
+
 public:
-  std::map<std::string, XMLParam> params_;
   std::string name_;
+  std::map<std::string, XMLParam> params_;
   std::vector<XMLElement> childs_;
 
   XMLElement(std::string name)
   : name_(name) {}
   XMLElement() = default;
   ~XMLElement() = default;
+
+  bool CastParam(XMLString key, char ** str_ptr);
+
+  bool IsParamNameValid(XMLString & key, char ** str_ptr);
+  bool IsNameValid(XMLString & key, char ** str_ptr);
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>
@@ -124,33 +105,6 @@ public:
     }
     return false;
   }
-
-  void CastParam(XMLString key, const char * str_start_ptr, char ** end_ptr)
-  {
-    char key_c_str[key.length_];
-    strncpy(key_c_str, key.data_ptr_, key.length_);
-
-    auto param_it = params_.find(key_c_str);
-    if (param_it != params_.end()) {
-      switch (param_it->second.param_type_) {
-        case XMLType::BOOL:
-        case XMLType::LONG:
-          param_it->second.param_ = strtol(str_start_ptr, end_ptr, 0);
-          break;
-        case XMLType::DOUBLE:
-          param_it->second.param_ = strtod(str_start_ptr, end_ptr);
-          break;
-        case XMLType::STRING:
-          // TODO (Komaromi): write a cast func for casting XMLString
-          //param_it->second.param_ = XMLString...
-          break;
-        default:
-          break;
-      }
-    }
-
-  }
-
 };
 }
 
