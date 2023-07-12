@@ -23,7 +23,7 @@
 
 namespace xml
 {
-bool XMLElement::CastParam(XMLString key, char * str_ptr, int & idx)
+bool XMLElement::CastParam(XMLString key, const char * const str_ptr, int & idx)
 {
   char key_c_str[key.length_ + 1] = {0};
   char ** end_ptr;
@@ -52,7 +52,7 @@ bool XMLElement::CastParam(XMLString key, char * str_ptr, int & idx)
   return ret_val;
 }
 
-bool XMLElement::IsParamNameValid(XMLString & key, char * str_ptr, int & idx)
+bool XMLElement::IsParamNameValid(XMLString & key, const char * const str_ptr, int & idx)
 {
   key = castXMLString(str_ptr, idx);
   char key_c_str[key.length_ + 1] = {0};
@@ -61,7 +61,7 @@ bool XMLElement::IsParamNameValid(XMLString & key, char * str_ptr, int & idx)
 }
 
 
-bool XMLElement::IsNameValid(XMLString & key, char * str_ptr, int & idx)
+bool XMLElement::IsNameValid(XMLString & key, const char * const str_ptr, int & idx)
 {
   key = castXMLString(str_ptr, idx);
   if (name_.length() != key.length_) {
@@ -70,7 +70,7 @@ bool XMLElement::IsNameValid(XMLString & key, char * str_ptr, int & idx)
   return strncmp(name_.c_str(), key.data_ptr_, key.length_);
 }
 
-XMLString XMLElement::castXMLString(char * str_ptr, int & idx)
+XMLString XMLElement::castXMLString(const char * const str_ptr, int & idx)
 {
   int start_idx = idx;
   for (;

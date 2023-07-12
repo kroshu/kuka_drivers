@@ -55,14 +55,14 @@ private:
   // void updateDataPlace();
   // void updateData();
   static void detectNode(
-    xml::XMLElement & element, char * buffer, int & buffer_idx,
+    xml::XMLElement & element, const char * const buffer, int & buffer_idx,
     const size_t buffer_size);
 
 public:
   RSICommandHandler();
   ~RSICommandHandler() = default;
 
-  bool Decode(char * buffer, size_t buffer_size);
+  bool Decode(const char * const buffer, size_t buffer_size);
   void Encode(char * buffer);
 };
 }  // namespace kuka_rsi_hw_interface

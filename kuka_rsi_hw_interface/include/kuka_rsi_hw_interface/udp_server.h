@@ -153,7 +153,7 @@ public:
       }
     }
 
-    strncpy(buffer, buffer_, BUFFER_SIZE);
+    strncpy(buffer, buffer_, bytes);
 
     return bytes;
   }

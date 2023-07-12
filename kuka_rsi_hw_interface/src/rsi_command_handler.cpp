@@ -36,80 +36,21 @@ RSICommandHandler::RSICommandHandler()
   state_data_structure_.childs_.emplace_back(Override);
 }
 
-bool RSICommandHandler::Decode(char * buffer, size_t buffer_size)
+bool RSICommandHandler::Decode(const char * const buffer, const size_t buffer_size)
 {
   int buffer_idx = 0;
   detectNode(state_data_structure_, buffer, buffer_idx, buffer_size);
-
-  // xml::XMLString decoded_str(buffer, 0);
-  // char * buffer_it = buffer;
-  // size_t node_depth = 0;
-
-  // // fast forward for the first open bracket
-  // for (; *buffer_it != '\0' && *buffer_it != '<'; buffer_it++) {
-  // }
-
-  // bool isBaseLessNode = false;
-  // // Check one node
-  // // Get string
-  // buffer_it++;
-  // if (!state_data_structure_.IsNameValid(decoded_str, buffer_it)) {
-  //   // Do something when failed
-  // }
-  // string_start_ptr = &buffer[i];
-  // for (; i < buffer_size || buffer[i] != ' '; i++, string_length++) {
-  // }
-  // // Compare string with char* to check node name
-
-  // // Check params
-  // bool isNoMoreParam = false;
-  // while (!isNoMoreParam || i < buffer_size) {
-  //   // Serching for params
-  //   // goes to the next atribute
-  //   for (; i < buffer_size || buffer[i] == ' '; i++) {
-  //   }
-
-  //   // checks for the node hadder end characters
-  //   if (buffer[i] == '/' && buffer[i + 1] == '>') {
-  //     isBaseLessNode = true;
-  //     isNoMoreParam = true;
-  //   } else if (buffer[i] == '>') {
-  //     isNoMoreParam = true;
-  //   } else {
-  //     string_start_ptr = &buffer[i];
-  //     string_length = 0;
-  //     for (; i < buffer_size || buffer[i] != '='; i++, string_length++) {
-  //     }
-  //     // check the field is present if it is present save the data else go to next param
-  //     // move to param start bracket
-  //     for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++) {
-  //     }
-
-  //     i++; // move to params first character
-  //     string_start_ptr = &buffer[i];
-  //     string_length = 0;
-  //     for (; i < buffer_size || buffer[i] != '"' || buffer[i] != '\''; i++, string_length++) {
-  //     }
-  //     // save param
-
-  //   }
-
-
-  // }
-  // if (buffer[i - 1] == '/') {
-  //   /* code */
-  // }
 }
 
 void RSICommandHandler::detectNode(
-  xml::XMLElement & element, char * buffer, int & buffer_idx, const size_t buffer_size)
+  xml::XMLElement & element, const char * const buffer, int & buffer_idx, const size_t buffer_size)
 {
   xml::XMLString node_name(buffer, 0);
   // fast forward for the first open bracket
   for (; buffer_idx < buffer_size && *(buffer + buffer_idx) != '<'; buffer_idx++) {
   }
-  if (buffer_idx < buffer_size == '\0') {
-    // TODO (Komaromi): Do something when end of string
+  if (buffer_idx < buffer_size) {
+    // TODO (Komaromi): Do something when not valid
   }
   buffer_idx++;
   // Validate nodes name
