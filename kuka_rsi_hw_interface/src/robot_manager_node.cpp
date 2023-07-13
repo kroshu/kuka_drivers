@@ -43,7 +43,6 @@ RobotManagerNode::RobotManagerNode()
     "robot_manager/is_configured",
     is_configured_qos);
 }
-RobotManagerNode::~RobotManagerNode() {}
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)

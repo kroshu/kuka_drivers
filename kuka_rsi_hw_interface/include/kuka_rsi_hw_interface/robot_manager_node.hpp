@@ -38,7 +38,7 @@ class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();
-  ~RobotManagerNode();
+  ~RobotManagerNode() = default;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State &) override;
