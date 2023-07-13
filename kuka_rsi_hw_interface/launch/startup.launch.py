@@ -51,7 +51,8 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "-c", controller_manager_node, "--inactive"],
+            arguments=["joint_state_broadcaster", "-c",
+                       controller_manager_node, "--inactive"],
         ),
         Node(
             package="controller_manager",
