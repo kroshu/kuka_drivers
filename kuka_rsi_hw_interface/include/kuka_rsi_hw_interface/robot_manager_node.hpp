@@ -63,7 +63,7 @@ private:
   std_msgs::msg::Bool is_configured_msg_;
 };
 
-}   // namespace kuka_rox
+}   // namespace kuka_rsi
 
 
 #endif  // KUKA_RSI_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
