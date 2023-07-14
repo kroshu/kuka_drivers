@@ -42,6 +42,13 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  this->registerStaticParameter<std::string>(
+    "robot_model", "KR6R700sixx",
+    kroshu_ros2_core::ParameterSetAccessRights{true, false,
+      false, false, false}, [this](const std::string & robot_model) {
+      return this->onRobotModelChangeRequest(robot_model);
+    });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -50,7 +57,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Configure hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "KukaRSIHardwareInterface";
+  hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -73,7 +80,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // Clean up hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "KukaRSIHardwareInterface";
+  hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -99,11 +106,11 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "KukaRSIHardwareInterface";
+  hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
+    change_hardware_state_client_, hw_request, 0, 10000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     return FAILURE;
@@ -138,7 +145,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Deactivate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "KukaRSIHardwareInterface";
+  hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
@@ -170,6 +177,12 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(get_logger(), "Successfully stopped controllers");
   return SUCCESS;
+}
+
+bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  robot_model_ = robot_model;
+  return true;
 }
 }  // namespace kuka_rsi
 

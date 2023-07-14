@@ -24,15 +24,16 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration('robot_model')
-    robot_name = "KR6700"
+    robot_name = "KR6700sixx"
 
     # Get URDF via xacro
+    # TODO(Svastits): add other packages for other robot families
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_kr6_support"),
+                [FindPackageShare("kuka_agilus_support"),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
@@ -40,8 +41,10 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # TODO(Svastits): better way for robot model -> name
-    if robot_model.perform(context) == "kuka_kr6_700":
-        robot_name = "KR6700"
+    if robot_model.perform(context) == "kr6_r700_sixx":
+        robot_name = "KR6R700sixx"
+    elif robot_model.perform(context) == "kr6_r900_sixx":
+        robot_name = "KR6R900sixx"
     else:
         print("[ERROR] [launch]: robot model not recognized")
         raise Exception
@@ -105,6 +108,6 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
-        default_value='kuka_kr6_700'
+        default_value='kr6_r700_sixx'
     ))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

@@ -94,8 +94,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   joint_pos_correction_deg_.resize(info_.joints.size(), 0.0);
   ipoc_ = 0;
 
-  rsi_ip_address_ = info_.hardware_parameters["rsi_ip_address"];
-  rsi_port_ = std::stoi(info_.hardware_parameters["rsi_port"]);
+  rsi_ip_address_ = info_.hardware_parameters["client_ip"];
+  rsi_port_ = std::stoi(info_.hardware_parameters["client_port"]);
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRSIHardwareInterface"),

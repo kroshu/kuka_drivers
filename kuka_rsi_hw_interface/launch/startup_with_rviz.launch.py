@@ -24,7 +24,7 @@ from launch.launch_description_sources.python_launch_description_source import P
 
 def generate_launch_description():
     rviz_config_file = os.path.join(
-        get_package_share_directory('kuka_kr6_support'), 'rviz', 'rviz.rviz')
+        get_package_share_directory('kuka_agilus_support'), 'config', 'agilus_urdf.rviz')
 
     startup_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
         [get_package_share_directory('kuka_rsi_hw_interface'), '/launch/startup.launch.py']))
