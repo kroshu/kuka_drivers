@@ -19,6 +19,9 @@
 #include <vector>
 #include <variant>
 #include <string>
+#include <cstdlib>
+#include <iostream>
+
 
 namespace xml
 {
@@ -34,9 +37,11 @@ enum class XMLType : size_t
 struct XMLString
 {
   const char * data_ptr_;
+  char data_c_str_[50] = "";
   size_t length_;
   XMLString(const char * data_ptr = nullptr, size_t length = 0)
   : data_ptr_(data_ptr), length_(length) {}
+  const char * c_str();
   bool operator==(const XMLString & rhs);
   bool operator==(const std::string & rhs);
   bool operator==(const char * rhs);
@@ -46,6 +51,7 @@ struct XMLParam
 {
   XMLType param_type_;
   std::variant<bool, long, double, XMLString> param_;
+  XMLParam() = default;
   XMLParam(XMLType type)
   : param_type_(type) {}
 };
@@ -61,7 +67,7 @@ struct XMLParam
 class XMLElement
 {
 private:
-  static XMLString castXMLString(const char * const str_ptr, int & idx);
+  static XMLString castXMLString(char * & str_ptr);
 
 public:
   std::string name_;
@@ -73,10 +79,11 @@ public:
   XMLElement() = default;
   ~XMLElement() = default;
 
-  bool CastParam(XMLString key, const char * const str_ptr, int & idx);
+  bool CastParam(XMLString key, char * & str_ptr);
+  bool IsParamNameValid(XMLString & key, char * & str_ptr);
+  bool IsNameValid(XMLString & key, char * & str_ptr);
 
-  bool IsParamNameValid(XMLString & key, const char * const str_ptr, int & idx);
-  bool IsNameValid(XMLString & key, const char * const str_ptr, int & idx);
+  std::ostream & operator<<(std::ostream & out);
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>
@@ -85,7 +92,7 @@ public:
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
       if (std::is_same<T, bool>() || std::is_same<T, long>() ||
-        std::is_same<T, double>() || std::is_same<T, XMLString>)
+        std::is_same<T, double>() || std::is_same<T, XMLString>())
       {
         param = std::get<T>(param_it->second.param_);
         return true;
@@ -101,7 +108,7 @@ public:
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
       if (std::is_same<T, bool>() || std::is_same<T, long>() ||
-        std::is_same<T, double>() || std::is_same<T, XMLString>)
+        std::is_same<T, double>() || std::is_same<T, XMLString>())
       {
         param_it->second.param_ = param;
         return true;
