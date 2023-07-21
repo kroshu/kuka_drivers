@@ -16,7 +16,30 @@ int main(int argc, char const * argv[])
 
   std::cout << "decode successful" << std::endl;
 
-  handler.state_data_structure_.operator<<(std::cout) << std::endl;
+  handler.GetState().operator<<(std::cout) << std::endl;
+  bool param;
+  handler.GetState().GetElement("Out").GetParam<bool>("01", param);
+
+  std::cout << "encode data fill" << std::endl;
+  std::string msg = "Hello World!";
+  xml::XMLString xmlStr(msg.c_str(), msg.length() + 1);
+  handler.SetCommandParam<xml::XMLString>("Sen", "Type", xmlStr);
+  double x = 5.2;
+  double y = 6;
+  double z = 3.2;
+  double a = 12;
+  double b = 7;
+  double c = 4.35;
+  long DiO = 12012141212323123;
+  handler.SetCommandParam<double>("RKorr", "X", x);
+  handler.SetCommandParam<double>("RKorr", "Y", y);
+  handler.SetCommandParam<double>("RKorr", "Z", z);
+  handler.SetCommandParam<double>("RKorr", "A", a);
+  handler.SetCommandParam<double>("RKorr", "B", b);
+  handler.SetCommandParam<double>("RKorr", "C", c);
+  handler.SetCommandParam<long>("DiO", "DiO", DiO);
+
+  handler.GetCommand().operator<<(std::cout) << std::endl;
 
   return 0;
 }

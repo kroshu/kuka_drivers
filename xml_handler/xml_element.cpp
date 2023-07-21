@@ -25,12 +25,9 @@
 
 namespace xml
 {
-bool XMLElement::CastParam(XMLString key, char * & str_ptr)
+bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
 {
-  char key_c_str[key.length_ + 1] = {0};
-  strncpy(key_c_str, key.data_ptr_, key.length_);
-
-  auto param_it = params_.find(key_c_str);
+  auto param_it = params_.find(key);
   auto ret_val = param_it != params_.end();
   if (ret_val) {
     switch (param_it->second.param_type_) {
@@ -56,9 +53,7 @@ bool XMLElement::CastParam(XMLString key, char * & str_ptr)
 bool XMLElement::IsParamNameValid(XMLString & key, char * & str_ptr)
 {
   key = castXMLString(str_ptr);
-  char key_c_str[key.length_ + 1] = {0};
-  strncpy(key_c_str, key.data_ptr_, key.length_);
-  return params_.find(key_c_str) != params_.end();
+  return params_.find(key) != params_.end();
 }
 
 
@@ -73,25 +68,38 @@ bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
   return strncmp(name_.c_str(), key.data_ptr_, key.length_) == 0;
 }
 
-XMLString XMLElement::castXMLString(char * & str_ptr)
+XMLElement & XMLElement::GetElement(const std::string & elementName)
 {
-  auto start_ref = str_ptr;
-  for (;
-    *str_ptr != '\0' && *str_ptr != '"' && *str_ptr != ' ' &&
-    *str_ptr != '=' && *str_ptr != '>' && *str_ptr != '/' && *str_ptr != '<'; str_ptr++)
-  {
-    std::cout << *str_ptr;
+  if (elementName == name_) {
+    return *this;
   }
-  std::cout << std::endl;
-  auto data = XMLString(
-    start_ref, (size_t)(str_ptr - start_ref));
-  std::cout << "Cast length: " << data.length_ << std::endl;
-  std::cout << "Cast Data: " << data.c_str() << std::endl;
-  std::cout << "Cast all Data: " << data.data_ptr_ << std::endl;
-  return data;
+  for (auto && child : childs_) {
+    if (elementName == child.name_) {
+      return child.GetElement(elementName);
+    }
+  }
+  char err_buf[1000];
+  sprintf(err_buf, "%s element not found", elementName.c_str());
+  throw std::logic_error(err_buf);
 }
 
-std::ostream & XMLElement::operator<<(std::ostream & out)
+const XMLElement & XMLElement::GetElement(const std::string & elementName) const
+{
+  if (elementName == name_) {
+    return *this;
+  }
+  for (auto && child : childs_) {
+    if (elementName == child.name_) {
+      return child.GetElement(elementName);
+    }
+  }
+  char err_buf[1000];
+  sprintf(err_buf, "%s element not found", elementName.c_str());
+  throw std::logic_error(err_buf);
+}
+
+
+std::ostream & XMLElement::operator<<(std::ostream & out) const
 {
   out << "Element name: " << this->name_ << "\n";
   for (auto && param : params_) {
@@ -108,7 +116,11 @@ std::ostream & XMLElement::operator<<(std::ostream & out)
         break;
       case XMLType::STRING:
         {
-          out << std::get<3>(param.second.param_).c_str() << "\n";
+          char str[std::get<3>(param.second.param_).length_ + 1];
+          std::snprintf(
+            str, std::get<3>(param.second.param_).length_ + 1, "%s",
+            std::get<3>(param.second.param_).data_ptr_);
+          out << str << "\n";
         }
         break;
 
@@ -122,14 +134,24 @@ std::ostream & XMLElement::operator<<(std::ostream & out)
   return out;
 }
 
-const char * XMLString::c_str()
+XMLString XMLElement::castXMLString(char * & str_ptr)
 {
-  if (length_ < 49) {
-    strncpy(data_c_str_, data_ptr_, length_);
-    data_c_str_[length_] = '\0';
-    return data_c_str_;
+  auto start_ref = str_ptr;
+  for (;
+    *str_ptr != '\0' && *str_ptr != '"' && *str_ptr != ' ' &&
+    *str_ptr != '=' && *str_ptr != '>' && *str_ptr != '/' && *str_ptr != '<'; str_ptr++)
+  {
+    // std::cout << *str_ptr;
   }
-  throw std::range_error("C string copy out of range");
+  // std::cout << std::endl;
+  auto data = XMLString(
+    start_ref, (size_t)(str_ptr - start_ref));
+  // char str[data.length_ + 1];
+  // snprintf(str, data.length_ + 1, "%s", data.data_ptr_);
+  // std::cout << "Cast length: " << data.length_ << std::endl;
+  // std::cout << "Cast Data: " << str << std::endl;
+  // std::cout << "Cast all Data: " << data.data_ptr_ << std::endl;
+  return data;
 }
 
 bool XMLString::operator==(const XMLString & rhs)
@@ -148,7 +170,7 @@ bool XMLString::operator==(const std::string & rhs)
   return strncmp(rhs.c_str(), data_ptr_, length_);
 }
 
-bool XMLString::operator==(const char * rhs)
+bool XMLString::operator==(const char * & rhs)
 {
   if (length_ != strlen(rhs)) {
     return false;

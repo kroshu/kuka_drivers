@@ -49,21 +49,35 @@ namespace kuka_rsi_hw_interface
 class RSICommandHandler
 {
 private:
-  // void updateDataPlace();
-  // void updateData();
-  static void detectNode(
+  xml::XMLElement command_data_structure_;
+  xml::XMLElement state_data_structure_;
+  char err_buf_[1024];
+
+  void detectNode(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
     const size_t buffer_size);
 
 public:
-  xml::XMLElement command_data_structure_;
-  xml::XMLElement state_data_structure_;
-
   RSICommandHandler();
   ~RSICommandHandler() = default;
 
+
+  inline const xml::XMLElement & GetState() const {return state_data_structure_;}
+  inline const xml::XMLElement & GetCommand() const {return command_data_structure_;}
+
+  template<typename T>
+  bool SetCommandParam(const std::string & elementName, const std::string & paramName, T & param)
+  {
+    try {
+      return command_data_structure_.GetElement(elementName).SetParam<T>(paramName, param);
+    } catch (const std::exception & e) {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
+  }
+
   bool Decode(char * const buffer, const size_t buffer_size);
-  void Encode(char * buffer);
+  bool Encode(char * & buffer, const size_t buffer_size);
 };
 }  // namespace kuka_rsi_hw_interface
 

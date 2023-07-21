@@ -19,8 +19,10 @@
 #include <vector>
 #include <variant>
 #include <string>
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <functional>
 
 
 namespace xml
@@ -34,17 +36,16 @@ enum class XMLType : size_t
   STRING = 3
 };
 
-struct XMLString
+class XMLString
 {
+public:
   const char * data_ptr_;
-  char data_c_str_[50] = "";
   size_t length_;
   XMLString(const char * data_ptr = nullptr, size_t length = 0)
   : data_ptr_(data_ptr), length_(length) {}
-  const char * c_str();
   bool operator==(const XMLString & rhs);
   bool operator==(const std::string & rhs);
-  bool operator==(const char * rhs);
+  bool operator==(const char * & rhs);
 };
 
 struct XMLParam
@@ -55,6 +56,17 @@ struct XMLParam
   XMLParam(XMLType type)
   : param_type_(type) {}
 };
+
+
+inline bool operator<(const XMLString & a, const std::string & b)
+{
+  return a.length_ == b.length() && strncmp(a.data_ptr_, b.c_str(), a.length_) < 0;
+}
+
+inline bool operator<(const std::string & b, const XMLString & a)
+{
+  return a.length_ == b.length() && strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
+}
 
 // struct XMLStringComparator
 // {
@@ -71,28 +83,31 @@ private:
 
 public:
   std::string name_;
-  std::map<std::string, XMLParam> params_;
+  std::map<std::string, XMLParam, std::less<>> params_;
   std::vector<XMLElement> childs_;
 
-  XMLElement(std::string name)
+  XMLElement(const std::string & name)
   : name_(name) {}
   XMLElement() = default;
   ~XMLElement() = default;
 
-  bool CastParam(XMLString key, char * & str_ptr);
+  bool CastParam(const XMLString & key, char * & str_ptr);
   bool IsParamNameValid(XMLString & key, char * & str_ptr);
   bool IsNameValid(XMLString & key, char * & str_ptr);
 
-  std::ostream & operator<<(std::ostream & out);
+  XMLElement & GetElement(const std::string & elementName);
+  const XMLElement & GetElement(const std::string & elementName) const;
+
+  std::ostream & operator<<(std::ostream & out) const;
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>
-  bool GetParam(std::string key, T & param)
+  bool GetParam(const std::string & key, T & param) const
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      if (std::is_same<T, bool>() || std::is_same<T, long>() ||
-        std::is_same<T, double>() || std::is_same<T, XMLString>())
+      if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
+        std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
         param = std::get<T>(param_it->second.param_);
         return true;
@@ -103,12 +118,12 @@ public:
 
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>
-  bool SetParam(std::string key, const T & param)
+  bool SetParam(const std::string & key, const T & param)
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      if (std::is_same<T, bool>() || std::is_same<T, long>() ||
-        std::is_same<T, double>() || std::is_same<T, XMLString>())
+      if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
+        std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
         param_it->second.param_ = param;
         return true;
