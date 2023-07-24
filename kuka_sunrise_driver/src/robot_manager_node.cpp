@@ -22,7 +22,7 @@ namespace kuka_sunrise
 {
 
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
+: kroshu_ros2_core::ROS2BaseLCNode("sunrise_robot_manager")
 {
   // Controllers do not support the cleanup transition (as of now)
   // Therefore controllers are loaded and configured at startup, only activation

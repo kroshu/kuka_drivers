@@ -24,7 +24,7 @@ using namespace kuka::motion::external;  // NOLINT
 namespace kuka_rox
 {
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager"), controller_handler_({"joint_state_broadcaster",
+: kroshu_ros2_core::ROS2BaseLCNode("iiqka_robot_manager"), controller_handler_({"joint_state_broadcaster",
       "control_mode_handler"})
 #ifdef NON_MOCK_SETUP
   , control_mode_change_finished_(false)
