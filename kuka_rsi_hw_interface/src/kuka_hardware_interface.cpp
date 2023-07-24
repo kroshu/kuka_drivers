@@ -202,7 +202,7 @@ return_type KukaRSIHardwareInterface::write(
 {
   // It is possible, that write is called immediately after activation
   // In this case write in that tick should be skipped to be able to read state at first
-  // First cycle (with 0 ipoc) is handled in the on_activate method, so 0 ipoc means 
+  // First cycle (with 0 ipoc) is handled in the on_activate method, so 0 ipoc means
   //  read was not called yet
   if (!is_active_ || ipoc_ == 0) {
     return return_type::OK;
