@@ -28,6 +28,8 @@ def launch_setup(context, *args, **kwargs):
     # TODO(Svastits):better way to handle supported robot models and families
     if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
         robot_family = "agilus"
+    elif robot_model.perform(context) in ["kr16_r2010-2"]:
+        robot_family = "cybertech"
     else:
         print("[ERROR] [launch]: robot model not recognized")
         raise Exception
