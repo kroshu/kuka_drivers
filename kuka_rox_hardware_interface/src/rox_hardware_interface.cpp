@@ -65,10 +65,10 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.has_joint_attributes = false;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = info_.joints.size();
   control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
-  control_signal_ext_.control_signal.has_velocity_command = true;
-  control_signal_ext_.control_signal.velocity_command.values_count = info_.joints.size();
+  control_signal_ext_.control_signal.has_joint_velocity_command = true;
+  control_signal_ext_.control_signal.joint_velocity_command.values_count = info_.joints.size();
   control_signal_ext_.control_signal.control_mode =
-    kuka_motion_external_ExternalControlMode_POSITION_CONTROL;
+    kuka_motion_external_ExternalControlMode_JOINT_POSITION_CONTROL;
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != Socket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
@@ -344,12 +344,12 @@ return_type KukaRoXHardwareInterface::write(
     hw_damping_commands_.end(), control_signal_ext_.control_signal.joint_attributes.damping);
   std::copy(
     hw_velocity_commands_.begin(),
-    hw_velocity_commands_.end(), control_signal_ext_.control_signal.velocity_command.values);
+    hw_velocity_commands_.end(), control_signal_ext_.control_signal.joint_velocity_command.values);
 
   RCLCPP_INFO( rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "COMMAND position: %f, %f --- velocity: %f , %f ",
           hw_position_commands_[0],hw_position_commands_[1],
-          control_signal_ext_.control_signal.velocity_command.values[0],control_signal_ext_.control_signal.velocity_command.values[1]);
+          control_signal_ext_.control_signal.joint_velocity_command.values[0],control_signal_ext_.control_signal.joint_velocity_command.values[1]);
 
   control_signal_ext_.control_signal.control_mode = kuka_motion_external_ExternalControlMode(
     static_cast<int>(hw_control_mode_command_));
