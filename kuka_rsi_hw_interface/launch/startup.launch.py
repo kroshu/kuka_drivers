@@ -24,30 +24,26 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration('robot_model')
-    robot_name = "KR6700sixx"
+
+    # TODO(Svastits):better way to handle supported robot models and families
+    if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
+        robot_family = "agilus"
+    else:
+        print("[ERROR] [launch]: robot model not recognized")
+        raise Exception
 
     # Get URDF via xacro
-    # TODO(Svastits): add other packages for other robot families
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_agilus_support"),
+                [FindPackageShare('kuka_{}_support'.format(robot_family)),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
         ]
     )
-
-    # TODO(Svastits): better way for robot model -> name
-    if robot_model.perform(context) == "kr6_r700_sixx":
-        robot_name = "KR6R700sixx"
-    elif robot_model.perform(context) == "kr6_r900_sixx":
-        robot_name = "KR6R900sixx"
-    else:
-        print("[ERROR] [launch]: robot model not recognized")
-        raise Exception
 
     robot_description = {'robot_description': robot_description_content}
 
@@ -69,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         package="kuka_rsi_hw_interface",
         executable="robot_manager_node",
-        parameters=[{'robot_model': robot_name}]
+        parameters=[{'robot_model': robot_model}]
     )
     robot_state_publisher = Node(
         package='robot_state_publisher',
