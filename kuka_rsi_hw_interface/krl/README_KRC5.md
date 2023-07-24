@@ -1,5 +1,7 @@
 # Configuring RSI on the controller
 
+This tutorial was tested with RSI 5.0.2 (on KSS8.7)
+
 This guide highlights the steps needed in order to successfully configure the **RSI interface** on the KRC5 controller to work with the **kuka_rsi_hardware_interface** on your PC with ROS.
 
 ## 1. Controller network configuration

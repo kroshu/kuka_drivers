@@ -1,5 +1,7 @@
 # Configuring RSI on the controller
 
+This tutorial was tested with RSI 4.1.3 (on KSS8.6)
+
 This guide highlights the steps needed in order to successfully configure the **RSI interface** on the controller to work with the **kuka_rsi_hardware_interface** on your PC with ROS2.
 
 ## 1. Controller network configuration
