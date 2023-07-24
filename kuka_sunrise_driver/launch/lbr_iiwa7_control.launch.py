@@ -47,8 +47,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='kuka_sunrise',
-            executable='sunrise_control_node',
+            package='kroshu_ros2_core',
+            executable='control_node',
             output='both',
             parameters=[robot_description, controller_config]
         ),

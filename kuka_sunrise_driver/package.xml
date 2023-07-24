@@ -21,7 +21,6 @@
 	<depend>kuka_driver_interfaces</depend>
 	<depend>kroshu_ros2_core</depend>
 	<depend>hardware_interface</depend>
-	<depend>controller_manager</depend>
 
 	<exec_depend>rosidl_default_runtime</exec_depend>
 

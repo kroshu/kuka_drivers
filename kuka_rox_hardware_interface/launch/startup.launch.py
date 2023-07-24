@@ -68,8 +68,8 @@ def launch_setup(context, *args, **kwargs):
     controller_manager_node = '/controller_manager'
 
     control_node = Node(
-        package='kuka_rox_hw_interface',
-        executable='rox_control_node',
+        package='kroshu_ros2_core',
+        executable='control_node',
         parameters=[robot_description, controller_config]
     )
     robot_manager_node = LifecycleNode(
