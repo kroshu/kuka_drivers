@@ -98,8 +98,6 @@ public:
   KUKA_RSI_HW_INTERFACE_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  bool isActive() const;
-
 private:
   bool stop_flag_ = false;
   bool is_active_ = false;
