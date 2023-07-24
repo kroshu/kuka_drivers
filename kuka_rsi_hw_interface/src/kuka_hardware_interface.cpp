@@ -134,6 +134,8 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   stop_flag_ = false;
   // Wait for connection from robot
   server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
+  server_->set_timeout(10000);  // Set receive timeout to 10 seconds for activation
+
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Connecting to robot . . .");
 
