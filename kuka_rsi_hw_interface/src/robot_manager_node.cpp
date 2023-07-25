@@ -22,7 +22,7 @@ using namespace lifecycle_msgs::msg;  // NOLINT
 namespace kuka_rsi
 {
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("kss_robot_manager")
+: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
