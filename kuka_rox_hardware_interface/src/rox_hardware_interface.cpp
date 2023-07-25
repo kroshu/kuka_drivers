@@ -65,10 +65,14 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
   control_signal_ext_.control_signal.has_joint_attributes = false;
   control_signal_ext_.control_signal.joint_attributes.stiffness_count = info_.joints.size();
   control_signal_ext_.control_signal.joint_attributes.damping_count = info_.joints.size();
-  control_signal_ext_.control_signal.has_joint_velocity_command = true;
+  control_signal_ext_.control_signal.has_joint_velocity_command = false;
   control_signal_ext_.control_signal.joint_velocity_command.values_count = info_.joints.size();
+  control_signal_ext_.control_signal.has_twist_command = true;
+  control_signal_ext_.control_signal.twist_command.has_linear = true;
+  control_signal_ext_.control_signal.twist_command.has_angular= true;
+
   control_signal_ext_.control_signal.control_mode =
-    kuka_motion_external_ExternalControlMode_JOINT_POSITION_CONTROL;
+    kuka_motion_external_ExternalControlMode_CARTESIAN_VELOCITY_CONTROL;
 #ifdef NON_MOCK_SETUP
   if (udp_replier_->Setup() != Socket::ErrorCode::kSuccess) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
@@ -259,13 +263,17 @@ return_type KukaRoXHardwareInterface::read(
     //hw_position_states_[i] = hw_position_commands_[i];
     hw_velocity_states_[i] = hw_velocity_commands_[i];
     hw_position_states_[i] += hw_velocity_states_[i]*0.004; 
+    RCLCPP_INFO(
+    rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "joint[%li]: %f",
+       i,hw_velocity_states_[i]);
   }
   // DEBUG
-  RCLCPP_INFO(
+  /*RCLCPP_INFO(
     rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "wheel position: %f , velocity: %f ",
-    hw_position_states_[0],
-    hw_velocity_states_[0]);
+      "KukaRoXHardwareInterface"), "joint size: %li , velocity x: %f z: % f %f ",
+    info_.joints.size(),
+    hw_velocity_states_[0],hw_velocity_states_[1],hw_velocity_states_[2]);*/
 
   return return_type::OK;
 #endif
@@ -299,12 +307,20 @@ return_type KukaRoXHardwareInterface::read(
         hw_position_commands_[i] = hw_position_states_[i];
       }
       
-      RCLCPP_INFO( rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "STATE position: %f, %f --- velocity: %f , %f ",
-          hw_position_states_[0],hw_position_states_[1],
-          hw_velocity_states_[0],hw_velocity_states_[1]);
+      
     }
 
+    hw_velocity_states_[0]=motion_state_external_.motion_state.measured_twist.linear.x;
+    hw_velocity_states_[1]=motion_state_external_.motion_state.measured_twist.linear.y;
+    hw_velocity_states_[2]=motion_state_external_.motion_state.measured_twist.linear.z;
+    hw_velocity_states_[3]=motion_state_external_.motion_state.measured_twist.angular.x;
+    hw_velocity_states_[4]=motion_state_external_.motion_state.measured_twist.angular.y;
+    hw_velocity_states_[5]=motion_state_external_.motion_state.measured_twist.angular.z;
+
+    /*RCLCPP_INFO( rclcpp::get_logger(
+          "KukaRoXHardwareInterface"), "STATE position: %f, %f --- velocity: %f , %f ",
+              hw_position_states_[0],hw_position_states_[1],
+              hw_velocity_states_[0],hw_velocity_states_[5]);*/
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
@@ -345,11 +361,21 @@ return_type KukaRoXHardwareInterface::write(
   std::copy(
     hw_velocity_commands_.begin(),
     hw_velocity_commands_.end(), control_signal_ext_.control_signal.joint_velocity_command.values);
+  
+  control_signal_ext_.control_signal.twist_command.linear.x=hw_velocity_commands_.at(0);
+  control_signal_ext_.control_signal.twist_command.linear.y=hw_velocity_commands_.at(1);
+  control_signal_ext_.control_signal.twist_command.linear.z=hw_velocity_commands_.at(2);
+
+  control_signal_ext_.control_signal.twist_command.angular.x=hw_velocity_commands_.at(3);
+  control_signal_ext_.control_signal.twist_command.angular.y=hw_velocity_commands_.at(4);
+  control_signal_ext_.control_signal.twist_command.angular.z=hw_velocity_commands_.at(5);
+  
+  
+
 
   RCLCPP_INFO( rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "COMMAND position: %f, %f --- velocity: %f , %f ",
-          hw_position_commands_[0],hw_position_commands_[1],
-          control_signal_ext_.control_signal.joint_velocity_command.values[0],control_signal_ext_.control_signal.joint_velocity_command.values[1]);
+      "KukaRoXHardwareInterface"), "COMMAND velocity: x:%f, y: %f, theta:%f ",
+          control_signal_ext_.control_signal.twist_command.linear.x, control_signal_ext_.control_signal.twist_command.linear.y, control_signal_ext_.control_signal.twist_command.angular.z);
 
   control_signal_ext_.control_signal.control_mode = kuka_motion_external_ExternalControlMode(
     static_cast<int>(hw_control_mode_command_));

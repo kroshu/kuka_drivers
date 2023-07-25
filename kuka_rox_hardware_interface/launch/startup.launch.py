@@ -28,12 +28,16 @@ def launch_setup(context, *args, **kwargs):
     robot_name = "LBRiisy3R760"
 
     # Get URDF via xacro
+    robot_support_package = "kuka_mobile_robot_support"
+
+    #robot_support_package = "kuka_lbr_iisy_support"
+  
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_lbr_iisy_support"),
+                [FindPackageShare(robot_support_package),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
@@ -47,6 +51,8 @@ def launch_setup(context, *args, **kwargs):
         robot_name = "LBRiisy11R1300"
     elif robot_model.perform(context) == "lbr_iisy15_r930":
         robot_name = "LBRiisy15R930"
+    elif robot_model.perform(context) == "KUKA_MR":
+        robot_name = "KUKA_MR"
     else:
         print("[ERROR] [launch]: robot model not recognized")
         raise Exception
@@ -105,8 +111,9 @@ def launch_setup(context, *args, **kwargs):
         ("joint_trajectory_controller", joint_traj_controller_config),
         ("joint_impedance_controller", joint_imp_controller_config),
         ("effort_controller", effort_controller_config),
-        ("control_mode_handler", [])
-        ("diffbot_controller", diff_drive_controller_config)
+        ("control_mode_handler", []),
+        ("diffbot_controller", diff_drive_controller_config),
+        ("twist_controller", [])
     ]
 
     controller_spawners = [controller_spawner(controllers)

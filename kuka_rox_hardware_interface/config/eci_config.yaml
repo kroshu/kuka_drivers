@@ -1,18 +1,21 @@
 robot_manager:
   ros__parameters:
-    control_mode: 6
-    client_ip: "0.0.0.0"
-    controller_ip: "0.0.0.0"
-    position_controller_name: "joint_trajectory_controller"
+    control_mode: 7
+    client_ip: "192.168.56.15"
+    controller_ip: "192.168.56.16"
+    joint_position_controller_name: "joint_trajectory_controller"
     impedance_controller_name: "joint_impedance_controller"
     torque_controller_name: "effort_controller"
-    velocity_controller_name: "diffbot_controller"
-# Control mode enums:
-#  1 - position control
-#  2 - cartesian overlay (not supported yet)
-#  3 - joint impedance control
-#  4 - cartesian impedance control (not supported yet)
-#  5 - torque control  
-#  6 - velocity control  
+    joint_velocity_controller_name: "diffbot_controller"
+    cartesian_velocity_controller_name: "twist_controller"
 
+# Control mode enums: 
+#  JOINT_POSITION_CONTROL = 1,
+#  JOINT_IMPEDANCE_CONTROL = 2,
+#  JOINT_VELOCITY_CONTROL = 3,
+#  JOINT_TORQUE_CONTROL = 4,
+#  CARTESIAN_POSITION_CONTROL = 5,
+#  CARTESIAN_IMPEDANCE_CONTROL = 6,
+#  CARTESIAN_VELOCITY_CONTROL = 7,
+#  WRENCH_CONTROL = 8,
 

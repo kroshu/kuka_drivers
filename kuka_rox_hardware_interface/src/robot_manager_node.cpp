@@ -86,6 +86,13 @@ RobotManagerNode::RobotManagerNode()
         kroshu_ros2_core::ControllerType::JOINT_VELOCITY_CONTROLLER_TYPE,
         controller_name);
     });
+    this->registerParameter<std::string>(
+    "cartesian_velocity_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+      false, false}, [this](const std::string & controller_name) {
+      return this->controller_handler_.UpdateControllerName(
+        kroshu_ros2_core::ControllerType::TWIST_CONTROLLER_TYPE,
+        controller_name);
+    });
   this->registerParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
     kroshu_ros2_core::ParameterSetAccessRights{true, true,
@@ -395,7 +402,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     control_mode ==
     static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
     control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
+    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::JOINT_VELOCITY_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode: %i",control_mode);
     return false;

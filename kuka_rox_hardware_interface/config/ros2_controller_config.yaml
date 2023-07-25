@@ -12,5 +12,9 @@
       type: effort_controllers/JointGroupPositionController
     diffbot_controller:
       type: diff_drive_controller/DiffDriveController
+    control_mode_handler:
+      type: kuka_controllers/ControlModeHandler
+    twist_controller:
+      type: kuka_controllers/TwistController
   
     configure_components_on_start: [""]
