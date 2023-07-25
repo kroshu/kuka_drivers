@@ -17,6 +17,9 @@
   <depend>sensor_msgs</depend>
   <depend>kroshu_ros2_core</depend>
   <depend>tinyxml_vendor</depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+	<depend>controller_manager_msgs</depend>
 
   <test_depend>ament_cmake_copyright</test_depend>
   <test_depend>ament_cmake_cppcheck</test_depend>
