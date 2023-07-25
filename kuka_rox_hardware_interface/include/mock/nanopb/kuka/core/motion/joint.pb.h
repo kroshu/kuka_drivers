@@ -12,6 +12,13 @@ typedef struct _kuka_core_motion_JointPositions {
     double values[24]; 
 } kuka_core_motion_JointPositions;
 
+/* An array of joint torques for a given kinematic structure. */
+typedef struct _kuka_core_motion_JointTorques { 
+    /* The unit is the si-unit of the corresponding joint type for each
+ joint index (see JointType). */
+    pb_size_t values_count;
+    double values[24]; 
+} kuka_core_motion_JointTorques;
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +27,9 @@ extern "C" {
 /* Initializer values for message structs */
 #define kuka_core_motion_JointPositions_init_default {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define kuka_core_motion_JointPositions_init_zero {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define kuka_core_motion_JointTorques_init_default {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define kuka_core_motion_JointTorques_init_zero {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define kuka_core_motion_JointVelocities_init_default {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Maximum encoded size of messages (where known) */
 #define kuka_core_motion_JointPositions_size     216
