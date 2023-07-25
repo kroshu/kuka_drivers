@@ -43,6 +43,8 @@ public:
   size_t length_;
   XMLString(const char * data_ptr = nullptr, size_t length = 0)
   : data_ptr_(data_ptr), length_(length) {}
+  XMLString(const std::string & str)
+  : data_ptr_(str.c_str()), length_(str.length()) {}
   bool operator==(const XMLString & rhs);
   bool operator==(const std::string & rhs);
   bool operator==(const char * & rhs);

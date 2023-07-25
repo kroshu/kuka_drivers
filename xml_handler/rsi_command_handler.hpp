@@ -53,7 +53,11 @@ private:
   xml::XMLElement state_data_structure_;
   char err_buf_[1024];
 
-  void detectNode(
+  void decodeNode(
+    xml::XMLElement & element, char * const buffer, char * & buffer_it,
+    const size_t buffer_size);
+
+  void encodeNode(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
     const size_t buffer_size);
 

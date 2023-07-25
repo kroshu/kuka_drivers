@@ -21,8 +21,8 @@ int main(int argc, char const * argv[])
   handler.GetState().GetElement("Out").GetParam<bool>("01", param);
 
   std::cout << "encode data fill" << std::endl;
-  std::string msg = "Hello World!";
-  xml::XMLString xmlStr(msg.c_str(), msg.length() + 1);
+  std::string msg = "KROSHU";
+  xml::XMLString xmlStr(msg);
   handler.SetCommandParam<xml::XMLString>("Sen", "Type", xmlStr);
   double x = 5.2;
   double y = 6;

@@ -57,7 +57,7 @@ bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
   std::cout << "Decode started" << std::endl;
   auto buffer_it = buffer;
   try {
-    detectNode(state_data_structure_, buffer, buffer_it, buffer_size);
+    decodeNode(state_data_structure_, buffer, buffer_it, buffer_size);
   } catch (const std::exception & e) {
     std::cout << "### ERROR ###" << std::endl;
     std::cerr << e.what() << '\n';
@@ -67,7 +67,22 @@ bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
   return true;
 }
 
-void RSICommandHandler::detectNode(
+bool RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
+{
+  std::cout << "Decode started" << std::endl;
+  auto buffer_it = buffer;
+  try {
+    encodeNode(command_data_structure_, buffer, buffer_it, buffer_size);
+  } catch (const std::exception & e) {
+    std::cout << "### ERROR ###" << std::endl;
+    std::cerr << e.what() << '\n';
+    return false;
+  }
+  std::cout << "Decode finished" << std::endl;
+  return true;
+}
+
+void RSICommandHandler::decodeNode(
   xml::XMLElement & element, char * const buffer, char * & buffer_it,
   const size_t buffer_size)
 {
@@ -169,7 +184,7 @@ void RSICommandHandler::detectNode(
     } else {
       // node base has childs
       for (auto && child : element.childs_) {
-        detectNode(child, buffer, buffer_it, buffer_size);
+        decodeNode(child, buffer, buffer_it, buffer_size);
       }
     }
     for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '<'; buffer_it++) {
@@ -192,5 +207,25 @@ void RSICommandHandler::detectNode(
       throw std::logic_error(err_buf_);
     }
   }
+}
+
+void RSICommandHandler::encodeNode(
+  xml::XMLElement & element, char * const buffer, char * & buffer_it,
+  const size_t buffer_size)
+{
+  buffer_it += sprintf(buffer_it, "<%s ", element.name_.c_str());
+  for (auto && param : element.params_) {
+    if (element.name_ != param.first) {
+      buffer_it += sprintf(buffer_it, "%s=\"%s\" ", param.first.c_str(), param.second.param_);
+    }
+    // check for child if there is none and there is no param with the same key then name finish param and retrun
+    // if has that type of param and has child return error
+    // if has child call func for child
+    // if there is one param, then inset it
+    // create param ender
+
+  }
+
+
 }
 }
