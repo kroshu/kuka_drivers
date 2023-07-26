@@ -32,13 +32,13 @@ install(DIRECTORY
 add_library(
   omnimove_external_control
   SHARED
-  src/omnimove_controller.cpp
+  src/omnimove_external_control.cpp
 )
 
 install(TARGETS omnimove_external_control
   DESTINATION lib)
 ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
-pluginlib_export_plugin_description_file(hardware_interface omnimove.xml)
+pluginlib_export_plugin_description_file(hardware_interface omnimove_external_control.xml)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -52,6 +52,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 ament_export_libraries(
-  omnimove_controller
+  omnimove_external_control
 )
 ament_package()

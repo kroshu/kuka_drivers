@@ -5,9 +5,9 @@
 #include <hardware_interface/handle.hpp>
 
 namespace omnimove{
-    class OmnimoveController:public hardware_interface::SystemInterface{
+    class OmnimoveExternalControl:public hardware_interface::SystemInterface{
     public:
-        OmnimoveController();
+        OmnimoveExternalControl();
         rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
         hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
         hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
@@ -17,6 +17,10 @@ namespace omnimove{
         hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
         hardware_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State&) override;
         hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State&) override;
+     private:
+        double velocity_state[3];
+        double position_state[3];
+        double velocity_commands[3];
 
 
     };
