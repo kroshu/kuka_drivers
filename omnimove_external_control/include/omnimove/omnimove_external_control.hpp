@@ -18,9 +18,9 @@ namespace omnimove{
         hardware_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State&) override;
         hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State&) override;
      private:
-        double velocity_state[3];
-        double position_state[3];
-        double velocity_commands[3];
+        std::vector<double> velocity_state_;
+        std::vector<double> position_state_;
+        std::vector<double> velocity_commands_;
 
 
     };

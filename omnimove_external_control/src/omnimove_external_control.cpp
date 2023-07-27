@@ -1,6 +1,9 @@
 #include "omnimove/omnimove_external_control.hpp"
+#include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 using namespace hardware_interface;
 using namespace rclcpp_lifecycle::node_interfaces;
+using namespace std;
 namespace  omnimove{
 
     OmnimoveExternalControl::OmnimoveExternalControl():hardware_interface::SystemInterface(){
@@ -9,6 +12,10 @@ namespace  omnimove{
         if (SystemInterface::on_init(info)!= LifecycleNodeInterface::CallbackReturn::SUCCESS){
             return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
         }
+        position_state_.resize(info.joints.size());
+        velocity_state_.resize(info.joints.size());
+        velocity_commands_.resize(info.joints.size());
+
         return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 
     }
@@ -31,15 +38,19 @@ namespace  omnimove{
 
     std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces(){
         std::vector<hardware_interface::StateInterface> state_interface;
-        state_interface.emplace_back("move", "position", &position_state[0]);
-        state_interface.emplace_back("move", "velocity", &velocity_state[0]);
-
+        for(unsigned int i=0; i<info_.joints.size(); ++i){
+            state_interface.emplace_back(info_.joints[i].name, "position", &position_state_[i]);
+            state_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_state_[i]);
+        }
         return state_interface;
     }
 
     std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces(){
         std::vector<hardware_interface::CommandInterface> command_interface;
-        command_interface.emplace_back("move", "velocity", &velocity_commands[0]);
+        for(unsigned int i=0; i<info_.joints.size(); ++i){
+            command_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_commands_[i]);
+        }
+
         return command_interface;
     }
 
@@ -48,6 +59,8 @@ namespace  omnimove{
     }
 
     hardware_interface::return_type OmnimoveExternalControl::write(const rclcpp::Time&, const rclcpp::Duration&){
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
+                <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
         return return_type::OK;
     }
 
