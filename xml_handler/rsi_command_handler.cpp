@@ -213,19 +213,65 @@ void RSICommandHandler::encodeNode(
   xml::XMLElement & element, char * const buffer, char * & buffer_it,
   const size_t buffer_size)
 {
-  buffer_it += sprintf(buffer_it, "<%s ", element.name_.c_str());
+  auto idx = sprintf(buffer_it, "<%s ", element.name_.c_str());
+  if ((size_t)buffer_it + idx >= buffer_size) {
+    throw std::range_error("Out of the buffers range");
+  }
+  buffer_it += idx;
+  bool isBaseLessNode = false;
   for (auto && param : element.params_) {
-    if (element.name_ != param.first) {
-      buffer_it += sprintf(buffer_it, "%s=\"%s\" ", param.first.c_str(), param.second.param_);
+    if (element.childs_.size() <= 0 && element.name_ == param.first) {
+      isBaseLessNode = true;
+    } else {
+      idx = sprintf(buffer_it, "%s=\"%s\" ", param.first.c_str(), param.second.param_);
+      if ((size_t)buffer_it + idx >= buffer_size) {
+        throw std::range_error("Out of the buffers range");
+      }
+      buffer_it += idx;
     }
     // check for child if there is none and there is no param with the same key then name finish param and retrun
     // if has that type of param and has child return error
     // if has child call func for child
     // if there is one param, then inset it
     // create param ender
-
   }
-
+  if (element.childs_.size() <= 0 && isBaseLessNode == false) {
+    std::sprintf(err_buf_, "The %s node has no chiled and has no base data");
+    throw std::logic_error(err_buf_);
+  }
+  if (isBaseLessNode) {
+    idx = sprintf(buffer_it, "/>");
+    if ((size_t)buffer_it + idx >= buffer_size) {
+      throw std::range_error("Out of the buffers range");
+    }
+    buffer_it += idx;
+  } else {
+    buffer_it--;
+    idx = sprintf(buffer_it, ">");
+    if ((size_t)buffer_it + idx >= buffer_size) {
+      throw std::range_error("Out of the buffers range");
+    }
+    buffer_it += idx;
+    if (element.childs_.size() > 0) {
+      // Add childs
+      for (auto && child : element.childs_) {
+        encodeNode(child, buffer, buffer_it, buffer_size);
+      }
+    } else {
+      // Add data
+      idx = sprintf(buffer_it, "%u", element.params_.find(element.name_)->second.param_);
+      if ((size_t)buffer_it + idx >= buffer_size) {
+        throw std::range_error("Out of the buffers range");
+      }
+      buffer_it += idx;
+    }
+    // Add end bracket
+    idx = sprintf(buffer_it, "</%s>", element.name_);
+    if ((size_t)buffer_it + idx >= buffer_size) {
+      throw std::range_error("Out of the buffers range");
+    }
+    buffer_it += idx;
+  }
 
 }
 }
