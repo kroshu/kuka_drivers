@@ -25,31 +25,31 @@ RSICommandHandler::RSICommandHandler()
 : state_data_structure_("Rob"), command_data_structure_("Sen"), err_buf_("")
 {
   // Later this should be defined by the rsi xml
-  state_data_structure_.params_["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
+  state_data_structure_.GetParams()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
   xml::XMLElement Out("Out");
-  Out.params_["01"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.params_["02"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.params_["03"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.params_["04"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.params_["05"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.GetParams()["01"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.GetParams()["02"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.GetParams()["03"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.GetParams()["04"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.GetParams()["05"] = xml::XMLParam(xml::XMLType::BOOL);
   xml::XMLElement Override("Override");
-  Override.params_["Override"] = xml::XMLParam(xml::XMLType::LONG);
-  state_data_structure_.childs_.emplace_back(Out);
-  state_data_structure_.childs_.emplace_back(Override);
+  Override.GetParams()["Override"] = xml::XMLParam(xml::XMLType::LONG);
+  state_data_structure_.GetChilds().emplace_back(Out);
+  state_data_structure_.GetChilds().emplace_back(Override);
 
-  command_data_structure_.params_["Type"] = xml::XMLParam(xml::XMLType::STRING);
+  command_data_structure_.GetParams()["Type"] = xml::XMLParam(xml::XMLType::STRING);
   xml::XMLElement RKorr("RKorr");
-  RKorr.params_["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.params_["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.params_["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.params_["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.params_["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.params_["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.GetParams()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
   xml::XMLElement DiO("DiO");
-  DiO.params_["DiO"] = xml::XMLParam(xml::XMLType::LONG);
-  command_data_structure_.childs_.emplace_back(RKorr);
-  command_data_structure_.childs_.emplace_back(DiO);
+  DiO.GetParams()["DiO"] = xml::XMLParam(xml::XMLType::LONG);
+  command_data_structure_.GetChilds().emplace_back(RKorr);
+  command_data_structure_.GetChilds().emplace_back(DiO);
 }
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
@@ -98,7 +98,7 @@ void RSICommandHandler::decodeNode(
   if (!element.IsNameValid(node_name, buffer_it)) {
     auto i = std::sprintf(err_buf_, "The detected name (");
     i = std::snprintf(err_buf_ + i, node_name.length_, "%s", node_name.data_ptr_);
-    i = std::sprintf(err_buf_, ") does not match the elements name %s.", element.name_.c_str());
+    i = std::sprintf(err_buf_, ") does not match the elements name %s.", element.GetName().c_str());
     throw std::logic_error(err_buf_);
   }
   // char str[node_name.length_ + 1];
@@ -129,7 +129,7 @@ void RSICommandHandler::decodeNode(
         i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_name.data_ptr_);
         std::sprintf(
           err_buf_ + i, ") dose not match with any of the %s elements parameters.",
-          element.name_.c_str());
+          element.GetName().c_str());
         throw std::logic_error(err_buf_);
       }
       for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '"'; buffer_it++) {
@@ -143,7 +143,7 @@ void RSICommandHandler::decodeNode(
         i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_param.data_ptr_);
         std::sprintf(
           err_buf_ + i, " param into the %s elements parameter list.",
-          element.name_.c_str());
+          element.GetName().c_str());
         throw std::logic_error(err_buf_);
       }
       buffer_it++;
@@ -157,11 +157,11 @@ void RSICommandHandler::decodeNode(
   }
   buffer_it++;
 
-  if (isBaseLessNode && numOfParam != element.params_.size()) {
+  if (isBaseLessNode && numOfParam != element.GetParams().size()) {
     std::sprintf(
       err_buf_,
       "%lu parameter found it does not match with %s elements parameter list size.", numOfParam,
-      element.name_.c_str());
+      element.GetName().c_str());
     throw std::logic_error(err_buf_);
   }
   // fast forward if
@@ -178,12 +178,12 @@ void RSICommandHandler::decodeNode(
         i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_param.data_ptr_);
         std::sprintf(
           err_buf_ + i, " parameter into the %s elements parameter list",
-          element.name_.c_str());
+          element.GetName().c_str());
         throw std::logic_error(err_buf_);
       }
     } else {
       // node base has childs
-      for (auto && child : element.childs_) {
+      for (auto && child : element.GetChilds()) {
         decodeNode(child, buffer, buffer_it, buffer_size);
       }
     }
@@ -196,14 +196,16 @@ void RSICommandHandler::decodeNode(
       std::sprintf(
         err_buf_,
         "Start of an end Node, where there should be none. Error came in the %s node",
-        element.name_.c_str());
+        element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
     buffer_it += 2;
     if (!element.IsNameValid(node_name, buffer_it)) {
       auto i = std::sprintf(err_buf_, "The detected name (");
       i = std::snprintf(err_buf_ + i, node_name.length_, "%s", node_name.data_ptr_);
-      std::sprintf(err_buf_ + i, ") does not match the elements name: %s", element.name_.c_str());
+      std::sprintf(
+        err_buf_ + i, ") does not match the elements name: %s",
+        element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
   }
@@ -213,30 +215,33 @@ void RSICommandHandler::encodeNode(
   xml::XMLElement & element, char * const buffer, char * & buffer_it,
   const size_t buffer_size)
 {
-  auto idx = sprintf(buffer_it, "<%s ", element.name_.c_str());
+  auto idx = sprintf(buffer_it, "<%s ", element.GetName().c_str());
   if ((size_t)buffer_it + idx >= buffer_size) {
     throw std::range_error("Out of the buffers range");
   }
   buffer_it += idx;
   bool isBaseLessNode = false;
-  for (auto && param : element.params_) {
-    if (element.childs_.size() <= 0 && element.name_ == param.first) {
+  for (auto && param : element.GetParams()) {
+    if (element.GetParams().size() <= 0 && element.GetName() == param.first) {
       isBaseLessNode = true;
     } else {
-      idx = sprintf(buffer_it, "%s=\"%s\" ", param.first.c_str(), param.second.param_);
+      idx = sprintf(buffer_it, "%s=\"", param.first.c_str());
+      if ((size_t)buffer_it + idx >= buffer_size) {
+        throw std::range_error("Out of the buffers range");
+      }
+      buffer_it += idx;
+      param.second.ParamSprint(buffer_it, buffer_size);
+      idx = sprintf(buffer_it, "\" ");
       if ((size_t)buffer_it + idx >= buffer_size) {
         throw std::range_error("Out of the buffers range");
       }
       buffer_it += idx;
     }
-    // check for child if there is none and there is no param with the same key then name finish param and retrun
-    // if has that type of param and has child return error
-    // if has child call func for child
-    // if there is one param, then inset it
-    // create param ender
   }
-  if (element.childs_.size() <= 0 && isBaseLessNode == false) {
-    std::sprintf(err_buf_, "The %s node has no chiled and has no base data");
+  if (element.GetChilds().size() <= 0 && isBaseLessNode == false) {
+    std::sprintf(
+      err_buf_, "The %s node has no chiled and has no base data",
+      element.GetName().c_str());
     throw std::logic_error(err_buf_);
   }
   if (isBaseLessNode) {
@@ -252,21 +257,17 @@ void RSICommandHandler::encodeNode(
       throw std::range_error("Out of the buffers range");
     }
     buffer_it += idx;
-    if (element.childs_.size() > 0) {
+    if (element.GetChilds().size() > 0) {
       // Add childs
-      for (auto && child : element.childs_) {
+      for (auto && child : element.GetChilds()) {
         encodeNode(child, buffer, buffer_it, buffer_size);
       }
     } else {
       // Add data
-      idx = sprintf(buffer_it, "%u", element.params_.find(element.name_)->second.param_);
-      if ((size_t)buffer_it + idx >= buffer_size) {
-        throw std::range_error("Out of the buffers range");
-      }
-      buffer_it += idx;
+      element.GetParams().find(element.GetName())->second.ParamSprint(buffer_it, buffer_size);
     }
     // Add end bracket
-    idx = sprintf(buffer_it, "</%s>", element.name_);
+    idx = sprintf(buffer_it, "</%s>", element.GetName().c_str());
     if ((size_t)buffer_it + idx >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }

@@ -19,6 +19,7 @@ int main(int argc, char const * argv[])
   handler.GetState().operator<<(std::cout) << std::endl;
   bool param;
   handler.GetState().GetElement("Out").GetParam<bool>("01", param);
+  auto str = handler.GetState().GetParam<xml::XMLString>("TYPE");
 
   std::cout << "encode data fill" << std::endl;
   std::string msg = "KROSHU";
@@ -40,6 +41,12 @@ int main(int argc, char const * argv[])
   handler.SetCommandParam<long>("DiO", "DiO", DiO);
 
   handler.GetCommand().operator<<(std::cout) << std::endl;
+
+  char xml_command[1024] = {0};
+  if (!handler.Encode(xml_command, 1024)) {
+    std::cout << "decode failed" << std::endl;
+    return -1;
+  }
 
   return 0;
 }

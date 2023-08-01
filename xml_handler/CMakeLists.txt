@@ -17,6 +17,8 @@ endif()
 add_library(${PROJECT_NAME} SHARED
   rsi_command_handler.cpp
   xml_element.cpp
+  xml_string.cpp
+  xml_param.cpp
 )
 
 add_executable(decode_test

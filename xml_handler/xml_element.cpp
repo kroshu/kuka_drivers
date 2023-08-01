@@ -153,28 +153,4 @@ XMLString XMLElement::castXMLString(char * & str_ptr)
   // std::cout << "Cast all Data: " << data.data_ptr_ << std::endl;
   return data;
 }
-
-bool XMLString::operator==(const XMLString & rhs)
-{
-  if (length_ != rhs.length_) {
-    return false;
-  }
-  return strncmp(data_ptr_, rhs.data_ptr_, length_);
-}
-
-bool XMLString::operator==(const std::string & rhs)
-{
-  if (length_ != rhs.length()) {
-    return false;
-  }
-  return strncmp(rhs.c_str(), data_ptr_, length_);
-}
-
-bool XMLString::operator==(const char * & rhs)
-{
-  if (length_ != strlen(rhs)) {
-    return false;
-  }
-  return strncmp(rhs, data_ptr_, length_);
-}
 }
