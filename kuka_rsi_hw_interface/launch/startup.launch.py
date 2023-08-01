@@ -24,6 +24,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration('robot_model')
+    use_fake_hardware = LaunchConfiguration('use_fake_hardware')
 
     # TODO(Svastits):better way to handle supported robot models and families
     if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
@@ -44,6 +45,8 @@ def launch_setup(context, *args, **kwargs):
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
         ]
     )
 
@@ -77,12 +80,15 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config):
+    def controller_spawner(controller_with_config, activate=False):
+        arg_list = [controller_with_config[0], "-c", controller_manager_node, "-p",
+                    controller_with_config[1]]
+        if not activate:
+            arg_list.append("--inactive")
         return Node(
             package="controller_manager",
             executable="spawner",
-            arguments=[controller_with_config[0], "-c", controller_manager_node, "-p",
-                       controller_with_config[1], "--inactive"]
+            arguments=arg_list
         )
 
     controller_names_and_config = [
@@ -107,5 +113,9 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
         default_value='kr6_r700_sixx'
+    ))
+    launch_arguments.append(DeclareLaunchArgument(
+        'use_fake_hardware',
+        default_value="false"
     ))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
