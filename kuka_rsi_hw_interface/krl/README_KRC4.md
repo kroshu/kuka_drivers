@@ -1,5 +1,7 @@
 # Configuring RSI on the controller
 
+This tutorial was tested with RSI 4.1.3 (on KSS8.6)
+
 This guide highlights the steps needed in order to successfully configure the **RSI interface** on the controller to work with the **kuka_rsi_hardware_interface** on your PC with ROS2.
 
 ## 1. Controller network configuration
@@ -34,7 +36,7 @@ The files included in this folder specifies the data transferred via RSI. Some o
 1. Edit the `IP_NUMBER` tag so that it corresponds to the IP address (192.168.1.xx) previously added for your PC.
 2. Keep the `PORT` tag as it is (59152) or change it if you want to use another port.
 
-Note that the `rsi_ip_address` and `rsi_port` tags of the kuka_kr6_support/urdf/kr6r700sixx_macro_ros2_control.xacro (inside kuka_simulators) must correspond to the `IP_NUMBER`and `PORT` set in these KRL files.
+Note that the `client_ip` and `client_port` parameters in config/rsi_config.yaml must correspond to the `IP_NUMBER`and `PORT` set in these KRL files.
 
 ##### ros_rsi.src
 This should only be edited if the start position specified within the file is not desirable for your application.
@@ -51,7 +53,7 @@ The files **ros_rsi.rsi** and **ros_rsi.rsi.diagram** should not be edited. All 
 ## 3. Testing
 At this point you are ready to test the RSI interface. Before the test, make sure that:
 
-* You have specified the `rsi_ip_address` and `rsi_port` tags in the urdf (kuka_kr6_support/urdf/kr6r700sixx_macro_ros2_control.xacro) to correspond with the KRL files on the controller.
+* You have specified the `client_ip` and `client_port` tags in the configuration file (config/rsi_config.yaml) to correspond with the KRL files on the controller.
 * This IP address is available on the client machine (see Network configuration)
 
 The next steps describe how to start external control using RSI:

@@ -132,10 +132,16 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   stop_flag_ = false;
   // Wait for connection from robot
   server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
+  server_->set_timeout(10000);  // Set receive timeout to 10 seconds for activation
+
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Connecting to robot . . .");
 
   int bytes = server_->recv(in_buffer_);
+  if (bytes == 0) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "Connection timeout");
+    return CallbackReturn::FAILURE;
+  }
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Got data from robot");
 
@@ -179,7 +185,7 @@ return_type KukaRSIHardwareInterface::read(
   const rclcpp::Duration &)
 {
   if (!is_active_) {
-    RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     return return_type::OK;
   }
 
@@ -203,8 +209,9 @@ return_type KukaRSIHardwareInterface::write(
 {
   // It is possible, that write is called immediately after activation
   // In this case write in that tick should be skipped to be able to read state at first
+  // First cycle (with 0 ipoc) is handled in the on_activate method, so 0 ipoc means
+  //  read was not called yet
   if (!is_active_ || ipoc_ == 0) {
-    RCLCPP_DEBUG(rclcpp::get_logger("KukaRSIHardwareInterface"), "Hardware interface not active");
     return return_type::OK;
   }
 
@@ -219,12 +226,6 @@ return_type KukaRSIHardwareInterface::write(
   server_->send(out_buffer_);
   return return_type::OK;
 }
-
-bool KukaRSIHardwareInterface::isActive() const
-{
-  return is_active_;
-}
-
 }  // namespace namespace kuka_rsi_hw_interface
 
 PLUGINLIB_EXPORT_CLASS(

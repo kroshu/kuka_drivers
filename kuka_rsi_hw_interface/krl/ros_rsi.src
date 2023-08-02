@@ -50,8 +50,8 @@ DEF RSI_AxisCorr( )
 ; =============================================
 
 ; Declaration of KRL variables
-DECL INT ret	; Return value for RSI commands
-DECL INT CONTID	; ContainerID
+DECL INT ret ; Return value for RSI commands
+DECL INT CONTID ; ContainerID
 
 ;FOLD INI
   ;FOLD BASISTECH INI
@@ -64,9 +64,6 @@ DECL INT CONTID	; ContainerID
 
   ;ENDFOLD (USER INI)
 ;ENDFOLD (INI)
-
-; Move to start position
-PTP {A1 0, A2 -90, A3 90, A4 0, A5 90, A6 0}
 
 ; Create RSI Context 
 ret = RSI_CREATE("ros_rsi",CONTID,TRUE)
@@ -88,7 +85,4 @@ ret = RSI_OFF()
 IF (ret <> RSIOK) THEN
   HALT
 ENDIF
-
-PTP {A1 0, A2 -90, A3 90, A4 0, A5 90, A6 0}
-
 END

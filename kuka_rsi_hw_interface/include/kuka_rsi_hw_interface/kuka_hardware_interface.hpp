@@ -98,8 +98,6 @@ public:
   KUKA_RSI_HW_INTERFACE_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  bool isActive() const;
-
 private:
   bool stop_flag_ = false;
   bool is_active_ = false;
@@ -117,8 +115,8 @@ private:
   RSIState rsi_state_;
   RSICommand rsi_command_;
   std::unique_ptr<UDPServer> server_;
-  char in_buffer_[BUFFER_SIZE];  // udp_server.h --> constexpr size_t BUFFER_SIZE = 1024;
-  char out_buffer_[BUFFER_SIZE];
+  std::string in_buffer_;
+  std::string out_buffer_;
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
