@@ -29,7 +29,7 @@
          <ELEMENT TAG="AK.A4" TYPE="DOUBLE" INDX="4" HOLDON="1" />
          <ELEMENT TAG="AK.A5" TYPE="DOUBLE" INDX="5" HOLDON="1" />
          <ELEMENT TAG="AK.A6" TYPE="DOUBLE" INDX="6" HOLDON="1" />
-		   <ELEMENT TAG="Stop" TYPE="BOOL" INDX="7" HOLDON="0" />
+         <ELEMENT TAG="Stop" TYPE="BOOL" INDX="7" HOLDON="0" />
       </ELEMENTS>
    </RECEIVE>
 </ROOT>

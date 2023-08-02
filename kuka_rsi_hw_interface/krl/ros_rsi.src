@@ -50,8 +50,8 @@ DEF RSI_AxisCorr( )
 ; =============================================
 
 ; Declaration of KRL variables
-DECL INT ret	; Return value for RSI commands
-DECL INT CONTID	; ContainerID
+DECL INT ret ; Return value for RSI commands
+DECL INT CONTID ; ContainerID
 
 ;FOLD INI
   ;FOLD BASISTECH INI
