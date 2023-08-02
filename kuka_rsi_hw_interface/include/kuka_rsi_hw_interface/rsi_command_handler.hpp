@@ -41,7 +41,7 @@
 #define  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_H_
 
 
-#include "xml_element.hpp"
+#include "xml_handler/xml_element.hpp"
 
 namespace kuka_rsi_hw_interface
 {

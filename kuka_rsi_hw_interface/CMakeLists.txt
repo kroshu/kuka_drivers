@@ -8,7 +8,7 @@ endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -29,20 +29,28 @@ find_package(TinyXML REQUIRED)
 
 include_directories(include ${TinyXML2_INCLUDE_DIRS})
 
+add_library(xml_handler SHARED
+  src/xml_handler/xml_element.cpp
+  src/xml_handler/xml_param.cpp
+  src/xml_handler/xml_string.cpp
+)
+
 add_library(${PROJECT_NAME} SHARED
   src/kuka_hardware_interface.cpp
+  src/rsi_command_handler.cpp
 )
+
+target_link_libraries(${PROJECT_NAME} xml_handler)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUILDING_DLL")
+
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
 target_link_libraries(${PROJECT_NAME} tinyxml)
-
-
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
@@ -51,7 +59,7 @@ target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rsi_hw_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} robot_manager_node
+install(TARGETS ${PROJECT_NAME} robot_manager_node xml_handler
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
@@ -73,7 +81,7 @@ if(BUILD_TESTING)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
 
-## EXPORTS
+# # EXPORTS
 ament_export_include_directories(
   include
 )
