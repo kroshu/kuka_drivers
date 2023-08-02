@@ -216,44 +216,50 @@ void RSICommandHandler::encodeNode(
   const size_t buffer_size)
 {
   auto idx = sprintf(buffer_it, "<%s ", element.GetName().c_str());
-  if ((size_t)buffer_it + idx >= buffer_size) {
+  if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
     throw std::range_error("Out of the buffers range");
   }
   buffer_it += idx;
   bool isBaseLessNode = false;
+  if (element.GetChilds().size() <= 0) {
+    isBaseLessNode = true;
+  }
+  std::cout << "Added params: " << std::endl;
   for (auto && param : element.GetParams()) {
-    if (element.GetParams().size() <= 0 && element.GetName() == param.first) {
-      isBaseLessNode = true;
+    if (element.GetName() == param.first) {
+      isBaseLessNode = false;
     } else {
       idx = sprintf(buffer_it, "%s=\"", param.first.c_str());
-      if ((size_t)buffer_it + idx >= buffer_size) {
+      if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
         throw std::range_error("Out of the buffers range");
       }
       buffer_it += idx;
-      param.second.ParamSprint(buffer_it, buffer_size);
+      param.second.ParamSprint(buffer_it, buffer, buffer_size);
+      std::cout << param.first << ", ";
       idx = sprintf(buffer_it, "\" ");
-      if ((size_t)buffer_it + idx >= buffer_size) {
+      if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
         throw std::range_error("Out of the buffers range");
       }
       buffer_it += idx;
     }
   }
-  if (element.GetChilds().size() <= 0 && isBaseLessNode == false) {
-    std::sprintf(
-      err_buf_, "The %s node has no chiled and has no base data",
-      element.GetName().c_str());
-    throw std::logic_error(err_buf_);
-  }
+  std::cout << std::endl;
+  // if (element.GetChilds().size() <= 0 && isBaseLessNode == false) {
+  //   std::sprintf(
+  //     err_buf_, "The %s node has no chiled and has no base data",
+  //     element.GetName().c_str());
+  //   throw std::logic_error(err_buf_);
+  // }
   if (isBaseLessNode) {
     idx = sprintf(buffer_it, "/>");
-    if ((size_t)buffer_it + idx >= buffer_size) {
+    if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }
     buffer_it += idx;
   } else {
     buffer_it--;
     idx = sprintf(buffer_it, ">");
-    if ((size_t)buffer_it + idx >= buffer_size) {
+    if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }
     buffer_it += idx;
@@ -264,11 +270,13 @@ void RSICommandHandler::encodeNode(
       }
     } else {
       // Add data
-      element.GetParams().find(element.GetName())->second.ParamSprint(buffer_it, buffer_size);
+      element.GetParams().find(element.GetName())->second.ParamSprint(
+        buffer_it, buffer,
+        buffer_size);
     }
     // Add end bracket
     idx = sprintf(buffer_it, "</%s>", element.GetName().c_str());
-    if ((size_t)buffer_it + idx >= buffer_size) {
+    if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }
     buffer_it += idx;

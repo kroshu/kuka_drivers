@@ -38,7 +38,7 @@ public:
   XMLParam() = default;
   XMLParam(XMLType type)
   : param_type_(type) {}
-  size_t ParamSprint(char * & buffer_it, const size_t buffer_size);
+  size_t ParamSprint(char * & buffer_it, char * const buffer, const size_t buffer_size);
 
   template<typename T>
   T GetParam() const

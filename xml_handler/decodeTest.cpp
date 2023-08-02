@@ -43,10 +43,13 @@ int main(int argc, char const * argv[])
   handler.GetCommand().operator<<(std::cout) << std::endl;
 
   char xml_command[1024] = {0};
-  if (!handler.Encode(xml_command, 1024)) {
+  char * xml_command_it = xml_command;
+  if (!handler.Encode(xml_command_it, 1024)) {
     std::cout << "decode failed" << std::endl;
     return -1;
   }
+  std::cout << "decode successful" << std::endl;
+  std::cout << xml_command << std::endl;
 
   return 0;
 }

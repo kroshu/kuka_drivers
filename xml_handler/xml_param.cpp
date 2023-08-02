@@ -19,7 +19,7 @@
 
 namespace xml
 {
-size_t XMLParam::ParamSprint(char * & buffer_it, const size_t buffer_size)
+size_t XMLParam::ParamSprint(char * & buffer_it, char * const buffer, const size_t buffer_size)
 {
   int idx = 0;
   switch (param_type_) {
@@ -37,14 +37,14 @@ size_t XMLParam::ParamSprint(char * & buffer_it, const size_t buffer_size)
 
     case XMLType::STRING:
       idx = std::snprintf(
-        buffer_it, std::get<3>(param_).length_, "%s",
+        buffer_it, std::get<3>(param_).length_ + 1, "%s",
         std::get<3>(param_).data_ptr_);
       break;
     default:
       throw std::logic_error("Parameter type not supported");
       break;
   }
-  if ((size_t)buffer_it + idx >= buffer_size) {
+  if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
     throw std::range_error("Out of the buffers range");
   }
   buffer_it += idx;
