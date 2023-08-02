@@ -53,13 +53,22 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
 bool XMLElement::IsParamNameValid(XMLString & key, char * & str_ptr)
 {
   key = castXMLString(str_ptr);
-  return params_.find(key) != params_.end();
+  std::cout << "detected param: " << key << std::endl;
+  auto param_it = params_.find(key);
+  if (param_it != params_.end()) {
+    std::cout << "stored param:   " << param_it->first << std::endl;
+    return true;
+  }
+  return false;
+  // return params_.find(key) != params_.end();
 }
 
 
 bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
 {
   key = castXMLString(str_ptr);
+  std::cout << "detected name: " << key << std::endl;
+  std::cout << "stored name:   " << name_ << std::endl;
   if (name_.length() != key.length_) {
     std::cout << "Registered names length is: " << name_.length() << ", Keys length is: " <<
       key.length_ << std::endl;

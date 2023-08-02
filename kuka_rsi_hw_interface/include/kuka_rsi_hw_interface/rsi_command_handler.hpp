@@ -51,7 +51,7 @@ class RSICommandHandler
 private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
-  char err_buf_[1024];
+  char err_buf_[1500];
 
   void decodeNode(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,

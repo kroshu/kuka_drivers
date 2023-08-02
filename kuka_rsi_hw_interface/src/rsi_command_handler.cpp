@@ -126,9 +126,10 @@ void RSICommandHandler::decodeNode(
     } else {
       if (!element.IsParamNameValid(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "The detected parameter (");
-        i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_name.data_ptr_);
+        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
+        i += node_param.length_;
         std::sprintf(
-          err_buf_ + i, ") dose not match with any of the %s elements parameters.",
+          err_buf_ + i, ") does not match with any of the %s elements parameters.",
           element.GetName().c_str());
         throw std::logic_error(err_buf_);
       }

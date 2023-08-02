@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <cstring>
+#include <iostream>
 
 #include "xml_handler/xml_string.hpp"
 
@@ -40,5 +41,13 @@ bool XMLString::operator==(const char * & rhs)
     return false;
   }
   return strncmp(rhs, data_ptr_, length_);
+}
+
+std::ostream & operator<<(std::ostream & out, XMLString & xml_str)
+{
+  for (size_t i = 0; i < xml_str.length_; i++) {
+    out << xml_str.data_ptr_[i];
+  }
+  return out;
 }
 }

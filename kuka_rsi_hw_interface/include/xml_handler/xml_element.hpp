@@ -29,12 +29,13 @@ namespace xml
 {
 inline bool operator<(const XMLString & a, const std::string & b)
 {
-  return a.length_ == b.length() && strncmp(a.data_ptr_, b.c_str(), a.length_) < 0;
+  return strncmp(a.data_ptr_, b.c_str(), a.length_) < 0;
 }
 
 inline bool operator<(const std::string & b, const XMLString & a)
 {
-  return a.length_ == b.length() && strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
+  // return a < b;
+  return strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
 }
 
 class XMLElement
