@@ -56,12 +56,10 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(const std::string & robot_model);
-
 private:
   void ObserveControl();
-
+  bool onControlModeChangeRequest(int control_mode);
+  bool onRobotModelChangeRequest(const std::string & robot_model);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;

@@ -15,12 +15,10 @@
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch_ros.actions import LifecycleNode
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
-from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch_ros.actions import Node, LifecycleNode
+from launch_ros.substitutions import FindPackageShare
 
 
 def launch_setup(context, *args, **kwargs):
@@ -70,8 +68,8 @@ def launch_setup(context, *args, **kwargs):
     controller_manager_node = '/controller_manager'
 
     control_node = Node(
-        package='kuka_rox_hw_interface',
-        executable='rox_control_node',
+        package='kroshu_ros2_core',
+        executable='control_node',
         parameters=[robot_description, controller_config]
     )
     robot_manager_node = LifecycleNode(

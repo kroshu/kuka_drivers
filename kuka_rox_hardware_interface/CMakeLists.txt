@@ -28,7 +28,6 @@ find_package(sensor_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
@@ -76,19 +75,15 @@ ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_inte
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
   motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication nanopb-helpers)
 
-add_executable(rox_control_node
-  src/rox_control_node.cpp)
-ament_target_dependencies(rox_control_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(rox_control_node kuka_rox_hw_interface)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
+ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager_msgs)
 target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
-install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
+install(TARGETS kuka_rox_hw_interface robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config launch
