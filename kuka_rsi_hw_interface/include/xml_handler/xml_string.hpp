@@ -32,7 +32,6 @@ public:
   bool operator==(const std::string & rhs);
   bool operator==(const char * & rhs);
   friend std::ostream & operator<<(std::ostream & out, XMLString & xml_str);
-
 };
 }  // xml
 

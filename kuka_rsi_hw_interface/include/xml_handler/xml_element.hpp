@@ -34,7 +34,6 @@ inline bool operator<(const XMLString & a, const std::string & b)
 
 inline bool operator<(const std::string & b, const XMLString & a)
 {
-  // return a < b;
   return strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
 }
 

@@ -97,13 +97,13 @@ void RSICommandHandler::decodeNode(
   // Validate nodes name
   if (!element.IsNameValid(node_name, buffer_it)) {
     auto i = std::sprintf(err_buf_, "The detected name (");
-    i = std::snprintf(err_buf_ + i, node_name.length_, "%s", node_name.data_ptr_);
-    i = std::sprintf(err_buf_, ") does not match the elements name %s.", element.GetName().c_str());
+    std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
+    i += node_name.length_;
+    std::sprintf(
+      err_buf_ + i, ") does not match the elements name %s.",
+      element.GetName().c_str());
     throw std::logic_error(err_buf_);
   }
-  // char str[node_name.length_ + 1];
-  // std::snprintf(str, node_name.length_ + 1, "%s", node_name.data_ptr_);
-  // std::cout << "Name found: " << str << std::endl;
 
   // Validate nodes params
   size_t numOfParam = 0;
@@ -133,24 +133,44 @@ void RSICommandHandler::decodeNode(
           element.GetName().c_str());
         throw std::logic_error(err_buf_);
       }
-      for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '"'; buffer_it++) {
+      if (*buffer_it != '=') {
+        auto i = sprintf(err_buf_, "In \"");
+        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
+        i += node_param.length_;
+        std::sprintf(err_buf_ + i, "\" param syntax error found");
+        throw std::logic_error(err_buf_);
       }
-      if ((size_t)(buffer_it - buffer) >= buffer_size) {
-        throw std::range_error("Out of the buffers range");
+      buffer_it++;
+      if (*buffer_it != '"') {
+        auto i = sprintf(err_buf_, "In \"");
+        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
+        i += node_param.length_;
+        std::sprintf(err_buf_ + i, "\" param syntax error found");
+        throw std::logic_error(err_buf_);
       }
       buffer_it++;
       if (!element.CastParam(node_param, buffer_it)) {
-        auto i = std::sprintf(err_buf_, "The not cast the ");
-        i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_param.data_ptr_);
+        auto i = std::sprintf(err_buf_, "Could not cast the ");
+        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
+        i += node_param.length_;
         std::sprintf(
           err_buf_ + i, " param into the %s elements parameter list.",
           element.GetName().c_str());
+        throw std::logic_error(err_buf_);
+      }
+      if (*buffer_it != '"') {
+        auto i = sprintf(err_buf_, "In \"");
+        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
+        i += node_param.length_;
+        std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
       buffer_it++;
       numOfParam++;
     }
   }
+
+  // Fast forward to close bracket
   for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '>'; buffer_it++) {
   }
   if ((size_t)(buffer_it - buffer) >= buffer_size) {
@@ -158,10 +178,19 @@ void RSICommandHandler::decodeNode(
   }
   buffer_it++;
 
+  // Could not find all parameter, or found too much
   if (isBaseLessNode && numOfParam != element.GetParams().size()) {
     std::sprintf(
       err_buf_,
-      "%lu parameter found it does not match with %s elements parameter list size.", numOfParam,
+      "%lu parameter found. It does not match with %s elements parameter list size.", numOfParam,
+      element.GetName().c_str());
+    throw std::logic_error(err_buf_);
+  }
+
+  // Node should have childs, but did not found any
+  if (isBaseLessNode && element.GetChilds().size() > 0) {
+    std::sprintf(
+      err_buf_, "%s node should have chields but did not found any",
       element.GetName().c_str());
     throw std::logic_error(err_buf_);
   }
@@ -171,15 +200,24 @@ void RSICommandHandler::decodeNode(
   if ((size_t)(buffer_it - buffer) >= buffer_size) {
     throw std::range_error("Out of the buffers range");
   }
+
   if (!isBaseLessNode) {
     if (*buffer_it != '<') {
       // Node base is data
       if (!element.CastParam(node_name, buffer_it)) {
         auto i = std::sprintf(err_buf_, "Could not cast the ");
-        i = std::snprintf(err_buf_ + i, node_param.length_, "%s", node_param.data_ptr_);
+        std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
+        i += node_name.length_;
         std::sprintf(
           err_buf_ + i, " parameter into the %s elements parameter list",
           element.GetName().c_str());
+        throw std::logic_error(err_buf_);
+      }
+      if (*buffer_it != '<') {
+        auto i = sprintf(err_buf_, "In \"");
+        std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
+        i += node_name.length_;
+        std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
     } else {
@@ -193,19 +231,28 @@ void RSICommandHandler::decodeNode(
     if ((size_t)(buffer_it - buffer) >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }
-    if (*(buffer_it + 1) != '/') {
+    buffer_it++;
+    if (*(buffer_it) != '/') {
       std::sprintf(
         err_buf_,
-        "Start of an end Node, where there should be none. Error came in the %s node",
+        "Syntax error, while node end in the %s node",
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
-    buffer_it += 2;
+    buffer_it++;
     if (!element.IsNameValid(node_name, buffer_it)) {
       auto i = std::sprintf(err_buf_, "The detected name (");
-      i = std::snprintf(err_buf_ + i, node_name.length_, "%s", node_name.data_ptr_);
+      std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
+      i += node_name.length_;
       std::sprintf(
         err_buf_ + i, ") does not match the elements name: %s",
+        element.GetName().c_str());
+      throw std::logic_error(err_buf_);
+    }
+    if (*buffer_it != '>') {
+      std::sprintf(
+        err_buf_,
+        "Syntax error, while node end in the %s node",
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
@@ -225,7 +272,6 @@ void RSICommandHandler::encodeNode(
   if (element.GetChilds().size() <= 0) {
     isBaseLessNode = true;
   }
-  std::cout << "Added params: " << std::endl;
   for (auto && param : element.GetParams()) {
     if (element.GetName() == param.first) {
       isBaseLessNode = false;
@@ -236,7 +282,6 @@ void RSICommandHandler::encodeNode(
       }
       buffer_it += idx;
       param.second.ParamSprint(buffer_it, buffer, buffer_size);
-      std::cout << param.first << ", ";
       idx = sprintf(buffer_it, "\" ");
       if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {
         throw std::range_error("Out of the buffers range");
@@ -244,13 +289,6 @@ void RSICommandHandler::encodeNode(
       buffer_it += idx;
     }
   }
-  std::cout << std::endl;
-  // if (element.GetChilds().size() <= 0 && isBaseLessNode == false) {
-  //   std::sprintf(
-  //     err_buf_, "The %s node has no chiled and has no base data",
-  //     element.GetName().c_str());
-  //   throw std::logic_error(err_buf_);
-  // }
   if (isBaseLessNode) {
     idx = sprintf(buffer_it, "/>");
     if ((size_t)(buffer_it - buffer) + idx >= buffer_size) {

@@ -30,16 +30,41 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
   auto param_it = params_.find(key);
   auto ret_val = param_it != params_.end();
   if (ret_val) {
+    errno = 0;
     switch (param_it->second.param_type_) {
       case XMLType::BOOL:
-        param_it->second.param_ = (bool)strtol(str_ptr, &str_ptr, 0);
-        break;
+        {
+          char * end;
+          auto res = (bool)strtol(str_ptr, &end, 0);
+          if (res == 0 && (errno != 0 || end == str_ptr)) {
+            return false;
+          }
+          str_ptr = end;
+          param_it->second.param_ = res;
+          break;
+        }
       case XMLType::LONG:
-        param_it->second.param_ = strtol(str_ptr, &str_ptr, 0);
-        break;
+        {
+          char * end;
+          auto res = strtol(str_ptr, &end, 0);
+          if (res == 0 && (errno != 0 || end == str_ptr)) {
+            return false;
+          }
+          str_ptr = end;
+          param_it->second.param_ = res;
+          break;
+        }
       case XMLType::DOUBLE:
-        param_it->second.param_ = strtod(str_ptr, &str_ptr);
-        break;
+        {
+          char * end;
+          auto res = strtod(str_ptr, &end);
+          if (res == 0 && (errno != 0 || end == str_ptr)) {
+            return false;
+          }
+          str_ptr = end;
+          param_it->second.param_ = res;
+          break;
+        }
       case XMLType::STRING:
         param_it->second.param_ = castXMLString(str_ptr);
         break;
@@ -70,8 +95,6 @@ bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
   std::cout << "detected name: " << key << std::endl;
   std::cout << "stored name:   " << name_ << std::endl;
   if (name_.length() != key.length_) {
-    std::cout << "Registered names length is: " << name_.length() << ", Keys length is: " <<
-      key.length_ << std::endl;
     return false;
   }
   return strncmp(name_.c_str(), key.data_ptr_, key.length_) == 0;
@@ -150,16 +173,9 @@ XMLString XMLElement::castXMLString(char * & str_ptr)
     *str_ptr != '\0' && *str_ptr != '"' && *str_ptr != ' ' &&
     *str_ptr != '=' && *str_ptr != '>' && *str_ptr != '/' && *str_ptr != '<'; str_ptr++)
   {
-    // std::cout << *str_ptr;
   }
-  // std::cout << std::endl;
   auto data = XMLString(
     start_ref, (size_t)(str_ptr - start_ref));
-  // char str[data.length_ + 1];
-  // snprintf(str, data.length_ + 1, "%s", data.data_ptr_);
-  // std::cout << "Cast length: " << data.length_ << std::endl;
-  // std::cout << "Cast Data: " << str << std::endl;
-  // std::cout << "Cast all Data: " << data.data_ptr_ << std::endl;
   return data;
 }
 }

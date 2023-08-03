@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <iostream>
 
 #include "xml_handler/xml_param.hpp"
 
@@ -49,5 +50,30 @@ size_t XMLParam::ParamSprint(char * & buffer_it, char * const buffer, const size
   }
   buffer_it += idx;
   return idx;
+}
+
+std::ostream & operator<<(std::ostream & out, class XMLParam & param)
+{
+  switch (param.param_type_) {
+    case XMLType::BOOL:
+      out << std::get<0>(param.param_);
+      break;
+
+    case XMLType::LONG:
+      out << std::get<1>(param.param_);
+      break;
+
+    case XMLType::DOUBLE:
+      out << std::get<2>(param.param_);
+      break;
+
+    case XMLType::STRING:
+      out << std::get<3>(param.param_);
+      break;
+    default:
+      throw std::logic_error("Parameter type not supported");
+      break;
+  }
+  return out;
 }
 }

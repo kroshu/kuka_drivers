@@ -39,6 +39,7 @@ public:
   XMLParam(XMLType type)
   : param_type_(type) {}
   size_t ParamSprint(char * & buffer_it, char * const buffer, const size_t buffer_size);
+  friend std::ostream & operator<<(std::ostream & out, class XMLParam & param);
 
   template<typename T>
   T GetParam() const
