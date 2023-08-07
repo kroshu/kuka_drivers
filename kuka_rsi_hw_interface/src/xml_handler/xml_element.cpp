@@ -100,14 +100,14 @@ bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
   return strncmp(name_.c_str(), key.data_ptr_, key.length_) == 0;
 }
 
-XMLElement & XMLElement::GetElement(const std::string & elementName)
+XMLElement & XMLElement::Element(const std::string & elementName)
 {
   if (elementName == name_) {
     return *this;
   }
   for (auto && child : childs_) {
     if (elementName == child.name_) {
-      return child.GetElement(elementName);
+      return child.Element(elementName);
     }
   }
   char err_buf[1000];

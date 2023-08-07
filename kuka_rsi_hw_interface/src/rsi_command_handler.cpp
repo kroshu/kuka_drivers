@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#include "rsi_command_handler.hpp"
+#include "kuka_rsi_hw_interface/rsi_command_handler.hpp"
 
 namespace kuka_rsi_hw_interface
 {
@@ -25,31 +25,31 @@ RSICommandHandler::RSICommandHandler()
 : state_data_structure_("Rob"), command_data_structure_("Sen"), err_buf_("")
 {
   // Later this should be defined by the rsi xml
-  state_data_structure_.GetParams()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
+  state_data_structure_.Params()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
   xml::XMLElement Out("Out");
-  Out.GetParams()["01"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.GetParams()["02"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.GetParams()["03"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.GetParams()["04"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.GetParams()["05"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.Params()["01"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.Params()["02"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.Params()["03"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.Params()["04"] = xml::XMLParam(xml::XMLType::BOOL);
+  Out.Params()["05"] = xml::XMLParam(xml::XMLType::BOOL);
   xml::XMLElement Override("Override");
-  Override.GetParams()["Override"] = xml::XMLParam(xml::XMLType::LONG);
-  state_data_structure_.GetChilds().emplace_back(Out);
-  state_data_structure_.GetChilds().emplace_back(Override);
+  Override.Params()["Override"] = xml::XMLParam(xml::XMLType::LONG);
+  state_data_structure_.Childs().emplace_back(Out);
+  state_data_structure_.Childs().emplace_back(Override);
 
-  command_data_structure_.GetParams()["Type"] = xml::XMLParam(xml::XMLType::STRING);
+  command_data_structure_.Params()["Type"] = xml::XMLParam(xml::XMLType::STRING);
   xml::XMLElement RKorr("RKorr");
-  RKorr.GetParams()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.GetParams()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.GetParams()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.GetParams()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.GetParams()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.GetParams()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RKorr.Params()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
   xml::XMLElement DiO("DiO");
-  DiO.GetParams()["DiO"] = xml::XMLParam(xml::XMLType::LONG);
-  command_data_structure_.GetChilds().emplace_back(RKorr);
-  command_data_structure_.GetChilds().emplace_back(DiO);
+  DiO.Params()["DiO"] = xml::XMLParam(xml::XMLType::LONG);
+  command_data_structure_.Childs().emplace_back(RKorr);
+  command_data_structure_.Childs().emplace_back(DiO);
 }
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
@@ -69,7 +69,7 @@ bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
 
 bool RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
 {
-  std::cout << "Decode started" << std::endl;
+  std::cout << "Encode started" << std::endl;
   auto buffer_it = buffer;
   try {
     encodeNode(command_data_structure_, buffer, buffer_it, buffer_size);
@@ -78,7 +78,7 @@ bool RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
     std::cerr << e.what() << '\n';
     return false;
   }
-  std::cout << "Decode finished" << std::endl;
+  std::cout << "Encode finished" << std::endl;
   return true;
 }
 
@@ -179,7 +179,7 @@ void RSICommandHandler::decodeNode(
   buffer_it++;
 
   // Could not find all parameter, or found too much
-  if (isBaseLessNode && numOfParam != element.GetParams().size()) {
+  if (isBaseLessNode && numOfParam != element.Params().size()) {
     std::sprintf(
       err_buf_,
       "%lu parameter found. It does not match with %s elements parameter list size.", numOfParam,
@@ -222,7 +222,7 @@ void RSICommandHandler::decodeNode(
       }
     } else {
       // node base has childs
-      for (auto && child : element.GetChilds()) {
+      for (auto && child : element.Childs()) {
         decodeNode(child, buffer, buffer_it, buffer_size);
       }
     }
@@ -272,7 +272,7 @@ void RSICommandHandler::encodeNode(
   if (element.GetChilds().size() <= 0) {
     isBaseLessNode = true;
   }
-  for (auto && param : element.GetParams()) {
+  for (auto && param : element.Params()) {
     if (element.GetName() == param.first) {
       isBaseLessNode = false;
     } else {
@@ -304,12 +304,12 @@ void RSICommandHandler::encodeNode(
     buffer_it += idx;
     if (element.GetChilds().size() > 0) {
       // Add childs
-      for (auto && child : element.GetChilds()) {
+      for (auto && child : element.Childs()) {
         encodeNode(child, buffer, buffer_it, buffer_size);
       }
     } else {
       // Add data
-      element.GetParams().find(element.GetName())->second.ParamSprint(
+      element.Params().find(element.GetName())->second.ParamSprint(
         buffer_it, buffer,
         buffer_size);
     }

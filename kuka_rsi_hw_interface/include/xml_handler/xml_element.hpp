@@ -54,17 +54,16 @@ public:
 
   inline std::string GetName() const {return name_;}
   inline void SetName(const std::string & name) {name_ = name;}
-  inline std::vector<XMLElement> GetChilds() const {return childs_;}
-  inline std::vector<XMLElement> & GetChilds() {return childs_;}
-  inline std::map<std::string, XMLParam, std::less<>> & GetParams() {return params_;}
+  inline const std::vector<XMLElement> & GetChilds() const {return childs_;}
+  inline std::vector<XMLElement> & Childs() {return childs_;}
+  inline std::map<std::string, XMLParam, std::less<>> & Params() {return params_;}
 
+  XMLElement & Element(const std::string & elementName);
+  const XMLElement & GetElement(const std::string & elementName) const;
 
   bool CastParam(const XMLString & key, char * & str_ptr);
   bool IsParamNameValid(XMLString & key, char * & str_ptr);
   bool IsNameValid(XMLString & key, char * & str_ptr);
-
-  XMLElement & GetElement(const std::string & elementName);
-  const XMLElement & GetElement(const std::string & elementName) const;
 
   std::ostream & operator<<(std::ostream & out) const;
 

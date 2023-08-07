@@ -48,19 +48,6 @@ namespace kuka_rsi_hw_interface
 
 class RSICommandHandler
 {
-private:
-  xml::XMLElement command_data_structure_;
-  xml::XMLElement state_data_structure_;
-  char err_buf_[1500];
-
-  void decodeNode(
-    xml::XMLElement & element, char * const buffer, char * & buffer_it,
-    const size_t buffer_size);
-
-  void encodeNode(
-    xml::XMLElement & element, char * const buffer, char * & buffer_it,
-    const size_t buffer_size);
-
 public:
   RSICommandHandler();
   ~RSICommandHandler() = default;
@@ -82,6 +69,19 @@ public:
 
   bool Decode(char * const buffer, const size_t buffer_size);
   bool Encode(char * & buffer, const size_t buffer_size);
+
+private:
+  xml::XMLElement command_data_structure_;
+  xml::XMLElement state_data_structure_;
+  char err_buf_[1500];
+
+  void decodeNode(
+    xml::XMLElement & element, char * const buffer, char * & buffer_it,
+    const size_t buffer_size);
+
+  void encodeNode(
+    xml::XMLElement & element, char * const buffer, char * & buffer_it,
+    const size_t buffer_size);
 };
 }  // namespace kuka_rsi_hw_interface
 
