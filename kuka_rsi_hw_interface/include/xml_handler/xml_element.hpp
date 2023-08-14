@@ -29,12 +29,24 @@ namespace xml
 {
 inline bool operator<(const XMLString & a, const std::string & b)
 {
-  return strncmp(a.data_ptr_, b.c_str(), a.length_) < 0;
+  if (a.length_ < b.length()) {
+    return true;
+  } else if (a.length_ > b.length()) {
+    return false;
+  } else {
+    return strncmp(a.data_ptr_, b.c_str(), a.length_) < 0;
+  }
 }
 
 inline bool operator<(const std::string & b, const XMLString & a)
 {
-  return strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
+  if (b.length() < a.length_) {
+    return true;
+  } else if (b.length() > a.length_) {
+    return false;
+  } else {
+    return strncmp(b.c_str(), a.data_ptr_, a.length_) < 0;
+  }
 }
 
 class XMLElement
@@ -58,8 +70,8 @@ public:
   inline std::vector<XMLElement> & Childs() {return childs_;}
   inline std::map<std::string, XMLParam, std::less<>> & Params() {return params_;}
 
-  XMLElement & Element(const std::string & elementName);
-  const XMLElement & GetElement(const std::string & elementName) const;
+  XMLElement & Element(const std::string & elementName, int depth = 0);
+  const XMLElement & GetElement(const std::string & elementName, int depth = 0) const;
 
   bool CastParam(const XMLString & key, char * & str_ptr);
   bool IsParamNameValid(XMLString & key, char * & str_ptr);
