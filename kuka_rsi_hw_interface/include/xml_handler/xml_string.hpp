@@ -24,8 +24,12 @@ class XMLString
 public:
   const char * data_ptr_;
   size_t length_;
-  XMLString(const char * data_ptr = nullptr, size_t length = 0)
+  XMLString(const char * data_ptr, size_t length)
   : data_ptr_(data_ptr), length_(length) {}
+  XMLString()
+  : data_ptr_(nullptr), length_(0) {}
+  XMLString(const char * data_ptr)
+  : data_ptr_(data_ptr), length_(strlen(data_ptr)) {}
   XMLString(const std::string & str)
   : data_ptr_(str.c_str()), length_(str.length()) {}
   bool operator==(const XMLString & rhs);

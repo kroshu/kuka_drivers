@@ -34,7 +34,7 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
     switch (param_it->second.param_type_) {
       case XMLType::BOOL:
         {
-          char * end;
+          char * end = str_ptr;
           auto res = (bool)strtol(str_ptr, &end, 0);
           if (res == 0 && (errno != 0 || end == str_ptr)) {
             return false;
@@ -45,7 +45,7 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
         }
       case XMLType::LONG:
         {
-          char * end;
+          char * end = str_ptr;
           auto res = strtol(str_ptr, &end, 0);
           if (res == 0 && (errno != 0 || end == str_ptr)) {
             return false;
@@ -56,7 +56,7 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
         }
       case XMLType::DOUBLE:
         {
-          char * end;
+          char * end = str_ptr;
           auto res = strtod(str_ptr, &end);
           if (res == 0 && (errno != 0 || end == str_ptr)) {
             return false;

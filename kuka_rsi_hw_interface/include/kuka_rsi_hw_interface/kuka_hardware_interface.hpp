@@ -42,8 +42,9 @@
 #define KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 
 #include <kuka_rsi_hw_interface/udp_server.h>
-#include <kuka_rsi_hw_interface/rsi_state.h>
-#include <kuka_rsi_hw_interface/rsi_command.h>
+#include <kuka_rsi_hw_interface/rsi_command_handler.hpp>
+// #include <kuka_rsi_hw_interface/rsi_state.h>
+// #include <kuka_rsi_hw_interface/rsi_command.h>
 
 #include <vector>
 #include <string>
@@ -112,11 +113,10 @@ private:
   std::vector<double> joint_pos_correction_deg_;
 
   uint64_t ipoc_ = 0;
-  RSIState rsi_state_;
-  RSICommand rsi_command_;
+  RSICommandHandler command_handler_;
   std::unique_ptr<UDPServer> server_;
-  std::string in_buffer_;
-  std::string out_buffer_;
+  char in_buffer_[UDP_BUFFER_SIZE] = {0};
+  char out_buffer_[UDP_BUFFER_SIZE] = {0};
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;

@@ -57,10 +57,12 @@ public:
   inline const xml::XMLElement & GetCommand() const {return command_data_structure_;}
 
   template<typename T>
-  bool SetCommandParam(const std::string & elementName, const std::string & paramName, T & param)
+  bool SetCommandParam(
+    const std::string & elementName, const std::string & paramName,
+    const T & param)
   {
     try {
-      return command_data_structure_.GetElement(elementName).SetParam<T>(paramName, param);
+      return command_data_structure_.Element(elementName).SetParam<T>(paramName, param);
     } catch (const std::exception & e) {
       std::cerr << e.what() << '\n';
       return false;

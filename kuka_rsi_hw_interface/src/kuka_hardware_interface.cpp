@@ -53,6 +53,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
+  command_handler_ = RSICommandHandler();
+
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
 
@@ -152,17 +154,50 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   //TODO (Komáromi): Decode received msg struct and create a struct
   //TODO (Komáromi): Receive msg
-  rsi_state_ = RSIState(in_buffer_);
+  command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE);
+
+  // Position data
+  hw_states_[0] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A1") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[1] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A2") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[2] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A3") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[3] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A4") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[4] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A5") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[5] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A6") *
+    KukaRSIHardwareInterface::D2R;
+
+  // Initial position data
+  initial_joint_pos_[0] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A1") *
+    KukaRSIHardwareInterface::D2R;
+  initial_joint_pos_[1] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A2") *
+    KukaRSIHardwareInterface::D2R;
+  initial_joint_pos_[2] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A3") *
+    KukaRSIHardwareInterface::D2R;
+  initial_joint_pos_[3] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A4") *
+    KukaRSIHardwareInterface::D2R;
+  initial_joint_pos_[4] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A5") *
+    KukaRSIHardwareInterface::D2R;
+  initial_joint_pos_[5] = command_handler_.GetState().GetElement("ASPos").GetParam<double>("A6") *
+    KukaRSIHardwareInterface::D2R;
+
+  // Ipoc data
+  ipoc_ = command_handler_.GetState().GetElement("IPOC").GetParam<long>("IPOC");
 
   for (size_t i = 0; i < info_.joints.size(); ++i) {
-    hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
+    // hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
     hw_commands_[i] = hw_states_[i];
-    initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
+    // initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
   }
-  ipoc_ = rsi_state_.ipoc;
+  // ipoc_ = rsi_state_.ipoc;
 
   //TODO (Komáromi): construct and send msg
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
+  auto out_buffer_it = out_buffer_;
+  command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE);
+  // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   server_->set_timeout(1000);  // Set receive timeout to 1 second
 
@@ -194,12 +229,25 @@ return_type KukaRSIHardwareInterface::read(
     this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
-  rsi_state_ = RSIState(in_buffer_);
+  command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE);
 
-  for (std::size_t i = 0; i < info_.joints.size(); ++i) {
-    hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-  }
-  ipoc_ = rsi_state_.ipoc;
+  // for (std::size_t i = 0; i < info_.joints.size(); ++i) {
+  //   hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
+  // }
+  hw_states_[0] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A1") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[1] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A2") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[2] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A3") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[3] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A4") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[4] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A5") *
+    KukaRSIHardwareInterface::D2R;
+  hw_states_[5] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A6") *
+    KukaRSIHardwareInterface::D2R;
+  // ipoc_ = rsi_state_.ipoc;
+  ipoc_ = command_handler_.GetState().GetElement("IPOC").GetParam<long>("IPOC");
   return return_type::OK;
 }
 
@@ -222,7 +270,18 @@ return_type KukaRSIHardwareInterface::write(
       KukaRSIHardwareInterface::R2D;
   }
 
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
+  command_handler_.SetCommandParam<double>("AK", "A1", joint_pos_correction_deg_[0]);
+  command_handler_.SetCommandParam<double>("AK", "A2", joint_pos_correction_deg_[1]);
+  command_handler_.SetCommandParam<double>("AK", "A3", joint_pos_correction_deg_[2]);
+  command_handler_.SetCommandParam<double>("AK", "A4", joint_pos_correction_deg_[3]);
+  command_handler_.SetCommandParam<double>("AK", "A5", joint_pos_correction_deg_[4]);
+  command_handler_.SetCommandParam<double>("AK", "A6", joint_pos_correction_deg_[5]);
+  command_handler_.SetCommandParam<bool>("Stop", "Stop", stop_flag_);
+  command_handler_.SetCommandParam<long>("IPOC", "IPOC", static_cast<long>(ipoc_));
+
+  // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
+  auto out_buffer_it = out_buffer_;
+  command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE);
   server_->send(out_buffer_);
   return return_type::OK;
 }

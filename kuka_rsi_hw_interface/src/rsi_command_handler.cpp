@@ -22,34 +22,65 @@
 namespace kuka_rsi_hw_interface
 {
 RSICommandHandler::RSICommandHandler()
-: state_data_structure_("Rob"), command_data_structure_("Sen"), err_buf_("")
+: command_data_structure_("Sen"), state_data_structure_("Rob"), err_buf_("")
 {
+  // State structure
   // Later this should be defined by the rsi xml
   state_data_structure_.Params()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
-  xml::XMLElement Out("Out");
-  Out.Params()["01"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.Params()["02"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.Params()["03"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.Params()["04"] = xml::XMLParam(xml::XMLType::BOOL);
-  Out.Params()["05"] = xml::XMLParam(xml::XMLType::BOOL);
-  xml::XMLElement Override("Override");
-  Override.Params()["Override"] = xml::XMLParam(xml::XMLType::LONG);
-  state_data_structure_.Childs().emplace_back(Out);
-  state_data_structure_.Childs().emplace_back(Override);
+  xml::XMLElement AIPos_el("AIPos");
+  AIPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement ASPos_el("ASPos");
+  ASPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement RIst_el("RIst");
+  RIst_el.Params()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RIst_el.Params()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RIst_el.Params()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RIst_el.Params()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RIst_el.Params()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RIst_el.Params()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement RSol_el("RSol");
+  RSol_el.Params()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RSol_el.Params()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RSol_el.Params()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RSol_el.Params()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RSol_el.Params()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  RSol_el.Params()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement Ipoc_state_el("IPOC");
+  Ipoc_state_el.Params()["IPOC"] = xml::XMLParam(xml::XMLType::LONG);
+  state_data_structure_.Childs().emplace_back(AIPos_el);
+  state_data_structure_.Childs().emplace_back(ASPos_el);
+  state_data_structure_.Childs().emplace_back(RIst_el);
+  state_data_structure_.Childs().emplace_back(RSol_el);
+  state_data_structure_.Childs().emplace_back(Ipoc_state_el);
 
+  // Command structure
   command_data_structure_.Params()["Type"] = xml::XMLParam(xml::XMLType::STRING);
-  xml::XMLElement RKorr("RKorr");
-  RKorr.Params()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.Params()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.Params()["Z"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.Params()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.Params()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  RKorr.Params()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  xml::XMLElement DiO("DiO");
-  DiO.Params()["DiO"] = xml::XMLParam(xml::XMLType::LONG);
-  command_data_structure_.Childs().emplace_back(RKorr);
-  command_data_structure_.Childs().emplace_back(DiO);
+  command_data_structure_.SetParam<xml::XMLString>("Type", xml::XMLString("KROSHU"));
+  xml::XMLElement ak_el("AK");
+  ak_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ak_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ak_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ak_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ak_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ak_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement Stop_el("Stop");
+  Stop_el.Params()["Stop"] = xml::XMLParam(xml::XMLType::BOOL);
+  xml::XMLElement Ipoc_command_el("IPOC");
+  Ipoc_command_el.Params()["IPOC"] = xml::XMLParam(xml::XMLType::LONG);
+  command_data_structure_.Childs().emplace_back(ak_el);
+  command_data_structure_.Childs().emplace_back(Stop_el);
+  state_data_structure_.Childs().emplace_back(Ipoc_command_el);
 }
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
@@ -89,7 +120,7 @@ void RSICommandHandler::decodeNode(
   xml::XMLString node_name(buffer, 0);
   // fast forward for the first open bracket
   for (; *buffer_it != '<'; buffer_it++) {
-    if ((int)(buffer_it - buffer) >= (int)buffer_size) {
+    if ((int)(buffer_it - buffer) >= (int)buffer_size - 1) {
       throw std::range_error("Out of the buffers range");
     }
   }
