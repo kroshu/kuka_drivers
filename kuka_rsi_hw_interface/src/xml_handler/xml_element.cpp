@@ -100,34 +100,34 @@ bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
   return strncmp(name_.c_str(), key.data_ptr_, key.length_) == 0;
 }
 
-XMLElement & XMLElement::Element(const std::string & elementName)
+XMLElement & XMLElement::Element(const std::string & elementName, int depth)
 {
   if (elementName == name_) {
     return *this;
   }
   for (auto && child : childs_) {
-    if (elementName == child.name_) {
-      return child.Element(elementName);
-    }
+    child.Element(elementName, depth + 1);
   }
-  char err_buf[1000];
-  sprintf(err_buf, "%s element not found", elementName.c_str());
-  throw std::logic_error(err_buf);
+  if (depth == 0) {
+    char err_buf[1000];
+    sprintf(err_buf, "%s element not found", elementName.c_str());
+    throw std::logic_error(err_buf);
+  }
 }
 
-const XMLElement & XMLElement::GetElement(const std::string & elementName) const
+const XMLElement & XMLElement::GetElement(const std::string & elementName, int depth) const
 {
   if (elementName == name_) {
     return *this;
   }
   for (auto && child : childs_) {
-    if (elementName == child.name_) {
-      return child.GetElement(elementName);
-    }
+    child.GetElement(elementName);
   }
-  char err_buf[1000];
-  sprintf(err_buf, "%s element not found", elementName.c_str());
-  throw std::logic_error(err_buf);
+  if (depth == 0) {
+    char err_buf[1000];
+    sprintf(err_buf, "%s element not found", elementName.c_str());
+    throw std::logic_error(err_buf);
+  }
 }
 
 
