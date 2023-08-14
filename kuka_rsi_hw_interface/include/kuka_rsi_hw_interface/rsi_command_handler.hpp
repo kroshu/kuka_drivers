@@ -70,7 +70,7 @@ public:
   }
 
   bool Decode(char * const buffer, const size_t buffer_size);
-  bool Encode(char * & buffer, const size_t buffer_size);
+  int Encode(char * & buffer);
 
 private:
   xml::XMLElement command_data_structure_;
@@ -82,8 +82,7 @@ private:
     const size_t buffer_size);
 
   void encodeNode(
-    xml::XMLElement & element, char * const buffer, char * & buffer_it,
-    const size_t buffer_size);
+    xml::XMLElement & element, char * & buffer_it);
 };
 }  // namespace kuka_rsi_hw_interface
 

@@ -154,7 +154,9 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   //TODO (Komáromi): Decode received msg struct and create a struct
   //TODO (Komáromi): Receive msg
-  command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE);
+  if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
+    return CallbackReturn::ERROR;
+  }
 
   // Position data
   hw_states_[0] = command_handler_.GetState().GetElement("AIPos").GetParam<double>("A1") *
@@ -196,7 +198,9 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   //TODO (Komáromi): construct and send msg
   auto out_buffer_it = out_buffer_;
-  command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE);
+  if (command_handler_.Encode(out_buffer_it) < 0) {
+    return CallbackReturn::ERROR;
+  }
   // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   server_->set_timeout(1000);  // Set receive timeout to 1 second
@@ -229,7 +233,9 @@ return_type KukaRSIHardwareInterface::read(
     this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
-  command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE);
+  if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
+    return return_type::ERROR;
+  }
 
   // for (std::size_t i = 0; i < info_.joints.size(); ++i) {
   //   hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
@@ -281,7 +287,9 @@ return_type KukaRSIHardwareInterface::write(
 
   // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   auto out_buffer_it = out_buffer_;
-  command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE);
+  if (command_handler_.Encode(out_buffer_it) < 0) {
+    return return_type::ERROR;
+  }
   server_->send(out_buffer_);
   return return_type::OK;
 }
