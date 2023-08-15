@@ -20,60 +20,41 @@
 
 namespace xml
 {
-size_t XMLParam::PrintParam(char * & buffer_it)
+int XMLParam::PrintParam(char * & buffer_it, int & size_left)
 {
   int idx = 0;
   switch (param_type_) {
     case XMLType::BOOL:
-      idx = sprintf(buffer_it, "%u", std::get<0>(param_));
+      idx = snprintf(buffer_it, size_left, "%u", std::get<XMLType::BOOL>(param_));
       break;
 
     case XMLType::LONG:
-      idx = sprintf(buffer_it, "%lu", std::get<1>(param_));
+      idx = snprintf(buffer_it, size_left, "%lu", std::get<XMLType::LONG>(param_));
       break;
 
     case XMLType::DOUBLE:
-      idx = sprintf(buffer_it, "%f", std::get<2>(param_));
+      idx = snprintf(buffer_it, size_left, "%f", std::get<XMLType::DOUBLE>(param_));
       break;
 
     case XMLType::STRING:
-      idx = std::snprintf(
-        buffer_it, std::get<3>(param_).length_ + 1, "%s",
-        std::get<3>(param_).data_ptr_);
+      idx = std::get<XMLType::STRING>(param_).PrintString(buffer_it, size_left);
       break;
     default:
       throw std::logic_error("Parameter type not supported");
       break;
   }
-  if (idx < 0) {
+  if (idx < 0 || idx > size_left) {
     throw std::range_error("Out of the buffers range");
+  } else {
+    buffer_it += idx;
+    size_left -= idx;
   }
-  buffer_it += idx;
   return idx;
 }
 
 std::ostream & operator<<(std::ostream & out, class XMLParam & param)
 {
-  switch (param.param_type_) {
-    case XMLType::BOOL:
-      out << std::get<0>(param.param_);
-      break;
-
-    case XMLType::LONG:
-      out << std::get<1>(param.param_);
-      break;
-
-    case XMLType::DOUBLE:
-      out << std::get<2>(param.param_);
-      break;
-
-    case XMLType::STRING:
-      out << std::get<3>(param.param_);
-      break;
-    default:
-      throw std::logic_error("Parameter type not supported");
-      break;
-  }
+  std::visit([&](auto && arg) {out << arg;}, param.param_);
   return out;
 }
 }

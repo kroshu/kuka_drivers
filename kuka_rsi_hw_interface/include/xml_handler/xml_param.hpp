@@ -21,7 +21,7 @@
 
 namespace xml
 {
-enum class XMLType : size_t
+enum XMLType
 {
   BOOL = 0,
   LONG = 1,
@@ -38,7 +38,7 @@ public:
   XMLParam() = default;
   XMLParam(XMLType type)
   : param_type_(type) {}
-  size_t PrintParam(char * & buffer_it);
+  int PrintParam(char * & buffer_it, int & size_left);
   friend std::ostream & operator<<(std::ostream & out, class XMLParam & param);
 
   template<typename T>

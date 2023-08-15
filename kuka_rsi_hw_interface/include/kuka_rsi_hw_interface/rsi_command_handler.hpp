@@ -45,6 +45,7 @@
 
 namespace kuka_rsi_hw_interface
 {
+constexpr int err_buff_size_ = 1500;
 
 class RSICommandHandler
 {
@@ -70,19 +71,19 @@ public:
   }
 
   bool Decode(char * const buffer, const size_t buffer_size);
-  int Encode(char * & buffer);
+  int Encode(char * & buffer, const size_t buffer_size);
 
 private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
-  char err_buf_[1500];
+  char err_buf_[err_buff_size_];
 
   void decodeNode(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
     const size_t buffer_size);
 
   void encodeNode(
-    xml::XMLElement & element, char * & buffer_it);
+    xml::XMLElement & element, char * & buffer_it, int & size_left);
 };
 }  // namespace kuka_rsi_hw_interface
 

@@ -94,8 +94,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   joint_pos_correction_deg_.resize(info_.joints.size(), 0.0);
   ipoc_ = 0;
 
-  rsi_ip_address_ = info_.hardware_parameters["rsi_ip_address"];
-  rsi_port_ = std::stoi(info_.hardware_parameters["rsi_port"]);
+  rsi_ip_address_ = info_.hardware_parameters["client_ip"];
+  rsi_port_ = std::stoi(info_.hardware_parameters["client_port"]);
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRSIHardwareInterface"),
@@ -152,10 +152,11 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     bytes = server_->recv(in_buffer_);
   }
 
-  //TODO (Komáromi): Decode received msg struct and create a struct
-  //TODO (Komáromi): Receive msg
+  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "%s", in_buffer_);
+  return CallbackReturn::FAILURE;
+
   if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
 
   // Position data
@@ -199,7 +200,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   //TODO (Komáromi): construct and send msg
   auto out_buffer_it = out_buffer_;
   if (command_handler_.Encode(out_buffer_it) < 0) {
-    return CallbackReturn::ERROR;
+    return CallbackReturn::FAILURE;
   }
   // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
@@ -234,6 +235,7 @@ return_type KukaRSIHardwareInterface::read(
     return return_type::ERROR;
   }
   if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
+    this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
 
@@ -288,6 +290,7 @@ return_type KukaRSIHardwareInterface::write(
   // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   auto out_buffer_it = out_buffer_;
   if (command_handler_.Encode(out_buffer_it) < 0) {
+    this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
   server_->send(out_buffer_);

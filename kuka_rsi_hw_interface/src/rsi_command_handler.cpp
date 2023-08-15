@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "kuka_rsi_hw_interface/rsi_command_handler.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace kuka_rsi_hw_interface
 {
@@ -28,20 +29,6 @@ RSICommandHandler::RSICommandHandler()
   // Later this should be defined by the rsi xml
   state_data_structure_.Params()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
-  xml::XMLElement AIPos_el("AIPos");
-  AIPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  AIPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  AIPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  AIPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  AIPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  AIPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  xml::XMLElement ASPos_el("ASPos");
-  ASPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  ASPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  ASPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  ASPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  ASPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
-  ASPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
   xml::XMLElement RIst_el("RIst");
   RIst_el.Params()["X"] = xml::XMLParam(xml::XMLType::DOUBLE);
   RIst_el.Params()["Y"] = xml::XMLParam(xml::XMLType::DOUBLE);
@@ -56,17 +43,34 @@ RSICommandHandler::RSICommandHandler()
   RSol_el.Params()["A"] = xml::XMLParam(xml::XMLType::DOUBLE);
   RSol_el.Params()["B"] = xml::XMLParam(xml::XMLType::DOUBLE);
   RSol_el.Params()["C"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement AIPos_el("AIPos");
+  AIPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  AIPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement ASPos_el("ASPos");
+  ASPos_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A3"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A4"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A5"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  ASPos_el.Params()["A6"] = xml::XMLParam(xml::XMLType::DOUBLE);
+  xml::XMLElement Delay_el("Delay");
+  Delay_el.Params()["D"] = xml::XMLParam(xml::XMLType::LONG);
   xml::XMLElement Ipoc_state_el("IPOC");
   Ipoc_state_el.Params()["IPOC"] = xml::XMLParam(xml::XMLType::LONG);
-  state_data_structure_.Childs().emplace_back(AIPos_el);
-  state_data_structure_.Childs().emplace_back(ASPos_el);
   state_data_structure_.Childs().emplace_back(RIst_el);
   state_data_structure_.Childs().emplace_back(RSol_el);
+  state_data_structure_.Childs().emplace_back(AIPos_el);
+  state_data_structure_.Childs().emplace_back(ASPos_el);
+  state_data_structure_.Childs().emplace_back(Delay_el);
   state_data_structure_.Childs().emplace_back(Ipoc_state_el);
 
   // Command structure
   command_data_structure_.Params()["Type"] = xml::XMLParam(xml::XMLType::STRING);
-  command_data_structure_.SetParam<xml::XMLString>("Type", xml::XMLString("KROSHU"));
+  command_data_structure_.SetParam<xml::XMLString>("Type", xml::XMLString("ImFree"));
   xml::XMLElement ak_el("AK");
   ak_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
   ak_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
@@ -85,33 +89,31 @@ RSICommandHandler::RSICommandHandler()
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
 {
-  std::cout << "Decode started" << std::endl;
   auto buffer_it = buffer;
   try {
     decodeNode(this->state_data_structure_, buffer, buffer_it, buffer_size);
+    return true;
   } catch (const std::exception & e) {
-    std::cout << "### ERROR ###" << std::endl;
-    std::cerr << e.what() << '\n';
+    RCLCPP_ERROR(rclcpp::get_logger("CommandHandler"), "%s", e.what());
     return false;
   }
-  std::cout << "Decode finished" << std::endl;
-  return true;
 }
 
-int RSICommandHandler::Encode(char * & buffer)
+int RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
 {
-  std::cout << "Encode started" << std::endl;
   auto buffer_it = buffer;
+  int size_left = buffer_size;
   try {
-    encodeNode(this->command_data_structure_, buffer_it);
+    encodeNode(this->command_data_structure_, buffer_it, size_left);
+    if (buffer_size - size_left != (size_t)(buffer_it - buffer)) {
+      throw std::range_error("Range error occured");
+    }
+    // +1 is for the \0 character
+    return buffer_size - size_left + 1;
   } catch (const std::exception & e) {
-    std::cout << "### ERROR ###" << std::endl;
-    std::cerr << e.what() << '\n';
+    RCLCPP_ERROR(rclcpp::get_logger("CommandHandler"), "%s", e.what());
     return -1;
   }
-  std::cout << "Encode finished" << std::endl;
-  // +1 is for the \0 character
-  return (size_t)(buffer_it - buffer) + 1;
 }
 
 void RSICommandHandler::decodeNode(
@@ -129,8 +131,8 @@ void RSICommandHandler::decodeNode(
   // Validate nodes name
   if (!element.IsNameValid(node_name, buffer_it)) {
     auto i = std::sprintf(err_buf_, "The detected name (");
-    std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
-    i += node_name.length_;
+    auto err_buff_it = err_buf_ + i;
+    i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
     std::sprintf(
       err_buf_ + i, ") does not match the elements name %s.",
       element.GetName().c_str());
@@ -158,8 +160,8 @@ void RSICommandHandler::decodeNode(
     } else {
       if (!element.IsParamNameValid(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "The detected parameter (");
-        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
-        i += node_param.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(
           err_buf_ + i, ") does not match with any of the %s elements parameters.",
           element.GetName().c_str());
@@ -167,24 +169,24 @@ void RSICommandHandler::decodeNode(
       }
       if (*buffer_it != '=') {
         auto i = sprintf(err_buf_, "In \"");
-        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
-        i += node_param.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
       buffer_it++;
       if (*buffer_it != '"') {
         auto i = sprintf(err_buf_, "In \"");
-        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
-        i += node_param.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
       buffer_it++;
       if (!element.CastParam(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "Could not cast the ");
-        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
-        i += node_param.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(
           err_buf_ + i, " param into the %s elements parameter list.",
           element.GetName().c_str());
@@ -192,8 +194,8 @@ void RSICommandHandler::decodeNode(
       }
       if (*buffer_it != '"') {
         auto i = sprintf(err_buf_, "In \"");
-        std::snprintf(err_buf_ + i, node_param.length_ + 1, "%s", node_param.data_ptr_);
-        i += node_param.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -238,8 +240,8 @@ void RSICommandHandler::decodeNode(
       // Node base is data
       if (!element.CastParam(node_name, buffer_it)) {
         auto i = std::sprintf(err_buf_, "Could not cast the ");
-        std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
-        i += node_name.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(
           err_buf_ + i, " parameter into the %s elements parameter list",
           element.GetName().c_str());
@@ -247,8 +249,8 @@ void RSICommandHandler::decodeNode(
       }
       if (*buffer_it != '<') {
         auto i = sprintf(err_buf_, "In \"");
-        std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
-        i += node_name.length_;
+        auto err_buff_it = err_buf_ + i;
+        i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -274,8 +276,8 @@ void RSICommandHandler::decodeNode(
     buffer_it++;
     if (!element.IsNameValid(node_name, buffer_it)) {
       auto i = std::sprintf(err_buf_, "The detected name (");
-      std::snprintf(err_buf_ + i, node_name.length_ + 1, "%s", node_name.data_ptr_);
-      i += node_name.length_;
+      auto err_buff_it = err_buf_ + i;
+      i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
       std::sprintf(
         err_buf_ + i, ") does not match the elements name: %s",
         element.GetName().c_str());
@@ -292,63 +294,81 @@ void RSICommandHandler::decodeNode(
 }
 
 void RSICommandHandler::encodeNode(
-  xml::XMLElement & element, char * & buffer_it)
+  xml::XMLElement & element, char * & buffer_it, int & size_left)
 {
-  auto idx = sprintf(buffer_it, "<%s ", element.GetName().c_str());
-  if (idx < 0) {
+  auto idx = snprintf(buffer_it, size_left, "<%s ", element.GetName().c_str());
+  if (idx < 0 || idx > size_left) {
     throw std::range_error("Out of the buffers range");
+  } else {
+    buffer_it += idx;
+    size_left -= idx;
   }
-  buffer_it += idx;
   bool isBaseLessNode = false;
   if (element.GetChilds().size() <= 0) {
     isBaseLessNode = true;
   }
+  auto param_idx = element.Params().size() - 1;
   for (auto && param : element.Params()) {
     if (element.GetName() == param.first) {
       isBaseLessNode = false;
     } else {
-      idx = sprintf(buffer_it, "%s=\"", param.first.c_str());
-      if (idx < 0) {
+      idx = snprintf(buffer_it, size_left, "%s=\"", param.first.c_str());
+      if (idx < 0 || idx > size_left) {
         throw std::range_error("Out of the buffers range");
+      } else {
+        buffer_it += idx;
+        size_left -= idx;
       }
-      buffer_it += idx;
-      param.second.PrintParam(buffer_it);
-      idx = sprintf(buffer_it, "\" ");
-      if (idx < 0) {
+      param.second.PrintParam(buffer_it, size_left);
+
+      if (param_idx == 0) {
+        idx = snprintf(buffer_it, size_left, "\"");
+      } else {
+        idx = snprintf(buffer_it, size_left, "\" ");
+      }
+      if (idx < 0 || idx > size_left) {
         throw std::range_error("Out of the buffers range");
+      } else {
+        buffer_it += idx;
+        size_left -= idx;
       }
-      buffer_it += idx;
+      param_idx++;
     }
   }
   if (isBaseLessNode) {
-    idx = sprintf(buffer_it, "/>");
-    if (idx < 0) {
+    idx = snprintf(buffer_it, size_left, " />");
+    if (idx < 0 || idx > size_left) {
       throw std::range_error("Out of the buffers range");
+    } else {
+      buffer_it += idx;
+      size_left -= idx;
     }
-    buffer_it += idx;
   } else {
-    buffer_it--;
-    idx = sprintf(buffer_it, ">");
-    if (idx < 0) {
+    idx = snprintf(buffer_it, size_left, ">");
+    if (idx < 0 || idx > size_left) {
       throw std::range_error("Out of the buffers range");
+    } else {
+      buffer_it += idx;
+      size_left -= idx;
     }
-    buffer_it += idx;
     if (element.GetChilds().size() > 0) {
       // Add childs
       for (auto && child : element.Childs()) {
-        encodeNode(child, buffer_it);
+        encodeNode(child, buffer_it, size_left);
       }
     } else {
       // Add data
       element.Params().find(element.GetName())->second.PrintParam(
-        buffer_it);
+        buffer_it, size_left);
     }
     // Add end bracket
-    idx = sprintf(buffer_it, "</%s>", element.GetName().c_str());
-    if (idx < 0) {
+    idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
+    if (idx < 0 || idx > size_left) {
       throw std::range_error("Out of the buffers range");
+    } else {
+      buffer_it += idx;
+      size_left -= idx;
     }
-    buffer_it += idx;
   }
 
 }

@@ -19,6 +19,16 @@
 
 namespace xml
 {
+int XMLString::PrintString(char * & buffer_it, const int & size_left)
+{
+  if (length_ + 1 > size_left) {
+    return -1;
+  } else {
+    snprintf(buffer_it, length_ + 1, "%s", data_ptr_);
+    return length_;
+  }
+}
+
 bool XMLString::operator==(const XMLString & rhs)
 {
   if (length_ != rhs.length_) {

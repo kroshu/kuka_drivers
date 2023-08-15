@@ -32,6 +32,9 @@ public:
   : data_ptr_(data_ptr), length_(strlen(data_ptr)) {}
   XMLString(const std::string & str)
   : data_ptr_(str.c_str()), length_(str.length()) {}
+
+  int PrintString(char * & buffer_it, const int & size_left);
+
   bool operator==(const XMLString & rhs);
   bool operator==(const std::string & rhs);
   bool operator==(const char * & rhs);
