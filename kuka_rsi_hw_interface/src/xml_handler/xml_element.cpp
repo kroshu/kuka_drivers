@@ -78,10 +78,8 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
 bool XMLElement::IsParamNameValid(XMLString & key, char * & str_ptr)
 {
   key = castXMLString(str_ptr);
-  std::cout << "detected param: " << key << std::endl;
   auto param_it = params_.find(key);
   if (param_it != params_.end()) {
-    std::cout << "stored param:   " << param_it->first << std::endl;
     return true;
   }
   return false;
@@ -92,42 +90,50 @@ bool XMLElement::IsParamNameValid(XMLString & key, char * & str_ptr)
 bool XMLElement::IsNameValid(XMLString & key, char * & str_ptr)
 {
   key = castXMLString(str_ptr);
-  std::cout << "detected name: " << key << std::endl;
-  std::cout << "stored name:   " << name_ << std::endl;
   if (name_.length() != key.length_) {
     return false;
   }
   return strncmp(name_.c_str(), key.data_ptr_, key.length_) == 0;
 }
 
-XMLElement & XMLElement::Element(const std::string & elementName, int depth)
+XMLElement * XMLElement::element(const std::string & elementName, int depth)
 {
   if (elementName == name_) {
-    return *this;
+    return this;
   }
   for (auto && child : childs_) {
-    child.Element(elementName, depth + 1);
+    auto ret_val = child.element(elementName, depth + 1);
+    if (ret_val != nullptr) {
+      return ret_val;
+    }
   }
   if (depth == 0) {
     char err_buf[1000];
     sprintf(err_buf, "%s element not found", elementName.c_str());
     throw std::logic_error(err_buf);
   }
+  return nullptr;
 }
 
-const XMLElement & XMLElement::GetElement(const std::string & elementName, int depth) const
+const XMLElement * const XMLElement::getElement(
+  const std::string & elementName,
+  int depth) const
 {
   if (elementName == name_) {
-    return *this;
+    return this;
   }
   for (auto && child : childs_) {
-    child.GetElement(elementName);
+    auto ret_val = child.getElement(elementName, depth + 1);
+    if (ret_val != nullptr) {
+      return ret_val;
+    }
   }
   if (depth == 0) {
     char err_buf[1000];
     sprintf(err_buf, "%s element not found", elementName.c_str());
     throw std::logic_error(err_buf);
   }
+  return nullptr;
 }
 
 

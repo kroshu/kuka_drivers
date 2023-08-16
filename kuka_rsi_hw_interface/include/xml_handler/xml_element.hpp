@@ -53,6 +53,10 @@ class XMLElement
 {
 private:
   static XMLString castXMLString(char * & str_ptr);
+  XMLElement * element(const std::string & elementName, int depth = 0);
+  const XMLElement * const getElement(
+    const std::string & elementName,
+    int depth = 0) const;
 
   std::map<std::string, XMLParam, std::less<>> params_;
   std::vector<XMLElement> childs_;
@@ -70,8 +74,9 @@ public:
   inline std::vector<XMLElement> & Childs() {return childs_;}
   inline std::map<std::string, XMLParam, std::less<>> & Params() {return params_;}
 
-  XMLElement & Element(const std::string & elementName, int depth = 0);
-  const XMLElement & GetElement(const std::string & elementName, int depth = 0) const;
+  inline XMLElement * Element(const std::string & elementName) {return element(elementName);}
+  inline const XMLElement * const GetElement(
+    const std::string & elementName) const {return getElement(elementName);}
 
   bool CastParam(const XMLString & key, char * & str_ptr);
   bool IsParamNameValid(XMLString & key, char * & str_ptr);

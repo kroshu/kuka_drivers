@@ -84,7 +84,7 @@ RSICommandHandler::RSICommandHandler()
   Ipoc_command_el.Params()["IPOC"] = xml::XMLParam(xml::XMLType::LONG);
   command_data_structure_.Childs().emplace_back(ak_el);
   command_data_structure_.Childs().emplace_back(Stop_el);
-  state_data_structure_.Childs().emplace_back(Ipoc_command_el);
+  command_data_structure_.Childs().emplace_back(Ipoc_command_el);
 }
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
@@ -132,7 +132,7 @@ void RSICommandHandler::decodeNode(
   if (!element.IsNameValid(node_name, buffer_it)) {
     auto i = std::sprintf(err_buf_, "The detected name (");
     auto err_buff_it = err_buf_ + i;
-    i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
+    i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
     std::sprintf(
       err_buf_ + i, ") does not match the elements name %s.",
       element.GetName().c_str());
@@ -161,7 +161,7 @@ void RSICommandHandler::decodeNode(
       if (!element.IsParamNameValid(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "The detected parameter (");
         auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(
           err_buf_ + i, ") does not match with any of the %s elements parameters.",
           element.GetName().c_str());
@@ -170,7 +170,7 @@ void RSICommandHandler::decodeNode(
       if (*buffer_it != '=') {
         auto i = sprintf(err_buf_, "In \"");
         auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -178,7 +178,7 @@ void RSICommandHandler::decodeNode(
       if (*buffer_it != '"') {
         auto i = sprintf(err_buf_, "In \"");
         auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -186,7 +186,7 @@ void RSICommandHandler::decodeNode(
       if (!element.CastParam(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "Could not cast the ");
         auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(
           err_buf_ + i, " param into the %s elements parameter list.",
           element.GetName().c_str());
@@ -195,7 +195,7 @@ void RSICommandHandler::decodeNode(
       if (*buffer_it != '"') {
         auto i = sprintf(err_buf_, "In \"");
         auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -241,7 +241,7 @@ void RSICommandHandler::decodeNode(
       if (!element.CastParam(node_name, buffer_it)) {
         auto i = std::sprintf(err_buf_, "Could not cast the ");
         auto err_buff_it = err_buf_ + i;
-        i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(
           err_buf_ + i, " parameter into the %s elements parameter list",
           element.GetName().c_str());
@@ -250,7 +250,7 @@ void RSICommandHandler::decodeNode(
       if (*buffer_it != '<') {
         auto i = sprintf(err_buf_, "In \"");
         auto err_buff_it = err_buf_ + i;
-        i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
+        i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
         std::sprintf(err_buf_ + i, "\" param syntax error found");
         throw std::logic_error(err_buf_);
       }
@@ -260,10 +260,12 @@ void RSICommandHandler::decodeNode(
         decodeNode(child, buffer, buffer_it, buffer_size);
       }
     }
-    for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '<'; buffer_it++) {
-    }
-    if ((size_t)(buffer_it - buffer) >= buffer_size) {
-      throw std::range_error("Out of the buffers range");
+    if (*(buffer_it) != '<') {
+      std::sprintf(
+        err_buf_,
+        "Syntax error, while node end in the %s node",
+        element.GetName().c_str());
+      throw std::logic_error(err_buf_);
     }
     buffer_it++;
     if (*(buffer_it) != '/') {
@@ -277,7 +279,7 @@ void RSICommandHandler::decodeNode(
     if (!element.IsNameValid(node_name, buffer_it)) {
       auto i = std::sprintf(err_buf_, "The detected name (");
       auto err_buff_it = err_buf_ + i;
-      i += node_name.PrintString(err_buff_it, err_buff_size_ - i);
+      i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
       std::sprintf(
         err_buf_ + i, ") does not match the elements name: %s",
         element.GetName().c_str());
@@ -290,6 +292,7 @@ void RSICommandHandler::decodeNode(
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
+    buffer_it++;
   }
 }
 
@@ -320,7 +323,6 @@ void RSICommandHandler::encodeNode(
         size_left -= idx;
       }
       param.second.PrintParam(buffer_it, size_left);
-
       if (param_idx == 0) {
         idx = snprintf(buffer_it, size_left, "\"");
       } else {
@@ -370,6 +372,5 @@ void RSICommandHandler::encodeNode(
       size_left -= idx;
     }
   }
-
 }
 }
