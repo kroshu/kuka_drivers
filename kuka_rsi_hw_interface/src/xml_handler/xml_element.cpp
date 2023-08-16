@@ -40,7 +40,7 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
             return false;
           }
           str_ptr = end;
-          param_it->second.param_ = res;
+          param_it->second.param_value_ = res;
           break;
         }
       case XMLType::LONG:
@@ -51,7 +51,7 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
             return false;
           }
           str_ptr = end;
-          param_it->second.param_ = res;
+          param_it->second.param_value_ = res;
           break;
         }
       case XMLType::DOUBLE:
@@ -62,11 +62,11 @@ bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
             return false;
           }
           str_ptr = end;
-          param_it->second.param_ = res;
+          param_it->second.param_value_ = res;
           break;
         }
       case XMLType::STRING:
-        param_it->second.param_ = castXMLString(str_ptr);
+        param_it->second.param_value_ = castXMLString(str_ptr);
         break;
       default:
         return false;
@@ -134,42 +134,6 @@ const XMLElement * const XMLElement::getElement(
     throw std::logic_error(err_buf);
   }
   return nullptr;
-}
-
-
-std::ostream & XMLElement::operator<<(std::ostream & out) const
-{
-  out << "Element name: " << this->name_ << "\n";
-  for (auto && param : params_) {
-    out << "  - " << param.first << ": ";
-    switch (param.second.param_type_) {
-      case XMLType::BOOL:
-        out << std::get<0>(param.second.param_) << "\n";
-        break;
-      case XMLType::LONG:
-        out << std::get<1>(param.second.param_) << "\n";
-        break;
-      case XMLType::DOUBLE:
-        out << std::get<2>(param.second.param_) << "\n";
-        break;
-      case XMLType::STRING:
-        {
-          char str[std::get<3>(param.second.param_).length_ + 1];
-          std::snprintf(
-            str, std::get<3>(param.second.param_).length_ + 1, "%s",
-            std::get<3>(param.second.param_).data_ptr_);
-          out << str << "\n";
-        }
-        break;
-
-      default:
-        break;
-    }
-  }
-  for (auto && child : childs_) {
-    child.operator<<(out) << "\n";
-  }
-  return out;
 }
 
 XMLString XMLElement::castXMLString(char * & str_ptr)

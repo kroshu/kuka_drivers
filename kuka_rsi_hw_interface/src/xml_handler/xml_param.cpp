@@ -25,19 +25,19 @@ int XMLParam::PrintParam(char * & buffer_it, int & size_left)
   int idx = 0;
   switch (param_type_) {
     case XMLType::BOOL:
-      idx = snprintf(buffer_it, size_left, "%u", std::get<XMLType::BOOL>(param_));
+      idx = snprintf(buffer_it, size_left, "%u", GetParamValue<bool>());
       break;
 
     case XMLType::LONG:
-      idx = snprintf(buffer_it, size_left, "%lu", std::get<XMLType::LONG>(param_));
+      idx = snprintf(buffer_it, size_left, "%lu", GetParamValue<long>());
       break;
 
     case XMLType::DOUBLE:
-      idx = snprintf(buffer_it, size_left, "%f", std::get<XMLType::DOUBLE>(param_));
+      idx = snprintf(buffer_it, size_left, "%f", GetParamValue<double>());
       break;
 
     case XMLType::STRING:
-      idx = std::get<XMLType::STRING>(param_).PrintString(buffer_it, size_left);
+      idx = GetParamValue<XMLString>().PrintString(buffer_it, size_left);
       break;
     default:
       throw std::logic_error("Parameter type not supported");
@@ -54,7 +54,7 @@ int XMLParam::PrintParam(char * & buffer_it, int & size_left)
 
 std::ostream & operator<<(std::ostream & out, class XMLParam & param)
 {
-  std::visit([&](auto && arg) {out << arg;}, param.param_);
+  std::visit([&](auto && arg) {out << arg;}, param.param_value_);
   return out;
 }
 }

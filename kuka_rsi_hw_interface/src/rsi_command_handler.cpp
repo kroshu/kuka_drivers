@@ -70,7 +70,7 @@ RSICommandHandler::RSICommandHandler()
 
   // Command structure
   command_data_structure_.Params()["Type"] = xml::XMLParam(xml::XMLType::STRING);
-  command_data_structure_.SetParam<xml::XMLString>("Type", xml::XMLString("ImFree"));
+  command_data_structure_.SetParam<xml::XMLString>("Type", xml::XMLString("KROSHU"));
   xml::XMLElement ak_el("AK");
   ak_el.Params()["A1"] = xml::XMLParam(xml::XMLType::DOUBLE);
   ak_el.Params()["A2"] = xml::XMLParam(xml::XMLType::DOUBLE);
@@ -263,7 +263,7 @@ void RSICommandHandler::decodeNode(
     if (*(buffer_it) != '<') {
       std::sprintf(
         err_buf_,
-        "Syntax error, while node end in the %s node",
+        "Syntax error at the end of %s node",
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
@@ -271,7 +271,7 @@ void RSICommandHandler::decodeNode(
     if (*(buffer_it) != '/') {
       std::sprintf(
         err_buf_,
-        "Syntax error, while node end in the %s node",
+        "Syntax error at the end of %s node",
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }
@@ -288,7 +288,7 @@ void RSICommandHandler::decodeNode(
     if (*buffer_it != '>') {
       std::sprintf(
         err_buf_,
-        "Syntax error, while node end in the %s node",
+        "Syntax error at the end of %s node",
         element.GetName().c_str());
       throw std::logic_error(err_buf_);
     }

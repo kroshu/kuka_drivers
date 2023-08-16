@@ -82,8 +82,6 @@ public:
   bool IsParamNameValid(XMLString & key, char * & str_ptr);
   bool IsNameValid(XMLString & key, char * & str_ptr);
 
-  std::ostream & operator<<(std::ostream & out) const;
-
   // TODO (Komaromi): When cpp20 is in use, use requires so only the types we set can be used
   template<typename T>
   bool GetParam(const std::string & key, T & param) const
@@ -93,19 +91,19 @@ public:
       if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
         std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
-        param = std::get<T>(param_it->second.param_);
+        param = param_it->second.GetParamValue<T>();
         return true;
       }
     }
     return false;
   }
-
+  
   template<typename T>
   T GetParam(const std::string & key) const
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      return param_it->second.GetParam<T>();
+      return param_it->second.GetParamValue<T>();
     }
     throw std::range_error("Could not find key in parameter list");
   }
@@ -119,7 +117,7 @@ public:
       if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
         std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
-        param_it->second.param_ = param;
+        param_it->second.param_value_ = param;
         return true;
       }
     }

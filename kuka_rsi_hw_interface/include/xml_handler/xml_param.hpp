@@ -34,7 +34,7 @@ class XMLParam
 {
 public:
   XMLType param_type_;
-  std::variant<bool, long, double, XMLString> param_;
+  std::variant<bool, long, double, XMLString> param_value_;
   XMLParam() = default;
   XMLParam(XMLType type)
   : param_type_(type) {}
@@ -42,12 +42,12 @@ public:
   friend std::ostream & operator<<(std::ostream & out, class XMLParam & param);
 
   template<typename T>
-  T GetParam() const
+  T GetParamValue() const
   {
     if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
       std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
     {
-      return std::get<T>(param_);
+      return std::get<T>(param_value_);
     }
     throw std::logic_error("Parameter type not supported");
   }
