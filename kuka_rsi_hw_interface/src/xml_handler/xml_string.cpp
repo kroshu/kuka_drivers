@@ -60,4 +60,4 @@ std::ostream & operator<<(std::ostream & out, XMLString & xml_str)
   }
   return out;
 }
-}
+}  // namespace xml

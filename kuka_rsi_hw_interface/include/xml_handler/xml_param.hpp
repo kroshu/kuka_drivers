@@ -34,7 +34,7 @@ class XMLParam
 {
 public:
   XMLType param_type_;
-  std::variant<bool, long, double, XMLString> param_value_;
+  std::variant<bool, int64_t, double, XMLString> param_value_;
   XMLParam() = default;
   XMLParam(XMLType type)
   : param_type_(type) {}
@@ -44,7 +44,7 @@ public:
   template<typename T>
   T GetParamValue() const
   {
-    if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
+    if constexpr (std::is_same<T, bool>::value || std::is_same<T, int64_t>::value ||
       std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
     {
       return std::get<T>(param_value_);
@@ -53,5 +53,5 @@ public:
   }
 };
 
-}
+}  // namespace xml
 #endif  // XML__XML_PARAM_H_

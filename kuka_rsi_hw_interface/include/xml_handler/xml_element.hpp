@@ -88,7 +88,7 @@ public:
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
+      if constexpr (std::is_same<T, bool>::value || std::is_same<T, int64_t>::value ||
         std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
         param = param_it->second.GetParamValue<T>();
@@ -97,7 +97,7 @@ public:
     }
     return false;
   }
-  
+
   template<typename T>
   T GetParam(const std::string & key) const
   {
@@ -114,7 +114,7 @@ public:
   {
     auto param_it = params_.find(key);
     if (param_it != params_.end()) {
-      if constexpr (std::is_same<T, bool>::value || std::is_same<T, long>::value ||
+      if constexpr (std::is_same<T, bool>::value || std::is_same<T, int64_t>::value ||
         std::is_same<T, double>::value || std::is_same<T, XMLString>::value)
       {
         param_it->second.param_value_ = param;
@@ -124,6 +124,6 @@ public:
     return false;
   }
 };
-}
+}  // namespace xml
 
 #endif  // XML__XML_ELEMENT_H_

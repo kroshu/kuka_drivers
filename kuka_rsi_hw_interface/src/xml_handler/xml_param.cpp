@@ -29,7 +29,7 @@ int XMLParam::PrintParam(char * & buffer_it, int & size_left)
       break;
 
     case XMLType::LONG:
-      idx = snprintf(buffer_it, size_left, "%lu", GetParamValue<long>());
+      idx = snprintf(buffer_it, size_left, "%lu", GetParamValue<int64_t>());
       break;
 
     case XMLType::DOUBLE:
@@ -57,4 +57,4 @@ std::ostream & operator<<(std::ostream & out, class XMLParam & param)
   std::visit([&](auto && arg) {out << arg;}, param.param_value_);
   return out;
 }
-}
+}  // namespace xml

@@ -186,7 +186,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     KukaRSIHardwareInterface::D2R;
 
   // Ipoc data
-  ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<long>("IPOC");
+  ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<int64_t>("IPOC");
 
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     // hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
@@ -203,7 +203,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   command_handler_.SetCommandParam<double>("AK", "A5", joint_pos_correction_deg_[4]);
   command_handler_.SetCommandParam<double>("AK", "A6", joint_pos_correction_deg_[5]);
   command_handler_.SetCommandParam<bool>("Stop", "Stop", stop_flag_);
-  command_handler_.SetCommandParam<long>("IPOC", "IPOC", static_cast<long>(ipoc_));
+  command_handler_.SetCommandParam<int64_t>("IPOC", "IPOC", static_cast<int64_t>(ipoc_));
 
   //TODO (Komáromi): construct and send msg
   auto out_buffer_it = out_buffer_;
@@ -264,7 +264,7 @@ return_type KukaRSIHardwareInterface::read(
   hw_states_[5] = command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A6") *
     KukaRSIHardwareInterface::D2R;
   // ipoc_ = rsi_state_.ipoc;
-  ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<long>("IPOC");
+  ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<int64_t>("IPOC");
   return return_type::OK;
 }
 
@@ -294,7 +294,7 @@ return_type KukaRSIHardwareInterface::write(
   command_handler_.SetCommandParam<double>("AK", "A5", joint_pos_correction_deg_[4]);
   command_handler_.SetCommandParam<double>("AK", "A6", joint_pos_correction_deg_[5]);
   command_handler_.SetCommandParam<bool>("Stop", "Stop", stop_flag_);
-  command_handler_.SetCommandParam<long>("IPOC", "IPOC", static_cast<long>(ipoc_));
+  command_handler_.SetCommandParam<int64_t>("IPOC", "IPOC", static_cast<int64_t>(ipoc_));
 
   // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   auto out_buffer_it = out_buffer_;

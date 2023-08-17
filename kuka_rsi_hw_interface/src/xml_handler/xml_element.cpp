@@ -148,4 +148,4 @@ XMLString XMLElement::castXMLString(char * & str_ptr)
     start_ref, (size_t)(str_ptr - start_ref));
   return data;
 }
-}
+}  // namespace xml
