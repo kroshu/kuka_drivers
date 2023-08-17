@@ -121,11 +121,12 @@ void RSICommandHandler::decodeNode(
   const size_t buffer_size)
 {
   xml::XMLString node_name(buffer, 0);
-  // fast forward for the first open bracket
-  for (; *buffer_it != '<'; buffer_it++) {
-    if ((int)(buffer_it - buffer) >= (int)buffer_size - 1) {
-      throw std::range_error("Out of the buffers range");
-    }
+  if (*(buffer_it) != '<') {
+    std::sprintf(
+      err_buf_,
+      "Syntax error at the start of %s node",
+      element.GetName().c_str());
+    throw std::logic_error(err_buf_);
   }
   buffer_it++;
   // Validate nodes name
@@ -151,12 +152,14 @@ void RSICommandHandler::decodeNode(
     if ((size_t)(buffer_it - buffer) >= buffer_size) {
       throw std::range_error("Out of the buffers range");
     }
-    // Check for the nodes hadders end characters
+    // Check for the nodes headers end characters
     if (*buffer_it == '/' && *(buffer_it + 1) == '>') {
       isBaseLessNode = true;
       isNoMoreParam = true;
+      buffer_it += 2;
     } else if (*buffer_it == '>') {
       isNoMoreParam = true;
+      buffer_it++;
     } else {
       if (!element.IsParamNameValid(node_param, buffer_it)) {
         auto i = std::sprintf(err_buf_, "The detected parameter (");
@@ -203,14 +206,9 @@ void RSICommandHandler::decodeNode(
       numOfParam++;
     }
   }
-
-  // Fast forward to close bracket
-  for (; (size_t)(buffer_it - buffer) < buffer_size && *buffer_it != '>'; buffer_it++) {
-  }
   if ((size_t)(buffer_it - buffer) >= buffer_size) {
     throw std::range_error("Out of the buffers range");
   }
-  buffer_it++;
 
   // Could not find all parameter, or found too much
   if (isBaseLessNode && numOfParam != element.Params().size()) {
@@ -299,7 +297,7 @@ void RSICommandHandler::decodeNode(
 void RSICommandHandler::encodeNode(
   xml::XMLElement & element, char * & buffer_it, int & size_left)
 {
-  auto idx = snprintf(buffer_it, size_left, "<%s ", element.GetName().c_str());
+  auto idx = snprintf(buffer_it, size_left, "<%s", element.GetName().c_str());
   if (idx < 0 || idx > size_left) {
     throw std::range_error("Out of the buffers range");
   } else {
@@ -307,15 +305,14 @@ void RSICommandHandler::encodeNode(
     size_left -= idx;
   }
   bool isBaseLessNode = false;
-  if (element.GetChilds().size() <= 0) {
+  if (element.GetChilds().size() == 0) {
     isBaseLessNode = true;
   }
-  auto param_idx = element.Params().size() - 1;
   for (auto && param : element.Params()) {
     if (element.GetName() == param.first) {
       isBaseLessNode = false;
     } else {
-      idx = snprintf(buffer_it, size_left, "%s=\"", param.first.c_str());
+      idx = snprintf(buffer_it, size_left, " %s=\"", param.first.c_str());
       if (idx < 0 || idx > size_left) {
         throw std::range_error("Out of the buffers range");
       } else {
@@ -323,18 +320,14 @@ void RSICommandHandler::encodeNode(
         size_left -= idx;
       }
       param.second.PrintParam(buffer_it, size_left);
-      if (param_idx == 0) {
-        idx = snprintf(buffer_it, size_left, "\"");
-      } else {
-        idx = snprintf(buffer_it, size_left, "\" ");
-      }
+
+      idx = snprintf(buffer_it, size_left, "\"");
       if (idx < 0 || idx > size_left) {
         throw std::range_error("Out of the buffers range");
       } else {
         buffer_it += idx;
         size_left -= idx;
       }
-      param_idx++;
     }
   }
   if (isBaseLessNode) {
