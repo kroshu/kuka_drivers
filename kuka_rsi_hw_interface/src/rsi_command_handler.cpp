@@ -23,7 +23,7 @@
 namespace kuka_rsi_hw_interface
 {
 RSICommandHandler::RSICommandHandler()
-: command_data_structure_("Sen"), state_data_structure_("Rob"), err_buf_("")
+: command_data_structure_("Sen"), state_data_structure_("Rob")
 {
   // State structure
   // Later this should be defined by the rsi xml
@@ -122,27 +122,23 @@ void RSICommandHandler::decodeNode(
 {
   xml::XMLString node_name(buffer, 0);
   if (*(buffer_it) != '<') {
-    std::sprintf(
-      err_buf_,
-      "Syntax error at the start of %s node",
-      element.GetName().c_str());
-    throw std::logic_error(err_buf_);
+    std::stringstream err_ss;
+    err_ss << "Syntax error at the start of " << element.GetName() << " node.";
+    throw std::logic_error(err_ss.str());
   }
   buffer_it++;
   // Validate nodes name
   if (!element.IsNameValid(node_name, buffer_it)) {
-    auto i = std::sprintf(err_buf_, "The detected name (");
-    auto err_buff_it = err_buf_ + i;
-    i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-    std::sprintf(
-      err_buf_ + i, ") does not match the elements name %s.",
-      element.GetName().c_str());
-    throw std::logic_error(err_buf_);
+    std::stringstream err_ss;
+    err_ss << "The detected start node name \"" << node_name <<
+      "\" does not match the elements name " <<
+      element.GetName() << ".";
+    throw std::logic_error(err_ss.str());
   }
 
   // Validate nodes params
-  size_t numOfParam = 0;
-  bool isBaseLessNode = false;
+  size_t num_of_param = 0;
+  bool is_param_only_node = false;
   bool isNoMoreParam = false;
   xml::XMLString node_param;
   while (!isNoMoreParam && (size_t)(buffer_it - buffer) < buffer_size) {
@@ -150,145 +146,132 @@ void RSICommandHandler::decodeNode(
     for (; *buffer_it == ' '; buffer_it++) {
     }
     if ((size_t)(buffer_it - buffer) >= buffer_size) {
-      throw std::range_error("Out of the buffers range");
+      std::stringstream err_ss;
+      err_ss << "Out of range error in " << element.GetName() << " node.";
+      throw std::range_error(err_ss.str());
     }
-    // Check for the nodes headers end characters
+    // Check for the start nodes end characters
     if (*buffer_it == '/' && *(buffer_it + 1) == '>') {
-      isBaseLessNode = true;
+      is_param_only_node = true;
       isNoMoreParam = true;
       buffer_it += 2;
     } else if (*buffer_it == '>') {
       isNoMoreParam = true;
       buffer_it++;
     } else {
+      // Validates params name
       if (!element.IsParamNameValid(node_param, buffer_it)) {
-        auto i = std::sprintf(err_buf_, "The detected parameter (");
-        auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(
-          err_buf_ + i, ") does not match with any of the %s elements parameters.",
-          element.GetName().c_str());
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "The detected parameter \"" << node_param <<
+          "\" does not match with any of the " << element.GetName() << " elements parameters.";
+        throw std::logic_error(err_ss.str());
       }
+      // Checks xml syntax
       if (*buffer_it != '=') {
-        auto i = sprintf(err_buf_, "In \"");
-        auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(err_buf_ + i, "\" param syntax error found");
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "In \"" << node_param << "\" param syntax error found.";
+        throw std::logic_error(err_ss.str());
       }
       buffer_it++;
       if (*buffer_it != '"') {
-        auto i = sprintf(err_buf_, "In \"");
-        auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(err_buf_ + i, "\" param syntax error found");
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "In \"" << node_param << "\" param syntax error found.";
+        throw std::logic_error(err_ss.str());
       }
       buffer_it++;
+      // Casts param data
       if (!element.CastParam(node_param, buffer_it)) {
-        auto i = std::sprintf(err_buf_, "Could not cast the ");
-        auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(
-          err_buf_ + i, " param into the %s elements parameter list.",
-          element.GetName().c_str());
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "Could not cast the \"" << node_param << "\" param into the " <<
+          element.GetName() << " elements parameter list.";
+        throw std::logic_error(err_ss.str());
       }
+      // Checks xml syntax
       if (*buffer_it != '"') {
-        auto i = sprintf(err_buf_, "In \"");
-        auto err_buff_it = err_buf_ + i;
-        i += node_param.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(err_buf_ + i, "\" param syntax error found");
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "In \"" << node_param << "\" param syntax error found.";
+        throw std::logic_error(err_ss.str());
       }
       buffer_it++;
-      numOfParam++;
+      num_of_param++;
     }
   }
   if ((size_t)(buffer_it - buffer) >= buffer_size) {
-    throw std::range_error("Out of the buffers range");
+    std::stringstream err_ss;
+    err_ss << "Out of range error in " << element.GetName() << " node.";
+    throw std::range_error(err_ss.str());
   }
 
   // Could not find all parameter, or found too much
-  if (isBaseLessNode && numOfParam != element.Params().size()) {
-    std::sprintf(
-      err_buf_,
-      "%lu parameter found. It does not match with %s elements parameter list size.", numOfParam,
-      element.GetName().c_str());
-    throw std::logic_error(err_buf_);
+  //   Checks if it is a param only node,
+  //   because the normal leaf nodes data is stored within the elemets parameters.
+  //   So in case of a normal leaf node the num_of_param and the Params().size() does not match.
+  if (is_param_only_node && num_of_param != element.Params().size()) {
+    std::stringstream err_ss;
+    err_ss << num_of_param << " parameter found. It does not match with " << element.GetName() <<
+      "elements parameter list size.";
+    throw std::logic_error(err_ss.str());
   }
 
   // Node should have childs, but did not found any
-  if (isBaseLessNode && element.GetChilds().size() > 0) {
-    std::sprintf(
-      err_buf_, "%s node should have chields but did not found any",
-      element.GetName().c_str());
-    throw std::logic_error(err_buf_);
+  if (is_param_only_node && element.GetChilds().size() > 0) {
+    std::stringstream err_ss;
+    err_ss << element.GetName() << " node should have chields but did not found any.";
+    throw std::logic_error(err_ss.str());
   }
-  // fast forward if
+  // Fast forward until the next node or the end of the node
   for (; *buffer_it == ' '; buffer_it++) {
   }
   if ((size_t)(buffer_it - buffer) >= buffer_size) {
-    throw std::range_error("Out of the buffers range");
+    std::stringstream err_ss;
+    err_ss << "Out of range error in " << element.GetName() << " node.";
+    throw std::range_error(err_ss.str());
   }
 
-  if (!isBaseLessNode) {
+  // If a node not an only param node, therefore has data or childs and need an end node
+  if (!is_param_only_node) {
     if (*buffer_it != '<') {
-      // Node base is data
+      // Node is a leaf node, checking its data
       if (!element.CastParam(node_name, buffer_it)) {
-        auto i = std::sprintf(err_buf_, "Could not cast the ");
-        auto err_buff_it = err_buf_ + i;
-        i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(
-          err_buf_ + i, " parameter into the %s elements parameter list",
-          element.GetName().c_str());
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "Could not cast the \"" << node_name << "\" parameter into the " <<
+          element.GetName() << " elements parameter list.";
+        throw std::logic_error(err_ss.str());
       }
       if (*buffer_it != '<') {
-        auto i = sprintf(err_buf_, "In \"");
-        auto err_buff_it = err_buf_ + i;
-        i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-        std::sprintf(err_buf_ + i, "\" param syntax error found");
-        throw std::logic_error(err_buf_);
+        std::stringstream err_ss;
+        err_ss << "In \"" << node_param << "\" param syntax error found.";
+        throw std::logic_error(err_ss.str());
       }
     } else {
-      // node base has childs
+      // Node has childs
       for (auto && child : element.Childs()) {
         decodeNode(child, buffer, buffer_it, buffer_size);
       }
     }
+    // Checking the end node for syntax and node name
     if (*(buffer_it) != '<') {
-      std::sprintf(
-        err_buf_,
-        "Syntax error at the end of %s node",
-        element.GetName().c_str());
-      throw std::logic_error(err_buf_);
+      std::stringstream err_ss;
+      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
+      throw std::logic_error(err_ss.str());
     }
     buffer_it++;
     if (*(buffer_it) != '/') {
-      std::sprintf(
-        err_buf_,
-        "Syntax error at the end of %s node",
-        element.GetName().c_str());
-      throw std::logic_error(err_buf_);
+      std::stringstream err_ss;
+      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
+      throw std::logic_error(err_ss.str());
     }
     buffer_it++;
     if (!element.IsNameValid(node_name, buffer_it)) {
-      auto i = std::sprintf(err_buf_, "The detected name (");
-      auto err_buff_it = err_buf_ + i;
-      i += node_name.PrintString(err_buff_it, ERROR_BUFFER_SIZE - i);
-      std::sprintf(
-        err_buf_ + i, ") does not match the elements name: %s",
-        element.GetName().c_str());
-      throw std::logic_error(err_buf_);
+      std::stringstream err_ss;
+      err_ss << "The detected name \"" << node_name << "\" does not match the elements name: " <<
+        element.GetName() << ".";
+      throw std::logic_error(err_ss.str());
     }
     if (*buffer_it != '>') {
-      std::sprintf(
-        err_buf_,
-        "Syntax error at the end of %s node",
-        element.GetName().c_str());
-      throw std::logic_error(err_buf_);
+      std::stringstream err_ss;
+      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
+      throw std::logic_error(err_ss.str());
     }
     buffer_it++;
   }
@@ -297,43 +280,58 @@ void RSICommandHandler::decodeNode(
 void RSICommandHandler::encodeNode(
   xml::XMLElement & element, char * & buffer_it, int & size_left)
 {
+  // Start the node with its name
   auto idx = snprintf(buffer_it, size_left, "<%s", element.GetName().c_str());
   if (idx < 0 || idx > size_left) {
-    throw std::range_error("Out of the buffers range");
+    std::stringstream err_ss;
+    err_ss << "Out of range error in " << element.GetName() << " node.";
+    throw std::range_error(err_ss.str());
   } else {
     buffer_it += idx;
     size_left -= idx;
   }
-  bool isBaseLessNode = false;
+  bool is_param_only_node = false;
+  // If the node do not have childs it is probably a param only node
   if (element.GetChilds().size() == 0) {
-    isBaseLessNode = true;
+    is_param_only_node = true;
   }
   for (auto && param : element.Params()) {
+    // For a parameter and its node having the same name is not supported,
+    // because it means that it is not a param only, just a leaf
     if (element.GetName() == param.first) {
-      isBaseLessNode = false;
+      is_param_only_node = false;
     } else {
+      // Creating parameters
+      // Add param name
       idx = snprintf(buffer_it, size_left, " %s=\"", param.first.c_str());
       if (idx < 0 || idx > size_left) {
-        throw std::range_error("Out of the buffers range");
+        std::stringstream err_ss;
+        err_ss << "Out of range error in " << element.GetName() << " node.";
+        throw std::range_error(err_ss.str());
       } else {
         buffer_it += idx;
         size_left -= idx;
       }
+      // Add param data
       param.second.PrintParam(buffer_it, size_left);
-
       idx = snprintf(buffer_it, size_left, "\"");
       if (idx < 0 || idx > size_left) {
-        throw std::range_error("Out of the buffers range");
+        std::stringstream err_ss;
+        err_ss << "Out of range error in " << element.GetName() << " node.";
+        throw std::range_error(err_ss.str());
       } else {
         buffer_it += idx;
         size_left -= idx;
       }
     }
   }
-  if (isBaseLessNode) {
+  // Add start node end bracket
+  if (is_param_only_node) {
     idx = snprintf(buffer_it, size_left, " />");
     if (idx < 0 || idx > size_left) {
-      throw std::range_error("Out of the buffers range");
+      std::stringstream err_ss;
+      err_ss << "Out of range error in " << element.GetName() << " node.";
+      throw std::range_error(err_ss.str());
     } else {
       buffer_it += idx;
       size_left -= idx;
@@ -341,7 +339,9 @@ void RSICommandHandler::encodeNode(
   } else {
     idx = snprintf(buffer_it, size_left, ">");
     if (idx < 0 || idx > size_left) {
-      throw std::range_error("Out of the buffers range");
+      std::stringstream err_ss;
+      err_ss << "Out of range error in " << element.GetName() << " node.";
+      throw std::range_error(err_ss.str());
     } else {
       buffer_it += idx;
       size_left -= idx;
@@ -356,10 +356,12 @@ void RSICommandHandler::encodeNode(
       element.Params().find(element.GetName())->second.PrintParam(
         buffer_it, size_left);
     }
-    // Add end bracket
+    // Add node end
     idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
     if (idx < 0 || idx > size_left) {
-      throw std::range_error("Out of the buffers range");
+      std::stringstream err_ss;
+      err_ss << "Out of range error in " << element.GetName() << " node.";
+      throw std::range_error(err_ss.str());
     } else {
       buffer_it += idx;
       size_left -= idx;

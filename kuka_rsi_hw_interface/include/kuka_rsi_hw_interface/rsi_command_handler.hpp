@@ -45,7 +45,6 @@
 
 namespace kuka_rsi_hw_interface
 {
-constexpr int ERROR_BUFFER_SIZE = 1500;
 
 class RSICommandHandler
 {
@@ -76,7 +75,6 @@ public:
 private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
-  char err_buf_[ERROR_BUFFER_SIZE];
 
   void decodeNode(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
