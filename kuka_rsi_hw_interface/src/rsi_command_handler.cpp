@@ -180,7 +180,7 @@ void RSICommandHandler::decodeNode(
       }
       buffer_it++;
       // Casts param data
-      if (!element.CastParam(node_param, buffer_it)) {
+      if (!element.CastParamData(node_param, buffer_it)) {
         std::stringstream err_ss;
         err_ss << "Could not cast the \"" << node_param << "\" param into the " <<
           element.GetName() << " elements parameter list.";
@@ -232,7 +232,7 @@ void RSICommandHandler::decodeNode(
   if (!is_param_only_node) {
     if (*buffer_it != '<') {
       // Node is a leaf node, checking its data
-      if (!element.CastParam(node_name, buffer_it)) {
+      if (!element.CastParamData(node_name, buffer_it)) {
         std::stringstream err_ss;
         err_ss << "Could not cast the \"" << node_name << "\" parameter into the " <<
           element.GetName() << " elements parameter list.";

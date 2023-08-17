@@ -25,7 +25,7 @@
 
 namespace xml
 {
-bool XMLElement::CastParam(const XMLString & key, char * & str_ptr)
+bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
 {
   auto param_it = params_.find(key);
   auto ret_val = param_it != params_.end();
@@ -115,7 +115,7 @@ XMLElement * XMLElement::element(const std::string & elementName, int depth)
   return nullptr;
 }
 
-const XMLElement * const XMLElement::getElement(
+const XMLElement * XMLElement::getElement(
   const std::string & elementName,
   int depth) const
 {
