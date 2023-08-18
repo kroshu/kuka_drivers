@@ -156,7 +156,7 @@ public:
         return bytes;
       }
     }
-    strcpy(buffer, buffer_);
+    memcpy(buffer, buffer_, bytes);
 
     return bytes;
   }
