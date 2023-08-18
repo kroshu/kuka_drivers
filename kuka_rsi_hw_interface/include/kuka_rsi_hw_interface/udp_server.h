@@ -157,6 +157,7 @@ public:
       }
     }
     strncpy(buffer, buffer_, bytes);
+    buffer[bytes] = '\0';
 
     return bytes;
   }
