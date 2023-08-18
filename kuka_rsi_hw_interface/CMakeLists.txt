@@ -23,6 +23,7 @@ find_package(kroshu_ros2_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(angles REQUIRED)
 
 find_package(tinyxml_vendor REQUIRED)
 find_package(TinyXML REQUIRED)
@@ -49,7 +50,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUIL
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface angles)
 target_link_libraries(${PROJECT_NAME} tinyxml)
 
 add_executable(robot_manager_node

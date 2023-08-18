@@ -115,8 +115,8 @@ private:
   char in_buffer_[UDP_BUFFER_SIZE] = {0};
   char out_buffer_[UDP_BUFFER_SIZE] = {0};
 
-  static constexpr double R2D = 180 / M_PI;
-  static constexpr double D2R = M_PI / 180;
+  // static constexpr double R2D = 180 / M_PI;
+  // static constexpr double D2R = M_PI / 180;
 };
 }  // namespace kuka_rsi_hw_interface
 
