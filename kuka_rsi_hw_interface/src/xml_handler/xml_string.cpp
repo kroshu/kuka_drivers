@@ -29,30 +29,6 @@ int XMLString::PrintString(char * & buffer_it, const int & size_left)
   }
 }
 
-bool XMLString::operator==(const XMLString & rhs)
-{
-  if (length_ != rhs.length_) {
-    return false;
-  }
-  return strncmp(data_ptr_, rhs.data_ptr_, length_);
-}
-
-bool XMLString::operator==(const std::string & rhs)
-{
-  if (length_ != rhs.length()) {
-    return false;
-  }
-  return strncmp(rhs.c_str(), data_ptr_, length_);
-}
-
-bool XMLString::operator==(const char * & rhs)
-{
-  if (length_ != strlen(rhs)) {
-    return false;
-  }
-  return strncmp(rhs, data_ptr_, length_);
-}
-
 std::ostream & operator<<(std::ostream & out, XMLString & xml_str)
 {
   for (size_t i = 0; i < xml_str.length_; i++) {

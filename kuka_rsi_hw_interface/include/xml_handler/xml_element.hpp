@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef  XML__XML_ELEMENT_H_
-#define  XML__XML_ELEMENT_H_
+#ifndef  XML_HANDLER__XML_ELEMENT_HPP_
+#define  XML_HANDLER__XML_ELEMENT_HPP_
 
 #include <map>
 #include <vector>
@@ -63,7 +63,7 @@ public:
    *
    * @param name: Name of the XMLElement object
    */
-  XMLElement(const std::string & name)
+  explicit XMLElement(const std::string & name)
   : name_(name) {}
   ~XMLElement() = default;
 
@@ -213,4 +213,4 @@ private:
 };
 }  // namespace xml
 
-#endif  // XML__XML_ELEMENT_H_
+#endif  // XML_HANDLER__XML_ELEMENT_HPP_

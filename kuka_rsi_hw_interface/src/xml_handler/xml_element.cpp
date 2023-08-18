@@ -18,8 +18,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
-#include <iostream>
-#include <variant>
+#include <sstream>
 
 #include "xml_handler/xml_element.hpp"
 
@@ -35,7 +34,7 @@ bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
       case XMLType::BOOL:
         {
           char * end = str_ptr;
-          auto res = (bool)strtol(str_ptr, &end, 0);
+          auto res = static_cast<bool>(strtol(str_ptr, &end, 0));
           if (res == 0 && (errno != 0 || end == str_ptr)) {
             return false;
           }
@@ -108,9 +107,9 @@ XMLElement * XMLElement::element(const std::string & elementName, int depth)
     }
   }
   if (depth == 0) {
-    char err_buf[1000];
-    sprintf(err_buf, "%s element not found", elementName.c_str());
-    throw std::logic_error(err_buf);
+    std::stringstream err_ss;
+    err_ss << elementName << " element not found.";
+    throw std::logic_error(err_ss.str());
   }
   return nullptr;
 }
@@ -129,9 +128,9 @@ const XMLElement * XMLElement::getElement(
     }
   }
   if (depth == 0) {
-    char err_buf[1000];
-    sprintf(err_buf, "%s element not found", elementName.c_str());
-    throw std::logic_error(err_buf);
+    std::stringstream err_ss;
+    err_ss << elementName << " element not found.";
+    throw std::logic_error(err_ss.str());
   }
   return nullptr;
 }
@@ -145,7 +144,7 @@ XMLString XMLElement::castXMLString(char * & str_ptr)
   {
   }
   auto data = XMLString(
-    start_ref, (size_t)(str_ptr - start_ref));
+    start_ref, static_cast<size_t>(str_ptr - start_ref));
   return data;
 }
 }  // namespace xml

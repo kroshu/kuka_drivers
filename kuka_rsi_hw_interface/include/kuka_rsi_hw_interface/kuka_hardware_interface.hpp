@@ -41,11 +41,6 @@
 #ifndef KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 #define KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
 
-#include <kuka_rsi_hw_interface/udp_server.h>
-#include <kuka_rsi_hw_interface/rsi_command_handler.hpp>
-// #include <kuka_rsi_hw_interface/rsi_state.h>
-// #include <kuka_rsi_hw_interface/rsi_command.h>
-
 #include <vector>
 #include <string>
 #include <memory>
@@ -53,8 +48,10 @@
 #include <cmath>
 #include <mutex>
 
-#include "rclcpp/macros.hpp"
+#include <kuka_rsi_hw_interface/udp_server.h>
+#include <kuka_rsi_hw_interface/rsi_command_handler.hpp>
 
+#include "rclcpp/macros.hpp"
 #include "kuka_rsi_hw_interface/visibility_control.h"
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"

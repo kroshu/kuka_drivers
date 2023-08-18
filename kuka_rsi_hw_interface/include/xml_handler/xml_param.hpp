@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef  XML__XML_PARAM_H_
-#define  XML__XML_PARAM_H_
+#ifndef  XML_HANDLER__XML_PARAM_HPP_
+#define  XML_HANDLER__XML_PARAM_HPP_
 
 #include <variant>
 
@@ -36,7 +36,7 @@ public:
   XMLType param_type_;
   std::variant<bool, int64_t, double, XMLString> param_value_;
   XMLParam() = default;
-  XMLParam(XMLType type)
+  explicit XMLParam(XMLType type)
   : param_type_(type) {}
   int PrintParam(char * & buffer_it, int & size_left);
   friend std::ostream & operator<<(std::ostream & out, class XMLParam & param);
@@ -54,4 +54,4 @@ public:
 };
 
 }  // namespace xml
-#endif  // XML__XML_PARAM_H_
+#endif  // XML_HANDLER__XML_PARAM_HPP_

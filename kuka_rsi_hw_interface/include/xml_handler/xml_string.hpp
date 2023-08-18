@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef  XML__XML_STRING_H_
-#define  XML__XML_STRING_H_
+#ifndef  XML_HANDLER__XML_STRING_HPP_
+#define  XML_HANDLER__XML_STRING_HPP_
 
 #include <string>
 
@@ -24,22 +24,19 @@ class XMLString
 public:
   const char * data_ptr_;
   size_t length_;
-  XMLString(const char * data_ptr, size_t length)
-  : data_ptr_(data_ptr), length_(length) {}
   XMLString()
   : data_ptr_(nullptr), length_(0) {}
-  XMLString(const char * data_ptr)
+  XMLString(const char * data_ptr, size_t length)
+  : data_ptr_(data_ptr), length_(length) {}
+  explicit XMLString(const char * data_ptr)
   : data_ptr_(data_ptr), length_(strlen(data_ptr)) {}
-  XMLString(const std::string & str)
+  explicit XMLString(const std::string & str)
   : data_ptr_(str.c_str()), length_(str.length()) {}
 
   int PrintString(char * & buffer_it, const int & size_left);
 
-  bool operator==(const XMLString & rhs);
-  bool operator==(const std::string & rhs);
-  bool operator==(const char * & rhs);
   friend std::ostream & operator<<(std::ostream & out, XMLString & xml_str);
 };
 }  // namespace xml
 
-#endif  // XML__XML_STRING_H_
+#endif  // XML_HANDLER__XML_STRING_HPP_

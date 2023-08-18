@@ -37,11 +37,13 @@
  * Author: Komaromi Sandor
  */
 
-#ifndef  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_H_
-#define  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_H_
+#ifndef  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_HPP_
+#define  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_HPP_
 
 
 #include "xml_handler/xml_element.hpp"
+
+#include <string>
 
 namespace kuka_rsi_hw_interface
 {
@@ -86,4 +88,4 @@ private:
 }  // namespace kuka_rsi_hw_interface
 
 
-#endif  //  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_H_
+#endif  //  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_HPP_

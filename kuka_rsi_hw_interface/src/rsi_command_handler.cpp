@@ -105,7 +105,7 @@ int RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
   int size_left = buffer_size;
   try {
     encodeNode(this->command_data_structure_, buffer_it, size_left);
-    if (buffer_size - size_left != (size_t)(buffer_it - buffer)) {
+    if (static_cast<int>(buffer_size) - size_left != static_cast<int>(buffer_it - buffer)) {
       throw std::range_error("Range error occured");
     }
     // +1 is for the \0 character
@@ -141,11 +141,11 @@ void RSICommandHandler::decodeNode(
   bool is_param_only_node = false;
   bool isNoMoreParam = false;
   xml::XMLString node_param;
-  while (!isNoMoreParam && (size_t)(buffer_it - buffer) < buffer_size) {
+  while (!isNoMoreParam && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
     // fast forward to the next non-space character
     for (; *buffer_it == ' '; buffer_it++) {
     }
-    if ((size_t)(buffer_it - buffer) >= buffer_size) {
+    if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
       std::stringstream err_ss;
       err_ss << "Out of range error in " << element.GetName() << " node.";
       throw std::range_error(err_ss.str());
@@ -196,7 +196,7 @@ void RSICommandHandler::decodeNode(
       num_of_param++;
     }
   }
-  if ((size_t)(buffer_it - buffer) >= buffer_size) {
+  if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
     std::stringstream err_ss;
     err_ss << "Out of range error in " << element.GetName() << " node.";
     throw std::range_error(err_ss.str());
@@ -222,7 +222,7 @@ void RSICommandHandler::decodeNode(
   // Fast forward until the next node or the end of the node
   for (; *buffer_it == ' '; buffer_it++) {
   }
-  if ((size_t)(buffer_it - buffer) >= buffer_size) {
+  if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
     std::stringstream err_ss;
     err_ss << "Out of range error in " << element.GetName() << " node.";
     throw std::range_error(err_ss.str());

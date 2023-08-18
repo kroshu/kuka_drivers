@@ -205,7 +205,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   command_handler_.SetCommandParam<bool>("Stop", "Stop", stop_flag_);
   command_handler_.SetCommandParam<int64_t>("IPOC", "IPOC", static_cast<int64_t>(ipoc_));
 
-  //TODO (Komáromi): construct and send msg
   auto out_buffer_it = out_buffer_;
   if (command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE) < 0) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "Encode Failed");
@@ -305,7 +304,7 @@ return_type KukaRSIHardwareInterface::write(
   server_->send(out_buffer_);
   return return_type::OK;
 }
-}  // namespace namespace kuka_rsi_hw_interface
+}  // namespace kuka_rsi_hw_interface
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_rsi_hw_interface::KukaRSIHardwareInterface,
