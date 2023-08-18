@@ -40,10 +40,9 @@
 #ifndef  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_HPP_
 #define  KUKA_RSI_HW_INTERFACE__RSI_COMMAND_HANDLER_HPP_
 
+#include <string>
 
 #include "xml_handler/xml_element.hpp"
-
-#include <string>
 
 namespace kuka_rsi_hw_interface
 {

@@ -368,4 +368,4 @@ void RSICommandHandler::encodeNode(
     }
   }
 }
-}
+}  // namespace kuka_rsi_hw_interface
