@@ -54,7 +54,7 @@ int XMLParam::PrintParam(char * & buffer_it, int & size_left)
 
 std::ostream & operator<<(std::ostream & out, class XMLParam & param)
 {
-  std::visit([&](auto && arg) {out << arg;}, param.param_value_);
+  std::visit([&out](auto & arg) {out << arg;}, param.param_value_);
   return out;
 }
 }  // namespace xml
