@@ -21,7 +21,7 @@ namespace xml
 {
 int XMLString::PrintString(char * & buffer_it, const int & size_left)
 {
-  if (length_ + 1 > size_left) {
+  if (static_cast<int>(length_) + 1 > size_left) {
     return -1;
   } else {
     snprintf(buffer_it, length_ + 1, "%s", data_ptr_);

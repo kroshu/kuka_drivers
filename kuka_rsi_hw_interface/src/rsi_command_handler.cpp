@@ -91,7 +91,7 @@ bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
 {
   auto buffer_it = buffer;
   try {
-    decodeNode(this->state_data_structure_, buffer, buffer_it, buffer_size);
+    decodeNodes(this->state_data_structure_, buffer, buffer_it, buffer_size);
     return true;
   } catch (const std::exception & e) {
     RCLCPP_ERROR(rclcpp::get_logger("CommandHandler"), "%s", e.what());
@@ -104,7 +104,7 @@ int RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
   auto buffer_it = buffer;
   int size_left = buffer_size;
   try {
-    encodeNode(this->command_data_structure_, buffer_it, size_left);
+    encodeNodes(this->command_data_structure_, buffer_it, size_left);
     if (static_cast<int>(buffer_size) - size_left != static_cast<int>(buffer_it - buffer)) {
       throw std::range_error("Range error occured");
     }
@@ -116,7 +116,7 @@ int RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
   }
 }
 
-void RSICommandHandler::decodeNode(
+void RSICommandHandler::decodeNodes(
   xml::XMLElement & element, char * const buffer, char * & buffer_it,
   const size_t buffer_size)
 {
@@ -246,7 +246,7 @@ void RSICommandHandler::decodeNode(
     } else {
       // Node has childs
       for (auto && child : element.Childs()) {
-        decodeNode(child, buffer, buffer_it, buffer_size);
+        decodeNodes(child, buffer, buffer_it, buffer_size);
       }
     }
     // Checking the end node for syntax and node name
@@ -277,7 +277,7 @@ void RSICommandHandler::decodeNode(
   }
 }
 
-void RSICommandHandler::encodeNode(
+void RSICommandHandler::encodeNodes(
   xml::XMLElement & element, char * & buffer_it, int & size_left)
 {
   // Start the node with its name
@@ -349,7 +349,7 @@ void RSICommandHandler::encodeNode(
     if (element.GetChilds().size() > 0) {
       // Add childs
       for (auto && child : element.Childs()) {
-        encodeNode(child, buffer_it, size_left);
+        encodeNodes(child, buffer_it, size_left);
       }
     } else {
       // Add data

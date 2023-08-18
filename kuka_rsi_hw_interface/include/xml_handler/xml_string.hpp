@@ -28,10 +28,16 @@ public:
   : data_ptr_(nullptr), length_(0) {}
   XMLString(const char * data_ptr, size_t length)
   : data_ptr_(data_ptr), length_(length) {}
-  explicit XMLString(const char * data_ptr)
-  : data_ptr_(data_ptr), length_(strlen(data_ptr)) {}
-  explicit XMLString(const std::string & str)
-  : data_ptr_(str.c_str()), length_(str.length()) {}
+  explicit inline XMLString(const char * data_ptr)
+  : data_ptr_(data_ptr)
+  {
+    length_ = strnlen(data_ptr, 256);
+    if (length_ == 256) {
+      throw std::range_error("XMLString data length out of range. Range: 0 - 255");
+    }
+  }
+  // explicit XMLString(const std::string & str)
+  // : data_ptr_(str.c_str()), length_(str.length()) {}
 
   int PrintString(char * & buffer_it, const int & size_left);
 

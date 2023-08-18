@@ -77,11 +77,11 @@ private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
 
-  void decodeNode(
+  void decodeNodes(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
     const size_t buffer_size);
 
-  void encodeNode(
+  void encodeNodes(
     xml::XMLElement & element, char * & buffer_it, int & size_left);
 };
 }  // namespace kuka_rsi_hw_interface

@@ -107,7 +107,7 @@ public:
     ssize_t bytes = 0;
     bytes = sendto(
       sockfd_, buffer,
-      strlen(buffer), 0, (struct sockaddr *) &clientaddr_, clientlen_);
+      strnlen(buffer, UDP_BUFFER_SIZE), 0, (struct sockaddr *) &clientaddr_, clientlen_);
     if (bytes < 0) {
       RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in send");
     }
@@ -140,6 +140,7 @@ public:
           &clientlen_);
         if (bytes < 0) {
           RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
+          return bytes;
         }
       } else {
         return 0;
@@ -152,9 +153,9 @@ public:
         &clientlen_);
       if (bytes < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("UDPServer"), "Error in receive");
+        return bytes;
       }
     }
-
     strncpy(buffer, buffer_, bytes);
 
     return bytes;
