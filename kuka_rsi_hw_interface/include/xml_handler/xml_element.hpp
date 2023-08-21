@@ -169,8 +169,8 @@ public:
    * @brief Converts the given string to the specified parameter of the element 
    * and updates the parameter map
    *
-   * @param [out] key The name of the parameter that the function casts into.
-   * @param str_ptr Pointer reference to a string the function casts from.
+   * @param key The name of the parameter that the function casts into.
+   * @param str_ptr Pointer reference to the string the function casts from.
    * When the function returns, the pointer points to the character after the cast data.
    * @return true if the cast was succesful and the parameter was found in the parameter list,
    * @return false otherwise
