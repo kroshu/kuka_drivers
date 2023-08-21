@@ -26,7 +26,7 @@ RSICommandHandler::RSICommandHandler()
 : command_data_structure_("Sen"), state_data_structure_("Rob")
 {
   // State structure
-  // Later this should be defined by the rsi xml
+  // TODO(Komaromi): Later this should be defined by the rsi xml
   state_data_structure_.Params()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
   // how to get string: std::get<XML::xml_string>(command_data_structure_.params_["TYPE"]).first
   xml::XMLElement RIst_el("RIst");
@@ -127,7 +127,7 @@ void RSICommandHandler::decodeNodes(
     throw std::logic_error(err_ss.str());
   }
   buffer_it++;
-  // Validate nodes name
+  // Validate node name
   if (!element.IsNameValid(node_name, buffer_it)) {
     std::stringstream err_ss;
     err_ss << "The detected start node name \"" << node_name <<
@@ -136,13 +136,13 @@ void RSICommandHandler::decodeNodes(
     throw std::logic_error(err_ss.str());
   }
 
-  // Validate nodes params
+  // Validate node parameters
   size_t num_of_param = 0;
   bool is_param_only_node = false;
   bool isNoMoreParam = false;
   xml::XMLString node_param;
   while (!isNoMoreParam && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
-    // fast forward to the next non-space character
+    // Go to the next non-space character
     for (; *buffer_it == ' '; buffer_it++) {
     }
     if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
@@ -150,7 +150,7 @@ void RSICommandHandler::decodeNodes(
       err_ss << "Out of range error in " << element.GetName() << " node.";
       throw std::range_error(err_ss.str());
     }
-    // Check for the start nodes end characters
+    // Check for the start node's closing tag
     if (*buffer_it == '/' && *(buffer_it + 1) == '>') {
       is_param_only_node = true;
       isNoMoreParam = true;
@@ -159,14 +159,14 @@ void RSICommandHandler::decodeNodes(
       isNoMoreParam = true;
       buffer_it++;
     } else {
-      // Validates params name
+      // Validate parameter name
       if (!element.IsParamNameValid(node_param, buffer_it)) {
         std::stringstream err_ss;
         err_ss << "The detected parameter \"" << node_param <<
-          "\" does not match with any of the " << element.GetName() << " elements parameters.";
+          "\" does not match any of the " << element.GetName() << " elements parameters.";
         throw std::logic_error(err_ss.str());
       }
-      // Checks xml syntax
+      // Check xml syntax (parameter name must be followed by '=')
       if (*buffer_it != '=') {
         std::stringstream err_ss;
         err_ss << "In \"" << node_param << "\" param syntax error found.";
@@ -179,14 +179,14 @@ void RSICommandHandler::decodeNodes(
         throw std::logic_error(err_ss.str());
       }
       buffer_it++;
-      // Casts param data
+      // Cast parameter data
       if (!element.CastParamData(node_param, buffer_it)) {
         std::stringstream err_ss;
         err_ss << "Could not cast the \"" << node_param << "\" param into the " <<
           element.GetName() << " elements parameter list.";
         throw std::logic_error(err_ss.str());
       }
-      // Checks xml syntax
+      // Check xml syntax (Parameter value must be inside quotes)
       if (*buffer_it != '"') {
         std::stringstream err_ss;
         err_ss << "In \"" << node_param << "\" param syntax error found.";
@@ -202,10 +202,10 @@ void RSICommandHandler::decodeNodes(
     throw std::range_error(err_ss.str());
   }
 
-  // Could not find all parameter, or found too much
-  //   Checks if it is a param only node,
-  //   because the normal leaf nodes data is stored within the elemets parameters.
-  //   So in case of a normal leaf node the num_of_param and the Params().size() does not match.
+  // Could not find all parameters, or found too much
+  //   Checks if it is a parameter-only node, because the normal leaf node's data is stored within
+  //   the element's parameters. So in case of a normal leaf node the num_of_param and the
+  //   Params().size() would not match even for a valid xml
   if (is_param_only_node && num_of_param != element.Params().size()) {
     std::stringstream err_ss;
     err_ss << num_of_param << " parameter found. It does not match with " << element.GetName() <<
@@ -219,7 +219,7 @@ void RSICommandHandler::decodeNodes(
     err_ss << element.GetName() << " node should have chields but did not found any.";
     throw std::logic_error(err_ss.str());
   }
-  // Fast forward until the next node or the end of the node
+  // Go to the next node or the end of the node
   for (; *buffer_it == ' '; buffer_it++) {
   }
   if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
@@ -228,7 +228,7 @@ void RSICommandHandler::decodeNodes(
     throw std::range_error(err_ss.str());
   }
 
-  // If a node not an only param node, therefore has data or childs and need an end node
+  // If a node is not an only-parameter node, than it has data or childs and needs an end node
   if (!is_param_only_node) {
     if (*buffer_it != '<') {
       // Node is a leaf node, checking its data
@@ -249,7 +249,7 @@ void RSICommandHandler::decodeNodes(
         decodeNodes(child, buffer, buffer_it, buffer_size);
       }
     }
-    // Checking the end node for syntax and node name
+    // Check for the end tag (</tag>)
     if (*(buffer_it) != '<') {
       std::stringstream err_ss;
       err_ss << "Syntax error at the end of " << element.GetName() << " node.";
@@ -291,13 +291,15 @@ void RSICommandHandler::encodeNodes(
     size_left -= idx;
   }
   bool is_param_only_node = false;
-  // If the node do not have childs it is probably a param only node
+  // If the node does not have childs it is a parameter-only node
   if (element.GetChilds().size() == 0) {
     is_param_only_node = true;
   }
   for (auto && param : element.Params()) {
-    // For a parameter and its node having the same name is not supported,
-    // because it means that it is not a param only, just a leaf
+    // In the current implementation it is not supported, that a parameter has the same name as 
+    //  it's base node
+    // Therefore if the element's name is equal to one of it's parameters, it must be a 
+    //  parameter-only node
     if (element.GetName() == param.first) {
       is_param_only_node = false;
     } else {
@@ -356,7 +358,7 @@ void RSICommandHandler::encodeNodes(
       element.Params().find(element.GetName())->second.PrintParam(
         buffer_it, size_left);
     }
-    // Add node end
+    // Add node end tag
     idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
     if (idx < 0 || idx > size_left) {
       std::stringstream err_ss;

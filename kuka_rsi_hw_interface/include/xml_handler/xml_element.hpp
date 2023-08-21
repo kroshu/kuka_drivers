@@ -51,9 +51,9 @@ inline bool operator<(const std::string & b, const XMLString & a)
 
 /**
  * @brief The XMLElement class is a tree based representation of a XML structure.
- * It has name, parameters and childs. Its name is a unic key, this identify the XMLElement object.
- * The paramters contains every data and attribute together.
- * The Childs contains the XMLElements every child, they are XMLElement type.
+ * It has name, parameters and childs. It's name is a unique key, which identifies the XMLElement object.
+ * The parameters contain the data and attributes together.
+ * The childs contains the XMLElement's every child (of type XMLElement).
  */
 class XMLElement
 {
@@ -68,7 +68,7 @@ public:
   ~XMLElement() = default;
 
   /**
-   * @brief Get the Name of the XMLElement object
+   * @brief Get the name of the XMLElement object
    *
    * @return const std::string & - The name of the XMLElement object
    */
@@ -82,22 +82,22 @@ public:
   inline const std::vector<XMLElement> & GetChilds() const {return childs_;}
 
   /**
-   * @brief Returns an XMLElement object which names was given as key
+   * @brief Returns the XMLElement object with the given name.
    *
    * @param elementName Name of the XMLElement object that the functon is looking for
    * in the XMLElement tree
    * @return const XMLElement * - The found XMLElment object.
-   * Return nullptr if the given key not found.
+   * Return nullptr if the given key was not found.
    */
   inline const XMLElement * GetElement(
     const std::string & elementName) const {return getElement(elementName);}
 
   /**
-   * @brief Returns one parameter of the XMLElement object according to the given key.
+   * @brief Returns the value of the parameter of the XMLElement object with the given key.
    *
    * @tparam T Can only be bool, int64_t, double and XMLString.
-   * @param key The parameters name that the function is looking for.
-   * @return T - The parameter it is found properly.
+   * @param key The parameter's name that the function is looking for.
+   * @return T - The parameter value if it is found
    * @exception Range_error if key not found in the parameter list.
    */
   template<typename T>
@@ -118,12 +118,12 @@ public:
   inline void SetName(const std::string & name) {name_ = name;}
 
   /**
- * @brief Set one of the parameters of the XMLElement object acording to the given key and parameter.
- *
+ * @brief Set the value of the parameter with the given name
+ * 
  * @tparam T Can only be bool, int64_t, double and XMLString.
- * @param key The parameters name witch the fnction overrides.
+ * @param key The name of the parameter to be changed.
  * @param param The data witch will be inserted.
- * @return true if the key is fount in the parameter list and the parameter was proper type,
+ * @return true if the key is found in the parameter list and the parameter has proper type,
  * @return false otherwise
  */
   template<typename T>
@@ -144,57 +144,56 @@ public:
   /**
    * @brief Return every child in a std::vector that the XMLElement object has
    *
-   * @return A reference to a vector of the XMLElement objects childs
+   * @return A reference to a vector of the XMLElement object's childs
    */
   inline std::vector<XMLElement> & Childs() {return childs_;}
 
   /**
    * @brief Returns every parameter in a std::map that the XMLElement object has
    *
-   * @return A reference to the XMLElement objects parameter map
+   * @return A reference to the XMLElement object's parameter map
    */
   inline std::map<std::string, XMLParam, std::less<>> & Params() {return params_;}
 
   /**
-   * @brief Returns an XMLElement object which names was given as key
+   * @brief Returns the XMLElement object with the given name
    *
    * @param elementName Name of the XMLElement object that the functon is looking for
    * in the XMLElement tree
    * @return XMLElement* - The found XMLElment object.
-   * Return nullptr if the given key not found.
+   * Return nullptr if the given key was not found.
    */
   inline XMLElement * Element(const std::string & elementName) {return element(elementName);}
 
   /**
-   * @brief Casts data into one of the XMLElement objects parameter with the given key.
-   * The function casts until there is valid for the for the parameters type.
+   * @brief Converts the given string to the specified parameter of the element 
+   * and updates the parameter map
    *
-   * @param key The XMLElement objects parameters name that the function casts into.
-   * @param str_ptr Pointer reference to a string where the function casts from.
-   * When the function returns the pointer points to the character after the casted data.
-   * @return true if the cast was succesfull and the parameter found in the parameter list,
+   * @param [out] key The name of the parameter that the function casts into.
+   * @param str_ptr Pointer reference to a string the function casts from.
+   * When the function returns, the pointer points to the character after the cast data.
+   * @return true if the cast was succesful and the parameter was found in the parameter list,
    * @return false otherwise
    */
   bool CastParamData(const XMLString & key, char * & str_ptr);
 
   /**
-   * @brief Checks one fo the XMLElement objects parameters name with the given string
+   * @brief Checks if the given string matches one of parameter names of the XMLElement
    *
-   * @param key The casted parameter name from the given string.
-   * @param str_ptr Pointer reference to a string where the function checks from.
-   * When the function returns the pointer points to the character after the checked data.
+   * @param [out] key name of the parameter as an XMLString.
+   * @param str_ptr Pointer reference to the string the function checks.
+   * When the function returns, the pointer points to the character after the checked data.
    * @return true if the name check was successfull,
    * @return false otherwise.
    */
   bool IsParamNameValid(XMLString & key, char * & str_ptr);
 
   /**
-   * @brief Checks the XMLElement objects name on the given key,
-   * with the given string
+   * @brief Checks if the given string matches the XMLElement's name
    *
-   * @param key the casted name of the XMLElement object from the given string.
-   * @param str_ptr Pointer reference to a string where the function checks from.
-   * When the function returns the pointer points to the character after the checked data.
+   * @param [out] key name of the XMLElement object as an XMLString
+   * @param str_ptr Pointer reference to the string the function checks.
+   * When the function returns, the pointer points to the character after the checked data.
    * @return true if the name check was successfull,
    * @return false otherwise.
    */
