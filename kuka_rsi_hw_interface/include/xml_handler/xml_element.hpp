@@ -119,7 +119,7 @@ public:
 
   /**
  * @brief Set the value of the parameter with the given name
- * 
+ *
  * @tparam T Can only be bool, int64_t, double and XMLString.
  * @param key The name of the parameter to be changed.
  * @param param The data witch will be inserted.
@@ -166,7 +166,7 @@ public:
   inline XMLElement * Element(const std::string & elementName) {return element(elementName);}
 
   /**
-   * @brief Converts the given string to the specified parameter of the element 
+   * @brief Converts the given string to the specified parameter of the element
    * and updates the parameter map
    *
    * @param key The name of the parameter that the function casts into.

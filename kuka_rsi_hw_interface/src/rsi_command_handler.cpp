@@ -296,9 +296,9 @@ void RSICommandHandler::encodeNodes(
     is_param_only_node = true;
   }
   for (auto && param : element.Params()) {
-    // In the current implementation it is not supported, that a parameter has the same name as 
+    // In the current implementation it is not supported, that a parameter has the same name as
     //  it's base node
-    // Therefore if the element's name is equal to one of it's parameters, it must be a 
+    // Therefore if the element's name is equal to one of it's parameters, it must be a
     //  parameter-only node
     if (element.GetName() == param.first) {
       is_param_only_node = false;
