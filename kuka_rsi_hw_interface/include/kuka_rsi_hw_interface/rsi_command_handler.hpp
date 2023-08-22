@@ -77,16 +77,24 @@ private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
 
+  // node decoder functions
+
   void decodeNodes(
     xml::XMLElement & element, char * const buffer, char * & buffer_it,
     const size_t buffer_size);
+
+  void decodeParam(xml::XMLElement & element, char * & buffer_it);
+
+  void decodeLeafNodeParamData(xml::XMLElement & element, char * & buffer_it);
+
+  // node encoder functins
 
   void encodeNodes(
     xml::XMLElement & element, char * & buffer_it, int & size_left);
 
   void update_iterators(
     char * & buffer_it, int & buf_size_left, const xml::XMLElement & element,
-    const int & buf_idx)
+    const int & buf_idx);
 };
 }  // namespace kuka_rsi_hw_interface
 

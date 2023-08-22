@@ -140,7 +140,6 @@ void RSICommandHandler::decodeNodes(
   size_t num_of_param = 0;
   bool is_param_only_node = false;
   bool isNoMoreParam = false;
-  xml::XMLString node_param;
   while (!isNoMoreParam && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
     // Go to the next non-space character
     for (; *buffer_it == ' '; buffer_it++) {
@@ -159,40 +158,8 @@ void RSICommandHandler::decodeNodes(
       isNoMoreParam = true;
       buffer_it++;
     } else {
-      // Validate parameter name
-      if (!element.IsParamNameValid(node_param, buffer_it)) {
-        std::stringstream err_ss;
-        err_ss << "The detected parameter \"" << node_param <<
-          "\" does not match any of the " << element.GetName() << " elements parameters.";
-        throw std::logic_error(err_ss.str());
-      }
-      // Check xml syntax (parameter name must be followed by '=')
-      if (*buffer_it != '=') {
-        std::stringstream err_ss;
-        err_ss << "In \"" << node_param << "\" param syntax error found.";
-        throw std::logic_error(err_ss.str());
-      }
-      buffer_it++;
-      if (*buffer_it != '"') {
-        std::stringstream err_ss;
-        err_ss << "In \"" << node_param << "\" param syntax error found.";
-        throw std::logic_error(err_ss.str());
-      }
-      buffer_it++;
-      // Cast parameter data
-      if (!element.CastParamData(node_param, buffer_it)) {
-        std::stringstream err_ss;
-        err_ss << "Could not cast the \"" << node_param << "\" param into the " <<
-          element.GetName() << " elements parameter list.";
-        throw std::logic_error(err_ss.str());
-      }
-      // Check xml syntax (Parameter value must be inside quotes)
-      if (*buffer_it != '"') {
-        std::stringstream err_ss;
-        err_ss << "In \"" << node_param << "\" param syntax error found.";
-        throw std::logic_error(err_ss.str());
-      }
-      buffer_it++;
+      // Decode parameter
+      decodeParam(element, buffer_it);
       num_of_param++;
     }
   }
@@ -232,36 +199,20 @@ void RSICommandHandler::decodeNodes(
   if (!is_param_only_node) {
     if (*buffer_it != '<') {
       // Node is a leaf node, checking its data
-      if (!element.CastParamData(node_name, buffer_it)) {
-        std::stringstream err_ss;
-        err_ss << "Could not cast the \"" << node_name << "\" parameter into the " <<
-          element.GetName() << " elements parameter list.";
-        throw std::logic_error(err_ss.str());
-      }
-      if (*buffer_it != '<') {
-        std::stringstream err_ss;
-        err_ss << "In \"" << node_param << "\" param syntax error found.";
-        throw std::logic_error(err_ss.str());
-      }
+      decodeLeafNodeParamData(element, buffer_it);
     } else {
-      // Node has childs
+      // Node has childs, not a leaf node
       for (auto && child : element.Childs()) {
         decodeNodes(child, buffer, buffer_it, buffer_size);
       }
     }
     // Check for the end tag (</tag>)
-    if (*(buffer_it) != '<') {
+    if (*(buffer_it) != '<' && *(buffer_it + 1) != '/') {
       std::stringstream err_ss;
       err_ss << "Syntax error at the end of " << element.GetName() << " node.";
       throw std::logic_error(err_ss.str());
     }
-    buffer_it++;
-    if (*(buffer_it) != '/') {
-      std::stringstream err_ss;
-      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
-      throw std::logic_error(err_ss.str());
-    }
-    buffer_it++;
+    buffer_it += 2;
     if (!element.IsNameValid(node_name, buffer_it)) {
       std::stringstream err_ss;
       err_ss << "The detected name \"" << node_name << "\" does not match the elements name: " <<
@@ -277,73 +228,124 @@ void RSICommandHandler::decodeNodes(
   }
 }
 
-void RSICommandHandler::encodeNodes(
-  xml::XMLElement & element, char * & buffer_it, int & size_left)
+void RSICommandHandler::decodeParam(xml::XMLElement & element, char * & buffer_it)
 {
-  // Start the node with its name
-  auto idx = snprintf(buffer_it, size_left, "<%s", element.GetName().c_str());
-  update_iterators(buffer_it, size_left, element, idx);
-
-  bool is_param_only_node = false;
-  // If the node does not have childs it is a parameter-only node
-  if (element.GetChilds().size() == 0) {
-    is_param_only_node = true;
-  }
-  for (auto && param : element.Params()) {
-    // In the current implementation it is not supported, that a parameter has the same name as
-    //  it's base node
-    // Therefore if the element's name is equal to one of it's parameters, it can't be a
-    //  parameter-only node
-    if (element.GetName() == param.first) {
-      is_param_only_node = false;
-    } else {
-      // Creating parameters
-      // Add param name
-      idx = snprintf(buffer_it, size_left, " %s=\"", param.first.c_str());
-      update_iterators(buffer_it, size_left, element, idx);
-
-      // Add param data
-      param.second.PrintParam(buffer_it, size_left);
-      idx = snprintf(buffer_it, size_left, "\"");
-      update_iterators(buffer_it, size_left, element, idx);
-    }
-  }
-  // Add start node end bracket
-  if (is_param_only_node) {
-    idx = snprintf(buffer_it, size_left, " />");
-
-    update_iterators(buffer_it, size_left, element, idx);
-  } else {
-    idx = snprintf(buffer_it, size_left, ">");
-
-    update_iterators(buffer_it, size_left, element, idx);
-    if (element.GetChilds().size() > 0) {
-      // Add childs
-      for (auto && child : element.Childs()) {
-        encodeNodes(child, buffer_it, size_left);
-      }
-    } else {
-      // Add data
-      element.Params().find(element.GetName())->second.PrintParam(
-        buffer_it, size_left);
-    }
-    // Add node end tag
-    idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
-    update_iterators(buffer_it, size_left, element, idx);
-  }
-}
-
-void update_iterators(
-  char * & buffer_it, int & buf_size_left, const xml::XMLElement & element,
-  const int & buf_idx)
-{
-  if (buf_idx < 0 || buf_idx > buf_size_left) {
+  xml::XMLString node_param;
+  // Validate parameter name
+  if (!element.IsParamNameValid(node_param, buffer_it)) {
     std::stringstream err_ss;
-    err_ss << "Out of range error in " << element.GetName() << " node.";
-    throw std::range_error(err_ss.str());
-  } else {
-    buffer_it += buf_idx;
-    buf_size_left -= buf_idx;
+    err_ss << "The detected parameter \"" << node_param <<
+      "\" does not match any of the " << element.GetName() << " elements parameters.";
+    throw std::logic_error(err_ss.str());
   }
+  // Check xml syntax (parameter name must be followed by '=')
+  if (*(buffer_it) != '=' && *(buffer_it + 1) != '"') {
+    std::stringstream err_ss;
+    err_ss << "In \"" << node_param << "\" param syntax error found.";
+    throw std::logic_error(err_ss.str());
+  }
+  buffer_it += 2;
+  // Cast parameter data
+  if (!element.CastParamData(node_param, buffer_it)) {
+    std::stringstream err_ss;
+    err_ss << "Could not cast the \"" << node_param << "\" param into the " <<
+      element.GetName() << " elements parameter list.";
+    throw std::logic_error(err_ss.str());
+  }
+  // Check xml syntax (Parameter value must be inside quotes)
+  if (*(buffer_it) != '"') {
+    std::stringstream err_ss;
+    err_ss << "In \"" << node_param << "\" param syntax error found.";
+    throw std::logic_error(err_ss.str());
+  }
+  buffer_it++;
 }
+
+void decodeLeafNodeParamData(xml::XMLElement & element, char * & buffer_it)
+{
+  xml::XMLString node_param;
+  if (*buffer_it != '<') {
+    // Node is a leaf node, checking its data
+    if (!element.CastParamData(node_name, buffer_it)) {
+      std::stringstream err_ss;
+      err_ss << "Could not cast the \"" << node_name << "\" parameter into the " <<
+        element.GetName() << " elements parameter list.";
+      throw std::logic_error(err_ss.str());
+    }
+    if (*buffer_it != '<') {
+      std::stringstream err_ss;
+      err_ss << "In \"" << node_param << "\" param syntax error found.";
+      throw std::logic_error(err_ss.str());
+    }
+  }
+
+  void RSICommandHandler::encodeNodes(
+    xml::XMLElement & element, char * & buffer_it, int & size_left)
+  {
+    // Start the node with its name
+    auto idx = snprintf(buffer_it, size_left, "<%s", element.GetName().c_str());
+    update_iterators(buffer_it, size_left, element, idx);
+
+    bool is_param_only_node = false;
+    // If the node does not have childs it is a parameter-only node
+    if (element.GetChilds().size() == 0) {
+      is_param_only_node = true;
+    }
+    for (auto && param : element.Params()) {
+      // In the current implementation it is not supported, that a parameter has the same name as
+      //  it's base node
+      // Therefore if the element's name is equal to one of it's parameters, it can't be a
+      //  parameter-only node
+      if (element.GetName() == param.first) {
+        is_param_only_node = false;
+      } else {
+        // Creating parameters
+        // Add param name
+        idx = snprintf(buffer_it, size_left, " %s=\"", param.first.c_str());
+        update_iterators(buffer_it, size_left, element, idx);
+
+        // Add param data
+        param.second.PrintParam(buffer_it, size_left);
+        idx = snprintf(buffer_it, size_left, "\"");
+        update_iterators(buffer_it, size_left, element, idx);
+      }
+    }
+    // Add start node end bracket
+    if (is_param_only_node) {
+      idx = snprintf(buffer_it, size_left, " />");
+
+      update_iterators(buffer_it, size_left, element, idx);
+    } else {
+      idx = snprintf(buffer_it, size_left, ">");
+
+      update_iterators(buffer_it, size_left, element, idx);
+      if (element.GetChilds().size() > 0) {
+        // Add childs
+        for (auto && child : element.Childs()) {
+          encodeNodes(child, buffer_it, size_left);
+        }
+      } else {
+        // Add data
+        element.Params().find(element.GetName())->second.PrintParam(
+          buffer_it, size_left);
+      }
+      // Add node end tag
+      idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
+      update_iterators(buffer_it, size_left, element, idx);
+    }
+  }
+
+  void RSICommandHandler::update_iterators(
+    char * & buffer_it, int & buf_size_left, const xml::XMLElement & element,
+    const int & buf_idx)
+  {
+    if (buf_idx < 0 || buf_idx > buf_size_left) {
+      std::stringstream err_ss;
+      err_ss << "Out of range error in " << element.GetName() << " node.";
+      throw std::range_error(err_ss.str());
+    } else {
+      buffer_it += buf_idx;
+      buf_size_left -= buf_idx;
+    }
+  }
 }  // namespace kuka_rsi_hw_interface
