@@ -282,14 +282,8 @@ void RSICommandHandler::encodeNodes(
 {
   // Start the node with its name
   auto idx = snprintf(buffer_it, size_left, "<%s", element.GetName().c_str());
-  if (idx < 0 || idx > size_left) {
-    std::stringstream err_ss;
-    err_ss << "Out of range error in " << element.GetName() << " node.";
-    throw std::range_error(err_ss.str());
-  } else {
-    buffer_it += idx;
-    size_left -= idx;
-  }
+  update_iterators(buffer_it, size_left, element, idx);
+
   bool is_param_only_node = false;
   // If the node does not have childs it is a parameter-only node
   if (element.GetChilds().size() == 0) {
@@ -298,7 +292,7 @@ void RSICommandHandler::encodeNodes(
   for (auto && param : element.Params()) {
     // In the current implementation it is not supported, that a parameter has the same name as
     //  it's base node
-    // Therefore if the element's name is equal to one of it's parameters, it must be a
+    // Therefore if the element's name is equal to one of it's parameters, it can't be a
     //  parameter-only node
     if (element.GetName() == param.first) {
       is_param_only_node = false;
@@ -306,48 +300,23 @@ void RSICommandHandler::encodeNodes(
       // Creating parameters
       // Add param name
       idx = snprintf(buffer_it, size_left, " %s=\"", param.first.c_str());
-      if (idx < 0 || idx > size_left) {
-        std::stringstream err_ss;
-        err_ss << "Out of range error in " << element.GetName() << " node.";
-        throw std::range_error(err_ss.str());
-      } else {
-        buffer_it += idx;
-        size_left -= idx;
-      }
+      update_iterators(buffer_it, size_left, element, idx);
+
       // Add param data
       param.second.PrintParam(buffer_it, size_left);
       idx = snprintf(buffer_it, size_left, "\"");
-      if (idx < 0 || idx > size_left) {
-        std::stringstream err_ss;
-        err_ss << "Out of range error in " << element.GetName() << " node.";
-        throw std::range_error(err_ss.str());
-      } else {
-        buffer_it += idx;
-        size_left -= idx;
-      }
+      update_iterators(buffer_it, size_left, element, idx);
     }
   }
   // Add start node end bracket
   if (is_param_only_node) {
     idx = snprintf(buffer_it, size_left, " />");
-    if (idx < 0 || idx > size_left) {
-      std::stringstream err_ss;
-      err_ss << "Out of range error in " << element.GetName() << " node.";
-      throw std::range_error(err_ss.str());
-    } else {
-      buffer_it += idx;
-      size_left -= idx;
-    }
+
+    update_iterators(buffer_it, size_left, element, idx);
   } else {
     idx = snprintf(buffer_it, size_left, ">");
-    if (idx < 0 || idx > size_left) {
-      std::stringstream err_ss;
-      err_ss << "Out of range error in " << element.GetName() << " node.";
-      throw std::range_error(err_ss.str());
-    } else {
-      buffer_it += idx;
-      size_left -= idx;
-    }
+
+    update_iterators(buffer_it, size_left, element, idx);
     if (element.GetChilds().size() > 0) {
       // Add childs
       for (auto && child : element.Childs()) {
@@ -360,14 +329,21 @@ void RSICommandHandler::encodeNodes(
     }
     // Add node end tag
     idx = snprintf(buffer_it, size_left, "</%s>", element.GetName().c_str());
-    if (idx < 0 || idx > size_left) {
-      std::stringstream err_ss;
-      err_ss << "Out of range error in " << element.GetName() << " node.";
-      throw std::range_error(err_ss.str());
-    } else {
-      buffer_it += idx;
-      size_left -= idx;
-    }
+    update_iterators(buffer_it, size_left, element, idx);
+  }
+}
+
+void update_iterators(
+  char * & buffer_it, int & buf_size_left, const xml::XMLElement & element,
+  const int & buf_idx)
+{
+  if (buf_idx < 0 || buf_idx > buf_size_left) {
+    std::stringstream err_ss;
+    err_ss << "Out of range error in " << element.GetName() << " node.";
+    throw std::range_error(err_ss.str());
+  } else {
+    buffer_it += buf_idx;
+    buf_size_left -= buf_idx;
   }
 }
 }  // namespace kuka_rsi_hw_interface

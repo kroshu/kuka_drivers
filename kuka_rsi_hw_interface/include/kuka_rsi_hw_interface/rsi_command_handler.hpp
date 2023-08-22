@@ -83,6 +83,10 @@ private:
 
   void encodeNodes(
     xml::XMLElement & element, char * & buffer_it, int & size_left);
+
+  void update_iterators(
+    char * & buffer_it, int & buf_size_left, const xml::XMLElement & element,
+    const int & buf_idx)
 };
 }  // namespace kuka_rsi_hw_interface
 
