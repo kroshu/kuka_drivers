@@ -121,7 +121,7 @@ void RSICommandHandler::decodeNodes(
   const size_t buffer_size)
 {
   xml::XMLString node_name(buffer, 0);
-  if (*(buffer_it) != '<') {
+  if (*buffer_it != '<') {
     std::stringstream err_ss;
     err_ss << "Syntax error at the start of " << element.GetName() << " node.";
     throw std::logic_error(err_ss.str());
@@ -212,7 +212,7 @@ void RSICommandHandler::decodeParam(xml::XMLElement & element, char * & buffer_i
     throw std::logic_error(err_ss.str());
   }
   // Check xml syntax (parameter name must be followed by '=')
-  if (*(buffer_it) != '=' && *(buffer_it + 1) != '"') {
+  if (*buffer_it != '=' && *(buffer_it + 1) != '"') {
     std::stringstream err_ss;
     err_ss << "In \"" << node_param << "\" param syntax error found.";
     throw std::logic_error(err_ss.str());
@@ -226,7 +226,7 @@ void RSICommandHandler::decodeParam(xml::XMLElement & element, char * & buffer_i
     throw std::logic_error(err_ss.str());
   }
   // Check xml syntax (Parameter value must be inside quotes)
-  if (*(buffer_it) != '"') {
+  if (*buffer_it != '"') {
     std::stringstream err_ss;
     err_ss << "In \"" << node_param << "\" param syntax error found.";
     throw std::logic_error(err_ss.str());
@@ -254,7 +254,7 @@ void RSICommandHandler::decodeLeafNodeParamData(
 void RSICommandHandler::decodeNodeEnd(xml::XMLElement & element, char * & buffer_it)
 {
   xml::XMLString node_name;
-  if (*(buffer_it) != '<' && *(buffer_it + 1) != '/') {
+  if (*buffer_it != '<' && *(buffer_it + 1) != '/') {
     std::stringstream err_ss;
     err_ss << "Syntax error at the end of " << element.GetName() << " node.";
     throw std::logic_error(err_ss.str());
