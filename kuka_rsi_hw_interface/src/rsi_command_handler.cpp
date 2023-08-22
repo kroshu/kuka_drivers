@@ -199,17 +199,7 @@ void RSICommandHandler::decodeNodes(
   if (!is_param_only_node) {
     if (*buffer_it != '<') {
       // Node is a leaf node, checking its data
-      if (!element.CastParamData(node_name, buffer_it)) {
-        std::stringstream err_ss;
-        err_ss << "Could not cast the \"" << node_name << "\" parameter into the " <<
-          element.GetName() << " elements parameter list.";
-        throw std::logic_error(err_ss.str());
-      }
-      if (*buffer_it != '<') {
-        std::stringstream err_ss;
-        err_ss << "In \"" << node_name << "\" param syntax error found.";
-        throw std::logic_error(err_ss.str());
-      }
+      decodeLeafNodeParamData(element, buffer_it, node_name);
 
     } else {
       // Node has childs, not a leaf node
@@ -218,24 +208,7 @@ void RSICommandHandler::decodeNodes(
       }
     }
     // Check for the end tag (</tag>)
-    if (*(buffer_it) != '<' && *(buffer_it + 1) != '/') {
-      std::stringstream err_ss;
-      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
-      throw std::logic_error(err_ss.str());
-    }
-    buffer_it += 2;
-    if (!element.IsNameValid(node_name, buffer_it)) {
-      std::stringstream err_ss;
-      err_ss << "The detected name \"" << node_name << "\" does not match the elements name: " <<
-        element.GetName() << ".";
-      throw std::logic_error(err_ss.str());
-    }
-    if (*buffer_it != '>') {
-      std::stringstream err_ss;
-      err_ss << "Syntax error at the end of " << element.GetName() << " node.";
-      throw std::logic_error(err_ss.str());
-    }
-    buffer_it++;
+    decodeNodeEnd(element, buffer_it);
   }
 }
 
@@ -267,6 +240,46 @@ void RSICommandHandler::decodeParam(xml::XMLElement & element, char * & buffer_i
   if (*(buffer_it) != '"') {
     std::stringstream err_ss;
     err_ss << "In \"" << node_param << "\" param syntax error found.";
+    throw std::logic_error(err_ss.str());
+  }
+  buffer_it++;
+}
+
+void RSICommandHandler::decodeLeafNodeParamData(
+  xml::XMLElement & element, char * & buffer_it,
+  xml::XMLString & param_name)
+{
+  if (!element.CastParamData(param_name, buffer_it)) {
+    std::stringstream err_ss;
+    err_ss << "Could not cast the \"" << param_name << "\" parameter into the " <<
+      element.GetName() << " elements parameter list.";
+    throw std::logic_error(err_ss.str());
+  }
+  if (*buffer_it != '<') {
+    std::stringstream err_ss;
+    err_ss << "In \"" << param_name << "\" param syntax error found.";
+    throw std::logic_error(err_ss.str());
+  }
+}
+
+void RSICommandHandler::decodeNodeEnd(xml::XMLElement & element, char * & buffer_it)
+{
+  xml::XMLString node_name;
+  if (*(buffer_it) != '<' && *(buffer_it + 1) != '/') {
+    std::stringstream err_ss;
+    err_ss << "Syntax error at the end of " << element.GetName() << " node.";
+    throw std::logic_error(err_ss.str());
+  }
+  buffer_it += 2;
+  if (!element.IsNameValid(node_name, buffer_it)) {
+    std::stringstream err_ss;
+    err_ss << "The detected name \"" << node_name << "\" does not match the elements name: " <<
+      element.GetName() << ".";
+    throw std::logic_error(err_ss.str());
+  }
+  if (*buffer_it != '>') {
+    std::stringstream err_ss;
+    err_ss << "Syntax error at the end of " << element.GetName() << " node.";
     throw std::logic_error(err_ss.str());
   }
   buffer_it++;

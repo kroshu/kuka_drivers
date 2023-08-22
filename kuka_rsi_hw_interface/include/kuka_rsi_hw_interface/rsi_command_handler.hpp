@@ -60,7 +60,11 @@ private:
 
   void decodeParam(xml::XMLElement & element, char * & buffer_it);
 
-  void decodeLeafNodeParamData(xml::XMLElement & element, char * & buffer_it);
+  void decodeLeafNodeParamData(
+    xml::XMLElement & element, char * & buffer_it,
+    xml::XMLString & param_name);
+
+  void decodeNodeEnd(xml::XMLElement & element, char * & buffer_it);
 
   // node encoder functins
 

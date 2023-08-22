@@ -82,7 +82,6 @@ bool XMLElement::IsParamNameValid(XMLString & key, char * & str_ptr)
     return true;
   }
   return false;
-  // return params_.find(key) != params_.end();
 }
 
 
