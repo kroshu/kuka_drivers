@@ -142,13 +142,8 @@ void RSICommandHandler::decodeNodes(
   bool is_no_more_param = false;
   while (!is_no_more_param && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
     // Go to the next non-space character
-    for (; *buffer_it == ' '; buffer_it++) {
-    }
-    if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
-      std::stringstream err_ss;
-      err_ss << "Out of range error in " << element.GetName() << " node.";
-      throw std::range_error(err_ss.str());
-    }
+    decodeSkipSpaces(buffer_it, element, buffer, buffer_size);
+
     // Check for the start node's closing tag
     if (*buffer_it == '/' && *(buffer_it + 1) == '>') {
       is_param_only_node = true;
@@ -187,26 +182,20 @@ void RSICommandHandler::decodeNodes(
     throw std::logic_error(err_ss.str());
   }
   // Go to the next node or the end of the node
-  for (; *buffer_it == ' '; buffer_it++) {
-  }
-  if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
-    std::stringstream err_ss;
-    err_ss << "Out of range error in " << element.GetName() << " node.";
-    throw std::range_error(err_ss.str());
-  }
+  decodeSkipSpaces(buffer_it, element, buffer, buffer_size);
 
   // If a node is not an only-parameter node, than it has data or childs and needs an end node
-  if (!is_param_only_node && *buffer_it != '<') {
-    // Node is a leaf node, checking its data
-    decodeLeafNodeParamData(element, buffer_it, node_name);
-  }
-  if (!is_param_only_node && *buffer_it == '<') {
-    // Node has childs, not a leaf node
-    for (auto && child : element.Childs()) {
-      decodeNodes(child, buffer, buffer_it, buffer_size);
+  if (!is_param_only_node) {
+    if (*buffer_it != '<') {
+      // Node is a leaf node, checking its data
+      decodeLeafNodeParamData(element, buffer_it, node_name);
+
+    } else {
+      // Node has childs, not a leaf node
+      for (auto && child : element.Childs()) {
+        decodeNodes(child, buffer, buffer_it, buffer_size);
+      }
     }
-  }
-  if (!is_no_more_param) {
     // Check for the end tag (</tag>)
     decodeNodeEnd(element, buffer_it);
   }
@@ -283,6 +272,19 @@ void RSICommandHandler::decodeNodeEnd(xml::XMLElement & element, char * & buffer
     throw std::logic_error(err_ss.str());
   }
   buffer_it++;
+}
+
+void RSICommandHandler::decodeSkipSpaces(
+  char * & buffer_it, const xml::XMLElement & element, char * const buffer,
+  const size_t & buffer_size)
+{
+  for (; *buffer_it == ' '; buffer_it++) {
+  }
+  if (static_cast<size_t>(buffer_it - buffer) >= buffer_size) {
+    std::stringstream err_ss;
+    err_ss << "Out of range error in " << element.GetName() << " node.";
+    throw std::range_error(err_ss.str());
+  }
 }
 
 void RSICommandHandler::encodeNodes(

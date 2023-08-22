@@ -66,6 +66,10 @@ private:
 
   void decodeNodeEnd(xml::XMLElement & element, char * & buffer_it);
 
+  void decodeSkipSpaces(
+    char * & buffer_it, const xml::XMLElement & element, char * const buffer,
+    const size_t & buffer_size);
+
   // node encoder functins
 
   void encodeNodes(
