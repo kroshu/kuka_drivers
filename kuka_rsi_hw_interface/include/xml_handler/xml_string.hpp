@@ -36,8 +36,6 @@ public:
       throw std::range_error("XMLString data length out of range. Range: 0 - 255");
     }
   }
-  // explicit XMLString(const std::string & str)
-  // : data_ptr_(str.c_str()), length_(str.length()) {}
 
   int PrintString(char * & buffer_it, const int & size_left);
 

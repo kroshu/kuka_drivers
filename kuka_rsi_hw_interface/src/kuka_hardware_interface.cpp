@@ -190,9 +190,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<int64_t>("IPOC");
 
   for (size_t i = 0; i < info_.joints.size(); ++i) {
-    // hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
     hw_commands_[i] = hw_states_[i];
-    // initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
   }
   // ipoc_ = rsi_state_.ipoc;
 
@@ -211,7 +209,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "Encode Failed");
     return CallbackReturn::FAILURE;
   }
-  // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
   server_->set_timeout(1000);  // Set receive timeout to 1 second
 
@@ -247,10 +244,7 @@ return_type KukaRSIHardwareInterface::read(
     this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
-
-  // for (std::size_t i = 0; i < info_.joints.size(); ++i) {
-  //   hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-  // }
+  // Update state params
   hw_states_[0] = angles::from_degrees(
     command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A1"));
   hw_states_[1] = angles::from_degrees(
@@ -263,7 +257,8 @@ return_type KukaRSIHardwareInterface::read(
     command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A5"));
   hw_states_[5] = angles::from_degrees(
     command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A6"));
-  // ipoc_ = rsi_state_.ipoc;
+
+  // Update ipoc
   ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<int64_t>("IPOC");
   return return_type::OK;
 }
@@ -286,6 +281,7 @@ return_type KukaRSIHardwareInterface::write(
     joint_pos_correction_deg_[i] = angles::to_degrees(hw_commands_[i] - initial_joint_pos_[i]);
   }
 
+  // Update Command params
   command_handler_.SetCommandParam<double>("AK", "A1", joint_pos_correction_deg_[0]);
   command_handler_.SetCommandParam<double>("AK", "A2", joint_pos_correction_deg_[1]);
   command_handler_.SetCommandParam<double>("AK", "A3", joint_pos_correction_deg_[2]);
@@ -295,7 +291,6 @@ return_type KukaRSIHardwareInterface::write(
   command_handler_.SetCommandParam<bool>("Stop", "Stop", stop_flag_);
   command_handler_.SetCommandParam<int64_t>("IPOC", "IPOC", static_cast<int64_t>(ipoc_));
 
-  // out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   auto out_buffer_it = out_buffer_;
   if (command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE) < 0) {
     this->on_deactivate(this->get_state());
