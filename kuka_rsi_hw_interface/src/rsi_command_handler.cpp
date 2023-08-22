@@ -139,8 +139,8 @@ void RSICommandHandler::decodeNodes(
   // Validate node parameters
   size_t num_of_param = 0;
   bool is_param_only_node = false;
-  bool isNoMoreParam = false;
-  while (!isNoMoreParam && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
+  bool is_no_more_param = false;
+  while (!is_no_more_param && static_cast<size_t>(buffer_it - buffer) < buffer_size) {
     // Go to the next non-space character
     for (; *buffer_it == ' '; buffer_it++) {
     }
@@ -152,10 +152,10 @@ void RSICommandHandler::decodeNodes(
     // Check for the start node's closing tag
     if (*buffer_it == '/' && *(buffer_it + 1) == '>') {
       is_param_only_node = true;
-      isNoMoreParam = true;
+      is_no_more_param = true;
       buffer_it += 2;
     } else if (*buffer_it == '>') {
-      isNoMoreParam = true;
+      is_no_more_param = true;
       buffer_it++;
     } else {
       // Decode parameter
@@ -196,17 +196,17 @@ void RSICommandHandler::decodeNodes(
   }
 
   // If a node is not an only-parameter node, than it has data or childs and needs an end node
-  if (!is_param_only_node) {
-    if (*buffer_it != '<') {
-      // Node is a leaf node, checking its data
-      decodeLeafNodeParamData(element, buffer_it, node_name);
-
-    } else {
-      // Node has childs, not a leaf node
-      for (auto && child : element.Childs()) {
-        decodeNodes(child, buffer, buffer_it, buffer_size);
-      }
+  if (!is_param_only_node && *buffer_it != '<') {
+    // Node is a leaf node, checking its data
+    decodeLeafNodeParamData(element, buffer_it, node_name);
+  }
+  if (!is_param_only_node && *buffer_it == '<') {
+    // Node has childs, not a leaf node
+    for (auto && child : element.Childs()) {
+      decodeNodes(child, buffer, buffer_it, buffer_size);
     }
+  }
+  if (!is_no_more_param) {
     // Check for the end tag (</tag>)
     decodeNodeEnd(element, buffer_it);
   }
