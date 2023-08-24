@@ -291,7 +291,6 @@ return_type KukaRSIHardwareInterface::write(
 
   auto out_buffer_it = out_buffer_;
   if (command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE) < 0) {
-    this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
   server_->send(out_buffer_);
