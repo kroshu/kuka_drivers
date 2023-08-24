@@ -209,6 +209,8 @@ private:
   std::map<std::string, XMLParam, std::less<>> params_;
   std::vector<XMLElement> childs_;
   std::string name_;
+
+  char prev_locale_[100] = {0};
 };
 }  // namespace xml
 

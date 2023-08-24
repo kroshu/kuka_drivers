@@ -51,6 +51,9 @@ public:
     }
     throw std::logic_error("Parameter type not supported");
   }
+
+private:
+  char prev_locale_[100] = {0};
 };
 
 }  // namespace xml
