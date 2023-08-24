@@ -192,7 +192,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     hw_commands_[i] = hw_states_[i];
   }
-  // ipoc_ = rsi_state_.ipoc;
 
   // Initial command pos data
   command_handler_.SetCommandParam<double>("AK", "A1", joint_pos_correction_deg_[0]);
@@ -241,7 +240,6 @@ return_type KukaRSIHardwareInterface::read(
     return return_type::ERROR;
   }
   if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
-    this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
   // Update state params

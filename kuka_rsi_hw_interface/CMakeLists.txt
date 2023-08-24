@@ -25,9 +25,6 @@ find_package(controller_manager_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(angles REQUIRED)
 
-
-include_directories(include ${TinyXML2_INCLUDE_DIRS})
-
 add_library(xml_handler SHARED
   src/xml_handler/xml_element.cpp
   src/xml_handler/xml_param.cpp
