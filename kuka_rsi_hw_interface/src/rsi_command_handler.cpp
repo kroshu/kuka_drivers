@@ -94,9 +94,9 @@ bool RSICommandHandler::SetLocale()
   return std::setlocale(LC_NUMERIC, "C");
 }
 
-bool RSICommandHandle::ResetLocale()
+bool RSICommandHandler::ResetLocale()
 {
-  return std::setlocale(LC_NUMERIC, prev_locale_);
+  return std::setlocale(LC_NUMERIC, prev_locale_.c_str());
 }
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
