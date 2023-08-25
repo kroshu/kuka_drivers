@@ -47,10 +47,14 @@ public:
 
   bool Decode(char * const buffer, const size_t buffer_size);
   int Encode(char * & buffer, const size_t buffer_size);
+  bool SetLocale();
+  bool ResetLocale();
 
 private:
   xml::XMLElement command_data_structure_;
   xml::XMLElement state_data_structure_;
+
+  std::string prev_locale_;
 
   // node decoder functions
 

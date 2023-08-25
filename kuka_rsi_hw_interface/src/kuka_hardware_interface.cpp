@@ -152,7 +152,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   if (bytes < 100) {
     bytes = server_->recv(in_buffer_);
   }
-
+  command_handler_.SetLocale();
   if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "Decode failed");
     return CallbackReturn::FAILURE;
@@ -222,6 +222,7 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(
 {
   stop_flag_ = true;
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Stop flag was set!");
+  command_handler_.ResetLocale();
   return CallbackReturn::SUCCESS;
 }
 

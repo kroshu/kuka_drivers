@@ -18,7 +18,6 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
-#include <clocale>
 #include <sstream>
 
 #include "xml_handler/xml_element.hpp"
@@ -31,20 +30,12 @@ bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
   auto ret_val = param_it != params_.end();
   if (ret_val) {
     errno = 0;
-    char * prev_locale_ptr = prev_locale_;
-    prev_locale_ptr = std::setlocale(LC_NUMERIC, nullptr);
-    if (!std::setlocale(LC_NUMERIC, "C")) {
-      throw std::logic_error("Locale set failed");
-    }
     switch (param_it->second.param_type_) {
       case XMLType::BOOL:
         {
           char * end = str_ptr;
           auto res = static_cast<bool>(strtol(str_ptr, &end, 0));
           if (res == 0 && (errno != 0 || end == str_ptr)) {
-            if (!std::setlocale(LC_NUMERIC, prev_locale_ptr)) {
-              throw std::logic_error("Locale set failed");
-            }
             return false;
           }
           str_ptr = end;
@@ -56,9 +47,6 @@ bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
           char * end = str_ptr;
           auto res = strtol(str_ptr, &end, 0);
           if (res == 0 && (errno != 0 || end == str_ptr)) {
-            if (!std::setlocale(LC_NUMERIC, prev_locale_ptr)) {
-              throw std::logic_error("Locale set failed");
-            }
             return false;
           }
           str_ptr = end;
@@ -70,9 +58,6 @@ bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
           char * end = str_ptr;
           auto res = strtod(str_ptr, &end);
           if (res == 0 && (errno != 0 || end == str_ptr)) {
-            if (!std::setlocale(LC_NUMERIC, prev_locale_ptr)) {
-              throw std::logic_error("Locale set failed");
-            }
             return false;
           }
           str_ptr = end;
@@ -83,11 +68,7 @@ bool XMLElement::CastParamData(const XMLString & key, char * & str_ptr)
         param_it->second.param_value_ = castXMLString(str_ptr);
         break;
       default:
-        std::setlocale(LC_NUMERIC, prev_locale_ptr);
         return false;
-    }
-    if (!std::setlocale(LC_NUMERIC, prev_locale_ptr)) {
-      throw std::logic_error("Locale set failed");
     }
   }
   return ret_val;

@@ -16,6 +16,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <iostream>
+#include <clocale>
 
 #include "kuka_rsi_hw_interface/rsi_command_handler.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -25,6 +26,8 @@ namespace kuka_rsi_hw_interface
 RSICommandHandler::RSICommandHandler()
 : command_data_structure_("Sen"), state_data_structure_("Rob")
 {
+  // save previous locale to restore later;
+  prev_locale_ = std::setlocale(LC_NUMERIC, nullptr);
   // State structure
   // TODO(Komaromi): Later this should be defined by the rsi xml
   state_data_structure_.Params()["TYPE"] = xml::XMLParam(xml::XMLType::STRING);
@@ -86,6 +89,15 @@ RSICommandHandler::RSICommandHandler()
   command_data_structure_.Childs().emplace_back(Stop_el);
   command_data_structure_.Childs().emplace_back(Ipoc_command_el);
 }
+bool RSICommandHandler::SetLocale()
+{
+  return std::setlocale(LC_NUMERIC, "C");
+}
+
+bool RSICommandHandle::ResetLocale()
+{
+  return std::setlocale(LC_NUMERIC, prev_locale_)
+}
 
 bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
 {
@@ -95,6 +107,7 @@ bool RSICommandHandler::Decode(char * const buffer, const size_t buffer_size)
     return true;
   } catch (const std::exception & e) {
     RCLCPP_ERROR(rclcpp::get_logger("CommandHandler"), "%s", e.what());
+    ResetLocale();
     return false;
   }
 }
@@ -112,6 +125,7 @@ int RSICommandHandler::Encode(char * & buffer, const size_t buffer_size)
     return buffer_size - size_left + 1;
   } catch (const std::exception & e) {
     RCLCPP_ERROR(rclcpp::get_logger("CommandHandler"), "%s", e.what());
+    ResetLocale();
     return -1;
   }
 }

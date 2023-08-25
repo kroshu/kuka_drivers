@@ -23,11 +23,6 @@ namespace xml
 int XMLParam::PrintParam(char * & buffer_it, int & size_left)
 {
   int idx = 0;
-  char * prev_locale_ptr = prev_locale_;
-  prev_locale_ptr = std::setlocale(LC_NUMERIC, nullptr);
-  if (!std::setlocale(LC_NUMERIC, "C")) {
-    throw std::logic_error("Locale set failed");
-  }
   switch (param_type_) {
     case XMLType::BOOL:
       idx = snprintf(buffer_it, size_left, "%u", GetParamValue<bool>());
@@ -48,9 +43,6 @@ int XMLParam::PrintParam(char * & buffer_it, int & size_left)
     default:
       throw std::logic_error("Parameter type not supported");
       break;
-  }
-  if (!std::setlocale(LC_NUMERIC, prev_locale_ptr)) {
-    throw std::logic_error("Locale set failed");
   }
   if (idx < 0 || idx > size_left) {
     throw std::range_error("Out of the buffers range");
