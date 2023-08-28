@@ -47,6 +47,7 @@
 #include <chrono>
 #include <cmath>
 #include <mutex>
+#include <fstream>
 
 #include "kuka_rsi_hw_interface/udp_server.h"
 #include "kuka_rsi_hw_interface/visibility_control.h"
@@ -101,6 +102,8 @@ private:
   bool is_active_ = false;
   std::string rsi_ip_address_ = "";
   int rsi_port_ = 0;
+
+  std::ofstream timer_data_;
 
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;

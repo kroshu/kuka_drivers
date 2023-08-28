@@ -42,6 +42,8 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <chrono>
+#include <fstream>
 
 #include "kuka_rsi_hw_interface/kuka_hardware_interface.hpp"
 #include "angles/angles.h"
@@ -53,6 +55,16 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
+
+  timer_data_.open("TimerTest_HomeMadeXml.txt");
+  if (!timer_data_) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger(
+        "KukaRSIHardwareInterface"), "File could not be opened");
+    return CallbackReturn::ERROR;
+  }
+
+  timer_data_ << "Ipoc Decode Encode" << std::endl;
 
   command_handler_ = RSICommandHandler();
 
@@ -240,9 +252,12 @@ return_type KukaRSIHardwareInterface::read(
     this->on_deactivate(this->get_state());
     return return_type::ERROR;
   }
+  auto start = std::chrono::high_resolution_clock::now();
   if (!command_handler_.Decode(in_buffer_, UDP_BUFFER_SIZE)) {
     return return_type::ERROR;
   }
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
   // Update state params
   hw_states_[0] = angles::from_degrees(
     command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A1"));
@@ -257,8 +272,11 @@ return_type KukaRSIHardwareInterface::read(
   hw_states_[5] = angles::from_degrees(
     command_handler_.GetState().GetElement("AIPos")->GetParam<double>("A6"));
 
+
   // Update ipoc
   ipoc_ = command_handler_.GetState().GetElement("IPOC")->GetParam<int64_t>("IPOC");
+
+  timer_data_ << ipoc_ << " " << duration.count();
   return return_type::OK;
 }
 
@@ -291,9 +309,16 @@ return_type KukaRSIHardwareInterface::write(
   command_handler_.SetCommandParam<int64_t>("IPOC", "IPOC", static_cast<int64_t>(ipoc_));
 
   auto out_buffer_it = out_buffer_;
+
+  auto start = std::chrono::high_resolution_clock::now();
   if (command_handler_.Encode(out_buffer_it, UDP_BUFFER_SIZE) < 0) {
     return return_type::ERROR;
   }
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+  timer_data_ << " " << duration.count() << std::endl;
+
+
   server_->send(out_buffer_);
   return return_type::OK;
 }
