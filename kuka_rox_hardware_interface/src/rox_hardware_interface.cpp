@@ -200,12 +200,9 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     kuka::motion::external::ExternalControlMode_Name(
       static_cast<int>(hw_control_mode_command_)).c_str());
 
-  if (stub_->OpenControlChannel(
-      &context, request,
-      &response)
-    .error_code() != grpc::StatusCode::OK)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "OpenControlChannel failed");
+  auto ret = stub_->OpenControlChannel(&context, request, &response);
+  if (ret.error_code() != grpc::StatusCode::OK) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "%s", ret.error_message().c_str());
     return CallbackReturn::FAILURE;
   }
 #endif
