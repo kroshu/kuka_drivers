@@ -26,6 +26,7 @@ find_package(pluginlib REQUIRED)
 
 find_package(tinyxml_vendor REQUIRED)
 find_package(TinyXML REQUIRED)
+find_package(pugixml REQUIRED)
 
 include_directories(include ${TinyXML2_INCLUDE_DIRS})
 
@@ -36,13 +37,12 @@ add_library(${PROJECT_NAME} SHARED
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUILDING_DLL")
+
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
-target_link_libraries(${PROJECT_NAME} tinyxml)
-
-
+target_link_libraries(${PROJECT_NAME} tinyxml pugixml)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
@@ -73,7 +73,7 @@ if(BUILD_TESTING)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
 
-## EXPORTS
+# # EXPORTS
 ament_export_include_directories(
   include
 )
