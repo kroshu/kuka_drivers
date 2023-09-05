@@ -76,6 +76,9 @@ if(BUILD_TESTING)
   ament_lint_cmake()
   ament_uncrustify(--language=C++)
   ament_xmllint(--exclude ros_rsi.rsi.xml)
+
+  enable_testing()
+  add_subdirectory(test)
 endif()
 
 # # EXPORTS
