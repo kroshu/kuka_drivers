@@ -23,3 +23,11 @@ public:
   {
   }
 };
+
+class PugiEncodeTest : public ::testing::Test
+{
+public:
+  PugiEncodeTest()
+  {
+  }
+};
