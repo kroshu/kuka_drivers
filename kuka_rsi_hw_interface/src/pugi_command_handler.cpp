@@ -18,19 +18,21 @@
 namespace kuka_rsi_hw_interface
 {
 PugiCommandHandler::PugiCommandHandler(const size_t buffer_size)
+: memory_pull_()
 {
-  state_buffer = new char[buffer_size];
+  pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
+  state_buffer_ = new char[buffer_size];
 }
 
 PugiCommandHandler::~PugiCommandHandler()
 {
-  delete[] state_buffer;
+  delete[] state_buffer_;
 }
 
 bool PugiCommandHandler::Decode(const char * buffer, const size_t buffer_size)
 {
-  std::memcpy(state_buffer, buffer, buffer_size);
-  return state_doc.load_buffer_inplace(state_buffer, buffer_size);
+  std::memcpy(state_buffer_, buffer, buffer_size);
+  return state_doc.load_buffer_inplace(state_buffer_, buffer_size);
 }
 
 char * PugiCommandHandler::Encode(char * buffer, const size_t buffer_size)
@@ -48,5 +50,14 @@ char * PugiCommandHandler::Encode(char * buffer, const size_t buffer_size)
   buffer[writer.written_size()] = 0;
 
   return buffer;
+}
+
+void * PugiCommandHandler::custom_allocate(size_t size)
+{
+  return memory_pull_.allocate(size);
+}
+void PugiCommandHandler::custom_deallocate(void * ptr)
+{
+  return memory_pull_.deallocate(ptr, sizeof(ptr));
 }
 }  // namespace kuka_rsi_hw_interface

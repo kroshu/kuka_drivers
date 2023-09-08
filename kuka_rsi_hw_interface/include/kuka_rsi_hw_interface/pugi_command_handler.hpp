@@ -17,6 +17,9 @@
 
 #include <pugixml.hpp>
 #include <cstring>
+#include <memory_resource>
+#include <map>
+#include <functional>
 
 namespace kuka_rsi_hw_interface
 {
@@ -46,11 +49,9 @@ struct xml_memory_writer : pugi::xml_writer
   }
 };
 
+
 class PugiCommandHandler
 {
-private:
-  char * state_buffer;
-
 public:
   pugi::xml_document state_doc;
   pugi::xml_document command_doc;
@@ -60,6 +61,15 @@ public:
 
   bool Decode(const char * buffer, const size_t buffer_size);
   char * Encode(char * buffer, const size_t buffer_size);
+
+private:
+  static std::pmr::synchronized_pool_resource memory_pull_;
+  static std::pmr::map<void *, size_t> memory_pulled_sizes_;
+
+  char * state_buffer_;
+
+  static void * custom_allocate(size_t size);
+  static void custom_deallocate(void * ptr);
 };
 }  // namespace kuka_rsi_hw_interface
 
