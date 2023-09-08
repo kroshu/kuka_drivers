@@ -14,6 +14,8 @@
 
 #include "encode_test.h"  // NOLINT
 
+#include <iostream>
+
 #include "kuka_rsi_hw_interface/rsi_command_handler.hpp"
 #include "kuka_rsi_hw_interface/pugi_command_handler.hpp"
 
@@ -71,7 +73,7 @@ TEST_F(EncodeTest, EncodedWell) {
   ASSERT_TRUE(
     strcmp(
       out_buffer_,
-      "<Sen Type=\"KROSHU\"><AK A1=\"0\" A2=\"1\" A3=\"2\" A4=\"3\" A5=\"4\" A6=\"5\" /><Stop>0</Stop><IPOC>100</IPOC></Sen>") == 0
+      "<Sen Type=\"KROSHU\"><AK A1=\"0.000000\" A2=\"1.000000\" A3=\"2.000000\" A4=\"3.000000\" A5=\"4.000000\" A6=\"5.000000\" /><Stop>0</Stop><IPOC>100</IPOC></Sen>") == 0
   );
 }
 
@@ -142,14 +144,12 @@ TEST_F(PugiEncodeTest, EncodedWell) {
 
   // Fill Data
   // This Should be real time
-  auto cmd_pos_it = cmd_pos.begin();
-  for (auto it = AK.attributes_begin(); it != AK.attributes_end() && cmd_pos_it != cmd_pos.end();
-    ++it)
-  {
-    ret_val &= it->set_value(&cmd_pos_it);
-    ++cmd_pos_it;
+  size_t i = 0;
+  for (auto it = AK.attributes_begin(); it != AK.attributes_end(); ++it) {
+    ret_val &= it->set_value(cmd_pos[i]);
+    ++i;
   }
-  ret_val &= Sen.child("Stop").text().set(stop_flag);
+  ret_val &= Sen.child("Stop").text().set(static_cast<uint8_t>(stop_flag));
   ret_val &= Sen.child("IPOC").text().set(ipoc);
 
   ASSERT_TRUE(ret_val);
@@ -157,6 +157,6 @@ TEST_F(PugiEncodeTest, EncodedWell) {
   ASSERT_TRUE(
     strcmp(
       out_buffer_,
-      "<Sen Type=\"KROSHU\"><AK A1=\"0\" A2=\"1\" A3=\"2\" A4=\"3\" A5=\"4\" A6=\"5\" /><Stop>0</Stop><IPOC>100</IPOC></Sen>") == 0
+      "<Sen Type=\"KROSHU\"><AK A1=\"0\" A2=\"1\" A3=\"2\" A4=\"3\" A5=\"4\" A6=\"5\"/><Stop>0</Stop><IPOC>100</IPOC></Sen>") == 0
   );
 }
