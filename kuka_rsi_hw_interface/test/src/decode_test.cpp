@@ -52,18 +52,18 @@ TEST_F(DecodeTest, DecodeTimeMeasurement) {
   bool ret_val = true;
   std::ofstream timer_data;
 
-  timer_data.open("DecodeTest_DecodeTimeMeasurement");
+  timer_data.open("DecodeTest_DecodeTimeMeasurement.txt");
 
   struct sched_param param;
   param.sched_priority = 98;
-  ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) == -1);
+  ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) != -1);
 
-  for (size_t i = 0; i < 1000; i++) {
+  for (size_t i = 0; i < 4000; i++) {
     auto start = std::chrono::high_resolution_clock::now();
     ret_val &= rsi_command_handler.Decode(input_string, 1024);
     auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    timer_data << duration.count() << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    timer_data << i << " " << duration.count() << std::endl;
   }
   ASSERT_TRUE(ret_val);
 }
@@ -94,6 +94,30 @@ TEST_F(PugiDecodeTest, DecodeParamValid) {
   ASSERT_TRUE(pugi_command_handler.state_doc.child("Rob").child("IPOC").text().as_llong() == 0);
 }
 TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
+  // Memory manager
+  // std::pmr::set_default_resource(std::pmr::null_memory_resource());
+  // std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
+  // std::pmr::synchronized_pool_resource kuka_rsi_hw_interface::MemoryManager::memory_pull_(&monotonic_);
+
+  // std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
+
+  // pugi::set_memory_management_functions(
+  //   kuka_rsi_hw_interface::custom_allocate,
+  //   kuka_rsi_hw_interface::custom_deallocate);
+  // pugi::set_memory_management_functions(
+  //   [&](size_t size) {
+  //     auto ptr = memory_pool.allocate(size);
+  //     memory_pool_sizes.emplace(std::make_pair(ptr, size));
+  //     return ptr;
+  //   },
+  //   [&](void * ptr) {
+  //     auto memory_pool_it = memory_pool_sizes.find(ptr);
+  //     if (memory_pool_it != memory_pool_sizes.end()) {
+  //       // pointer not found
+  //     }
+  //     memory_pool.deallocate(ptr, memory_pool_it->second);
+  //   });
+
   kuka_rsi_hw_interface::PugiCommandHandler pugi_command_handler(1024);
 
   char input_string[] =
@@ -104,18 +128,18 @@ TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
   bool ret_val = true;
   std::ofstream timer_data;
 
-  timer_data.open("DecodeTest_DecodeTimeMeasurement");
+  timer_data.open("PugiDecodeTest_DecodeTimeMeasurement.txt");
 
   struct sched_param param;
   param.sched_priority = 98;
-  ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) == -1);
+  ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) != -1);
 
-  for (size_t i = 0; i < 1000; i++) {
+  for (size_t i = 0; i < 4000; i++) {
     auto start = std::chrono::high_resolution_clock::now();
     ret_val &= pugi_command_handler.Decode(input_string, 1024);
     auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    timer_data << duration.count() << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    timer_data << i << " " << duration.count() << std::endl;
   }
   ASSERT_TRUE(ret_val);
 }

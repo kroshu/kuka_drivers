@@ -18,9 +18,7 @@
 namespace kuka_rsi_hw_interface
 {
 PugiCommandHandler::PugiCommandHandler(const size_t buffer_size)
-: memory_pull_()
 {
-  pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
   state_buffer_ = new char[buffer_size];
 }
 
@@ -52,12 +50,35 @@ char * PugiCommandHandler::Encode(char * buffer, const size_t buffer_size)
   return buffer;
 }
 
-void * PugiCommandHandler::custom_allocate(size_t size)
-{
-  return memory_pull_.allocate(size);
-}
-void PugiCommandHandler::custom_deallocate(void * ptr)
-{
-  return memory_pull_.deallocate(ptr, sizeof(ptr));
-}
+// void * custom_allocate(size_t size)
+// {
+//   auto ptr = MemoryManager::memory_pool_.allocate(size);
+//   MemoryManager::memory_pool_sizes_.emplace(std::make_pair(ptr, size));
+//   return ptr;
+// }
+// void custom_deallocate(void * ptr)
+// {
+//   auto memory_pool_it = MemoryManager::memory_pool_sizes_.find(ptr);
+//   if (memory_pool_it != MemoryManager::memory_pool_sizes_.end()) {
+//     // pointer not found
+//   }
+//   MemoryManager::memory_pool_.deallocate(ptr, memory_pool_it->second);
+// }
+
+// void MemoryManager::memory_manager_init(size_t memory_size)
+// {
+//   std::pmr::set_default_resource(std::pmr::null_memory_resource());
+//   std::pmr::monotonic_buffer_resource monotonic_(memory_size, std::pmr::null_memory_resource());
+//   std::pmr::synchronized_pool_resource memory_pull_(&monotonic_);
+
+//   std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
+// }
+// MemoryManager::MemoryManager()
+// {
+//   std::pmr::set_default_resource(std::pmr::null_memory_resource());
+//   std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
+//   std::pmr::synchronized_pool_resource memory_pull_(&monotonic_);
+
+//   std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
+// }
 }  // namespace kuka_rsi_hw_interface

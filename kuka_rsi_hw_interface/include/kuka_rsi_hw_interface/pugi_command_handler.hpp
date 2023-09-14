@@ -23,6 +23,10 @@
 
 namespace kuka_rsi_hw_interface
 {
+
+void * custom_allocate(size_t size);
+void custom_deallocate(void * ptr);
+
 struct xml_memory_writer : pugi::xml_writer
 {
   char * buffer_;
@@ -49,6 +53,20 @@ struct xml_memory_writer : pugi::xml_writer
   }
 };
 
+// struct MemoryManager
+// {
+//   MemoryManager() = default;
+
+//   static std::pmr::monotonic_buffer_resource monotonic_;
+//   static std::pmr::synchronized_pool_resource memory_pool_;
+//   static std::pmr::map<void *, size_t> memory_pool_sizes_;
+
+//   // std::pmr::set_default_resource(std::pmr::null_memory_resource());
+//   // std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
+//   // std::pmr::synchronized_pool_resource memory_pull_(&monotonic_);
+
+//   // std::pmr::map<void *, size_t> memory_pool_sizes_{ & memory_pull_};
+// };
 
 class PugiCommandHandler
 {
@@ -63,13 +81,7 @@ public:
   char * Encode(char * buffer, const size_t buffer_size);
 
 private:
-  static std::pmr::synchronized_pool_resource memory_pull_;
-  static std::pmr::map<void *, size_t> memory_pulled_sizes_;
-
   char * state_buffer_;
-
-  static void * custom_allocate(size_t size);
-  static void custom_deallocate(void * ptr);
 };
 }  // namespace kuka_rsi_hw_interface
 
