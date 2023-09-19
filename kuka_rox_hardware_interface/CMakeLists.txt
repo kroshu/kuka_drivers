@@ -119,4 +119,8 @@ if(BUILD_TESTING)
   ament_xmllint()
 endif()
 
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
+
 ament_package()
