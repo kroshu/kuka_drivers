@@ -95,15 +95,18 @@ TEST_F(PugiDecodeTest, DecodeParamValid) {
 }
 TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
   // Memory manager
+  MemoryManager memory_manager;
+  memory_manager_handler = &memory_manager;
+
   // std::pmr::set_default_resource(std::pmr::null_memory_resource());
   // std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
   // std::pmr::synchronized_pool_resource kuka_rsi_hw_interface::MemoryManager::memory_pull_(&monotonic_);
 
   // std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
 
-  // pugi::set_memory_management_functions(
-  //   kuka_rsi_hw_interface::custom_allocate,
-  //   kuka_rsi_hw_interface::custom_deallocate);
+  pugi::set_memory_management_functions(
+    kuka_rsi_hw_interface::custom_allocate,
+    kuka_rsi_hw_interface::custom_deallocate);
   // pugi::set_memory_management_functions(
   //   [&](size_t size) {
   //     auto ptr = memory_pool.allocate(size);

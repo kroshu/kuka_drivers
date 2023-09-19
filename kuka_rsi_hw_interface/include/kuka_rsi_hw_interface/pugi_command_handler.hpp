@@ -68,6 +68,20 @@ struct xml_memory_writer : pugi::xml_writer
 //   // std::pmr::map<void *, size_t> memory_pool_sizes_{ & memory_pull_};
 // };
 
+MemoryManager * memory_manager_handler;
+
+class MemoryManager
+{
+public:
+  MemoryManager();
+  void * Allocate(size_t size);
+  void Deallocate(void * ptr);
+private:
+  std::pmr::monotonic_buffer_resource monotonic_;
+  std::pmr::synchronized_pool_resource memory_pool_;
+  std::pmr::map<void *, size_t> memory_pool_sizes_;
+}
+
 class PugiCommandHandler
 {
 public:
