@@ -17,6 +17,8 @@
 
 namespace kuka_rsi_hw_interface
 {
+MemoryManager * memory_manager_handler;
+
 PugiCommandHandler::PugiCommandHandler(const size_t buffer_size)
 {
   state_buffer_ = new char[buffer_size];
@@ -53,36 +55,38 @@ char * PugiCommandHandler::Encode(char * buffer, const size_t buffer_size)
 
 void * custom_allocate(size_t size)
 {
-  return memory_manager_handler->Allocate(size);
+  return kuka_rsi_hw_interface::memory_manager_handler->Allocate(size);
 }
 void custom_deallocate(void * ptr)
 {
-  memory_manager_handler->Deallocate(ptr);
+  kuka_rsi_hw_interface::memory_manager_handler->Deallocate(ptr);
 }
 
-MemoryManager::MemoryManager()
+MemoryManager::MemoryManager(std::pmr::memory_resource * upstream)
+: memory_pool_(upstream), memory_pool_sizes_(upstream)
 {
-  std::pmr::set_default_resource(std::pmr::null_memory_resource());
-  std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
-  std::pmr::synchronized_pool_resource memory_pull_(&monotonic_);
-
-  std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
+  // std::cout << "Memory Manager init" << std::endl;
+  // // std::pmr::set_default_resource(&memory_pool_);
+  //
+  // std::pmr::map<void *, size_t> memory_pool_sizes_{&save_size};
 }
 
 void * MemoryManager::Allocate(size_t size)
 {
-  auto ptr = memory_pool_.allocate(size);
+  auto ptr = static_cast<void*>(memory_pool_->allocate(size));
   memory_pool_sizes_.emplace(std::make_pair(ptr, size));
-  return ptr;  
+  return ptr;
 }
 
 void MemoryManager::Deallocate(void * ptr)
- {
+{
   auto memory_pool_it = memory_pool_sizes_.find(ptr);
-  if (memory_pool_it != memory_pool_sizes_.end()) {
+  if (memory_pool_it == memory_pool_sizes_.end()) {
     // pointer not found
   }
-  memory_pool_.deallocate(ptr, memory_pool_it->second);
- }
+  memory_pool_->deallocate(static_cast<std::byte*>(ptr),memory_pool_it->second);
+
+  memory_pool_sizes_.erase(memory_pool_it);
+}
 
 }  // namespace kuka_rsi_hw_interface

@@ -18,6 +18,8 @@
 #include <pugixml.hpp>
 #include <cstring>
 #include <memory_resource>
+#include <iostream>
+#include <cassert>
 #include <map>
 #include <functional>
 
@@ -53,34 +55,53 @@ struct xml_memory_writer : pugi::xml_writer
   }
 };
 
-// struct MemoryManager
-// {
-//   MemoryManager() = default;
+class print_resource : public std::pmr::memory_resource
+{
+public:
+  print_resource(std::string name, std::pmr::memory_resource * upstream)
+  : name_(name), upstream_(upstream)
+  {
+    assert(upstream);
+  }
 
-//   static std::pmr::monotonic_buffer_resource monotonic_;
-//   static std::pmr::synchronized_pool_resource memory_pool_;
-//   static std::pmr::map<void *, size_t> memory_pool_sizes_;
+private:
+  std::string name_;
+  std::pmr::memory_resource * upstream_;
 
-//   // std::pmr::set_default_resource(std::pmr::null_memory_resource());
-//   // std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
-//   // std::pmr::synchronized_pool_resource memory_pull_(&monotonic_);
+  void * do_allocate(std::size_t bytes, std::size_t alignment) override
+  {
+    std::cout << "[" << name_ << " (alloc)] Size: " << bytes << " Alignment: " << alignment <<
+      " ..." << std::endl;
+    auto result = upstream_->allocate(bytes, alignment);
+    std::cout << "[" << name_ << " (alloc)] ... Address: " << result << std::endl;
+    return result;
+  }
 
-//   // std::pmr::map<void *, size_t> memory_pool_sizes_{ & memory_pull_};
-// };
+  void do_deallocate(void * ptr, std::size_t bytes, std::size_t alignment) override
+  {
+    std::cout << "[" << name_ << " (dealloc)] Address: " << ptr << "Size: " << bytes <<
+      " Alignment: " << alignment << std::endl;
+    upstream_->deallocate(ptr, bytes, alignment);
+  }
 
-MemoryManager * memory_manager_handler;
+  bool do_is_equal(const std::pmr::memory_resource & other) const noexcept override
+  {
+    return this == &other;
+  }
+};
 
 class MemoryManager
 {
 public:
-  MemoryManager();
+  MemoryManager(std::pmr::memory_resource * upstream);
   void * Allocate(size_t size);
   void Deallocate(void * ptr);
+
 private:
-  std::pmr::monotonic_buffer_resource monotonic_;
-  std::pmr::synchronized_pool_resource memory_pool_;
+  //std::pmr::polymorphic_allocator<std::byte> allocator_;
+  std::pmr::memory_resource * memory_pool_;
   std::pmr::map<void *, size_t> memory_pool_sizes_;
-}
+};
 
 class PugiCommandHandler
 {
@@ -97,6 +118,8 @@ public:
 private:
   char * state_buffer_;
 };
+
+extern MemoryManager * memory_manager_handler;
 }  // namespace kuka_rsi_hw_interface
 
 

@@ -95,31 +95,34 @@ TEST_F(PugiDecodeTest, DecodeParamValid) {
 }
 TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
   // Memory manager
-  MemoryManager memory_manager;
-  memory_manager_handler = &memory_manager;
+  // Set default resource
+  kuka_rsi_hw_interface::print_resource default_resource("Rogue PMR Allocation!",
+    std::pmr::null_memory_resource());
+  std::pmr::set_default_resource(&default_resource);
 
-  // std::pmr::set_default_resource(std::pmr::null_memory_resource());
-  // std::pmr::monotonic_buffer_resource monotonic_(50000, std::pmr::null_memory_resource());
-  // std::pmr::synchronized_pool_resource kuka_rsi_hw_interface::MemoryManager::memory_pull_(&monotonic_);
+  // create memory resource
+  kuka_rsi_hw_interface::print_resource out_of_memory("Out of Memory",
+    std::pmr::null_memory_resource());
 
-  // std::pmr::map<void *, size_t> memory_pool_sizes_{&memory_pull_};
+  std::array<std::byte, 600000> buffer{};
+  std::pmr::monotonic_buffer_resource underlying_bytes{buffer.data(), buffer.size(),
+    &out_of_memory};
+
+  //kuka_rsi_hw_interface::print_resource monotonic("Monotonic Array", &underlying_bytes);
+
+  // Create pool resource
+  std::pmr::pool_options pool_options;
+  pool_options.largest_required_pool_block = 35000;
+  std::pmr::synchronized_pool_resource sync_pool{pool_options, &underlying_bytes};
+  //kuka_rsi_hw_interface::print_resource memory_pool("Pool", &sync_pool);
+
+  // Create memory handler
+  kuka_rsi_hw_interface::MemoryManager memory_manager(&sync_pool);
+  kuka_rsi_hw_interface::memory_manager_handler = &memory_manager;
 
   pugi::set_memory_management_functions(
     kuka_rsi_hw_interface::custom_allocate,
     kuka_rsi_hw_interface::custom_deallocate);
-  // pugi::set_memory_management_functions(
-  //   [&](size_t size) {
-  //     auto ptr = memory_pool.allocate(size);
-  //     memory_pool_sizes.emplace(std::make_pair(ptr, size));
-  //     return ptr;
-  //   },
-  //   [&](void * ptr) {
-  //     auto memory_pool_it = memory_pool_sizes.find(ptr);
-  //     if (memory_pool_it != memory_pool_sizes.end()) {
-  //       // pointer not found
-  //     }
-  //     memory_pool.deallocate(ptr, memory_pool_it->second);
-  //   });
 
   kuka_rsi_hw_interface::PugiCommandHandler pugi_command_handler(1024);
 
@@ -137,7 +140,9 @@ TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
   param.sched_priority = 98;
   ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) != -1);
 
-  for (size_t i = 0; i < 4000; i++) {
+
+  for (size_t i = 0; i < 1000; i++) {
+    //std::cout << "[Debug] Decode started" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     ret_val &= pugi_command_handler.Decode(input_string, 1024);
     auto stop = std::chrono::high_resolution_clock::now();
