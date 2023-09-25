@@ -39,8 +39,6 @@ if(NOT MOCK_KUKA_LIBS)
   find_package(motion-external-proto-api-nanopb REQUIRED)
   find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
   find_package(nanopb-helpers REQUIRED)
-  include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
-  include_directories(/usr/include/kuka/nanopb-helpers-0.1)
   message("Using real kuka libs")
   add_definitions(-DNON_MOCK_SETUP)
 else()
@@ -73,7 +71,7 @@ add_library(kuka_rox_hw_interface SHARED
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
-  motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication nanopb-helpers)
+  motion-services-ecs-proto-api-nanopb yaml-cpp kuka::os-core-udp-communication kuka::nanopb-helpers)
 
 
 add_executable(robot_manager_node
