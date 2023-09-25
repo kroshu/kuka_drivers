@@ -106,6 +106,31 @@ KukaRoXHardwareInterface::export_state_interfaces()
       hardware_interface::HW_IF_VELOCITY,
       &hw_velocity_states_[i]);
   }
+  
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "x",
+      &hw_twist_states_.linear.x);
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "y",
+      &hw_twist_states_.linear.y);
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "z",
+      &hw_twist_states_.linear.z);
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "x",
+      &hw_twist_states_.angular.x);
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "y",
+      &hw_twist_states_.angular.y);
+  state_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "z",
+      &hw_twist_states_.angular.z);
   return state_interfaces;
 }
 
@@ -147,6 +172,30 @@ KukaRoXHardwareInterface::export_command_interfaces()
     CONTROL_MODE,
     &hw_control_mode_command_);
 
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "x",
+      &hw_twist_commands_.linear.x);
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "y",
+      &hw_twist_commands_.linear.y);
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_L,
+      "z",
+      &hw_twist_commands_.linear.z);
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "x",
+      &hw_twist_commands_.angular.x);
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "y",
+      &hw_twist_commands_.angular.y);
+  command_interfaces.emplace_back(
+      TWIST_PREFIX_A,
+      "z",
+      &hw_twist_commands_.angular.z);
   return command_interfaces;
 }
 
@@ -263,17 +312,18 @@ return_type KukaRoXHardwareInterface::read(
     //hw_position_states_[i] = hw_position_commands_[i];
     hw_velocity_states_[i] = hw_velocity_commands_[i];
     hw_position_states_[i] += hw_velocity_states_[i]*0.004; 
-    RCLCPP_INFO(
+    /*RCLCPP_INFO(
     rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "joint[%li]: %f",
-       i,hw_velocity_states_[i]);
+       i,hw_velocity_states_[i]);*/
   }
+  
+  hw_twist_states_=hw_twist_commands_;
   // DEBUG
-  /*RCLCPP_INFO(
+  RCLCPP_INFO(
     rclcpp::get_logger(
-      "KukaRoXHardwareInterface"), "joint size: %li , velocity x: %f z: % f %f ",
-    info_.joints.size(),
-    hw_velocity_states_[0],hw_velocity_states_[1],hw_velocity_states_[2]);*/
+      "KukaRoXHardwareInterface"), "velocity x: %f z: %f ",
+    hw_twist_states_.linear.x, hw_twist_states_.angular.z);
 
   return return_type::OK;
 #endif
@@ -310,13 +360,19 @@ return_type KukaRoXHardwareInterface::read(
       
     }
 
-    hw_velocity_states_[0]=motion_state_external_.motion_state.measured_twist.linear.x;
+    /*hw_velocity_states_[0]=motion_state_external_.motion_state.measured_twist.linear.x;
     hw_velocity_states_[1]=motion_state_external_.motion_state.measured_twist.linear.y;
     hw_velocity_states_[2]=motion_state_external_.motion_state.measured_twist.linear.z;
     hw_velocity_states_[3]=motion_state_external_.motion_state.measured_twist.angular.x;
     hw_velocity_states_[4]=motion_state_external_.motion_state.measured_twist.angular.y;
-    hw_velocity_states_[5]=motion_state_external_.motion_state.measured_twist.angular.z;
+    hw_velocity_states_[5]=motion_state_external_.motion_state.measured_twist.angular.z;*/
 
+    hw_twist_states_.linear.x=motion_state_external_.motion_state.measured_twist.linear.x;
+    hw_twist_states_.linear.y=motion_state_external_.motion_state.measured_twist.linear.y;
+    hw_twist_states_.linear.z=motion_state_external_.motion_state.measured_twist.linear.z;
+    hw_twist_states_.angular.x=motion_state_external_.motion_state.measured_twist.angular.x;
+    hw_twist_states_.angular.y=motion_state_external_.motion_state.measured_twist.angular.y;
+    hw_twist_states_.angular.z=motion_state_external_.motion_state.measured_twist.angular.z;
     /*RCLCPP_INFO( rclcpp::get_logger(
           "KukaRoXHardwareInterface"), "STATE position: %f, %f --- velocity: %f , %f ",
               hw_position_states_[0],hw_position_states_[1],
@@ -362,15 +418,20 @@ return_type KukaRoXHardwareInterface::write(
     hw_velocity_commands_.begin(),
     hw_velocity_commands_.end(), control_signal_ext_.control_signal.joint_velocity_command.values);
   
-  control_signal_ext_.control_signal.twist_command.linear.x=hw_velocity_commands_.at(0);
+  /*control_signal_ext_.control_signal.twist_command.linear.x=hw_velocity_commands_.at(0);
   control_signal_ext_.control_signal.twist_command.linear.y=hw_velocity_commands_.at(1);
   control_signal_ext_.control_signal.twist_command.linear.z=hw_velocity_commands_.at(2);
 
   control_signal_ext_.control_signal.twist_command.angular.x=hw_velocity_commands_.at(3);
   control_signal_ext_.control_signal.twist_command.angular.y=hw_velocity_commands_.at(4);
-  control_signal_ext_.control_signal.twist_command.angular.z=hw_velocity_commands_.at(5);
+  control_signal_ext_.control_signal.twist_command.angular.z=hw_velocity_commands_.at(5);*/
   
-  
+  control_signal_ext_.control_signal.twist_command.linear.x=hw_twist_commands_.linear.x;
+  control_signal_ext_.control_signal.twist_command.linear.y=hw_twist_commands_.linear.y;
+  control_signal_ext_.control_signal.twist_command.linear.z=hw_twist_commands_.linear.z;
+  control_signal_ext_.control_signal.twist_command.angular.x=hw_twist_commands_.linear.x;
+  control_signal_ext_.control_signal.twist_command.angular.y=hw_twist_commands_.linear.y;
+  control_signal_ext_.control_signal.twist_command.angular.z=hw_twist_commands_.linear.z;
 
 
   RCLCPP_INFO( rclcpp::get_logger(

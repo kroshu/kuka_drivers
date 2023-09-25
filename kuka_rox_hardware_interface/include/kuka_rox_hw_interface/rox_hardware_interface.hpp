@@ -32,6 +32,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 
 #include "pluginlib/class_list_macros.hpp"
 
@@ -79,10 +80,12 @@ private:
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
   std::vector<double> hw_velocity_commands_;
+  geometry_msgs::msg::Twist hw_twist_commands_;
 
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_velocity_states_;
+  geometry_msgs::msg::Twist hw_twist_states_;
 
   double hw_control_mode_command_;
 
@@ -109,6 +112,8 @@ private:
   static constexpr char HW_IF_STIFFNESS[] = "stiffness";
   static constexpr char HW_IF_DAMPING[] = "damping";
   static constexpr char CONTROL_MODE[] = "control_mode";
+  static constexpr char TWIST_PREFIX_L[] = "twist/linear";
+  static constexpr char TWIST_PREFIX_A[] = "twist/angular";
 };
 }  // namespace kuka_rox
 
