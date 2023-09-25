@@ -28,7 +28,6 @@ find_package(kroshu_ros2_core REQUIRED)
 find_package(fri REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(controller_manager)
 find_package(controller_manager_msgs)
 
 include_directories(include)
@@ -57,13 +56,9 @@ target_link_libraries(robot_manager_node
   fri_connection
   configuration_manager)
 
-add_executable(sunrise_control_node
-  src/sunrise_control_node.cpp)
-ament_target_dependencies(sunrise_control_node kuka_driver_interfaces rclcpp rclcpp_lifecycle controller_manager)
-
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS fri_connection kuka_fri_hw_interface robot_manager_node sunrise_control_node
+install(TARGETS fri_connection kuka_fri_hw_interface robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config

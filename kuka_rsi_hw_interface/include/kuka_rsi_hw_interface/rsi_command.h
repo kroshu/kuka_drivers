@@ -55,7 +55,7 @@ public:
   {
     TiXmlDocument doc;
     TiXmlElement * root = new TiXmlElement("Sen");
-    root->SetAttribute("Type", "ImFree");
+    root->SetAttribute("Type", "KROSHU");
     TiXmlElement * el = new TiXmlElement("AK");
     // Add string attribute
     el->SetAttribute("A1", std::to_string(joint_position_correction[0]));
@@ -64,7 +64,7 @@ public:
     el->SetAttribute("A4", std::to_string(joint_position_correction[3]));
     el->SetAttribute("A5", std::to_string(joint_position_correction[4]));
     el->SetAttribute("A6", std::to_string(joint_position_correction[5]));
-    if (!stop) {root->LinkEndChild(el);}
+    root->LinkEndChild(el);
 
     el = new TiXmlElement("Stop");
     el->LinkEndChild(new TiXmlText(std::to_string(static_cast<int>(stop))));
