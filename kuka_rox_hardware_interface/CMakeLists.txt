@@ -47,10 +47,15 @@ else()
   add_library(os-core-udp-communication SHARED
     src/mock/os-core-udp-communication/udp_replier_mock.cpp
     src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+  add_library(kuka::os-core-udp-communication ALIAS os-core-udp-communication)
+  install(TARGETS os-core-udp-communication
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
   add_library(nanopb-helpers INTERFACE)
   target_include_directories(nanopb-helpers INTERFACE include/mock/nanopb-helpers)
   target_link_libraries(nanopb-helpers INTERFACE protobuf::libprotobuf)
+  add_library(kuka::nanopb-helpers ALIAS nanopb-helpers)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock/kuka)
