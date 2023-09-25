@@ -1,4 +1,4 @@
-# ROS2 KUKA Sunrise Driver
+# ROS2 KUKA Drivers
 
 Experimental ROS2 driver for KUKA robots.
 

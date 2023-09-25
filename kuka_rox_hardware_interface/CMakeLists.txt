@@ -28,7 +28,6 @@ find_package(sensor_msgs REQUIRED)
 find_package(kroshu_ros2_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(controller_manager REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
@@ -40,8 +39,6 @@ if(NOT MOCK_KUKA_LIBS)
   find_package(motion-external-proto-api-nanopb REQUIRED)
   find_package(motion-services-ecs-proto-api-nanopb REQUIRED)
   find_package(nanopb-helpers REQUIRED)
-  include_directories(/usr/include/kuka/os-core-udp-communication-0.0)
-  include_directories(/usr/include/kuka/nanopb-helpers-0.1)
   message("Using real kuka libs")
   add_definitions(-DNON_MOCK_SETUP)
 else()
@@ -50,10 +47,15 @@ else()
   add_library(os-core-udp-communication SHARED
     src/mock/os-core-udp-communication/udp_replier_mock.cpp
     src/mock/os-core-udp-communication/udp_socket_mock.cpp)
+  add_library(kuka::os-core-udp-communication ALIAS os-core-udp-communication)
+  install(TARGETS os-core-udp-communication
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
   add_library(nanopb-helpers INTERFACE)
   target_include_directories(nanopb-helpers INTERFACE include/mock/nanopb-helpers)
   target_link_libraries(nanopb-helpers INTERFACE protobuf::libprotobuf)
+  add_library(kuka::nanopb-helpers ALIAS nanopb-helpers)
 
   add_library(motion-services-ecs-proto-api-cpp INTERFACE)
   target_include_directories(motion-services-ecs-proto-api-cpp INTERFACE include/mock/kuka)
@@ -74,21 +76,17 @@ add_library(kuka_rox_hw_interface SHARED
 )
 ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
-  motion-services-ecs-proto-api-nanopb yaml-cpp os-core-udp-communication nanopb-helpers)
+  motion-services-ecs-proto-api-nanopb yaml-cpp kuka::os-core-udp-communication kuka::nanopb-helpers)
 
-add_executable(rox_control_node
-  src/rox_control_node.cpp)
-ament_target_dependencies(rox_control_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
-target_link_libraries(rox_control_node kuka_rox_hw_interface)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager controller_manager_msgs)
+ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager_msgs)
 target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)
 
-install(TARGETS kuka_rox_hw_interface rox_control_node robot_manager_node
+install(TARGETS kuka_rox_hw_interface robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config launch
@@ -123,5 +121,9 @@ if(BUILD_TESTING)
   ament_uncrustify(--exclude ${mock_headers} ${mock_src})
   ament_xmllint()
 endif()
+
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
 
 ament_package()

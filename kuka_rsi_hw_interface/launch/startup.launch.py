@@ -1,4 +1,4 @@
-# Copyright 2022 Áron Svastits
+# Copyright 2023 Áron Svastits
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -23,7 +24,16 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration('robot_model')
-    robot_name = "LBRiisy3R760"
+    use_fake_hardware = LaunchConfiguration('use_fake_hardware')
+
+    # TODO(Svastits):better way to handle supported robot models and families
+    if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
+        robot_family = "agilus"
+    elif robot_model.perform(context) in ["kr16_r2010-2"]:
+        robot_family = "cybertech"
+    else:
+        print("[ERROR] [launch]: robot model not recognized")
+        raise Exception
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -31,39 +41,22 @@ def launch_setup(context, *args, **kwargs):
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_lbr_iisy_support"),
+                [FindPackageShare('kuka_{}_support'.format(robot_family)),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
         ]
     )
 
-    # TODO(Svastits): better way for robot model -> name
-    if robot_model.perform(context) == "lbr_iisy3_r760":
-        robot_name = "LBRiisy3R760"
-    elif robot_model.perform(context) == "lbr_iisy11_r1300":
-        robot_name = "LBRiisy11R1300"
-    elif robot_model.perform(context) == "lbr_iisy15_r930":
-        robot_name = "LBRiisy15R930"
-    else:
-        print("[ERROR] [launch]: robot model not recognized")
-        raise Exception
-
-    # Get URDF via xacro
     robot_description = {'robot_description': robot_description_content}
 
-    controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
+    controller_config = (get_package_share_directory('kuka_rsi_hw_interface') +
                          "/config/ros2_controller_config.yaml")
 
-    joint_traj_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
+    joint_traj_controller_config = (get_package_share_directory('kuka_rsi_hw_interface') +
                                     "/config/joint_trajectory_controller_config.yaml")
-    effort_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                                "/config/effort_controller_config.yaml")
-    joint_imp_controller_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                                   "/config/joint_impedance_controller_config.yaml")
-
-    eci_config = (get_package_share_directory('kuka_rox_hw_interface') +
-                  "/config/eci_config.yaml")
 
     controller_manager_node = '/controller_manager'
 
@@ -75,9 +68,9 @@ def launch_setup(context, *args, **kwargs):
     robot_manager_node = LifecycleNode(
         name=['robot_manager'],
         namespace='',
-        package="kuka_rox_hw_interface",
+        package="kuka_rsi_hw_interface",
         executable="robot_manager_node",
-        parameters=[eci_config, {'robot_model': robot_name}]
+        parameters=[{'robot_model': robot_model}]
     )
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -87,20 +80,20 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config):
+    def controller_spawner(controller_with_config, activate=False):
+        arg_list = [controller_with_config[0], "-c", controller_manager_node, "-p",
+                    controller_with_config[1]]
+        if not activate:
+            arg_list.append("--inactive")
         return Node(
             package="controller_manager",
             executable="spawner",
-            arguments=[controller_with_config[0], "-c", controller_manager_node, "-p",
-                       controller_with_config[1], "--inactive"]
+            arguments=arg_list
         )
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
         ("joint_trajectory_controller", joint_traj_controller_config),
-        ("joint_impedance_controller", joint_imp_controller_config),
-        ("effort_controller", effort_controller_config),
-        ("control_mode_handler", [])
     ]
 
     controller_spawners = [controller_spawner(controllers)
@@ -119,6 +112,10 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
-        default_value='lbr_iisy3_r760'
+        default_value='kr6_r700_sixx'
+    ))
+    launch_arguments.append(DeclareLaunchArgument(
+        'use_fake_hardware',
+        default_value="false"
     ))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
