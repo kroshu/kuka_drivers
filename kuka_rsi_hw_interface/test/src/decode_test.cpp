@@ -141,7 +141,7 @@ TEST_F(PugiDecodeTest, DecodeTimeMeasurement) {
   ret_val &= (sched_setscheduler(0, SCHED_FIFO, &param) != -1);
 
 
-  for (size_t i = 0; i < 1000; i++) {
+  for (size_t i = 0; i < 4000; i++) {
     //std::cout << "[Debug] Decode started" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     ret_val &= pugi_command_handler.Decode(input_string, 1024);
