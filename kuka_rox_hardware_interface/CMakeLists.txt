@@ -30,7 +30,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
+find_package(gazebo_plugins REQUIRED)
 include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
