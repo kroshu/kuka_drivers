@@ -109,6 +109,65 @@ std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects(
   return collision_objects;
 }
 
+std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
+  moveit::planning_interface::MoveGroupInterface & move_group_interface)
+{
+  std::vector<moveit_msgs::msg::CollisionObject> pallet_objects;
+
+  moveit_msgs::msg::CollisionObject pallet_object;
+  pallet_object.header.frame_id = move_group_interface.getPlanningFrame();
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+
+      pallet_object.id = "pallet_" + std::to_string(4 * i + j);
+      shape_msgs::msg::SolidPrimitive primitive;
+      primitive.type = primitive.BOX;
+      primitive.dimensions.resize(3);
+      primitive.dimensions[primitive.BOX_X] = 0.1;
+      primitive.dimensions[primitive.BOX_Y] = 0.1;
+      primitive.dimensions[primitive.BOX_Z] = 0.1;
+
+      // Define a pose for the box (specified relative to frame_id).
+      geometry_msgs::msg::Pose stand_pose;
+      stand_pose.orientation.w = 1.0;
+      stand_pose.position.x = i * 0.15;
+      stand_pose.position.y = j * 0.15;
+      stand_pose.position.z = 0.0;
+
+      pallet_object.primitives.push_back(primitive);
+      pallet_object.primitive_poses.push_back(stand_pose);
+      pallet_object.operation = pallet_object.ADD;
+
+      pallet_objects.push_back(pallet_object);
+    }
+  }
+  return pallet_objects;
+}
+
+void AttachObject(rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher, 
+  moveit::planning_interface::MoveGroupInterface & move_group_interface,
+  const std::string & object_id)
+{
+  moveit_msgs::msg::PlanningScene planning_scene;
+  moveit_msgs::msg::AttachedCollisionObject attached_object;  // TODO
+
+
+  /* First, define the REMOVE object message*/
+  moveit_msgs::msg::CollisionObject remove_object;
+  remove_object.id = object_id;
+  remove_object.header.frame_id = move_group_interface.getPlanningFrame();
+  remove_object.operation = remove_object.REMOVE;
+
+/* Carry out the REMOVE + ATTACH operation */
+  RCLCPP_INFO(LOGGER, "Attaching the object to the hand and removing it from the world.");
+  planning_scene.world.collision_objects.clear();
+  planning_scene.world.collision_objects.push_back(remove_object);
+  planning_scene.robot_state.attached_collision_objects.push_back(attached_object);
+  planning_scene.robot_state.is_diff = true;
+  planning_scene_diff_publisher->publish(planning_scene);
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -150,7 +209,11 @@ int main(int argc, char * argv[])
   // Create Planning Scene Interface, witch is for adding collision boxes
   auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
 
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher =
+    node->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
+
   planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
+  planning_scene_interface.addCollisionObjects(createPalletObjects(move_group_interface));
   // End Collision Objects define
 
   auto planned_trajectory = planToPoint(move_group_interface);
