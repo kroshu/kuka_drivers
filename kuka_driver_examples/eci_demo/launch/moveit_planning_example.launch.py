@@ -51,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict()],
+        parameters=[moveit_config.to_dict(), {'publish_planning_scene_hz': 30.0}],
     )
 
     rviz = Node(
