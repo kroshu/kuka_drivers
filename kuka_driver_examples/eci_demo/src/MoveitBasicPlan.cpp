@@ -117,8 +117,8 @@ std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
   moveit_msgs::msg::CollisionObject pallet_object;
   pallet_object.header.frame_id = move_group_interface.getPlanningFrame();
 
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
+  for (int i = 0; i < 1; i++) {
+    for (int j = 0; j < 1; j++) {
 
       pallet_object.id = "pallet_" + std::to_string(4 * i + j);
       shape_msgs::msg::SolidPrimitive primitive;
@@ -232,15 +232,29 @@ int main(int argc, char * argv[])
         moveit_visual_tools.getRobotModel()->getJointModelGroup(PLANNING_GROUP));
     };
 
-  // Create Planning Scene Interface, witch is for adding collision boxes
+  // Create Planning Scene Interface, which is for adding collision boxes
   auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
 
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher =
     node->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
 
+  // Add robot platform
   planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
-  planning_scene_interface.addCollisionObjects(createPalletObjects(move_group_interface));
-  // End Collision Objects define
+  moveit_visual_tools.trigger();
+  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+ 
+
+  // Add pallets 
+  auto pallet_objects = createPalletObjects(move_group_interface);
+  AddObjects(planning_scene_diff_publisher, pallet_objects);
+  // planning_scene_interface.addCollisionObjects(pallet_objects);
+  moveit_visual_tools.trigger();
+  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+
+  // Attach 1. pallett to robot flange 
+  AttachObject(planning_scene_diff_publisher, pallet_objects, "pallet_0");
+  moveit_visual_tools.trigger();
+  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   auto planned_trajectory = planToPoint(move_group_interface);
   if (planned_trajectory != nullptr) {
