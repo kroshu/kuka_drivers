@@ -238,9 +238,9 @@ int main(int argc, char * argv[])
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher =
     node->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
 
-
-/////////////////////////////////////////////
-
+  planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
+  planning_scene_interface.addCollisionObjects(createPalletObjects(move_group_interface));
+  // End Collision Objects define
 
   auto planned_trajectory = planToPoint(move_group_interface);
   if (planned_trajectory != nullptr) {
