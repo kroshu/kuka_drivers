@@ -359,7 +359,7 @@ void KukaRoXHardwareInterface::ObserveControl()
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
         is_active_ = true;
         break;
-      case CommandEvent::COMMAND_MODE_SWITCH:
+      case CommandEvent::CONTROL_MODE_SWITCH:
         RCLCPP_INFO(
           rclcpp::get_logger(
             "KukaRoXHardwareInterface"), "Control mode switch is in progress");
