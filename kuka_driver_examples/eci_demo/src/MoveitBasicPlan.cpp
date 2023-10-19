@@ -307,6 +307,9 @@ int main(int argc, char * argv[])
     moveit_visual_tools.trigger();
     moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
     move_group_interface_->execute(*planned_trajectory);
+  } else {
+    draw_title("Planning failed");
+    moveit_visual_tools.trigger();
   }
 
   DetachAndRemoveObject("pallet_0");
