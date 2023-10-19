@@ -109,16 +109,29 @@ std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects(
   return collision_objects;
 }
 
+void AddObject(
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
+  const moveit_msgs::msg::CollisionObject & object)
+{
+  moveit_msgs::msg::PlanningScene planning_scene;
+  planning_scene.name = "scene";
+
+  planning_scene.world.collision_objects.push_back(object);
+
+  planning_scene.is_diff = true;
+  planning_scene_diff_publisher->publish(planning_scene);
+}
+
 std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
   moveit::planning_interface::MoveGroupInterface & move_group_interface)
 {
   std::vector<moveit_msgs::msg::CollisionObject> pallet_objects;
 
-  moveit_msgs::msg::CollisionObject pallet_object;
-  pallet_object.header.frame_id = move_group_interface.getPlanningFrame();
-
-  for (int i = 0; i < 1; i++) {
-    for (int j = 0; j < 1; j++) {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      moveit_msgs::msg::CollisionObject pallet_object;
+      pallet_object.header.frame_id = move_group_interface.getPlanningFrame();
 
       pallet_object.id = "pallet_" + std::to_string(4 * i + j);
       shape_msgs::msg::SolidPrimitive primitive;
@@ -140,24 +153,13 @@ std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
       pallet_object.operation = pallet_object.ADD;
 
       pallet_objects.push_back(pallet_object);
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      AddObject(planning_scene_diff_publisher, {pallet_object});
     }
   }
   return pallet_objects;
 }
 
-void AddObjects(
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
-  const std::vector<moveit_msgs::msg::CollisionObject> & objects)
-{
-  moveit_msgs::msg::PlanningScene planning_scene;
-  planning_scene.name = "scene";
-
-  for (auto & obj: objects) {
-    planning_scene.world.collision_objects.push_back(obj);
-  }
-  planning_scene.is_diff = true;
-  planning_scene_diff_publisher->publish(planning_scene);
-}
 
 bool AttachObject(
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
@@ -242,16 +244,14 @@ int main(int argc, char * argv[])
   planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
- 
 
-  // Add pallets 
-  auto pallet_objects = createPalletObjects(move_group_interface);
-  AddObjects(planning_scene_diff_publisher, pallet_objects);
-  // planning_scene_interface.addCollisionObjects(pallet_objects);
+
+  // Add pallets
+  auto pallet_objects = createPalletObjects(planning_scene_diff_publisher, move_group_interface);
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
-  // Attach 1. pallett to robot flange 
+  // Attach 1. pallet to robot flange
   AttachObject(planning_scene_diff_publisher, pallet_objects, "pallet_0");
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
