@@ -218,7 +218,7 @@ void RobotManagerNode::ObserveControl()
 
   while (reader->Read(&response)) {
     switch (static_cast<int>(response.event())) {
-      case kuka::ecs::v1::CommandEvent::COMMAND_MODE_SWITCH:
+      case kuka::ecs::v1::CommandEvent::CONTROL_MODE_SWITCH:
         {
           std::lock_guard<std::mutex> lk(control_mode_cv_m_);
           control_mode_change_finished_ = true;
@@ -268,7 +268,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
     kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
+    change_hardware_state_client_, hw_request, 0, 5000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     return FAILURE;
