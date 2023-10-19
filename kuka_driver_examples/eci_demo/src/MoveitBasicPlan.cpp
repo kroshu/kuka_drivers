@@ -183,6 +183,25 @@ bool AttachObject(const std::string & object_id)
   return true;
 }
 
+void DetachAndRemoveObject(const std::string & object_id)
+{
+  moveit_msgs::msg::PlanningScene planning_scene;
+  planning_scene.name = "scene";
+  moveit_msgs::msg::AttachedCollisionObject attached_object;
+
+  attached_object.link_name = "flange";
+  attached_object.object.id = object_id;
+  attached_object.object.operation = attached_object.object.REMOVE;
+
+  // Carry out the DETACH operation
+  RCLCPP_INFO(LOGGER, "Detaching the object from the hand");
+  planning_scene.robot_state.attached_collision_objects.push_back(attached_object);
+  planning_scene.robot_state.is_diff = true;
+  planning_scene.world.collision_objects.push_back(attached_object.object);
+  planning_scene.is_diff = true;
+  planning_scene_diff_publisher_->publish(planning_scene);
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -243,7 +262,7 @@ int main(int argc, char * argv[])
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
 
-  // Define goal pos and plan there
+  // Define goal position and plan there
   Eigen::Isometry3d pose = Eigen::Isometry3d(
     Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
   auto planned_trajectory = planToPoint(pose);
@@ -253,6 +272,10 @@ int main(int argc, char * argv[])
     moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
     move_group_interface_->execute(*planned_trajectory);
   }
+
+  DetachAndRemoveObject("pallet_0");
+  moveit_visual_tools.trigger();
+  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   planned_trajectory = planThroughwaypoints();
   if (planned_trajectory != nullptr) {
