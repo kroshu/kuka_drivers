@@ -26,6 +26,7 @@
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
 std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
 rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
+std::vector<moveit_msgs::msg::CollisionObject> collision_objects_;
 
 moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints()
 {
@@ -79,10 +80,17 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
   }
 }
 
-std::vector<moveit_msgs::msg::CollisionObject> createRobotPlatform()
+void AddObject(const moveit_msgs::msg::CollisionObject & object)
 {
-  std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
+  moveit_msgs::msg::PlanningScene planning_scene;
+  planning_scene.name = "scene";
+  planning_scene.world.collision_objects.push_back(object);
+  planning_scene.is_diff = true;
+  planning_scene_diff_publisher_->publish(planning_scene);
+}
 
+void addRobotPlatform()
+{
   moveit_msgs::msg::CollisionObject collision_object;
   collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
   collision_object.id = "robot_stand";
@@ -104,23 +112,12 @@ std::vector<moveit_msgs::msg::CollisionObject> createRobotPlatform()
   collision_object.primitive_poses.push_back(stand_pose);
   collision_object.operation = collision_object.ADD;
 
-  collision_objects.push_back(collision_object);
-  return collision_objects;
+  collision_objects_.push_back(collision_object);
+  AddObject(collision_object);
 }
 
-void AddObject(const moveit_msgs::msg::CollisionObject & object)
+void addPalletObjects()
 {
-  moveit_msgs::msg::PlanningScene planning_scene;
-  planning_scene.name = "scene";
-  planning_scene.world.collision_objects.push_back(object);
-  planning_scene.is_diff = true;
-  planning_scene_diff_publisher_->publish(planning_scene);
-}
-
-std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects()
-{
-  std::vector<moveit_msgs::msg::CollisionObject> pallet_objects;
-
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       moveit_msgs::msg::CollisionObject pallet_object;
@@ -145,18 +142,15 @@ std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects()
       pallet_object.primitive_poses.push_back(stand_pose);
       pallet_object.operation = pallet_object.ADD;
 
-      pallet_objects.push_back(pallet_object);
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      collision_objects_.push_back(pallet_object);
       AddObject(pallet_object);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
-  return pallet_objects;
 }
 
 
-bool AttachObject(
-  const std::vector<moveit_msgs::msg::CollisionObject> objects,
-  const std::string & object_id)
+bool AttachObject(const std::string & object_id)
 {
   moveit_msgs::msg::PlanningScene planning_scene;
   planning_scene.name = "scene";
@@ -165,10 +159,11 @@ bool AttachObject(
 
   attached_object.link_name = "flange";
   auto it = std::find_if(
-    objects.begin(), objects.end(), [object_id](const moveit_msgs::msg::CollisionObject & obj) {
+    collision_objects_.begin(), collision_objects_.end(),
+    [object_id](const moveit_msgs::msg::CollisionObject & obj) {
       return obj.id == object_id;
     });
-  if (it != objects.end()) {
+  if (it != collision_objects_.end()) {
     attached_object.object = *it;
     remove_object = *it;
   } else {
@@ -233,17 +228,17 @@ int main(int argc, char * argv[])
     "planning_scene", 1);
 
   // Add robot platform
-  planning_scene_interface.addCollisionObjects(createRobotPlatform());
+  addRobotPlatform();
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   // Add pallets
-  auto pallet_objects = createPalletObjects();
+  addPalletObjects();
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   // Attach 1. pallet to robot flange
-  AttachObject(pallet_objects, "pallet_0");
+  AttachObject("pallet_0");
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
