@@ -58,15 +58,15 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints()
   }
 }
 
-moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint()
+moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
+  const Eigen::Isometry3d & pose,
+  const std::string & planning_pipeline = "pilz_industrial_motion_planner",
+  const std::string & planner_id = "PTP")
 {
   // Create planning request using pilz industrial motion planner
-  Eigen::Isometry3d pose = Eigen::Isometry3d(
-    Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
-  move_group_interface_->setPlanningPipelineId("pilz_industrial_motion_planner");
-  move_group_interface_->setPlannerId("PTP");
+  move_group_interface_->setPlanningPipelineId(planning_pipeline);
+  move_group_interface_->setPlannerId(planner_id);
   move_group_interface_->setPoseTarget(pose);
-
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   RCLCPP_INFO(LOGGER, "Sending planning request");
@@ -79,7 +79,7 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint()
   }
 }
 
-std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects()
+std::vector<moveit_msgs::msg::CollisionObject> createRobotPlatform()
 {
   std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
@@ -229,15 +229,13 @@ int main(int argc, char * argv[])
 
   // Create Planning Scene Interface, which is for adding collision boxes
   auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
-
   planning_scene_diff_publisher_ = node->create_publisher<moveit_msgs::msg::PlanningScene>(
     "planning_scene", 1);
 
   // Add robot platform
-  planning_scene_interface.addCollisionObjects(createCollisionObjects());
+  planning_scene_interface.addCollisionObjects(createRobotPlatform());
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-
 
   // Add pallets
   auto pallet_objects = createPalletObjects();
@@ -249,7 +247,11 @@ int main(int argc, char * argv[])
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
-  auto planned_trajectory = planToPoint();
+
+  // Define goal pos and plan there
+  Eigen::Isometry3d pose = Eigen::Isometry3d(
+    Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
+  auto planned_trajectory = planToPoint(pose);
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
