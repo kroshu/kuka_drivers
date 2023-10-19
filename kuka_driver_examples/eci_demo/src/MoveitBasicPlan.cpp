@@ -118,33 +118,35 @@ void addRobotPlatform()
 
 void addPalletObjects()
 {
-  for (int i = 0; i < 3; i++) {
+  for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
-      moveit_msgs::msg::CollisionObject pallet_object;
-      pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
+      for (int i = 0; i < 3; i++) {
+        moveit_msgs::msg::CollisionObject pallet_object;
+        pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
 
-      pallet_object.id = "pallet_" + std::to_string(4 * i + j);
-      shape_msgs::msg::SolidPrimitive primitive;
-      primitive.type = primitive.BOX;
-      primitive.dimensions.resize(3);
-      primitive.dimensions[primitive.BOX_X] = 0.1;
-      primitive.dimensions[primitive.BOX_Y] = 0.1;
-      primitive.dimensions[primitive.BOX_Z] = 0.1;
+        pallet_object.id = "pallet_" + std::to_string(9 * i + 3 * j + k);
+        shape_msgs::msg::SolidPrimitive primitive;
+        primitive.type = primitive.BOX;
+        primitive.dimensions.resize(3);
+        primitive.dimensions[primitive.BOX_X] = 0.097;
+        primitive.dimensions[primitive.BOX_Y] = 0.097;
+        primitive.dimensions[primitive.BOX_Z] = 0.097;
 
-      // Define a pose for the box (specified relative to frame_id).
-      geometry_msgs::msg::Pose stand_pose;
-      stand_pose.orientation.w = 1.0;
-      stand_pose.position.x = 0.3 + i * 0.15;
-      stand_pose.position.y = j * 0.15;
-      stand_pose.position.z = 0.3;
+        // Define a pose for the box (specified relative to frame_id).
+        geometry_msgs::msg::Pose stand_pose;
+        stand_pose.orientation.w = 1.0;
+        stand_pose.position.x = 0.3 + i * 0.1;
+        stand_pose.position.y = j * 0.1;
+        stand_pose.position.z = 0.3 - 0.1 * k;
 
-      pallet_object.primitives.push_back(primitive);
-      pallet_object.primitive_poses.push_back(stand_pose);
-      pallet_object.operation = pallet_object.ADD;
+        pallet_object.primitives.push_back(primitive);
+        pallet_object.primitive_poses.push_back(stand_pose);
+        pallet_object.operation = pallet_object.ADD;
 
-      collision_objects_.push_back(pallet_object);
-      AddObject(pallet_object);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        collision_objects_.push_back(pallet_object);
+        AddObject(pallet_object);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
     }
   }
 }
@@ -202,6 +204,27 @@ void DetachAndRemoveObject(const std::string & object_id)
   planning_scene_diff_publisher_->publish(planning_scene);
 }
 
+void setOrientationConstraint(const geometry_msgs::msg::Quaternion & orientation)
+{
+  moveit_msgs::msg::OrientationConstraint orientation_constraint;
+  moveit_msgs::msg::Constraints constraints;
+  orientation_constraint.header.frame_id = move_group_interface_->getPlanningFrame();
+  orientation_constraint.link_name = move_group_interface_->getEndEffectorLink();
+  orientation_constraint.orientation = orientation;
+  orientation_constraint.absolute_x_axis_tolerance = 0.2;
+  orientation_constraint.absolute_y_axis_tolerance = 0.2;
+  orientation_constraint.absolute_z_axis_tolerance = 0.2;
+  orientation_constraint.weight = 1.0;
+
+  constraints.orientation_constraints.emplace_back(orientation_constraint);
+  move_group_interface_->setPathConstraints(constraints);
+}
+
+void clearConstraints()
+{
+  move_group_interface_->clearPathConstraints();
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -241,6 +264,18 @@ int main(int argc, char * argv[])
         moveit_visual_tools.getRobotModel()->getJointModelGroup(PLANNING_GROUP));
     };
 
+  // Define lambda for text visualization
+  auto const draw_title = [&moveit_visual_tools](auto text) {
+      auto const text_pose = [] {
+          auto msg = Eigen::Isometry3d::Identity();
+          msg.translation().z() = 1.0;
+          return msg;
+        }();
+      moveit_visual_tools.publishText(
+        text_pose, text, rviz_visual_tools::RED,
+        rviz_visual_tools::XXLARGE);
+    };
+
   // Create Planning Scene Interface, which is for adding collision boxes
   auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
   planning_scene_diff_publisher_ = node->create_publisher<moveit_msgs::msg::PlanningScene>(
@@ -264,8 +299,9 @@ int main(int argc, char * argv[])
 
   // Define goal position and plan there
   Eigen::Isometry3d pose = Eigen::Isometry3d(
-    Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
-  auto planned_trajectory = planToPoint(pose);
+    Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
+
+  auto planned_trajectory = planToPoint(pose, "ompl", "chomp");
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
