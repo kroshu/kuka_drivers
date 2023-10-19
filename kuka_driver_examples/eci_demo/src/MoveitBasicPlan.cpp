@@ -24,9 +24,10 @@
 #include "moveit_visual_tools/moveit_visual_tools.h"
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
+std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
+rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
 
-moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints(
-  moveit::planning_interface::MoveGroupInterface & move_group_interface)
+moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints()
 {
   std::vector<geometry_msgs::msg::Pose> waypoints;
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -46,7 +47,7 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints(
   }
 
   RCLCPP_INFO(LOGGER, "Start planning");
-  double fraction = move_group_interface.computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
+  double fraction = move_group_interface_->computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
   RCLCPP_INFO(LOGGER, "Planning done!");
 
   if (fraction < 1) {
@@ -57,20 +58,19 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints(
   }
 }
 
-moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
-  moveit::planning_interface::MoveGroupInterface & move_group_interface)
+moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint()
 {
   // Create planning request using pilz industrial motion planner
   Eigen::Isometry3d pose = Eigen::Isometry3d(
     Eigen::Translation3d(0.1, 0.0, 0.8) * Eigen::Quaterniond::Identity());
-  move_group_interface.setPlanningPipelineId("pilz_industrial_motion_planner");
-  move_group_interface.setPlannerId("PTP");
-  move_group_interface.setPoseTarget(pose);
+  move_group_interface_->setPlanningPipelineId("pilz_industrial_motion_planner");
+  move_group_interface_->setPlannerId("PTP");
+  move_group_interface_->setPoseTarget(pose);
 
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   RCLCPP_INFO(LOGGER, "Sending planning request");
-  if (!move_group_interface.plan(plan)) {
+  if (!move_group_interface_->plan(plan)) {
     RCLCPP_INFO(LOGGER, "Planning failed");
     return nullptr;
   } else {
@@ -79,13 +79,12 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
   }
 }
 
-std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects(
-  moveit::planning_interface::MoveGroupInterface & move_group_interface)
+std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects()
 {
   std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
   moveit_msgs::msg::CollisionObject collision_object;
-  collision_object.header.frame_id = move_group_interface.getPlanningFrame();
+  collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
   collision_object.id = "robot_stand";
   shape_msgs::msg::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
@@ -109,29 +108,23 @@ std::vector<moveit_msgs::msg::CollisionObject> createCollisionObjects(
   return collision_objects;
 }
 
-void AddObject(
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
-  const moveit_msgs::msg::CollisionObject & object)
+void AddObject(const moveit_msgs::msg::CollisionObject & object)
 {
   moveit_msgs::msg::PlanningScene planning_scene;
   planning_scene.name = "scene";
-
   planning_scene.world.collision_objects.push_back(object);
-
   planning_scene.is_diff = true;
-  planning_scene_diff_publisher->publish(planning_scene);
+  planning_scene_diff_publisher_->publish(planning_scene);
 }
 
-std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
-  moveit::planning_interface::MoveGroupInterface & move_group_interface)
+std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects()
 {
   std::vector<moveit_msgs::msg::CollisionObject> pallet_objects;
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       moveit_msgs::msg::CollisionObject pallet_object;
-      pallet_object.header.frame_id = move_group_interface.getPlanningFrame();
+      pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
 
       pallet_object.id = "pallet_" + std::to_string(4 * i + j);
       shape_msgs::msg::SolidPrimitive primitive;
@@ -154,7 +147,7 @@ std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
 
       pallet_objects.push_back(pallet_object);
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
-      AddObject(planning_scene_diff_publisher, {pallet_object});
+      AddObject(pallet_object);
     }
   }
   return pallet_objects;
@@ -162,7 +155,6 @@ std::vector<moveit_msgs::msg::CollisionObject> createPalletObjects(
 
 
 bool AttachObject(
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher,
   const std::vector<moveit_msgs::msg::CollisionObject> objects,
   const std::string & object_id)
 {
@@ -191,7 +183,7 @@ bool AttachObject(
   planning_scene.robot_state.attached_collision_objects.push_back(attached_object);
   planning_scene.robot_state.is_diff = true;
   planning_scene.is_diff = true;
-  planning_scene_diff_publisher->publish(planning_scene);
+  planning_scene_diff_publisher_->publish(planning_scene);
 
   return true;
 }
@@ -214,20 +206,21 @@ int main(int argc, char * argv[])
   static const std::string PLANNING_GROUP = "lbr_iisy_arm";
 
   // Create the MoveIt MoveGroup Interface
-  using moveit::planning_interface::MoveGroupInterface;
-  auto move_group_interface = MoveGroupInterface(node, PLANNING_GROUP);
+  move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
+    node,
+    PLANNING_GROUP);
 
   // Construct and initialize MoveItVisualTools
   auto moveit_visual_tools = moveit_visual_tools::MoveItVisualTools{
     node, "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
-    move_group_interface.getRobotModel()};
+    move_group_interface_->getRobotModel()};
   moveit_visual_tools.deleteAllMarkers();
   moveit_visual_tools.loadRemoteControl();
   moveit_visual_tools.trigger();
 
   // Define lambda for visualization
   auto const draw_trajectory_tool_path =
-    [&moveit_visual_tools, &move_group_interface](auto const trajectory) {
+    [&moveit_visual_tools](auto const trajectory) {
       moveit_visual_tools.deleteAllMarkers();
       moveit_visual_tools.publishTrajectoryLine(
         trajectory,
@@ -237,45 +230,47 @@ int main(int argc, char * argv[])
   // Create Planning Scene Interface, which is for adding collision boxes
   auto planning_scene_interface = moveit::planning_interface::PlanningSceneInterface();
 
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher =
-    node->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
+  planning_scene_diff_publisher_ = node->create_publisher<moveit_msgs::msg::PlanningScene>(
+    "planning_scene", 1);
 
   // Add robot platform
-  planning_scene_interface.addCollisionObjects(createCollisionObjects(move_group_interface));
+  planning_scene_interface.addCollisionObjects(createCollisionObjects());
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
 
   // Add pallets
-  auto pallet_objects = createPalletObjects(planning_scene_diff_publisher, move_group_interface);
+  auto pallet_objects = createPalletObjects();
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   // Attach 1. pallet to robot flange
-  AttachObject(planning_scene_diff_publisher, pallet_objects, "pallet_0");
+  AttachObject(pallet_objects, "pallet_0");
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
-  auto planned_trajectory = planToPoint(move_group_interface);
+  auto planned_trajectory = planToPoint();
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
     moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-    move_group_interface.execute(*planned_trajectory);
+    move_group_interface_->execute(*planned_trajectory);
   }
 
-  planned_trajectory = planThroughwaypoints(move_group_interface);
+  planned_trajectory = planThroughwaypoints();
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
     moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-    move_group_interface.execute(*planned_trajectory);
+    move_group_interface_->execute(*planned_trajectory);
   }
 
   // Get the current joint values
-  auto jv = move_group_interface.getCurrentJointValues();
+  auto jv = move_group_interface_->getCurrentJointValues();
 
   // Shutdown ROS
   rclcpp::shutdown();
+  move_group_interface_.reset();
+  planning_scene_diff_publisher_.reset();
   return 0;
 }
