@@ -116,7 +116,8 @@ void addRobotPlatform()
   AddObject(collision_object);
 }
 
-void addCollisionBox(const Eigen::Vector3d& pose, const Eigen::Vector3d& size){
+void addCollisionBox(const Eigen::Vector3d & pose, const Eigen::Vector3d & size)
+{
   moveit_msgs::msg::CollisionObject collision_object;
   collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
   collision_object.id = "collision_box";
@@ -313,7 +314,11 @@ int main(int argc, char * argv[])
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
   // Pilz PTP planner
-  auto standing_pose = Eigen::Isometry3d(Eigen::Translation3d(0.1, 0, 0.8) * Eigen::Quaterniond::Identity());
+  auto standing_pose = Eigen::Isometry3d(
+    Eigen::Translation3d(
+      0.1, 0,
+      0.8) *
+    Eigen::Quaterniond::Identity());
 
   auto planned_trajectory = planToPoint(standing_pose, "pilz_industrial_motion_planner", "PTP");
   if (planned_trajectory != nullptr) {
@@ -328,7 +333,10 @@ int main(int argc, char * argv[])
 
 
   // Pilz LIN planner
-  auto cart_goal = Eigen::Isometry3d(Eigen::Translation3d(0.4, -0.15, 0.55) * Eigen::Quaterniond::Identity());
+  auto cart_goal = Eigen::Isometry3d(
+    Eigen::Translation3d(
+      0.4, -0.15,
+      0.55) * Eigen::Quaterniond::Identity());
   planned_trajectory = planToPoint(cart_goal, "pilz_industrial_motion_planner", "LIN");
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
@@ -362,8 +370,26 @@ int main(int argc, char * argv[])
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
+
   // Plan with collision avoidance
   planned_trajectory = planToPoint(standing_pose, "ompl", "chomp");
+  if (planned_trajectory != nullptr) {
+    draw_trajectory_tool_path(*planned_trajectory);
+    moveit_visual_tools.trigger();
+    moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+    move_group_interface_->execute(*planned_trajectory);
+  }
+  moveit_visual_tools.trigger();
+  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+
+  geometry_msgs::msg::Quaternion q;
+  q.x = 0;
+  q.y = 0;
+  q.z = 0;
+  q.w = 1;
+  setOrientationConstraint(q);
+  // Plan with collision avoidance
+  planned_trajectory = planToPoint(cart_goal, "ompl", "chomp");
   if (planned_trajectory != nullptr) {
     draw_trajectory_tool_path(*planned_trajectory);
     moveit_visual_tools.trigger();
