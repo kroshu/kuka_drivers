@@ -68,6 +68,9 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
   move_group_interface_->setPlannerId(planner_id);
   move_group_interface_->setPoseTarget(pose);
 
+  move_group_interface_->setPlanningTime(5.0);
+  move_group_interface_->setNumPlanningAttempts(5);
+
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   RCLCPP_INFO(LOGGER, "Sending planning request");
   auto start = std::chrono::high_resolution_clock::now();
@@ -80,6 +83,31 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
     RCLCPP_INFO(LOGGER, "Planning successful after %li ms", duration.count());
     return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
   }
+}
+
+moveit_msgs::msg::RobotTrajectory::SharedPtr planToPointUntilSuccess(
+  const Eigen::Isometry3d & pose,
+  const std::string & planning_pipeline = "pilz_industrial_motion_planner",
+  const std::string & planner_id = "PTP")
+{
+  // Create planning request using pilz industrial motion planner
+  move_group_interface_->setPlanningPipelineId(planning_pipeline);
+  move_group_interface_->setPlannerId(planner_id);
+  move_group_interface_->setPoseTarget(pose);
+
+  moveit::planning_interface::MoveGroupInterface::Plan plan;
+  RCLCPP_INFO(LOGGER, "Sending planning request");
+  moveit::core::MoveItErrorCode err_code;
+  auto start = std::chrono::high_resolution_clock::now();
+  do {
+    RCLCPP_INFO(LOGGER, "Planning ...");
+    move_group_interface_->plan(plan);
+  }while(err_code == moveit::core::MoveItErrorCode::SUCCESS);
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  RCLCPP_INFO(LOGGER, "Planning successful after %li ms", duration.count());
+  return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
+
 }
 
 void AddObject(const moveit_msgs::msg::CollisionObject & object)
@@ -214,8 +242,6 @@ void clearConstraints()
 
 bool Depalletize()
 {
-  move_group_interface_->setPlanningTime(5.0);
-  move_group_interface_->setNumPlanningAttempts(5);
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
       for (int i = 0; i < 3; i++) {
@@ -230,7 +256,7 @@ bool Depalletize()
           Eigen::Translation3d(
             0.3 + i * 0.1, j * 0.1,
             0.35 - 0.1 * k) * Eigen::Quaterniond(0, 1, 0, 0));
-        auto planned_trajectory = planToPoint(pose, "ompl", "APSConfigDefault");
+        auto planned_trajectory = planToPointUntilSuccess(pose, "ompl", "APSConfigDefault");
         if (planned_trajectory != nullptr) {
           move_group_interface_->execute(*planned_trajectory);
         } else {
@@ -244,7 +270,7 @@ bool Depalletize()
         // Drop off
         Eigen::Isometry3d dropoff_pose = Eigen::Isometry3d(
           Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
-        auto drop_trajectory = planToPoint(dropoff_pose, "ompl", "APSConfigDefault");
+        auto drop_trajectory = planToPointUntilSuccess(dropoff_pose, "ompl", "APSConfigDefault");
         if (drop_trajectory != nullptr) {
           move_group_interface_->execute(*drop_trajectory);
         } else {
