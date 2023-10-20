@@ -71,11 +71,14 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   RCLCPP_INFO(LOGGER, "Sending planning request");
+  auto start = std::chrono::high_resolution_clock::now();
   if (!move_group_interface_->plan(plan)) {
     RCLCPP_INFO(LOGGER, "Planning failed");
     return nullptr;
   } else {
-    RCLCPP_INFO(LOGGER, "Planning successful");
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    RCLCPP_INFO(LOGGER, "Planning successful after %li ms", duration.count());
     return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
   }
 }
@@ -124,7 +127,7 @@ void addPalletObjects()
         moveit_msgs::msg::CollisionObject pallet_object;
         pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
 
-        pallet_object.id = "pallet_" + std::to_string(9 * i + 3 * j + k);
+        pallet_object.id = "pallet_" + std::to_string(9 * k + 3 * j + i);
         shape_msgs::msg::SolidPrimitive primitive;
         primitive.type = primitive.BOX;
         primitive.dimensions.resize(3);
@@ -226,6 +229,52 @@ void clearConstraints()
 }
 
 
+bool Depalletize()
+{
+  for (int k = 0; k < 3; k++) {
+    for (int j = 0; j < 3; j++) {
+      for (int i = 0; i < 3; i++) {
+        moveit_msgs::msg::CollisionObject pallet_object;
+        pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
+
+        std::string obejct_name = "pallet_" + std::to_string(9 * k + 3 * j + i);
+        RCLCPP_INFO(LOGGER, "Going for object %s", obejct_name.c_str());
+
+        // Go to pickup
+        Eigen::Isometry3d pose = Eigen::Isometry3d(
+          Eigen::Translation3d(
+            0.3 + i * 0.1, j * 0.1,
+            0.35 - 0.1 * k) * Eigen::Quaterniond(0, 1, 0, 0));
+        auto planned_trajectory = planToPoint(pose, "ompl", "APSConfigDefault");
+        if (planned_trajectory != nullptr) {
+          move_group_interface_->execute(*planned_trajectory);
+        } else {
+          RCLCPP_ERROR(LOGGER, "Planning failed");
+          return false;
+        }
+
+        // Attach object
+        AttachObject(obejct_name);
+
+        // Drop off
+        Eigen::Isometry3d dropoff_pose = Eigen::Isometry3d(
+          Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
+        auto drop_trajectory = planToPoint(dropoff_pose, "ompl", "APSConfigDefault");
+        if (drop_trajectory != nullptr) {
+          move_group_interface_->execute(*drop_trajectory);
+        } else {
+          RCLCPP_ERROR(LOGGER, "Planning failed");
+          return false;
+        }
+
+        // Detach
+        DetachAndRemoveObject(obejct_name);
+      }
+    }
+  }
+  return true;
+}
+
 int main(int argc, char * argv[])
 {
   // Setup
@@ -291,6 +340,8 @@ int main(int argc, char * argv[])
   moveit_visual_tools.trigger();
   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
+  Depalletize();
+
   // Attach 1. pallet to robot flange
   AttachObject("pallet_0");
   moveit_visual_tools.trigger();
@@ -298,31 +349,31 @@ int main(int argc, char * argv[])
 
 
   // Define goal position and plan there
-  Eigen::Isometry3d pose = Eigen::Isometry3d(
-    Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
+  // Eigen::Isometry3d pose = Eigen::Isometry3d(
+  //   Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
 
-  auto planned_trajectory = planToPoint(pose, "ompl", "chomp");
-  if (planned_trajectory != nullptr) {
-    draw_trajectory_tool_path(*planned_trajectory);
-    moveit_visual_tools.trigger();
-    moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-    move_group_interface_->execute(*planned_trajectory);
-  } else {
-    draw_title("Planning failed");
-    moveit_visual_tools.trigger();
-  }
+  // auto planned_trajectory = planToPoint(pose, "ompl", "APSConfigDefault");
+  // if (planned_trajectory != nullptr) {
+  //   draw_trajectory_tool_path(*planned_trajectory);
+  //   moveit_visual_tools.trigger();
+  //   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+  //   move_group_interface_->execute(*planned_trajectory);
+  // } else {
+  //   draw_title("Planning failed");
+  //   moveit_visual_tools.trigger();
+  // }
 
-  DetachAndRemoveObject("pallet_0");
-  moveit_visual_tools.trigger();
-  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+  // DetachAndRemoveObject("pallet_0");
+  // moveit_visual_tools.trigger();
+  // moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
-  planned_trajectory = planThroughwaypoints();
-  if (planned_trajectory != nullptr) {
-    draw_trajectory_tool_path(*planned_trajectory);
-    moveit_visual_tools.trigger();
-    moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-    move_group_interface_->execute(*planned_trajectory);
-  }
+  // planned_trajectory = planThroughwaypoints();
+  // if (planned_trajectory != nullptr) {
+  //   draw_trajectory_tool_path(*planned_trajectory);
+  //   moveit_visual_tools.trigger();
+  //   moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+  //   move_group_interface_->execute(*planned_trajectory);
+  // }
 
   // Get the current joint values
   auto jv = move_group_interface_->getCurrentJointValues();
