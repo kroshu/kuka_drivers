@@ -19,15 +19,23 @@ find_package(moveit_visual_tools REQUIRED)
 find_package(rviz_visual_tools REQUIRED)
 find_package(moveit_msgs REQUIRED)
 
-add_executable(moveit_basic_plan src/MoveitBasicPlan.cpp)
-ament_target_dependencies(moveit_basic_plan
+add_executable(moveit_basic_planners_example src/MoveitBasicPlannersExample.cpp)
+ament_target_dependencies(moveit_basic_planners_example
   moveit_ros_planning_interface
   rclcpp
   rviz_visual_tools
   moveit_visual_tools
 )
 
-install(TARGETS moveit_basic_plan
+add_executable(moveit_palletizing_example src/MoveitPalletizingExample.cpp)
+ament_target_dependencies(moveit_palletizing_example
+  moveit_ros_planning_interface
+  rclcpp
+  rviz_visual_tools
+  moveit_visual_tools
+)
+
+install(TARGETS moveit_basic_planners_example moveit_palletizing_example
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
