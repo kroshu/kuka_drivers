@@ -291,6 +291,9 @@ return_type KukaRoXHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
+  if (lifecycle_state_.id() == lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE) {
+    return return_type::OK;
+  }
   // If control is not started or a request is missed, do not send back anything
   if (!msg_received_) {
     return return_type::OK;
@@ -320,14 +323,14 @@ return_type KukaRoXHardwareInterface::write(
       rclcpp::get_logger(
         "KukaRoXHardwareInterface"),
       "Encoding of control signal to out_buffer failed.");
-    throw std::runtime_error("Encoding of control signal to out_buffer failed.");
+    return return_type::DEACTIVATE;
   }
 
   if (udp_replier_->SendReply(out_buff_arr_, encoded_bytes) !=
     Socket::ErrorCode::kSuccess)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Error sending reply");
-    throw std::runtime_error("Error sending reply");
+    return return_type::DEACTIVATE;
   }
   return return_type::OK;
 }
