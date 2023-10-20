@@ -101,8 +101,8 @@ moveit_msgs::msg::RobotTrajectory::SharedPtr planToPointUntilSuccess(
   auto start = std::chrono::high_resolution_clock::now();
   do {
     RCLCPP_INFO(LOGGER, "Planning ...");
-    move_group_interface_->plan(plan);
-  }while(err_code == moveit::core::MoveItErrorCode::SUCCESS);
+    err_code = move_group_interface_->plan(plan);
+  } while (err_code != moveit::core::MoveItErrorCode::SUCCESS);
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
   RCLCPP_INFO(LOGGER, "Planning successful after %li ms", duration.count());
@@ -165,7 +165,7 @@ void addPalletObjects()
         geometry_msgs::msg::Pose stand_pose;
         stand_pose.orientation.w = 1.0;
         stand_pose.position.x = 0.3 + i * 0.1;
-        stand_pose.position.y = j * 0.1;
+        stand_pose.position.y = -0.1 + j * 0.1;
         stand_pose.position.z = 0.3 - 0.1 * k;
 
         pallet_object.primitives.push_back(primitive);
@@ -254,7 +254,7 @@ bool Depalletize()
         // Go to pickup
         Eigen::Isometry3d pose = Eigen::Isometry3d(
           Eigen::Translation3d(
-            0.3 + i * 0.1, j * 0.1,
+            0.3 + i * 0.1, j * 0.1 - 0.1,
             0.35 - 0.1 * k) * Eigen::Quaterniond(0, 1, 0, 0));
         auto planned_trajectory = planToPointUntilSuccess(pose, "ompl", "APSConfigDefault");
         if (planned_trajectory != nullptr) {
