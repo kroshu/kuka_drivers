@@ -26,7 +26,6 @@
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
 std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
 rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
-std::vector<moveit_msgs::msg::CollisionObject> collision_objects_;
 
 moveit_msgs::msg::RobotTrajectory::SharedPtr planThroughwaypoints()
 {
@@ -115,7 +114,6 @@ void addRobotPlatform()
   collision_object.primitive_poses.push_back(stand_pose);
   collision_object.operation = collision_object.ADD;
 
-  collision_objects_.push_back(collision_object);
   AddObject(collision_object);
 }
 
@@ -146,7 +144,6 @@ void addPalletObjects()
         pallet_object.primitive_poses.push_back(stand_pose);
         pallet_object.operation = pallet_object.ADD;
 
-        collision_objects_.push_back(pallet_object);
         AddObject(pallet_object);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
@@ -162,17 +159,7 @@ bool AttachObject(const std::string & object_id)
   moveit_msgs::msg::AttachedCollisionObject attached_object;
 
   attached_object.link_name = "flange";
-  auto it = std::find_if(
-    collision_objects_.begin(), collision_objects_.end(),
-    [object_id](const moveit_msgs::msg::CollisionObject & obj) {
-      return obj.id == object_id;
-    });
-  if (it != collision_objects_.end()) {
-    attached_object.object = *it;
-  } else {
-    RCLCPP_INFO(LOGGER, "Object not found");
-    return false;
-  }
+  attached_object.object.id = object_id;
 
   // Carry out the REMOVE + ATTACH operation
   RCLCPP_INFO(LOGGER, "Attaching the object to the hand and removing it from the world.");
@@ -227,6 +214,8 @@ void clearConstraints()
 
 bool Depalletize()
 {
+  move_group_interface_->setPlanningTime(5.0);
+  move_group_interface_->setNumPlanningAttempts(5);
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
       for (int i = 0; i < 3; i++) {
@@ -339,9 +328,9 @@ int main(int argc, char * argv[])
   Depalletize();
 
   // Attach 1. pallet to robot flange
-  AttachObject("pallet_0");
-  moveit_visual_tools.trigger();
-  moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
+  // AttachObject("pallet_0");
+  // moveit_visual_tools.trigger();
+  // moveit_visual_tools.prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
 
 
   // Define goal position and plan there
