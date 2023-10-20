@@ -160,7 +160,6 @@ bool AttachObject(const std::string & object_id)
   moveit_msgs::msg::PlanningScene planning_scene;
   planning_scene.name = "scene";
   moveit_msgs::msg::AttachedCollisionObject attached_object;
-  moveit_msgs::msg::CollisionObject remove_object;
 
   attached_object.link_name = "flange";
   auto it = std::find_if(
@@ -170,7 +169,6 @@ bool AttachObject(const std::string & object_id)
     });
   if (it != collision_objects_.end()) {
     attached_object.object = *it;
-    remove_object = *it;
   } else {
     RCLCPP_INFO(LOGGER, "Object not found");
     return false;
@@ -178,8 +176,6 @@ bool AttachObject(const std::string & object_id)
 
   // Carry out the REMOVE + ATTACH operation
   RCLCPP_INFO(LOGGER, "Attaching the object to the hand and removing it from the world.");
-  remove_object.operation = remove_object.REMOVE;
-  planning_scene.world.collision_objects.push_back(remove_object);
   planning_scene.robot_state.attached_collision_objects.push_back(attached_object);
   planning_scene.robot_state.is_diff = true;
   planning_scene.is_diff = true;
