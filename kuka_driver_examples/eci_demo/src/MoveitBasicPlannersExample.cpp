@@ -99,7 +99,7 @@ int main(int argc, char * argv[])
   example_node->addBreakPoint();
 
   // Plan with collision avoidance
-  planned_trajectory = example_node->planToPoint(standing_pose, "ompl", "chomp");
+  planned_trajectory = example_node->planToPoint(standing_pose, "ompl", "RRTConnectkConfigDefault");
   if (planned_trajectory != nullptr) {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
@@ -114,7 +114,7 @@ int main(int argc, char * argv[])
   q.w = 1;
   example_node->setOrientationConstraint(q);
   // Plan with collision avoidance
-  planned_trajectory = example_node->planToPoint(cart_goal, "ompl", "chomp");
+  planned_trajectory = example_node->planToPoint(cart_goal, "ompl", "RRTConnectkConfigDefault");
   if (planned_trajectory != nullptr) {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
