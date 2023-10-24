@@ -29,15 +29,15 @@ ament_target_dependencies(moveit_basic_planners_example
   moveit_visual_tools
 )
 
-add_executable(moveit_palletizing_example src/MoveitPalletizingExample.cpp)
-ament_target_dependencies(moveit_palletizing_example
+add_executable(moveit_depalletizing_example src/MoveitDepalletizingExample.cpp)
+ament_target_dependencies(moveit_depalletizing_example
   moveit_ros_planning_interface
   rclcpp
   rviz_visual_tools
   moveit_visual_tools
 )
 
-install(TARGETS moveit_basic_planners_example moveit_palletizing_example
+install(TARGETS moveit_basic_planners_example moveit_depalletizing_example
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
