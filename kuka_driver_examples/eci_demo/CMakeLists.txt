@@ -18,6 +18,7 @@ find_package(rclcpp REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
 find_package(rviz_visual_tools REQUIRED)
 find_package(moveit_msgs REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 
 include_directories(include)
 
@@ -27,6 +28,7 @@ ament_target_dependencies(moveit_basic_planners_example
   rclcpp
   rviz_visual_tools
   moveit_visual_tools
+  kuka_driver_interfaces
 )
 
 add_executable(moveit_depalletizing_example src/MoveitDepalletizingExample.cpp)
@@ -35,6 +37,7 @@ ament_target_dependencies(moveit_depalletizing_example
   rclcpp
   rviz_visual_tools
   moveit_visual_tools
+  kuka_driver_interfaces
 )
 
 install(TARGETS moveit_basic_planners_example moveit_depalletizing_example

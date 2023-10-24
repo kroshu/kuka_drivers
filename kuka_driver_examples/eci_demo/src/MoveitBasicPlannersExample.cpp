@@ -14,6 +14,7 @@
 
 #include <math.h>
 
+#include <kuka_driver_interfaces/msg/collision_box.hpp>
 #include <memory>
 
 #include "moveit_example.h"
@@ -71,9 +72,16 @@ int main(int argc, char * argv[])
   }
 
   // Add collision object
-  example_node->addCollisionBox(
-    Eigen::Vector3d(0.25, -0.075, 0.675),
-    Eigen::Vector3d(0.1, 0.4, 0.1));
+  kuka_driver_interfaces::msg::CollisionBox box_msg;
+  box_msg.position.x = 0.25;
+  box_msg.position.y = -0.075;
+  box_msg.position.z = 0.675;
+
+  box_msg.size.x = 0.1;
+  box_msg.size.y = 0.4;
+  box_msg.size.z = 0.1;
+  
+  example_node->addCollisionBox(std::make_shared<kuka_driver_interfaces::msg::CollisionBox>(box_msg));
   example_node->addBreakPoint();
 
   // Try moving back with Pilz LIN

@@ -21,6 +21,7 @@
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
+#include "kuka_driver_interfaces/msg/collision_box.hpp"
 
 class MoveitExample : public rclcpp::Node
 {
@@ -60,6 +61,11 @@ public:
 
     move_group_interface_->setMaxVelocityScalingFactor(1.0);
     move_group_interface_->setMaxAccelerationScalingFactor(1.0);
+
+    // Create collision box subscriber
+    collision_box_subscriber_ = 
+      this->create_subscription<kuka_driver_interfaces::msg::CollisionBox>("collision_box", 10, std::bind(&MoveitExample::addCollisionBox, this, std::placeholders::_1));
+
   }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
@@ -191,7 +197,7 @@ public:
     AddObject(collision_object);
   }
 
-  void addCollisionBox(const Eigen::Vector3d & pose, const Eigen::Vector3d & size)
+  void addCollisionBox(const kuka_driver_interfaces::msg::CollisionBox::SharedPtr box_msg)
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
@@ -199,16 +205,16 @@ public:
     shape_msgs::msg::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[primitive.BOX_X] = size.x();
-    primitive.dimensions[primitive.BOX_Y] = size.y();
-    primitive.dimensions[primitive.BOX_Z] = size.z();
+    primitive.dimensions[primitive.BOX_X] = box_msg->size.x;
+    primitive.dimensions[primitive.BOX_Y] = box_msg->size.y;
+    primitive.dimensions[primitive.BOX_Z] = box_msg->size.z;
 
     // Define a pose for the box (specified relative to frame_id).
     geometry_msgs::msg::Pose stand_pose;
     stand_pose.orientation.w = 1.0;
-    stand_pose.position.x = pose.x();
-    stand_pose.position.y = pose.y();
-    stand_pose.position.z = pose.z();
+    stand_pose.position.x = box_msg->position.x;
+    stand_pose.position.y = box_msg->position.y;
+    stand_pose.position.z = box_msg->position.z;
 
     collision_object.primitives.push_back(primitive);
     collision_object.primitive_poses.push_back(stand_pose);
@@ -343,6 +349,7 @@ public:
 protected:
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::CollisionBox>::SharedPtr collision_box_subscriber_;
   std::shared_ptr<moveit_visual_tools::MoveItVisualTools> moveit_visual_tools_;
   const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
   const std::string PLANNING_GROUP = "lbr_iisy_arm";
