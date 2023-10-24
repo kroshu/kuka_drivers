@@ -19,6 +19,8 @@ find_package(moveit_visual_tools REQUIRED)
 find_package(rviz_visual_tools REQUIRED)
 find_package(moveit_msgs REQUIRED)
 
+include_directories(include)
+
 add_executable(moveit_basic_planners_example src/MoveitBasicPlannersExample.cpp)
 ament_target_dependencies(moveit_basic_planners_example
   moveit_ros_planning_interface
