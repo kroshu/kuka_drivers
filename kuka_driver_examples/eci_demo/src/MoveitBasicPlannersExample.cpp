@@ -76,6 +76,8 @@ int main(int argc, char * argv[])
   example_node->addBreakPoint();
 
   // Try moving back with Pilz LIN
+  example_node->moveGroupInterface()->setMaxVelocityScalingFactor(0.1);
+  example_node->moveGroupInterface()->setMaxAccelerationScalingFactor(0.1);
   planned_trajectory = example_node->planToPoint(
     standing_pose, "pilz_industrial_motion_planner",
     "LIN");
