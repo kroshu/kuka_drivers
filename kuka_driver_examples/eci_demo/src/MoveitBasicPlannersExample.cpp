@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
   box_msg.size.x = 0.1;
   box_msg.size.y = 0.4;
   box_msg.size.z = 0.1;
-  
+
   example_node->addCollisionBox(std::make_shared<kuka_driver_interfaces::msg::CollisionBox>(box_msg));
   example_node->addBreakPoint();
 
@@ -105,29 +105,6 @@ int main(int argc, char * argv[])
     example_node->drawTitle("Failed planning with Pilz PTP");
   }
   example_node->addBreakPoint();
-
-  // Plan with collision avoidance
-  planned_trajectory = example_node->planToPoint(standing_pose, "ompl", "RRTConnectkConfigDefault");
-  if (planned_trajectory != nullptr) {
-    example_node->drawTrajectory(*planned_trajectory);
-    example_node->addBreakPoint();
-    example_node->moveGroupInterface()->execute(*planned_trajectory);
-  }
-  example_node->addBreakPoint();
-
-  geometry_msgs::msg::Quaternion q;
-  q.x = 0;
-  q.y = 0;
-  q.z = 0;
-  q.w = 1;
-  example_node->setOrientationConstraint(q);
-  // Plan with collision avoidance
-  planned_trajectory = example_node->planToPoint(cart_goal, "ompl", "RRTConnectkConfigDefault");
-  if (planned_trajectory != nullptr) {
-    example_node->drawTrajectory(*planned_trajectory);
-    example_node->addBreakPoint();
-    example_node->moveGroupInterface()->execute(*planned_trajectory);
-  }
 
   // Shutdown ROS
   rclcpp::shutdown();

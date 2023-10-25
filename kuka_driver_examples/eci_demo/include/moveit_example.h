@@ -59,13 +59,15 @@ public:
     planning_scene_diff_publisher_ = this->create_publisher<moveit_msgs::msg::PlanningScene>(
       "planning_scene", 10);
 
-    move_group_interface_->setMaxVelocityScalingFactor(1.0);
-    move_group_interface_->setMaxAccelerationScalingFactor(1.0);
+    move_group_interface_->setMaxVelocityScalingFactor(0.1);
+    move_group_interface_->setMaxAccelerationScalingFactor(0.1);
 
     // Create collision box subscriber
-    collision_box_subscriber_ = 
-      this->create_subscription<kuka_driver_interfaces::msg::CollisionBox>("collision_box", 10, std::bind(&MoveitExample::addCollisionBox, this, std::placeholders::_1));
-
+    collision_box_subscriber_ =
+      this->create_subscription<kuka_driver_interfaces::msg::CollisionBox>(
+      "collision_box", 10, std::bind(
+        &MoveitExample::addCollisionBox, this,
+        std::placeholders::_1));
   }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
@@ -349,7 +351,8 @@ public:
 protected:
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
-  rclcpp::Subscription<kuka_driver_interfaces::msg::CollisionBox>::SharedPtr collision_box_subscriber_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::CollisionBox>::SharedPtr
+    collision_box_subscriber_;
   std::shared_ptr<moveit_visual_tools::MoveItVisualTools> moveit_visual_tools_;
   const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
   const std::string PLANNING_GROUP = "lbr_iisy_arm";
