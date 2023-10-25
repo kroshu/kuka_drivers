@@ -53,10 +53,8 @@ int main(int argc, char * argv[])
     example_node->addBreakPoint();
     example_node->moveGroupInterface()->execute(*planned_trajectory);
   }
-
   example_node->addBreakPoint();
-  example_node->moveGroupInterface()->setMaxVelocityScalingFactor(0.1);
-  example_node->moveGroupInterface()->setMaxAccelerationScalingFactor(0.1);
+
   // Pilz LIN planner
   auto cart_goal = Eigen::Isometry3d(
     Eigen::Translation3d(

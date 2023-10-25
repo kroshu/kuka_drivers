@@ -83,6 +83,9 @@ int main(int argc, char * argv[])
   .detach();
 
   node->initialize();
+
+  node->moveGroupInterface()->setMaxVelocityScalingFactor(0.1);
+  node->moveGroupInterface()->setMaxAccelerationScalingFactor(0.1);
   // Add robot platform
   node->addRobotPlatform();
   node->addBreakPoint();
