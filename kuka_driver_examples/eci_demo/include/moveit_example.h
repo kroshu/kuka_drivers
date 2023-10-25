@@ -42,15 +42,9 @@ public:
     psm->startSceneMonitor("/move_group/monitored_planning_scene");
     psm->requestPlanningSceneState("/get_planning_scene");
 
-    // moveit_visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
-    //     shared_from_this(), "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
-    //     psm);
-
     moveit_visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
       shared_from_this(), "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
       move_group_interface_->getRobotModel());
-
-    // moveit_visual_tools_->getSharedRobotState() = move_group_interface_->getCurrentState();
 
     moveit_visual_tools_->deleteAllMarkers();
     moveit_visual_tools_->loadRemoteControl();
@@ -158,23 +152,6 @@ public:
 
   void addRobotPlatform()
   {
-    // geometry_msgs::msg::Pose stand_pose;
-    // stand_pose.orientation.w = 1.0;
-    // stand_pose.position.x = 0.0;
-    // stand_pose.position.y = 0.0;
-    // stand_pose.position.z = -0.2;
-    // moveit_visual_tools_->publishCollisionCuboid(stand_pose, 0.5, 0.5, 0.4, "platform_top", rviz_visual_tools::RED);
-    // stand_pose.position.z = -0.6;
-    // moveit_visual_tools_->publishCollisionCuboid(stand_pose, 0.5, 0.5, 0.4, "platform_middle", rviz_visual_tools::WHITE);
-    // stand_pose.position.z = -1.0;
-    // moveit_visual_tools_->publishCollisionCuboid(stand_pose, 0.5, 0.5, 0.4, "platform_base", rviz_visual_tools::GREEN);
-
-    // // Workaround for joint states
-    // moveit_visual_tools_->getPlanningSceneMonitor()->waitForCurrentRobotState(this->get_clock()->now());
-
-    // moveit_visual_tools_->trigger();
-    // moveit_visual_tools_->prompt("Press 'Next' in the RvizVisualToolsGui window to execute");
-
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
     collision_object.id = "robot_stand";
