@@ -26,11 +26,8 @@ public:
     for (int k = 0; k < 3; k++) {
       for (int j = 0; j < 3; j++) {
         for (int i = 0; i < 3; i++) {
-          moveit_msgs::msg::CollisionObject pallet_object;
-          pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
-
-          std::string obejct_name = "pallet_" + std::to_string(9 * k + 3 * j + i);
-          RCLCPP_INFO(LOGGER, "Going for object %s", obejct_name.c_str());
+          std::string object_name = "pallet_" + std::to_string(9 * k + 3 * j + i);
+          RCLCPP_INFO(LOGGER, "Going for object %s", object_name.c_str());
 
           // Go to pickup
           Eigen::Isometry3d pose = Eigen::Isometry3d(
@@ -47,9 +44,9 @@ public:
           }
 
           // Attach object
-          AttachObject(obejct_name);
+          AttachObject(object_name);
 
-          // Drop off
+          // Drop off to -0.3, 0.0, 0.35 pointing down
           Eigen::Isometry3d dropoff_pose = Eigen::Isometry3d(
             Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
           auto drop_trajectory = planToPointUntilSuccess(
@@ -62,7 +59,7 @@ public:
           }
 
           // Detach
-          DetachAndRemoveObject(obejct_name);
+          DetachAndRemoveObject(object_name);
         }
       }
     }
