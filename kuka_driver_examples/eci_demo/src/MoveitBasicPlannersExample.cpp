@@ -102,7 +102,6 @@ int main(int argc, char * argv[])
   } else {
     example_node->drawTitle("Failed planning with Pilz PTP");
   }
-  example_node->addBreakPoint();
 
   // Shutdown ROS
   rclcpp::shutdown();
