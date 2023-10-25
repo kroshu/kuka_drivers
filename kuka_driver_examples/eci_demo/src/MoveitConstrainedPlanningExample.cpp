@@ -50,10 +50,12 @@ int main(int argc, char * argv[])
   q.z = 0;
   q.w = 1;
 
+  example_node->moveGroupInterface()->setPlanningTime(30.0);
+
   example_node->setOrientationConstraint(q);
   // Plan with collision avoidance
   auto planned_trajectory =
-    example_node->planToPoint(cart_goal, "ompl", "RRTConnectkConfigDefault");
+    example_node->planToPointUntilSuccess(cart_goal, "ompl", "RRTkConfigDefault");
   if (planned_trajectory != nullptr) {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
