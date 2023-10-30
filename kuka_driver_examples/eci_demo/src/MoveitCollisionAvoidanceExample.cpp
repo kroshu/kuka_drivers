@@ -14,7 +14,6 @@
 
 #include <math.h>
 #include <memory>
-#include <kuka_driver_interfaces/msg/collision_box.hpp>
 
 #include "eci_demo/moveit_example.hpp"
 
