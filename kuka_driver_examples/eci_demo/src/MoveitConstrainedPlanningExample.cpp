@@ -13,11 +13,10 @@
 // limitations under the License.
 
 #include <math.h>
-
-#include <kuka_driver_interfaces/msg/collision_box.hpp>
 #include <memory>
+#include <kuka_driver_interfaces/msg/collision_box.hpp>
 
-#include "moveit_example.h"
+#include "eci_demo/moveit_example.hpp"
 
 int main(int argc, char * argv[])
 {

@@ -16,7 +16,7 @@
 
 #include <memory>
 
-#include "moveit_example.h"
+#include "eci_demo/moveit_example.hpp"
 
 class Depalletizer : public MoveitExample
 {

@@ -58,7 +58,11 @@ ament_target_dependencies(moveit_depalletizing_example
   kuka_driver_interfaces
 )
 
-install(TARGETS moveit_basic_planners_example moveit_collision_avoidance_example moveit_constrained_planning_example moveit_depalletizing_example
+install(TARGETS
+  moveit_basic_planners_example
+  moveit_collision_avoidance_example
+  moveit_constrained_planning_example
+  moveit_depalletizing_example
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )

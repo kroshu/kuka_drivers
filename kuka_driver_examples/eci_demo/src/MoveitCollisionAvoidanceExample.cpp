@@ -13,11 +13,10 @@
 // limitations under the License.
 
 #include <math.h>
-
-#include <kuka_driver_interfaces/msg/collision_box.hpp>
 #include <memory>
+#include <kuka_driver_interfaces/msg/collision_box.hpp>
 
-#include "moveit_example.h"
+#include "eci_demo/moveit_example.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -43,7 +42,7 @@ int main(int argc, char * argv[])
   if (init_trajectory != nullptr) {
     example_node->moveGroupInterface()->execute(*init_trajectory);
   }
-  
+
   // Add collision object
   example_node->addCollisionBox(
     geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.125).y(0.15).z(0.5),

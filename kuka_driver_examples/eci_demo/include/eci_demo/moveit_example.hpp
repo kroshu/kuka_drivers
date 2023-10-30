@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef ECI_DEMO__MOVEIT_EXAMPLE_HPP_
+#define ECI_DEMO__MOVEIT_EXAMPLE_HPP_
+
 #include <math.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "moveit/move_group_interface/move_group_interface.h"
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
-#include "kuka_driver_interfaces/msg/collision_box.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
-
 
 class MoveitExample : public rclcpp::Node
 {
@@ -52,7 +55,7 @@ public:
 
     move_group_interface_->setMaxVelocityScalingFactor(0.1);
     move_group_interface_->setMaxAccelerationScalingFactor(0.1);
- }
+  }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
   {
@@ -107,8 +110,8 @@ public:
     }
   }
 
-    moveit_msgs::msg::RobotTrajectory::SharedPtr planToPosition(
-    const std::vector<double>& joint_pos)
+  moveit_msgs::msg::RobotTrajectory::SharedPtr planToPosition(
+    const std::vector<double> & joint_pos)
   {
     move_group_interface_->setJointValueTarget(joint_pos);
 
@@ -182,7 +185,9 @@ public:
     AddObject(collision_object);
   }
 
-  void addCollisionBox(const geometry_msgs::msg::Vector3& position, const geometry_msgs::msg::Vector3& size)
+  void addCollisionBox(
+    const geometry_msgs::msg::Vector3 & position,
+    const geometry_msgs::msg::Vector3 & size)
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
@@ -314,7 +319,7 @@ public:
         auto msg = Eigen::Isometry3d::Identity();
         msg.translation().z() = 1.0;
         return msg;
-      }();
+      } ();
     moveit_visual_tools_->publishText(
       text_pose, text, rviz_visual_tools::RED,
       rviz_visual_tools::XXLARGE);
@@ -334,9 +339,9 @@ public:
 protected:
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
-  rclcpp::Subscription<kuka_driver_interfaces::msg::CollisionBox>::SharedPtr
-    collision_box_subscriber_;
   std::shared_ptr<moveit_visual_tools::MoveItVisualTools> moveit_visual_tools_;
   const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
   const std::string PLANNING_GROUP = "lbr_iisy_arm";
 };
+
+#endif  // ECI_DEMO__MOVEIT_EXAMPLE_HPP_
