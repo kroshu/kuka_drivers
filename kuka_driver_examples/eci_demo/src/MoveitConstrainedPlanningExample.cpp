@@ -36,7 +36,13 @@ int main(int argc, char * argv[])
 
   // Add robot platform
   example_node->addRobotPlatform();
-// geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.125).y(0.15).z(0.5);
+
+  // Go to correct position for the example
+  auto init_trajectory = example_node->planToPosition(
+    std::vector<double>{0.0017, -2.096, 1.514, 0.0012, -0.9888, -0.0029});
+  if (init_trajectory != nullptr) {
+    example_node->moveGroupInterface()->execute(*init_trajectory);
+  }
 
   // Add collision object
   example_node->addCollisionBox(

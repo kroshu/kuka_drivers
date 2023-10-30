@@ -107,12 +107,28 @@ public:
     }
   }
 
+    moveit_msgs::msg::RobotTrajectory::SharedPtr planToPosition(
+    const std::vector<double>& joint_pos)
+  {
+    move_group_interface_->setJointValueTarget(joint_pos);
+
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    RCLCPP_INFO(LOGGER, "Sending planning request");
+    if (!move_group_interface_->plan(plan)) {
+      RCLCPP_INFO(LOGGER, "Planning failed");
+      return nullptr;
+    } else {
+      RCLCPP_INFO(LOGGER, "Planning successful");
+      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
+    }
+  }
+
   moveit_msgs::msg::RobotTrajectory::SharedPtr planToPointUntilSuccess(
     const Eigen::Isometry3d & pose,
     const std::string & planning_pipeline = "pilz_industrial_motion_planner",
     const std::string & planner_id = "PTP")
   {
-    // Create planning request using pilz industrial motion planner
+    // Create planning request using given motion planner
     move_group_interface_->setPlanningPipelineId(planning_pipeline);
     move_group_interface_->setPlannerId(planner_id);
     move_group_interface_->setPoseTarget(pose);
