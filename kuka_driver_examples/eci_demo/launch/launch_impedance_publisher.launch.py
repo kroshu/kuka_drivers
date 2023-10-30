@@ -32,7 +32,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             Node(
-                package="ros2_control_test_nodes",
+                package="ros2_controllers_test_nodes",
                 executable="publisher_joint_impedance_controller",
                 name="publisher_joint_impedance_controller",
                 parameters=[impedance_config],

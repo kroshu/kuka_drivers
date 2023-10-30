@@ -69,6 +69,11 @@ CallbackReturn KukaRoXHardwareInterface::on_init(const hardware_interface::Hardw
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Could not setup udp replier");
     return CallbackReturn::FAILURE;
   }
+#else
+// Start from home position in mock mode
+  hw_position_commands_[1] = -90 * (M_PI / 180);
+  hw_position_commands_[2] = 90 * (M_PI / 180);
+  hw_position_commands_[4] = 90 * (M_PI / 180);
 #endif
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Init successful");
