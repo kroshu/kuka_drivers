@@ -26,7 +26,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetInt.srv"
   "srv/SetDouble.srv"
   "msg/RobotState.msg"
-  "msg/CollisionBox.msg"
   DEPENDENCIES geometry_msgs
 )
 

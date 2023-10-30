@@ -22,6 +22,8 @@
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 #include "kuka_driver_interfaces/msg/collision_box.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
+
 
 class MoveitExample : public rclcpp::Node
 {
@@ -37,11 +39,6 @@ public:
       shared_from_this(),
       PLANNING_GROUP);
 
-    auto psm = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
-      shared_from_this(), "robot_description");
-    psm->startSceneMonitor("/move_group/monitored_planning_scene");
-    psm->requestPlanningSceneState("/get_planning_scene");
-
     moveit_visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
       shared_from_this(), "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
       move_group_interface_->getRobotModel());
@@ -55,14 +52,7 @@ public:
 
     move_group_interface_->setMaxVelocityScalingFactor(0.1);
     move_group_interface_->setMaxAccelerationScalingFactor(0.1);
-
-    // Create collision box subscriber
-    collision_box_subscriber_ =
-      this->create_subscription<kuka_driver_interfaces::msg::CollisionBox>(
-      "collision_box", 10, std::bind(
-        &MoveitExample::addCollisionBox, this,
-        std::placeholders::_1));
-  }
+ }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
   {
@@ -176,7 +166,7 @@ public:
     AddObject(collision_object);
   }
 
-  void addCollisionBox(const kuka_driver_interfaces::msg::CollisionBox::SharedPtr box_msg)
+  void addCollisionBox(const geometry_msgs::msg::Vector3& position, const geometry_msgs::msg::Vector3& size)
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
@@ -184,16 +174,16 @@ public:
     shape_msgs::msg::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[primitive.BOX_X] = box_msg->size.x;
-    primitive.dimensions[primitive.BOX_Y] = box_msg->size.y;
-    primitive.dimensions[primitive.BOX_Z] = box_msg->size.z;
+    primitive.dimensions[primitive.BOX_X] = size.x;
+    primitive.dimensions[primitive.BOX_Y] = size.y;
+    primitive.dimensions[primitive.BOX_Z] = size.z;
 
     // Define a pose for the box (specified relative to frame_id).
     geometry_msgs::msg::Pose stand_pose;
     stand_pose.orientation.w = 1.0;
-    stand_pose.position.x = box_msg->position.x;
-    stand_pose.position.y = box_msg->position.y;
-    stand_pose.position.z = box_msg->position.z;
+    stand_pose.position.x = position.x;
+    stand_pose.position.y = position.y;
+    stand_pose.position.z = position.z;
 
     collision_object.primitives.push_back(primitive);
     collision_object.primitive_poses.push_back(stand_pose);
