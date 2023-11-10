@@ -37,8 +37,8 @@
  * Author: Lars Tingelstad
  */
 
-#ifndef KUKA_RSI_HW_INTERFACE__UDP_SERVER_H_
-#define KUKA_RSI_HW_INTERFACE__UDP_SERVER_H_
+#ifndef KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_
+#define KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_
 
 // Select includes
 #include <sys/time.h>
@@ -170,4 +170,4 @@ private:
   int optval;
 };
 
-#endif  // KUKA_RSI_HW_INTERFACE__UDP_SERVER_H_
+#endif  // KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_

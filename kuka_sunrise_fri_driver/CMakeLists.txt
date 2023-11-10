@@ -38,8 +38,9 @@ target_link_libraries(fri_connection
   kuka_drivers_core::communication_helpers)
 
 
-# Add the Fast Robot Interface libray
-add_library(fri_client_sdk SHARED
+file(GLOB fri_client_sources
+  LIST_DIRECTORIES FALSE
+  RELATIVE "${PROJECT_SOURCE_DIR}"
     src/fri_client_sdk/HWIFClientApplication.cpp
     src/fri_client_sdk/friClientApplication.cpp
     src/fri_client_sdk/friCommandMessageEncoder.cpp
@@ -53,6 +54,9 @@ add_library(fri_client_sdk SHARED
     src/fri_client_sdk/pb_frimessages_callbacks.c
 )
 
+# Add the Fast Robot Interface libray
+add_library(fri_client_sdk SHARED ${fri_client_sources})
+
 file(GLOB private_headers
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}"
@@ -61,7 +65,7 @@ file(GLOB private_headers
   src/fri_client_sdk/FRIMessages.pb.h
   src/fri_client_sdk/friMonitoringMessageDecoder.h
   src/fri_client_sdk/pb_frimessages_callbacks.h
-  )
+)
 
 target_link_libraries(fri_client_sdk PRIVATE protobuf-nanopb)
 
@@ -107,13 +111,19 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright()
+  file(GLOB fri_client_includes
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${PROJECT_SOURCE_DIR}"
+      include/fri_client_sdk/*
+  )
+
+  ament_copyright(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
   ament_cppcheck(--language=c++)
   ament_pep257()
   ament_flake8()
-  ament_cpplint()
+  ament_cpplint(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
   ament_lint_cmake()
-  ament_uncrustify()
+  ament_uncrustify(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
   ament_xmllint()
 endif()
 

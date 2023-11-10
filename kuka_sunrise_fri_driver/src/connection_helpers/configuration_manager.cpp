@@ -304,7 +304,8 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "control_mode", POSITION_CONTROL, kuka_drivers_core::ParameterSetAccessRights {false, true, true,
+    "control_mode", POSITION_CONTROL, kuka_drivers_core::ParameterSetAccessRights {false, true,
+      true,
       false, true}, [this](const std::string & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
@@ -322,7 +323,8 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "command_mode", POSITION_COMMAND, kuka_drivers_core::ParameterSetAccessRights {false, true, true,
+    "command_mode", POSITION_COMMAND, kuka_drivers_core::ParameterSetAccessRights {false, true,
+      true,
       false, true}, [this](const std::string & command_mode) {
       return this->onCommandModeChangeRequest(command_mode);
     });

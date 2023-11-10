@@ -38,8 +38,8 @@
  * Author: Svastits Aron
  */
 
-#ifndef KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
-#define KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <kuka_kss_rsi_driver/udp_server.h>
 #include <kuka_kss_rsi_driver/rsi_state.h>
@@ -77,25 +77,25 @@ class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  KUKA_RSI_HW_INTERFACE_PUBLIC
+  KUKA_KSS_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
@@ -123,4 +123,4 @@ private:
 };
 }  // namespace kuka_kss_rsi_driver
 
-#endif  // KUKA_RSI_HW_INTERFACE__KUKA_HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_

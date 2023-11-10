@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_SUNRISE__TCP_CONNECTION_HPP_
-#define KUKA_SUNRISE__TCP_CONNECTION_HPP_
+#ifndef KUKA_SUNRISE_FRI_DRIVER__TCP_CONNECTION_HPP_
+#define KUKA_SUNRISE_FRI_DRIVER__TCP_CONNECTION_HPP_
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -60,4 +60,4 @@ private:
 
 }  // namespace kuka_sunrise_fri_driver
 
-#endif  // KUKA_SUNRISE__TCP_CONNECTION_HPP_
+#endif  // KUKA_SUNRISE_FRI_DRIVER__TCP_CONNECTION_HPP_

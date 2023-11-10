@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KROSHU_ROS2_CORE__CONTROLLERHANDLER_HPP_
-#define KROSHU_ROS2_CORE__CONTROLLERHANDLER_HPP_
+#ifndef KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_
+#define KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_
 
 #include <string>
 #include <vector>
@@ -128,4 +128,4 @@ public:
 }  // namespace kuka_drivers_core
 
 
-#endif  // KROSHU_ROS2_CORE__CONTROLLERHANDLER_HPP_
+#endif  // KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_

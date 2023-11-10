@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
-#define KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
+#ifndef KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#define KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
 
 #include <string>
 #include <memory>
@@ -97,4 +97,4 @@ private:
 }   // namespace kuka_rox
 
 
-#endif  // KUKA_ROX_HW_INTERFACE__ROBOT_MANAGER_NODE_HPP_
+#endif  // KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_

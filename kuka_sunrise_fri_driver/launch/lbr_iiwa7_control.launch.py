@@ -53,8 +53,8 @@ def generate_launch_description():
             parameters=[robot_description, controller_config]
         ),
         LifecycleNode(
-            namespace='', package='kuka_sunrise_fri_driver', executable='robot_manager_node', output='screen',
-            name=['robot_manager'],
+            namespace='', package='kuka_sunrise_fri_driver', executable='robot_manager_node',
+            output='screen', name=['robot_manager'],
             parameters=[fri_config_file,
                         {'position_controller_name': 'joint_trajectory_controller'},
                         {'torque_controller_name': ''}]

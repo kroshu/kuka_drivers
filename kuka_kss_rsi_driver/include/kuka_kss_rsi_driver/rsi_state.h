@@ -36,8 +36,8 @@
  * Author: Lars Tingelstad <lars.tingelstad@ntnu.no>
 */
 
-#ifndef KUKA_RSI_HW_INTERFACE__RSI_STATE_H_
-#define KUKA_RSI_HW_INTERFACE__RSI_STATE_H_
+#ifndef KUKA_KSS_RSI_DRIVER__RSI_STATE_H_
+#define KUKA_KSS_RSI_DRIVER__RSI_STATE_H_
 
 #include <tinyxml.h>
 #include <string>
@@ -109,4 +109,4 @@ public:
 };
 }  // namespace kuka_kss_rsi_driver
 
-#endif  // KUKA_RSI_HW_INTERFACE__RSI_STATE_H_
+#endif  // KUKA_KSS_RSI_DRIVER__RSI_STATE_H_

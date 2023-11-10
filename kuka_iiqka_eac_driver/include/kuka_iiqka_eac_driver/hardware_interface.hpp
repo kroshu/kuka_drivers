@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
-#define KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
+#define KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <vector>
 #include <string>
@@ -110,4 +110,4 @@ private:
 };
 }  // namespace kuka_rox
 
-#endif  // KUKA_ROX_HW_INTERFACE__ROX_HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_

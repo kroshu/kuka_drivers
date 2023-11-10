@@ -13,8 +13,8 @@
 // limitations under the License.
 
 
-#ifndef KROSHU_ROS2_CORE__CONTROLMODE_HPP_
-#define KROSHU_ROS2_CORE__CONTROLMODE_HPP_
+#ifndef KUKA_DRIVERS_CORE__CONTROLMODE_HPP_
+#define KUKA_DRIVERS_CORE__CONTROLMODE_HPP_
 
 namespace kuka_drivers_core
 {
@@ -49,4 +49,4 @@ enum class ControllerType : std::uint8_t
 };
 }  // namespace kuka_drivers_core
 
-#endif  // KROSHU_ROS2_CORE__CONTROLMODE_HPP_
+#endif  // KUKA_DRIVERS_CORE__CONTROLMODE_HPP_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_
-#define KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_
+#ifndef KUKA_SUNRISE_FRI_DRIVER__CONFIGURATION_MANAGER_HPP_
+#define KUKA_SUNRISE_FRI_DRIVER__CONFIGURATION_MANAGER_HPP_
 
 #include <map>
 #include <vector>
@@ -77,4 +77,4 @@ private:
 };
 }  // namespace kuka_sunrise_fri_driver
 
-#endif  // KUKA_SUNRISE__CONFIGURATION_MANAGER_HPP_
+#endif  // KUKA_SUNRISE_FRI_DRIVER__CONFIGURATION_MANAGER_HPP_

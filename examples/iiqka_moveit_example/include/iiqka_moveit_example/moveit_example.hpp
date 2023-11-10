@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ECI_DEMO__MOVEIT_EXAMPLE_HPP_
-#define ECI_DEMO__MOVEIT_EXAMPLE_HPP_
+#ifndef IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
+#define IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
 
 #include <math.h>
 
@@ -344,4 +344,4 @@ protected:
   const std::string PLANNING_GROUP = "lbr_iisy_arm";
 };
 
-#endif  // ECI_DEMO__MOVEIT_EXAMPLE_HPP_
+#endif  // IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_

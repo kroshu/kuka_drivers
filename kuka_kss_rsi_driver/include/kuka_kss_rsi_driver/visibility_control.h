@@ -19,38 +19,38 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef KUKA_RSI_HW_INTERFACE__VISIBILITY_CONTROL_H_
-#define KUKA_RSI_HW_INTERFACE__VISIBILITY_CONTROL_H_
+#ifndef KUKA_KSS_RSI_DRIVER__VISIBILITY_CONTROL_H_
+#define KUKA_KSS_RSI_DRIVER__VISIBILITY_CONTROL_H_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifdef __GNUC__
-#define KUKA_RSI_HW_INTERFACE_EXPORT __attribute__((dllexport))
-#define KUKA_RSI_HW_INTERFACE_IMPORT __attribute__((dllimport))
+#define KUKA_KSS_RSI_DRIVER_EXPORT __attribute__((dllexport))
+#define KUKA_KSS_RSI_DRIVER_IMPORT __attribute__((dllimport))
 #else
-#define KUKA_RSI_HW_INTERFACE_EXPORT __declspec(dllexport)
-#define KUKA_RSI_HW_INTERFACE_IMPORT __declspec(dllimport)
+#define KUKA_KSS_RSI_DRIVER_EXPORT __declspec(dllexport)
+#define KUKA_KSS_RSI_DRIVER_IMPORT __declspec(dllimport)
 #endif
-#ifdef KUKA_RSI_HW_INTERFACE_BUILDING_DLL
-#define KUKA_RSI_HW_INTERFACE_PUBLIC KUKA_RSI_HW_INTERFACE_EXPORT
+#ifdef KUKA_KSS_RSI_DRIVER_BUILDING_DLL
+#define KUKA_KSS_RSI_DRIVER_PUBLIC KUKA_KSS_RSI_DRIVER_EXPORT
 #else
-#define KUKA_RSI_HW_INTERFACE_PUBLIC KUKA_RSI_HW_INTERFACE_IMPORT
+#define KUKA_KSS_RSI_DRIVER_PUBLIC KUKA_KSS_RSI_DRIVER_IMPORT
 #endif
-#define KUKA_RSI_HW_INTERFACE_PUBLIC_TYPE KUKA_RSI_HW_INTERFACE_PUBLIC
-#define KUKA_RSI_HW_INTERFACE_LOCAL
+#define KUKA_KSS_RSI_DRIVER_PUBLIC_TYPE KUKA_KSS_RSI_DRIVER_PUBLIC
+#define KUKA_KSS_RSI_DRIVER_LOCAL
 #else
-#define KUKA_RSI_HW_INTERFACE_EXPORT __attribute__((visibility("default")))
-#define KUKA_RSI_HW_INTERFACE_IMPORT
+#define KUKA_KSS_RSI_DRIVER_EXPORT __attribute__((visibility("default")))
+#define KUKA_KSS_RSI_DRIVER_IMPORT
 #if __GNUC__ >= 4
-#define KUKA_RSI_HW_INTERFACE_PUBLIC __attribute__((visibility("default")))
-#define KUKA_RSI_HW_INTERFACE_LOCAL __attribute__((visibility("hidden")))
+#define KUKA_KSS_RSI_DRIVER_PUBLIC __attribute__((visibility("default")))
+#define KUKA_KSS_RSI_DRIVER_LOCAL __attribute__((visibility("hidden")))
 #else
-#define KUKA_RSI_HW_INTERFACE_PUBLIC
-#define KUKA_RSI_HW_INTERFACE_LOCAL
+#define KUKA_KSS_RSI_DRIVER_PUBLIC
+#define KUKA_KSS_RSI_DRIVER_LOCAL
 #endif
-#define KUKA_RSI_HW_INTERFACE_PUBLIC_TYPE
+#define KUKA_KSS_RSI_DRIVER_PUBLIC_TYPE
 #endif
 
-#endif  // KUKA_RSI_HW_INTERFACE__VISIBILITY_CONTROL_H_
+#endif  // KUKA_KSS_RSI_DRIVER__VISIBILITY_CONTROL_H_
