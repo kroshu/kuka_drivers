@@ -30,7 +30,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs)
 
-include_directories(include)
+include_directories(include src/fri_client_sdk)
 
 add_library(fri_connection SHARED
   src/connection_helpers/fri_connection.cpp
@@ -38,11 +38,44 @@ add_library(fri_connection SHARED
 target_link_libraries(fri_connection
   kuka_drivers_core::communication_helpers)
 
+
+# Add the Fast Robot Interface libray
+add_library(fri_client_sdk SHARED
+    src/HWIFClientApplication.cpp
+    src/friClientApplication.cpp
+    src/friCommandMessageEncoder.cpp
+    src/friLBRClient.cpp
+    src/friLBRCommand.cpp
+    src/friLBRState.cpp
+    src/FRIMessages.pb.c
+    src/friMonitoringMessageDecoder.cpp
+    src/friTransformationClient.cpp
+    src/friUdpConnection.cpp
+    src/pb_frimessages_callbacks.c
+)
+
+file(GLOB private_headers
+  LIST_DIRECTORIES FALSE
+  RELATIVE "${PROJECT_SOURCE_DIR}"
+  src/friClientData.h
+  src/friCommandMessageEncoder.h
+  src/FRIMessages.pb.h
+  src/friMonitoringMessageDecoder.h
+  src/pb_frimessages_callbacks.h
+  )
+
+target_link_libraries(fri_client_sdk PRIVATE protobuf-nanopb)
+
+ament_export_targets(fri_client_sdk HAS_LIBRARY_TARGET)
+
+install(DIRECTORY include/fri_client_sdk DESTINATION include)
+install(FILES ${private_headers} DESTINATION include)
+
 add_library(kuka_fri_hw_interface SHARED
   src/hardware_interface.cpp
 )
 ament_target_dependencies(kuka_fri_hw_interface kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
-target_link_libraries(kuka_fri_hw_interface fri::fri_client)
+target_link_libraries(kuka_fri_hw_interface fri_client_sdk)
 
 add_library(configuration_manager SHARED
   src/connection_helpers/configuration_manager.cpp)
@@ -58,7 +91,7 @@ target_link_libraries(robot_manager_node
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS fri_connection kuka_fri_hw_interface robot_manager_node
+install(TARGETS fri_connection fri_client_sdk kuka_fri_hw_interface robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
