@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include <fri/friClientApplication.h>
-#include <fri/friConnectionIf.h>
-#include <fri/friClientIf.h>
-#include <fri/friTransformationClient.h>
+#include <fri_client_sdk/friClientApplication.h>
+#include <fri_client_sdk/friConnectionIf.h>
+#include <fri_client_sdk/friClientIf.h>
+#include <fri_client_sdk/friTransformationClient.h>
 #include <friClientData.h>
 
 

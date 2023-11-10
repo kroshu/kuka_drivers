@@ -40,32 +40,30 @@ target_link_libraries(fri_connection
 
 # Add the Fast Robot Interface libray
 add_library(fri_client_sdk SHARED
-    src/HWIFClientApplication.cpp
-    src/friClientApplication.cpp
-    src/friCommandMessageEncoder.cpp
-    src/friLBRClient.cpp
-    src/friLBRCommand.cpp
-    src/friLBRState.cpp
-    src/FRIMessages.pb.c
-    src/friMonitoringMessageDecoder.cpp
-    src/friTransformationClient.cpp
-    src/friUdpConnection.cpp
-    src/pb_frimessages_callbacks.c
+    src/fri_client_sdk/HWIFClientApplication.cpp
+    src/fri_client_sdk/friClientApplication.cpp
+    src/fri_client_sdk/friCommandMessageEncoder.cpp
+    src/fri_client_sdk/friLBRClient.cpp
+    src/fri_client_sdk/friLBRCommand.cpp
+    src/fri_client_sdk/friLBRState.cpp
+    src/fri_client_sdk/FRIMessages.pb.c
+    src/fri_client_sdk/friMonitoringMessageDecoder.cpp
+    src/fri_client_sdk/friTransformationClient.cpp
+    src/fri_client_sdk/friUdpConnection.cpp
+    src/fri_client_sdk/pb_frimessages_callbacks.c
 )
 
 file(GLOB private_headers
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}"
-  src/friClientData.h
-  src/friCommandMessageEncoder.h
-  src/FRIMessages.pb.h
-  src/friMonitoringMessageDecoder.h
-  src/pb_frimessages_callbacks.h
+  src/fri_client_sdk/friClientData.h
+  src/fri_client_sdk/friCommandMessageEncoder.h
+  src/fri_client_sdk/FRIMessages.pb.h
+  src/fri_client_sdk/friMonitoringMessageDecoder.h
+  src/fri_client_sdk/pb_frimessages_callbacks.h
   )
 
 target_link_libraries(fri_client_sdk PRIVATE protobuf-nanopb)
-
-ament_export_targets(fri_client_sdk HAS_LIBRARY_TARGET)
 
 install(DIRECTORY include/fri_client_sdk DESTINATION include)
 install(FILES ${private_headers} DESTINATION include)

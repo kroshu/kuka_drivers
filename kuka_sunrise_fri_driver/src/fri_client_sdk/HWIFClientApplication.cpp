@@ -1,4 +1,4 @@
-#include <fri/HWIFClientApplication.hpp>
+#include <fri_client_sdk/HWIFClientApplication.hpp>
 #include <iostream>
 
 

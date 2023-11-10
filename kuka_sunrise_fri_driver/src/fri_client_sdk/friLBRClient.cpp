@@ -59,7 +59,7 @@ cost of any service and repair.
 */
 #include <cstdio>
 #include <iostream>
-#include <fri/friLBRClient.h>
+#include <fri_client_sdk/friLBRClient.h>
 #include <friClientData.h>
 
 using namespace KUKA::FRI;

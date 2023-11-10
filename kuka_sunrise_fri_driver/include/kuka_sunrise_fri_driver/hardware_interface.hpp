@@ -27,10 +27,10 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include "kuka_driver_interfaces/srv/set_int.hpp"
-#include "fri/friLBRClient.h"
-#include "fri/HWIFClientApplication.hpp"
-#include "fri/friUdpConnection.h"
-#include "fri/friClientIf.h"
+#include "fri_client_sdk/friLBRClient.h"
+#include "fri_client_sdk/HWIFClientApplication.hpp"
+#include "fri_client_sdk/friUdpConnection.h"
+#include "fri_client_sdk/friClientIf.h"
 
 
 #include "pluginlib/class_list_macros.hpp"

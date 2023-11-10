@@ -84,7 +84,7 @@ add_executable(robot_manager_node
 ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
 target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
-pluginlib_export_plugin_description_file(hardware_interface kuka_iiqka_eac_driver.xml)
+pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
 install(TARGETS kuka_iiqka_eac_driver robot_manager_node
   DESTINATION lib/${PROJECT_NAME})

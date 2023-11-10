@@ -60,9 +60,9 @@ cost of any service and repair.
 #ifndef _KUKA_FRI_LBR_CLIENT_H
 #define _KUKA_FRI_LBR_CLIENT_H
 
-#include <fri/friClientIf.h>
-#include <fri/friLBRState.h>
-#include <fri/friLBRCommand.h>
+#include <fri_client_sdk/friClientIf.h>
+#include <fri_client_sdk/friLBRState.h>
+#include <fri_client_sdk/friLBRCommand.h>
 
 /** Kuka namespace */
 namespace KUKA
