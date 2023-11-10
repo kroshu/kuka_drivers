@@ -24,7 +24,7 @@ from launch.launch_description_sources.python_launch_description_source import P
 
 def generate_launch_description():
     rviz_config_file = os.path.join(
-        get_package_share_directory('kuka_lbr_iisy_support'), 'config', 'simple_urdf.rviz')
+        get_package_share_directory('kuka_resources'), 'config', 'view_6_axis_urdf.rviz')
 
     startup_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
         [get_package_share_directory('kuka_rox_hw_interface'), '/launch/startup.launch.py']))

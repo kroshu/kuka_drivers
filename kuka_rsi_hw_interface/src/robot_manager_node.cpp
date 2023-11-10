@@ -44,7 +44,7 @@ RobotManagerNode::RobotManagerNode()
     is_configured_qos);
 
   this->registerStaticParameter<std::string>(
-    "robot_model", "kr6_r700_sixx",
+    "robot_model", "kr6_r700-sixx",
     kroshu_ros2_core::ParameterSetAccessRights{true, false,
       false, false, false}, [this](const std::string & robot_model) {
       return this->onRobotModelChangeRequest(robot_model);
