@@ -43,7 +43,7 @@
 #include <memory>
 #include <vector>
 
-#include "kuka_kss_rsi_driver/kuka_hardware_interface.hpp"
+#include "kuka_kss_rsi_driver/hardware_interface.hpp"
 
 namespace kuka_kss_rsi_driver
 {

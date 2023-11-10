@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_iiqka_eac_driver/rox_hardware_interface.hpp"
+#include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
 #include <grpcpp/create_channel.h>
 
