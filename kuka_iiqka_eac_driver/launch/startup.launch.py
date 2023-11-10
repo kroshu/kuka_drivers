@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
     controller_manager_node = '/controller_manager'
 
     control_node = Node(
-        package='kroshu_ros2_core',
+        package='kuka_drivers_core',
         executable='control_node',
         parameters=[robot_description, controller_config]
     )

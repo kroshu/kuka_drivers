@@ -25,7 +25,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(kroshu_ros2_core REQUIRED)
+find_package(kuka_drivers_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
@@ -81,8 +81,8 @@ target_link_libraries(kuka_iiqka_eac_driver motion-external-proto-api-nanopb mot
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager_msgs)
-target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
+ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_iiqka_eac_driver.xml)
 

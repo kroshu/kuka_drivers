@@ -33,12 +33,12 @@
 #include "kuka_sunrise_fri_driver/configuration_manager.hpp"
 #include "communication_helpers/service_tools.hpp"
 
-#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
 
 namespace kuka_sunrise_fri_driver
 {
 
-class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
+class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();

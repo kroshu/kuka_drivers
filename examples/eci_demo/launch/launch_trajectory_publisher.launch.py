@@ -22,7 +22,7 @@ def generate_launch_description():
 
     position_goals = PathJoinSubstitution(
         [
-            FindPackageShare("eci_demo"),
+            FindPackageShare("iiqka_moveit_example"),
             "config",
             "dummy_publisher.yaml",
         ]

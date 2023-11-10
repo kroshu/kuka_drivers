@@ -29,7 +29,7 @@
 #include "controller_manager_msgs/srv/list_controllers.hpp"
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 
-#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
 
 namespace kuka_sunrise_fri_driver
 {
@@ -40,14 +40,14 @@ class ConfigurationManager
 {
 public:
   ConfigurationManager(
-    std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
+    std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node,
     std::shared_ptr<FRIConnection> fri_connection);
 
 private:
   bool configured_ = false;
   bool position_controller_available_ = false;
   bool torque_controller_available_ = false;
-  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node_;
+  std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node_;
   std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr param_cbg_;

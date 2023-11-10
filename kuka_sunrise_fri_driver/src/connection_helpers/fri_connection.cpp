@@ -116,11 +116,11 @@ bool FRIConnection::setJointImpedanceControlMode(
   }
   for (double js : joint_stiffness) {
     printf("js = %lf\n", js);
-    msg_size += kroshu_ros2_core::serializeNext(js, serialized);
+    msg_size += kuka_drivers_core::serializeNext(js, serialized);
   }
   for (double jd : joint_damping) {
     printf("jd = %lf\n", jd);
-    msg_size += kroshu_ros2_core::serializeNext(jd, serialized);
+    msg_size += kuka_drivers_core::serializeNext(jd, serialized);
   }
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
@@ -140,9 +140,9 @@ bool FRIConnection::setFRIConfig(int remote_port, int send_period_ms, int receiv
     serialized.emplace_back(byte);
     msg_size++;
   }
-  msg_size += kroshu_ros2_core::serializeNext(remote_port, serialized);
-  msg_size += kroshu_ros2_core::serializeNext(send_period_ms, serialized);
-  msg_size += kroshu_ros2_core::serializeNext(receive_multiplier, serialized);
+  msg_size += kuka_drivers_core::serializeNext(remote_port, serialized);
+  msg_size += kuka_drivers_core::serializeNext(send_period_ms, serialized);
+  msg_size += kuka_drivers_core::serializeNext(receive_multiplier, serialized);
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 

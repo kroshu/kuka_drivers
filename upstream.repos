@@ -1,14 +1,10 @@
 # Upstream dependencies
 repositories:
-  kroshu_ros2_core:
+  kuka_robot_descriptions:
     type: git
-    url: https://github.com/kroshu/kroshu_ros2_core.git
+    url: https://github.com/kroshu/kuka_robot_descriptions.git
     version: master
-  kuka_simulators:
-    type: git
-    url: https://github.com/kroshu/kuka_simulators.git
-    version: main
   kuka_controllers:
     type: git
     url: https://github.com/kroshu/kuka_controllers.git
-    version: main
+    version: master

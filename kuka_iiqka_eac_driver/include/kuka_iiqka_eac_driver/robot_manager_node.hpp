@@ -30,14 +30,14 @@
 #include "std_msgs/msg/u_int32.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
-#include "kroshu_ros2_core/ControllerHandler.hpp"
+#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ControllerHandler.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
 namespace kuka_rox
 {
-class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
+class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();
@@ -68,7 +68,7 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::string robot_model_;
 
-  kroshu_ros2_core::ControllerHandler controller_handler_;
+  kuka_drivers_core::ControllerHandler controller_handler_;
 
   std::thread observe_thread_;
   std::atomic<bool> terminate_{false};

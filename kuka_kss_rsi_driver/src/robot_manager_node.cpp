@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "kuka_kss_rsi_driver/robot_manager_node.hpp"
-#include "kroshu_ros2_core/ControlMode.hpp"
+#include "kuka_drivers_core/ControlMode.hpp"
 
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -22,7 +22,7 @@ using namespace lifecycle_msgs::msg;  // NOLINT
 namespace kuka_rsi
 {
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager")
+: kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -45,7 +45,7 @@ RobotManagerNode::RobotManagerNode()
 
   this->registerStaticParameter<std::string>(
     "robot_model", "kr6_r700-sixx",
-    kroshu_ros2_core::ParameterSetAccessRights{true, false,
+    kuka_drivers_core::ParameterSetAccessRights{true, false,
       false, false, false}, [this](const std::string & robot_model) {
       return this->onRobotModelChangeRequest(robot_model);
     });
@@ -60,7 +60,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
@@ -83,7 +83,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
@@ -109,7 +109,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 10000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
@@ -125,7 +125,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   {"joint_state_broadcaster", "joint_trajectory_controller"};
 
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -148,7 +148,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 3000);   // was not stable with 2000 ms timeout
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
@@ -167,7 +167,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   controller_request->deactivate_controllers =
   {"joint_state_broadcaster", "joint_trajectory_controller"};
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {

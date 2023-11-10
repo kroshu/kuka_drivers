@@ -24,7 +24,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kuka_driver_interfaces REQUIRED)
-find_package(kroshu_ros2_core REQUIRED)
+find_package(kuka_drivers_core REQUIRED)
 find_package(fri REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -36,7 +36,7 @@ add_library(fri_connection SHARED
   src/connection_helpers/fri_connection.cpp
   src/connection_helpers/tcp_connection.cpp)
 target_link_libraries(fri_connection
-  kroshu_ros2_core::communication_helpers)
+  kuka_drivers_core::communication_helpers)
 
 add_library(kuka_fri_hw_interface SHARED
   src/hardware_interface.cpp
@@ -46,12 +46,12 @@ target_link_libraries(kuka_fri_hw_interface fri::fri_client)
 
 add_library(configuration_manager SHARED
   src/connection_helpers/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kroshu_ros2_core
+ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kuka_drivers_core
   controller_manager_msgs)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kroshu_ros2_core controller_manager_msgs)
+ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kuka_drivers_core controller_manager_msgs)
 target_link_libraries(robot_manager_node
   fri_connection
   configuration_manager)

@@ -47,7 +47,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='kroshu_ros2_core',
+            package='kuka_drivers_core',
             executable='control_node',
             output='both',
             parameters=[robot_description, controller_config]

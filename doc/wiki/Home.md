@@ -114,7 +114,7 @@ After all components have started successfully, the system needs to be configure
 
 **`ros2 lifecycle set robot_manager activate`**
 
-On successful activation the robot controller and the driver start communication with a 4 ms cycle time, and it is possible to move the robot through the joint trajectory controller. The easiest way to achieve this is to start an rqt_joint_trajcectory controller and move the joints with cursors or one can also execute trajectories planned with moveit - an example of this can be found in kuka_sunrise_fri_driver_control/eci_demo package.
+On successful activation the robot controller and the driver start communication with a 4 ms cycle time, and it is possible to move the robot through the joint trajectory controller. The easiest way to achieve this is to start an rqt_joint_trajcectory controller and move the joints with cursors or one can also execute trajectories planned with moveit - an example of this can be found in kuka_sunrise_fri_driver_control/iiqka_moveit_example package.
 
 To stop external control, the components have to be deactivated with **`ros2 lifecycle set robot_manager deactivate`**
 

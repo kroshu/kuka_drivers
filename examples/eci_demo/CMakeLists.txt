@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(eci_demo)
+project(iiqka_moveit_example)
 
 # Common cmake code applied to all moveit packages
 find_package(moveit_common REQUIRED)

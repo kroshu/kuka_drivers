@@ -23,7 +23,7 @@ def generate_launch_description():
 
     impedance_config = PathJoinSubstitution(
         [
-            FindPackageShare("eci_demo"),
+            FindPackageShare("iiqka_moveit_example"),
             "config",
             "dummy_impedance_publisher.yaml",
         ]

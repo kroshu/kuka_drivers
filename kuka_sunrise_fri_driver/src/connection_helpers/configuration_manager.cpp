@@ -22,7 +22,7 @@
 namespace kuka_sunrise_fri_driver
 {
 ConfigurationManager::ConfigurationManager(
-  std::shared_ptr<kroshu_ros2_core::ROS2BaseLCNode> robot_manager_node,
+  std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node,
   std::shared_ptr<FRIConnection> fri_connection)
 : robot_manager_node_(robot_manager_node), fri_connection_(fri_connection)
 {
@@ -38,7 +38,7 @@ ConfigurationManager::ConfigurationManager(
     cbg_);
 
   robot_manager_node_->registerParameter<std::string>(
-    "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {false, false,
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights {false, false,
       false, false, true}, [this](const std::string & controller_ip) {
       return this->onControllerIpChangeRequest(controller_ip);
     });
@@ -206,7 +206,7 @@ bool ConfigurationManager::onControllerNameChangeRequest(
 {
   auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
   auto response =
-    kroshu_ros2_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
+    kuka_drivers_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
     get_controllers_client_, request, 0, 1000);
 
   if (!response) {
@@ -263,7 +263,7 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
   // Set receive multiplier of hardware interface through controller manager service
   auto request = std::make_shared<kuka_driver_interfaces::srv::SetInt::Request>();
   request->data = receive_multiplier;
-  auto response = kroshu_ros2_core::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
+  auto response = kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
     receive_multiplier_client_, request, 0, 1000);
 
   if (!response || !response->success) {
@@ -286,49 +286,49 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
   //   parameter type (or value), the nodes must be launched again with changed parameters
   //   because they could not be declared, therefore change is not possible in runtime
   robot_manager_node_->registerParameter<int>(
-    "send_period_ms", 10, kroshu_ros2_core::ParameterSetAccessRights {false, true, false, false,
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights {false, true, false, false,
       true}, [this](const int & send_period) {
       return this->onSendPeriodChangeRequest(send_period);
     });
 
   robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_, kroshu_ros2_core::ParameterSetAccessRights {false,
+    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights {false,
       true, true, false, true}, [this](const std::vector<double> & joint_stiffness) {
       return this->onJointStiffnessChangeRequest(joint_stiffness);
     });
 
   robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_, kroshu_ros2_core::ParameterSetAccessRights {false, true,
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights {false, true,
       true, false, true}, [this](const std::vector<double> & joint_damping) {
       return this->onJointDampingChangeRequest(joint_damping);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "control_mode", POSITION_CONTROL, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "control_mode", POSITION_CONTROL, kuka_drivers_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights {false, true,
       false, false, true}, [this](const std::string & controller_name) {
       return this->onControllerNameChangeRequest(controller_name, true);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {false, true,
+    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights {false, true,
       false, false, true}, [this](const std::string & controller_name) {
       return this->onControllerNameChangeRequest(controller_name, false);
     });
 
   robot_manager_node_->registerParameter<std::string>(
-    "command_mode", POSITION_COMMAND, kroshu_ros2_core::ParameterSetAccessRights {false, true, true,
+    "command_mode", POSITION_COMMAND, kuka_drivers_core::ParameterSetAccessRights {false, true, true,
       false, true}, [this](const std::string & command_mode) {
       return this->onCommandModeChangeRequest(command_mode);
     });
 
   robot_manager_node_->registerParameter<int>(
-    "receive_multiplier", 1, kroshu_ros2_core::ParameterSetAccessRights {false, true, false,
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights {false, true, false,
       false,
       true}, [this](const int & receive_multiplier) {
       return this->onReceiveMultiplierChangeRequest(receive_multiplier);

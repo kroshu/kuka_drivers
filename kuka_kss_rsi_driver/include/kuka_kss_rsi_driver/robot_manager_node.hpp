@@ -29,13 +29,13 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-#include "kroshu_ros2_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_rsi
 {
-class RobotManagerNode : public kroshu_ros2_core::ROS2BaseLCNode
+class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();

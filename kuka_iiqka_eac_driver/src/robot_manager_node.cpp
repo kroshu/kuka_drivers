@@ -26,7 +26,7 @@ namespace kuka_rox
 // TODO(Komaromi): Readd "control_mode_handler" controller to controller_handlers constrctor
 // after controller handler poperly implemented with working initial control mode change
 RobotManagerNode::RobotManagerNode()
-: kroshu_ros2_core::ROS2BaseLCNode("robot_manager"),
+: kuka_drivers_core::ROS2BaseLCNode("robot_manager"),
   controller_handler_({"joint_state_broadcaster", })
 #ifdef NON_MOCK_SETUP
   , control_mode_change_finished_(false)
@@ -59,40 +59,40 @@ RobotManagerNode::RobotManagerNode()
 
   // Register parameters
   this->registerParameter<std::string>(
-    "position_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights {true, true,
       false, false, false}, [this](const std::string & controller_name) {
       return this->controller_handler_.UpdateControllerName(
-        kroshu_ros2_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE,
+        kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE,
         controller_name);
     });
   this->registerParameter<std::string>(
-    "impedance_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true,
+    "impedance_controller_name", "", kuka_drivers_core::ParameterSetAccessRights {true, true,
       false, false, false}, [this](const std::string & controller_name) {
       return this->controller_handler_.UpdateControllerName(
-        kroshu_ros2_core::ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE,
+        kuka_drivers_core::ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE,
         controller_name);
     });
   this->registerParameter<std::string>(
-    "torque_controller_name", "", kroshu_ros2_core::ParameterSetAccessRights {true, true, false,
+    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights {true, true, false,
       false, false}, [this](const std::string & controller_name) {
       return this->controller_handler_.UpdateControllerName(
-        kroshu_ros2_core::ControllerType::TORQUE_CONTROLLER_TYPE,
+        kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE,
         controller_name);
     });
   this->registerParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
-    kroshu_ros2_core::ParameterSetAccessRights{true, true,
+    kuka_drivers_core::ParameterSetAccessRights{true, true,
       true, false, false}, [this](int control_mode) {
       return this->onControlModeChangeRequest(control_mode);
     });
   this->registerStaticParameter<std::string>(
-    "controller_ip", "", kroshu_ros2_core::ParameterSetAccessRights {true, false, false,
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights {true, false, false,
       false, false}, [this](const std::string &) {
       return true;
     });
   this->registerStaticParameter<std::string>(
     "robot_model", "LBRiisy3R760",
-    kroshu_ros2_core::ParameterSetAccessRights{true, false,
+    kuka_drivers_core::ParameterSetAccessRights{true, false,
       false, false, false}, [this](const std::string & robot_model) {
       return this->onRobotModelChangeRequest(robot_model);
     });
@@ -136,7 +136,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
@@ -154,7 +154,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   controller_request->strictness = SwitchController::Request::STRICT;
   controller_request->activate_controllers = {"control_mode_handler"};
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -177,7 +177,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   controller_request->strictness = SwitchController::Request::STRICT;
   controller_request->deactivate_controllers = {"control_mode_handler"};
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -190,7 +190,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 2000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
@@ -267,7 +267,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 5000);
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
@@ -280,7 +280,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   try {
     new_controllers = controller_handler_.GetControllersForSwitch(
-      kroshu_ros2_core::ControlMode(control_mode));
+      kuka_drivers_core::ControlMode(control_mode));
   } catch (const std::exception & e) {
     RCLCPP_ERROR(get_logger(), "Error while activating controllers: %s", e.what());
     return ERROR;
@@ -301,7 +301,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
 
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -338,7 +338,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   hw_request->name = robot_model_;
   hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
   auto hw_response =
-    kroshu_ros2_core::sendRequest<SetHardwareComponentState::Response>(
+    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
     change_hardware_state_client_, hw_request, 0, 3000);   // was not stable with 2000 ms timeout
   if (!hw_response || !hw_response->ok) {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
@@ -357,7 +357,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   controller_request->deactivate_controllers =
     controller_handler_.GetControllersForDeactivation();
   auto controller_response =
-    kroshu_ros2_core::sendRequest<SwitchController::Response>(
+    kuka_drivers_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000
     );
   if (!controller_response || !controller_response->ok) {
@@ -384,12 +384,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   RCLCPP_INFO(get_logger(), "Control mode change requested");
   // TODO(komaromi): Remove this if a new control mode is supported
   if (control_mode ==
-    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
+    static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
     control_mode ==
-    static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::WRENCH_CONTROL) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::JOINT_VELOCITY_CONTROL) ||
-    control_mode == static_cast<int>(kroshu_ros2_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
+    static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||
+    control_mode == static_cast<int>(kuka_drivers_core::ControlMode::WRENCH_CONTROL) ||
+    control_mode == static_cast<int>(kuka_drivers_core::ControlMode::JOINT_VELOCITY_CONTROL) ||
+    control_mode == static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
     return false;
@@ -404,7 +404,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   // Calculates the controller to activate and deactivate
   try {
     switch_controllers = controller_handler_.GetControllersForSwitch(
-      kroshu_ros2_core::ControlMode(control_mode));
+      kuka_drivers_core::ControlMode(control_mode));
   } catch (const std::exception & e) {
     RCLCPP_ERROR(get_logger(), "Error while control mode change: %s", e.what());
     return false;
@@ -420,7 +420,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       controller_request->activate_controllers = switch_controllers.first;
       controller_request->strictness = SwitchController::Request::STRICT;
       auto controller_response =
-        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        kuka_drivers_core::sendRequest<SwitchController::Response>(
         change_controller_state_client_, controller_request, 0, 2000
         );
       if (!controller_response || !controller_response->ok) {
@@ -471,7 +471,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       controller_request->deactivate_controllers = switch_controllers.second;
       controller_request->strictness = SwitchController::Request::STRICT;
       auto controller_response =
-        kroshu_ros2_core::sendRequest<SwitchController::Response>(
+        kuka_drivers_core::sendRequest<SwitchController::Response>(
         change_controller_state_client_, controller_request, 0, 2000
         );
       if (!controller_response || !controller_response->ok) {
