@@ -1,1 +1,0 @@
-The FRI client package was copied from https://github.com/KCL-BMEIS/fri and integrated into a ROS2 package.
