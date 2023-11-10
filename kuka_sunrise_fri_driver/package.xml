@@ -12,7 +12,6 @@
 	<buildtool_depend>ament_cmake_python</buildtool_depend>
 	<buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-	<depend>fri</depend>
 	<depend>rclcpp</depend>
 	<depend>rclcpp_lifecycle</depend>
 	<depend>std_msgs</depend>
