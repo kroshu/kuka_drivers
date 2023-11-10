@@ -14,10 +14,10 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
       
-    timing_controller:
-      type: kuka_controllers/TimingController
+    fri_configuration_controller:
+      type: fri_configuration_controller/FRIConfigurationController
 
-    robot_state_broadcaster:
-      type: kuka_controllers/RobotStateBroadcaster
+    fri_state_broadcaster:
+      type: fri_state_broadcaster/FRIStateBroadcaster
 
     configure_components_on_start: [""]

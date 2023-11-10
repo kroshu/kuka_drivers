@@ -81,13 +81,13 @@ def generate_launch_description():
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["timing_controller", "-c",
+            arguments=["fri_configuration_controller", "-c",
                        conntroller_manager_node, "--inactive"]
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["robot_state_broadcaster", "-c",
+            arguments=["fri_state_broadcaster", "-c",
                        conntroller_manager_node, "--inactive"]
         )
     ])

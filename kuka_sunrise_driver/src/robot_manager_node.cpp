@@ -92,7 +92,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     std::make_shared<SwitchController::Request>();
   controller_request->strictness = SwitchController::Request::STRICT;
   controller_request->activate_controllers =
-    std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
+    std::vector<std::string>{"timing_controller", "fri_state_broadcaster"};
   auto controller_response =
     kroshu_ros2_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 3000);
@@ -150,7 +150,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   controller_request->strictness =
     SwitchController::Request::BEST_EFFORT;
   controller_request->deactivate_controllers =
-    std::vector<std::string>{"timing_controller", "robot_state_broadcaster"};
+    std::vector<std::string>{"fri_configuration_controller", "fri_state_broadcaster"};
   auto controller_response =
     kroshu_ros2_core::sendRequest<SwitchController::Response>(
     change_controller_state_client_, controller_request, 0, 2000);
