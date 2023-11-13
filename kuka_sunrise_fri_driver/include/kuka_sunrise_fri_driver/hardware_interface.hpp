@@ -51,11 +51,11 @@ static std::unordered_map<std::string,
   IOTypes> const types =
 {{"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
 
-class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
+class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
   public KUKA::FRI::LBRClient
 {
 public:
-  KUKAFRIHardwareInterface()
+  KukaFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;

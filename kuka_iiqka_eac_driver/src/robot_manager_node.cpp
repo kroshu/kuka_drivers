@@ -21,7 +21,7 @@ using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;  // NOLINT
 using namespace kuka::motion::external;  // NOLINT
 
-namespace kuka_rox
+namespace kuka_eac
 {
 // TODO(Komaromi): Readd "control_mode_handler" controller to controller_handlers constrctor
 // after controller handler poperly implemented with working initial control mode change
@@ -501,7 +501,7 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   robot_model_ = robot_model;
   return true;
 }
-}  // namespace kuka_rox
+}  // namespace kuka_eac
 
 int main(int argc, char * argv[])
 {
@@ -509,7 +509,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rox::RobotManagerNode>();
+  auto node = std::make_shared<kuka_eac::RobotManagerNode>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();

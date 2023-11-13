@@ -44,13 +44,13 @@
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-namespace kuka_rox
+namespace kuka_eac
 {
 
-class KukaRoXHardwareInterface : public hardware_interface::SystemInterface
+class KukaEACHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRoXHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaEACHardwareInterface)
 
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
@@ -108,6 +108,6 @@ private:
   static constexpr char HW_IF_DAMPING[] = "damping";
   static constexpr char CONTROL_MODE[] = "control_mode";
 };
-}  // namespace kuka_rox
+}  // namespace kuka_eac
 
 #endif  // KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_

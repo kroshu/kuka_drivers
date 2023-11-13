@@ -35,7 +35,7 @@
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
-namespace kuka_rox
+namespace kuka_eac
 {
 class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 {
@@ -94,7 +94,7 @@ private:
   static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
-}   // namespace kuka_rox
+}   // namespace kuka_eac
 
 
 #endif  // KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
