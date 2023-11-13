@@ -27,9 +27,9 @@ def launch_setup(context, *args, **kwargs):
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
 
     # TODO(Svastits):better way to handle supported robot models and families
-    if robot_model.perform(context) in ["kr6_r700-sixx", "kr6_r900-sixx"]:
+    if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
         robot_family = "agilus"
-    elif robot_model.perform(context) in ["kr16_r2010-2"]:
+    elif robot_model.perform(context) in ["kr16_r2010_2"]:
         robot_family = "cybertech"
     else:
         print("[ERROR] [launch]: robot model not recognized")
@@ -112,7 +112,7 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
-        default_value='kr6_r700-sixx'
+        default_value='kr6_r700_sixx'
     ))
     launch_arguments.append(DeclareLaunchArgument(
         'use_fake_hardware',

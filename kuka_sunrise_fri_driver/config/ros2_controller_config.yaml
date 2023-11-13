@@ -15,9 +15,9 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
       
     fri_configuration_controller:
-      type: fri_configuration_controller/FRIConfigurationController
+      type: kuka_controllers/FRIConfigurationController
 
     fri_state_broadcaster:
-      type: fri_state_broadcaster/FRIStateBroadcaster
+      type: kuka_controllers/FRIStateBroadcaster
 
     configure_components_on_start: [""]
