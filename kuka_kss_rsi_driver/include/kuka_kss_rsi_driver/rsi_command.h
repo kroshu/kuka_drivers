@@ -48,9 +48,7 @@ namespace kuka_kss_rsi_driver
 class RSICommand
 {
 public:
-  RSICommand()
-  {
-  }
+  RSICommand() = default;
   RSICommand(std::vector<double> joint_position_correction, uint64_t ipoc, bool stop = false)
   {
     TiXmlDocument doc;
