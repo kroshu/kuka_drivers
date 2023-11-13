@@ -21,7 +21,7 @@ from launch_ros.descriptions import ParameterValue
 from launch.substitutions import Command
 
 fri_config_file = get_package_share_directory(
-    'kuka_sunrise_fri_driver') + "/config/fri_config.yaml"
+    'kuka_sunrise_fri_driver') + "/config/driver_config.yaml"
 
 
 def load_file(absolute_file_path):

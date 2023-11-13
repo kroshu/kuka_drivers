@@ -91,7 +91,7 @@ RobotManagerNode::RobotManagerNode()
       return true;
     });
   this->registerStaticParameter<std::string>(
-    "robot_model", "LBRiisy3R760",
+    "robot_model", "lbr_iisy3_r760",
     kuka_drivers_core::ParameterSetAccessRights{true, false,
       false, false, false}, [this](const std::string & robot_model) {
       return this->onRobotModelChangeRequest(robot_model);

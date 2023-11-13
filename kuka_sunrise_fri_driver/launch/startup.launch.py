@@ -30,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("kuka_lbr_iisy_support"),
+                [FindPackageShare("kuka_lbr_iiwa_support"),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
@@ -40,18 +40,14 @@ def launch_setup(context, *args, **kwargs):
     # Get URDF via xacro
     robot_description = {'robot_description': robot_description_content}
 
-    controller_config = (get_package_share_directory('kuka_iiqka_eac_driver') +
+    controller_config = (get_package_share_directory('kuka_sunrise_fri_driver') +
                          "/config/ros2_controller_config.yaml")
 
-    joint_traj_controller_config = (get_package_share_directory('kuka_iiqka_eac_driver') +
+    joint_traj_controller_config = (get_package_share_directory('kuka_sunrise_fri_driver') +
                                     "/config/joint_trajectory_controller_config.yaml")
-    effort_controller_config = (get_package_share_directory('kuka_iiqka_eac_driver') +
-                                "/config/effort_controller_config.yaml")
-    joint_imp_controller_config = (get_package_share_directory('kuka_iiqka_eac_driver') +
-                                   "/config/joint_impedance_controller_config.yaml")
 
-    driver_config = (get_package_share_directory(
-        'kuka_iiqka_eac_driver') + "/config/driver_config.yaml")
+    driver_config = (get_package_share_directory('kuka_sunrise_fri_driver') +
+                     "/config/driver_config.yaml")
 
     controller_manager_node = '/controller_manager'
 
@@ -63,9 +59,11 @@ def launch_setup(context, *args, **kwargs):
     robot_manager_node = LifecycleNode(
         name=['robot_manager'],
         namespace='',
-        package="kuka_iiqka_eac_driver",
+        package="kuka_sunrise_fri_driver",
         executable="robot_manager_node",
-        parameters=[driver_config, {'robot_model': robot_model.perform(context)}]
+        parameters=[driver_config, {'robot_model': robot_model.perform(context)},
+                    {'position_controller_name': 'joint_trajectory_controller'},
+                    {'torque_controller_name': ''}]
     )
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -86,9 +84,8 @@ def launch_setup(context, *args, **kwargs):
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
         ("joint_trajectory_controller", joint_traj_controller_config),
-        ("joint_impedance_controller", joint_imp_controller_config),
-        ("effort_controller", effort_controller_config),
-        ("control_mode_handler", [])
+        ("fri_configuration_controller", []),
+        ("fri_state_broadcaster", [])
     ]
 
     controller_spawners = [controller_spawner(controllers)
@@ -107,6 +104,6 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
-        default_value='lbr_iisy3_r760'
+        default_value='lbr_iiwa14_r820'
     ))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
