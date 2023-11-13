@@ -43,11 +43,11 @@ bool ControllerHandler::UpdateControllerName(
     case ControllerType::JOINT_VELOCITY_CONTROLLER_TYPE:
       control_mode_map_[ControlMode::JOINT_VELOCITY_CONTROL].standard_controller =
         controller_name;
-        break;
+      break;
     case ControllerType::TWIST_CONTROLLER_TYPE:
       control_mode_map_[ControlMode::CARTESIAN_VELOCITY_CONTROL].standard_controller =
         controller_name;
-        break;
+      break;
     case ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE:
       control_mode_map_[ControlMode::JOINT_IMPEDANCE_CONTROL].impedance_controller =
         controller_name;
