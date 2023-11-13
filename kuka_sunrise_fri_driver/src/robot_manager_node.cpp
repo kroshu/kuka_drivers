@@ -58,6 +58,13 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  this->registerStaticParameter<std::string>(
+    "robot_model", "lbr_iiwa14_r820",
+    kuka_drivers_core::ParameterSetAccessRights{true, false,
+      false, false, false}, [this](const std::string & robot_model) {
+      return this->onRobotModelChangeRequest(robot_model);
+    });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -66,7 +73,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Configure hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
+  hw_request->name = robot_model_;
   hw_request->target_state.label = "inactive";
   auto hw_response =
     kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
@@ -163,7 +170,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // If it is inactive, cleanup will also succeed
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
+  hw_request->name = robot_model_;
   hw_request->target_state.label = "unconfigured";
   auto hw_response =
     kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
@@ -204,7 +211,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate hardware interface
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
+  hw_request->name = robot_model_;
   hw_request->target_state.label = "active";
   auto hw_response =
     kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
@@ -288,7 +295,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // If it is inactive, deactivation will also succeed
   auto hw_request =
     std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
+  hw_request->name = robot_model_;
   hw_request->target_state.label = "inactive";
   auto hw_response =
     kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
@@ -369,6 +376,12 @@ void RobotManagerNode::handleFRIEndedError()
 {
   RCLCPP_INFO(get_logger(), "FRI ended");
   this->LifecycleNode::deactivate();
+}
+
+bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  robot_model_ = robot_model;
+  return true;
 }
 
 }  // namespace kuka_sunrise_fri_driver

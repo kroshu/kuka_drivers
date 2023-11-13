@@ -41,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     rviz_config_file = get_package_share_directory(
-        'kuka_lbr_iisy_moveit_config') + "/config/urdf_planning_scene.rviz"
+        'kuka_resources') + "/config/view_6_axis_urdf.rviz"
 
     startup_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
         [get_package_share_directory('kuka_iiqka_eac_driver'), '/launch/startup.launch.py']),

@@ -74,9 +74,11 @@ private:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
   std::string controller_name_;
+  std::string robot_model_;
 
   void handleControlEndedError();
   void handleFRIEndedError();
+  bool onRobotModelChangeRequest(const std::string & robot_model);
 };
 
 }  // namespace kuka_sunrise_fri_driver
