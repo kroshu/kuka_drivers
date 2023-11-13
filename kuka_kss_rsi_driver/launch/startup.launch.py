@@ -31,6 +31,8 @@ def launch_setup(context, *args, **kwargs):
         robot_family = "agilus"
     elif robot_model.perform(context) in ["kr16_r2010_2"]:
         robot_family = "cybertech"
+    elif robot_model.perform(context) in ["kr210_r2700_2", "kr210_r3100_2"]:
+        robot_family = "quantec"
     else:
         print("[ERROR] [launch]: robot model not recognized")
         raise Exception
