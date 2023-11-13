@@ -341,7 +341,7 @@ protected:
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
   std::shared_ptr<moveit_visual_tools::MoveItVisualTools> moveit_visual_tools_;
   const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
-  const std::string PLANNING_GROUP = "lbr_iisy_arm";
+  const std::string PLANNING_GROUP = "manipulator";
 };
 
 #endif  // IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_

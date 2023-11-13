@@ -1,7 +1,3 @@
-Github CI | SonarCloud
-------------| ---------------
-[![Build Status](https://github.com/kroshu/kuka_drivers_core/workflows/CI/badge.svg?branch=master)](https://github.com/kroshu/kuka_drivers_core/actions) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers_core&metric=alert_status)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers_core)
-
 # Core classes which help function the repositories of kroshu.
 These classes provide functonalities which are frequently used in ROS2 environment.
 Deriving from these classes the user has a helpful wrapper around the base functionalities of ROS2.
