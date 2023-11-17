@@ -1,5 +1,3 @@
-![KUKALogo](http://www.mykuka.com/SiteCollectionImages/KUKALogo_Pan151.gif)
-
 # ROS2 KUKA Drivers
 
 Experimental ROS2 driver for KUKA robots. Recommended distribution is [ROS 2 Humble Hawksbill:](https://docs.ros.org/en/humble/Installation.html).
