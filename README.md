@@ -1,7 +1,10 @@
+![KUKALogo](http://www.mykuka.com/SiteCollectionImages/KUKALogo_Pan151.gif)
+
 # ROS2 KUKA Drivers
 
-Experimental ROS2 driver for KUKA robots.
+Experimental ROS2 driver for KUKA robots. Recommended distribution is [ROS 2 Humble Hawksbill:](https://docs.ros.org/en/humble/Installation.html).
 
+> ROS2 Iron Irwini has breaking changes, thus it is not yet supported.
 
 Github CI | SonarCloud
 ------------| ---------------
@@ -14,17 +17,21 @@ Create ROS2 workspace (if already not created).
 mkdir -p ~/ros2_ws/src
 ```
 
-Clone KUKA ROS2 repos.
+Clone KUKA ROS2 repositories.
 ```bash
 cd ~/ros2_ws/src
 git clone https://github.com/kroshu/kuka_drivers.git
 vcs import < kuka_drivers/upstream.repos
 ```
 
-Get ROS2 dependencies.
+Install dependencies using `rosdep`.
 ```bash
 cd ~/ros2_ws
-sudo apt update && rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+sudo apt install python3-rosdep
+sudo rosdep init
+rosdep update
+sudo apt upgrade
+rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
 ```
 
 Build KUKA packages.
@@ -35,6 +42,8 @@ colcon build
 
 Source built KUKA packages.
 ```bash
+# Replace ".bash" with your shell if you're not using bash
+# Possible values are: setup.bash, setup.sh, setup.zsh
 source ~/ros2_ws/install/setup.bash
 ```
 
