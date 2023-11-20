@@ -10,7 +10,7 @@ Github CI | SonarCloud
 
 # Installation
 
-Create ROS2 workspace (if already not created).
+Create ROS2 workspace (if not already created).
 ```bash
 mkdir -p ~/ros2_ws/src
 ```
@@ -22,11 +22,15 @@ git clone https://github.com/kroshu/kuka_drivers.git
 vcs import < kuka_drivers/upstream.repos
 ```
 
+Install and initialize rosdep (if not already done)
+```bash
+sudo apt install python3-rosdep
+sudo rosdep init
+```
+
 Install dependencies using `rosdep`.
 ```bash
 cd ~/ros2_ws
-sudo apt install python3-rosdep
-sudo rosdep init
 rosdep update
 sudo apt upgrade
 rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
