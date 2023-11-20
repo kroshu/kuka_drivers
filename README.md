@@ -29,7 +29,7 @@ sudo apt install python3-rosdep
 sudo rosdep init
 rosdep update
 sudo apt upgrade
-rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
 ```
 
 Build KUKA packages.
