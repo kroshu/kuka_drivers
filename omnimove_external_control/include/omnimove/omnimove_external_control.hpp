@@ -3,6 +3,9 @@
 
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/handle.hpp>
+#include <omnimove/external_control_message.hpp>
+#include <boost/asio.hpp>
+#include <boost/circular_buffer.hpp>
 
 namespace omnimove{
     class OmnimoveExternalControl:public hardware_interface::SystemInterface{
@@ -21,6 +24,14 @@ namespace omnimove{
         std::vector<double> velocity_state_;
         std::vector<double> position_state_;
         std::vector<double> velocity_commands_;
+        std::string protocol_version_;
+        int external_control_port_;
+        boost::asio::io_context io_context_;
+        std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+        boost::asio::ip::tcp::socket client_socket_;
+        boost::circular_buffer<uint8_t> read_buffer_;
+        ExternalControlData parseLastMessageFromBuffer();
+
 
 
     };

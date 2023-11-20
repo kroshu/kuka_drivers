@@ -33,6 +33,7 @@ add_library(
   omnimove_external_control
   SHARED
   src/omnimove_external_control.cpp
+  src/external_control_message.cpp
 )
 
 install(TARGETS omnimove_external_control
