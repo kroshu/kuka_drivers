@@ -14,7 +14,8 @@ namespace omnimove{
             const char *header_;
             const char *message_;
             const char *crc_;
-            ExternalControlMessage(const char *header, const char* message, const int &msg_length);
+            template <typename Buffer>
+            ExternalControlMessage(const char *header, const Buffer &message, const int &msg_length);
         public:
             int16_t calculateCRC();
             boost::asio::const_buffer getSerialisedData();
@@ -22,9 +23,10 @@ namespace omnimove{
 
     class ExternalControlData : public ExternalControlMessage{
         private:
-            const boolean is_valid_;
+            const bool is_valid_;
 
         protected:
+            static constexpr const char* EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
             static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 96; //TODO: needs to be configurable based on the number of reserve bits.
             uint8_t actual_mode_;
             int32_t actual_speed_x_;
@@ -60,14 +62,16 @@ namespace omnimove{
             std::vector<uint8_t> reserve_bytes_;
             uint32_t alive_signal_;
         public:
-            static constexpr const char* EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
             ExternalControlData();
-            ExternalControlData(const char *msg_data);
-            int actualMode();
-            int speedX();
-            int speedY();
-            int speedW();
-            const bool isValid();
+            template <typename Buffer>
+            ExternalControlData(const Buffer &msg_data);
+            template <typename Buffer>
+            static bool isMessageValid(const Buffer&buffer);
+            int actualMode() const;
+            int speedX() const;
+            int speedY() const;
+            int speedW() const;
+            bool isDataValid() const;
     };
 
     class ExternalControlCommand : public ExternalControlMessage{

@@ -2,10 +2,12 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <boost/asio.hpp>
+#include <rcl/logging.h>
 
 namespace omnimove{
 
-    ExternalControlMessage::ExternalControlMessage(const char* header, const char *message, const int& data_length){
+    template <typename Buffer>
+    ExternalControlMessage::ExternalControlMessage(const char* header, const Buffer &message, const int& data_length){
         size_t header_length = strlen(header);
         msg_length_ = header_length + data_length + 2;
         msg_buffer_ = std::make_unique<char[]>(msg_length_);
@@ -44,21 +46,42 @@ namespace omnimove{
 
     }
 
-    ExternalControlData::ExternalControlData(const char *msg_data):ExternalControlMessage(ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER,
+    template <typename Buffer>
+    ExternalControlData::ExternalControlData(const Buffer& msg_data):ExternalControlMessage(ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER,
                                                                                           msg_data,
-                                                                                          EXTERNAL_CONTROL_DATA_LENGTH){
+                                                                                          EXTERNAL_CONTROL_DATA_LENGTH), is_valid_(true){
 
     }
 
-    int ExternalControlData::speedX(){
+    bool ExternalControlData::isDataValid() const{
+        return is_valid_;
+    }
+
+    template <typename Buffer>
+     bool ExternalControlData::isMessageValid(const Buffer &msg_data) {
+
+      if (msg_data.size() < EXTERNAL_CONTROL_DATA_LENGTH) {
+        return false;
+      }
+
+      for (size_t i = 0; i < strlen(EXTERNAL_CONTROL_DATA_HEADER); ++i) {
+        if (msg_data[i] != EXTERNAL_CONTROL_DATA_HEADER[i]) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    int ExternalControlData::speedX() const{
         return actual_speed_x_;
     }
 
-    int ExternalControlData::speedY(){
+    int ExternalControlData::speedY() const{
         return actual_speed_y_;
     }
 
-    int ExternalControlData::speedW(){
+    int ExternalControlData::speedW() const{
         return actual_speed_w_;
     }
 
