@@ -14,8 +14,7 @@ namespace omnimove{
             const char *header_;
             const char *message_;
             const char *crc_;
-            template <typename Buffer>
-            ExternalControlMessage(const char *header, const Buffer &message, const int &msg_length);
+            ExternalControlMessage(const char *header, const char *message, const int &msg_length);
         public:
             int16_t calculateCRC();
             boost::asio::const_buffer getSerialisedData();
@@ -27,7 +26,7 @@ namespace omnimove{
 
         protected:
             static constexpr const char* EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
-            static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 96; //TODO: needs to be configurable based on the number of reserve bits.
+            static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 106; //TODO: needs to be configurable based on the number of reserve bits.
             uint8_t actual_mode_;
             int32_t actual_speed_x_;
             int32_t actual_speed_y_;
@@ -63,10 +62,9 @@ namespace omnimove{
             uint32_t alive_signal_;
         public:
             ExternalControlData();
-            template <typename Buffer>
-            ExternalControlData(const Buffer &msg_data);
-            template <typename Buffer>
-            static bool isMessageValid(const Buffer&buffer);
+            ExternalControlData(const char *msg_data);
+            static bool isMessageValid(const char *buffer, size_t length);
+            static size_t totalMessageLength();
             int actualMode() const;
             int speedX() const;
             int speedY() const;
@@ -78,9 +76,12 @@ namespace omnimove{
         protected:
             ExternalControlCommand(const char *message);
             static std::unique_ptr<char[]> getMessageBuffer();
+            static uint32_t alive_counter_;
         public:
             static constexpr const char* EXTERNAL_CONTROL_COMMAND_HEADER = "CTRL2KMR";
             static constexpr int EXTERNAL_CONTROL_COMMAND_LENGTH = 68;
+/*
+            This is the current structure of the the message.
             uint8_t u8_forced_bit_;
             uint8_t u8_mode_;
             int32_t s32_speed_x_;
@@ -111,6 +112,7 @@ namespace omnimove{
             uint8_t u8_reserve_9_;
             uint32_t u32_counter_received_;
             int16_t s16_crc;
+            */
     };
 
     class ExternalControlOmnimoveDriveCommand : public ExternalControlCommand {

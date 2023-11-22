@@ -6,8 +6,7 @@
 
 namespace omnimove{
 
-    template <typename Buffer>
-    ExternalControlMessage::ExternalControlMessage(const char* header, const Buffer &message, const int& data_length){
+    ExternalControlMessage::ExternalControlMessage(const char* header, const char *message, const int& data_length){
         size_t header_length = strlen(header);
         msg_length_ = header_length + data_length + 2;
         msg_buffer_ = std::make_unique<char[]>(msg_length_);
@@ -46,10 +45,14 @@ namespace omnimove{
 
     }
 
-    template <typename Buffer>
-    ExternalControlData::ExternalControlData(const Buffer& msg_data):ExternalControlMessage(ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER,
+
+    ExternalControlData::ExternalControlData(const char  *msg_data):ExternalControlMessage(ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER,
                                                                                           msg_data,
                                                                                           EXTERNAL_CONTROL_DATA_LENGTH), is_valid_(true){
+
+      memcpy(&actual_speed_x_, msg_data + 1, 4);
+      memcpy(&actual_speed_y_, msg_data + 5, 4);
+      memcpy(&actual_speed_w_, msg_data + 9, 4);
 
     }
 
@@ -57,10 +60,9 @@ namespace omnimove{
         return is_valid_;
     }
 
-    template <typename Buffer>
-     bool ExternalControlData::isMessageValid(const Buffer &msg_data) {
+     bool ExternalControlData::isMessageValid(const char *msg_data, size_t length) {
 
-      if (msg_data.size() < EXTERNAL_CONTROL_DATA_LENGTH) {
+      if (length < totalMessageLength ()) {
         return false;
       }
 
@@ -72,6 +74,10 @@ namespace omnimove{
 
       return true;
     }
+
+     size_t ExternalControlData::totalMessageLength(){
+         return EXTERNAL_CONTROL_DATA_LENGTH + strlen(EXTERNAL_CONTROL_DATA_HEADER) + 2;
+     }
 
     int ExternalControlData::speedX() const{
         return actual_speed_x_;
@@ -86,6 +92,7 @@ namespace omnimove{
     }
 
 
+    uint32_t ExternalControlCommand::alive_counter_=0;
     ExternalControlCommand::ExternalControlCommand(const char *message):ExternalControlMessage(EXTERNAL_CONTROL_COMMAND_HEADER,
                                                                                                message,
                                                                                                EXTERNAL_CONTROL_COMMAND_LENGTH){
@@ -95,6 +102,8 @@ namespace omnimove{
     std::unique_ptr<char[]> ExternalControlCommand::getMessageBuffer(){
         auto msg_data = std::make_unique<char[]>(ExternalControlCommand::EXTERNAL_CONTROL_COMMAND_LENGTH);
         memset(msg_data.get (), 0, ExternalControlCommand::EXTERNAL_CONTROL_COMMAND_LENGTH);
+        uint32_t counter = ++alive_counter_;
+        memcpy(msg_data.get() + ExternalControlCommand::EXTERNAL_CONTROL_COMMAND_LENGTH - 4 , &counter, 4);
         return msg_data;
      }
 
@@ -142,12 +151,12 @@ ExternalControlCommand::ExternalControlCommand():u8_forced_bit_(0),
     std::unique_ptr<char[]> ExternalControlOmnimoveDriveCommand::getMessageData(int speed_x, int speed_y, int speed_w)
     {
         auto msg_data = getMessageBuffer();
-        msg_data.get()[0] = 0; // setting forced bit to 1
+        msg_data.get()[0] = 0;
         msg_data.get()[1] = 2; //set mode to AutoDrive
 
-        *((int32_t *)(msg_data.get() + 2)) = htonl(speed_x);
-        *((int32_t *)(msg_data.get() + 6)) = htonl(speed_y);
-        *((int32_t *)(msg_data.get() + 10)) = htonl(speed_w);
+        *((int32_t *)(msg_data.get() + 2)) = speed_x;
+        *((int32_t *)(msg_data.get() + 6)) = speed_y;
+        *((int32_t *)(msg_data.get() + 10)) = speed_w;
         return msg_data;
     }
 }
