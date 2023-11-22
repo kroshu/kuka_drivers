@@ -139,25 +139,50 @@ export_command_interfaces()
 CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
  #ifdef NON_MOCK_SETUP
-  SetQoSProfileRequest request;
-  SetQoSProfileResponse response;
+
   grpc::ClientContext context;
+  // Get Configured Signals Request
+  GetConfiguredSignalsRequest signal_configuration_request;
+  GetConfiguredSignalsResponse signal_configuration_response;
 
-  request.add_qos_profiles();
+  if (stub_->GetConfiguredSignals(
+      &context, signal_configuration_request,
+      &signal_configuration_response).error_code != grpc::StatusCode::OK)
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "GetSignalConfiguration failed");
+    return CallbackReturn::FAILURE;
+  } else {
+    // TODO (Komaromi): Save signal configuration
+    for (auto && signal : signal_configuration_response.signal_config_external()) {
+      RCLCPP_INFO(
+        rclcpp::get_logger(
+          "KukaRoXHardwareInterface"), "ID: %d, Name: %s, Direction: %d, Type %d",
+        signal.signal_id(), signal.signal_config().direction(), signal.signal_config().data_type());
+    }
+  }
 
-  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
+  // Set QOS Profile Request
+  SetQoSProfileRequest set_qos_request;
+  SetQoSProfileResponse set_qos_response;
+
+  set_qos_request.add_qos_profiles();
+
+  set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
   set_consequent_lost_packets(std::stoi(info_.hardware_parameters.at("consequent_lost_packets")));
-  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
+  set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
   set_lost_packets_in_timeframe(
     std::stoi(
       info_.hardware_parameters.at(
         "lost_packets_in_timeframe")));
-  request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->set_timeframe_ms(
+  set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->set_timeframe_ms(
     std::stoi(
       info_.hardware_parameters.at(
         "timeframe_ms")));
 
-  if (stub_->SetQoSProfile(&context, request, &response).error_code() != grpc::StatusCode::OK) {
+  if (stub_->SetQoSProfile(
+      &context, set_qos_request,
+      &set_qos_response).ok())
+  {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "SetQoSProfile failed");
     return CallbackReturn::FAILURE;
   }
@@ -191,21 +216,34 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
-  OpenControlChannelRequest request;
-  OpenControlChannelResponse response;
   grpc::ClientContext context;
+  EnableSignalsRequest enable_signals_request;
+  EnableSignalsResponse enable_signals_response;
+  enable_signals_request.add_enable_signal();
+  enable_signals_request.mutable_enable_signal()->at(0).set_is_enabled(true);
+  enable_signals_request.mutable_enable_signal()->at(0).set_signal_id(1);
 
-  request.set_ip_address(info_.hardware_parameters.at("client_ip"));
-  request.set_timeout(5000);
-  request.set_cycle_time(4);
-  request.set_external_control_mode(
+  if (stub_->EnableSignals(&context, enable_signals_request, &enable_signals_response).ok()) {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Enable Signals failed");
+    return CallbackReturn::FAILURE;
+  }
+
+  // Open Control Chanel Request
+  OpenControlChannelRequest opc_request;
+  OpenControlChannelResponse opc_response;
+
+
+  opc_request.set_ip_address(info_.hardware_parameters.at("client_ip"));
+  opc_request.set_timeout(5000);
+  opc_request.set_cycle_time(4);
+  opc_request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(hw_control_mode_command_));
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRoXHardwareInterface"), "Starting control in %s",
     kuka::motion::external::ExternalControlMode_Name(
       static_cast<int>(hw_control_mode_command_)).c_str());
 
-  auto ret = stub_->OpenControlChannel(&context, request, &response);
+  auto ret = stub_->OpenControlChannel(&context, opc_request, &opc_response);
   if (ret.error_code() != grpc::StatusCode::OK) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "%s", ret.error_message().c_str());
     return CallbackReturn::FAILURE;
