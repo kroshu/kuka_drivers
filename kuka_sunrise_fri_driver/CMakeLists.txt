@@ -72,11 +72,16 @@ target_link_libraries(fri_client_sdk PRIVATE protobuf-nanopb)
 install(DIRECTORY include/fri_client_sdk DESTINATION include)
 install(FILES ${private_headers} DESTINATION include)
 
-add_library(kuka_fri_hw_interface SHARED
+add_library(${PROJECT_NAME} SHARED
   src/hardware_interface.cpp
 )
-ament_target_dependencies(kuka_fri_hw_interface kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
-target_link_libraries(kuka_fri_hw_interface fri_client_sdk)
+
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_SUNRISE_FRI_DRIVER_BUILDING_LIBRARY")
+
+ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+target_link_libraries(${PROJECT_NAME} fri_client_sdk)
 
 add_library(configuration_manager SHARED
   src/connection_helpers/configuration_manager.cpp)
@@ -92,7 +97,7 @@ target_link_libraries(robot_manager_node
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS fri_connection fri_client_sdk kuka_fri_hw_interface robot_manager_node
+install(TARGETS ${PROJECT_NAME} fri_connection fri_client_sdk robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config

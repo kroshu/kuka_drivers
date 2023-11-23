@@ -41,6 +41,8 @@
 #include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
 #include "os-core-udp-communication/replier.h"
 
+#include "kuka_iiqka_eac_driver/visibility_control.h"
+
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -52,24 +54,34 @@ class KukaEACHardwareInterface : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEACHardwareInterface)
 
-  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_init(const hardware_interface::HardwareInfo & info)
+  override;
 
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
+  export_state_interfaces() override;
 
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
+  export_command_interfaces() override;
 
-  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_configure(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_activate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type read(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
 
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type write(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
 
 private:
-  void ObserveControl();
+  KUKA_IIQKA_EAC_DRIVER_LOCAL void ObserveControl();
 
   bool is_active_ = false;
   bool msg_received_ = false;
