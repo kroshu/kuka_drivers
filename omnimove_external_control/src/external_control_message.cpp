@@ -45,14 +45,29 @@ namespace omnimove{
 
     }
 
-
-    ExternalControlData::ExternalControlData(const char  *msg_data):ExternalControlMessage(ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER,
-                                                                                          msg_data,
-                                                                                          EXTERNAL_CONTROL_DATA_LENGTH), is_valid_(true){
+    ExternalControlData::ExternalControlData(const char *msg_data)
+        : ExternalControlMessage(
+              ExternalControlData::EXTERNAL_CONTROL_DATA_HEADER, msg_data,
+              EXTERNAL_CONTROL_DATA_LENGTH),
+          is_valid_(true) {
 
       memcpy(&actual_speed_x_, msg_data + 1, 4);
       memcpy(&actual_speed_y_, msg_data + 5, 4);
       memcpy(&actual_speed_w_, msg_data + 9, 4);
+      copyPillarData(pillar1_, msg_data + 82);
+      copyPillarData(pillar2_, msg_data + 86);
+      copyPillarData(pillar3_, msg_data + 90);
+      copyPillarData(pillar4_, msg_data + 94);
+      copyPillarData(schild_, msg_data  + 98);
+
+
+    }
+
+    void ExternalControlData::copyPillarData(PillarData &pillar_data, const char *msg_data){
+        memcpy(&pillar_data.target_height_reached_, msg_data , 1);
+        memcpy(&pillar_data.manual_active_, msg_data +1, 1);
+        memcpy(&pillar_data.actual_pos_, msg_data + 2 , 1);
+        memcpy(&pillar_data.actual_speed_, msg_data + 3, 1);
 
     }
 
@@ -91,8 +106,48 @@ namespace omnimove{
         return actual_speed_w_;
     }
 
+    int ExternalControlData::speedPillar1() const {
+        return pillar1_.actual_speed_;
+    }
 
-    uint32_t ExternalControlCommand::alive_counter_=0;
+    int ExternalControlData::posPillar1() const{
+        return pillar1_.actual_pos_;
+    }
+
+    int ExternalControlData::speedPillar2() const {
+        return pillar2_.actual_speed_;
+    }
+    int ExternalControlData::posPillar2() const{
+        return pillar2_.actual_pos_;
+    }
+
+
+    int ExternalControlData::speedPillar3() const {
+        return pillar3_.actual_speed_;
+    }
+
+    int ExternalControlData::posPillar3() const{
+        return pillar3_.actual_pos_;
+    }
+
+    int ExternalControlData::speedPillar4() const {
+        return pillar4_.actual_speed_;
+    }
+    int ExternalControlData::posPillar4() const{
+        return pillar4_.actual_pos_;
+    }
+
+    int ExternalControlData::speedShield() const{
+        return schild_.actual_speed_;
+    }
+
+    int ExternalControlData::posShield() const{
+        return schild_.actual_pos_;
+    }
+
+
+    uint32_t ExternalControlCommand::alive_counter_= 0;
+
     ExternalControlCommand::ExternalControlCommand(const char *message):ExternalControlMessage(EXTERNAL_CONTROL_COMMAND_HEADER,
                                                                                                message,
                                                                                                EXTERNAL_CONTROL_COMMAND_LENGTH){
@@ -108,40 +163,7 @@ namespace omnimove{
      }
 
 
-    /*
-ExternalControlCommand::ExternalControlCommand():u8_forced_bit_(0),
-    u8_mode_(0),
-    s32_speed_x_(0),
-    s32_speed_y_(0),
-    s32_speed_w_(0),
-    s32_deviation_x_(0),
-    s32_deviation_y_(0),
-    s32_deviation_w_(0),
-    u8_deviation_start_(0),
-    u8_odometry_reset_(0),
-    u8_activate_path_planning_(0),
-    u8_max_speed_of_allowed_(0),
-    s32_min_deviation_xy_(0),
-    s32_min_deviation_w_(0),
-    u32_stop_position_(0),
-    u32_stopping_distance_(0),
-    s32_lift_height_(0),
-    s32_lift_velocity_(0),
-    u8_reserve_0_(0),
-    u8_reserve_1_(0),
-    u8_reserve_2_(0),
-    u8_reserve_3_(0),
-    u8_reserve_4_(0),
-    u8_reserve_5_(0),
-    u8_reserve_6_(0),
-    u8_reserve_7_(0),
-    u8_reserve_8_(0),
-    u8_reserve_9_(0),
-    u32_counter_received_(0),
-{
 
-}
-*/
     ExternalControlOmnimoveDriveCommand::ExternalControlOmnimoveDriveCommand(int speed_x,int speed_y, int speed_w):
         ExternalControlCommand(getMessageData(speed_x, speed_y, speed_w).get()){
 

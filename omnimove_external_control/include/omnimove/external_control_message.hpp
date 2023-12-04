@@ -26,7 +26,7 @@ namespace omnimove{
 
         protected:
             static constexpr const char* EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
-            static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 106; //TODO: needs to be configurable based on the number of reserve bits.
+            static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 106; //without the header and crc bytes
             uint8_t actual_mode_;
             int32_t actual_speed_x_;
             int32_t actual_speed_y_;
@@ -57,9 +57,21 @@ namespace omnimove{
             uint8_t tag_number_rear_camera_;
             uint8_t tag_number_left_camera_;
             uint8_t tag_number_right_camera_;
-            uint8_t height_target_reached_;
-            std::vector<uint8_t> reserve_bytes_;
+            struct PillarData{
+                uint8_t manual_active_;
+                uint8_t target_height_reached_;
+                uint8_t actual_speed_;
+                uint8_t actual_pos_;
+            };
+
+            PillarData pillar1_;
+            PillarData pillar2_;
+            PillarData pillar3_;
+            PillarData pillar4_;
+            PillarData schild_;
             uint32_t alive_signal_;
+
+            void copyPillarData(PillarData &pillar_data, const char *msg_data);
         public:
             ExternalControlData();
             ExternalControlData(const char *msg_data);
@@ -69,6 +81,16 @@ namespace omnimove{
             int speedX() const;
             int speedY() const;
             int speedW() const;
+            int speedPillar1() const;
+            int speedPillar2() const;
+            int speedPillar3() const;
+            int speedPillar4() const;
+            int speedShield() const;
+            int posPillar1() const;
+            int posPillar2() const;
+            int posPillar3() const;
+            int posPillar4() const;
+            int posShield() const;
             bool isDataValid() const;
     };
 

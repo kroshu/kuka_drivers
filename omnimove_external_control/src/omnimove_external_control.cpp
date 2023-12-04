@@ -11,19 +11,92 @@ using namespace boost::asio::ip;
 using namespace std;
 namespace  omnimove{
 
-    OmnimoveExternalControl::OmnimoveExternalControl():hardware_interface::SystemInterface(), read_buffer_(4096){
+    OmnimoveExternalControl::OmnimoveExternalControl():hardware_interface::SystemInterface(),
+        velocity_x_index_(-1),
+        velocity_y_index_(-1),
+        velocity_theta_index_(-1),
+        velocity_pillar1_index_(-1),
+        velocity_pillar2_index_(-1),
+        velocity_pillar3_index_(-1),
+        velocity_pillar4_index_(-1),
+        velocity_blade_index_(-1),
+        read_buffer_(4096){
         rclcpp::get_logger("OmnimoveExternalControl") =  rclcpp::get_logger ("OmnimoveExternalControl");
     }
 
+    OmnimoveExternalControl::~OmnimoveExternalControl(){
+        if (acceptor_->is_open ()){
+            acceptor_->close ();
+        }
 
+        if (client_socket_->is_open ()){
+           client_socket_->close ();
+        }
+    }
 
     LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(const hardware_interface::HardwareInfo& info){
         if (SystemInterface::on_init(info)!= LifecycleNodeInterface::CallbackReturn::SUCCESS){
             return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
         }
-        position_state_.resize(info.joints.size());
-        velocity_state_.resize(info.joints.size());
-        velocity_commands_.resize(info.joints.size());
+
+        int position_states_size = 0;
+        int velocity_states_size = 0;
+        int velocity_commands_size = 0;
+        int position_commands_size = 0;
+        for (size_t i=0; i < info.joints.size ();++i){
+            auto command_interfaces = info.joints[i].command_interfaces;
+            auto state_interfaces = info.joints[i].state_interfaces;
+            for (auto ci:command_interfaces){
+                std::string joint_name = info.joints[i].name;
+
+                if (ci.name == "velocity"){
+                    if (joint_name == "move_x"){
+                        velocity_x_index_ = velocity_commands_size;
+                    }else if (joint_name == "move_y"){
+                        velocity_y_index_ = velocity_commands_size;
+                    }else if (joint_name =="move_theta"){
+                        velocity_theta_index_ = velocity_commands_size;
+                    }else if (joint_name == "pillar1"){
+                        velocity_pillar1_index_ = velocity_commands_size;
+                    }else if (joint_name == "pillar2"){
+                        velocity_pillar2_index_ = velocity_commands_size;
+                    }else if (joint_name == "pillar3"){
+                        velocity_pillar3_index_ = velocity_commands_size;
+                    }else if (joint_name == "pillar4"){
+                        velocity_pillar4_index_ = velocity_commands_size;
+                    }else if (joint_name == "shield"){
+                        velocity_blade_index_ = velocity_commands_size;
+                    }
+                    velocity_commands_size++;
+                }
+                if (ci.name == "position"){
+                    if (joint_name == "pillar1"){
+                        position_pillar1_index_ = position_commands_size;
+                    }else if (joint_name == "pillar2"){
+                        position_pillar2_index_ = position_commands_size;
+                    }else if (joint_name == "pillar3"){
+                        position_pillar3_index_ = position_commands_size;
+                    }else if (joint_name == "pillar4"){
+                        position_pillar4_index_ = position_commands_size;
+                    }else if (joint_name == "shield"){
+                        position_blade_index_ = position_commands_size;
+                    }
+
+                    position_commands_size++;
+                }
+            }
+            for (auto si:state_interfaces){
+                if (si.name == "position"){
+                    position_states_size ++;
+                }else if (si.name =="velocity"){
+                    velocity_states_size++;
+                }
+            }
+        }
+        position_state_.resize(position_states_size);
+        velocity_state_.resize(velocity_states_size);
+        velocity_commands_.resize(velocity_commands_size);
+        position_commands_.resize (position_commands_size);
         protocol_version_ = info_.hardware_parameters["protocol_version"]; //should be 1.6
         external_control_port_ = std::stoi(info_.hardware_parameters["port"]);
         RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
@@ -43,6 +116,8 @@ namespace  omnimove{
     hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(const rclcpp_lifecycle::State& previous_state){
         //TODO: need to stop listening here
         //client_socket_->shutdown ();
+        client_socket_->shutdown(client_socket_->shutdown_both);
+        acceptor_->close();
         return SystemInterface::on_shutdown(previous_state);
     }
 
@@ -82,9 +157,18 @@ namespace  omnimove{
 
     std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces(){
         std::vector<hardware_interface::StateInterface> state_interface;
-        for(unsigned int i=0; i<info_.joints.size(); ++i){
-            state_interface.emplace_back(info_.joints[i].name, "position", &position_state_[i]);
-            state_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_state_[i]);
+        size_t position_states = 0;
+        size_t velocity_states = 0;
+        for (size_t i=0; i < info_.joints.size ();++i){
+            auto state_interfaces = info_.joints[i].state_interfaces;
+            for (auto si:state_interfaces){
+                if (si.name == "position"){
+                    state_interface.emplace_back(info_.joints[i].name, "position", &position_state_[position_states++]);
+                }
+                if (si.name == "velocity"){
+                    state_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_state_[velocity_states++]);
+                }
+            }
         }
         return state_interface;
     }
@@ -92,8 +176,18 @@ namespace  omnimove{
 
     std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces(){
         std::vector<hardware_interface::CommandInterface> command_interface;
+        size_t position_commands = 0;
+        size_t velocity_commands = 0;
         for(unsigned int i=0; i<info_.joints.size(); ++i){
-            command_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_commands_[i]);
+            auto command_interfaces = info_.joints[i].command_interfaces;
+            for (auto ci: command_interfaces){
+                if (ci.name == "velocity"){
+                    command_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_commands_[velocity_commands++]);
+                }
+                if (ci.name == "position"){
+                    command_interface.emplace_back(info_.joints[i].name, "position", &position_commands_[position_commands++]);
+                }
+            }
         }
 
         return command_interface;
@@ -157,9 +251,48 @@ namespace  omnimove{
       //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
 
         if (readData.isDataValid()){
-            velocity_state_[0] = (double) readData.speedX();
-            velocity_state_[1] = (double) readData.speedY();
-            velocity_state_[2] = (double) readData.speedW();
+            velocity_state_[velocity_x_index_] = (double) readData.speedX();
+            if (velocity_y_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_y_index_] = (double) readData.speedY();
+            }
+            velocity_state_[velocity_theta_index_] = (double) readData.speedW();
+            if (velocity_blade_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_blade_index_] = (double) readData.speedShield();
+            }
+            if (velocity_pillar1_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_pillar1_index_] = (double) readData.speedPillar1 ();
+            }
+
+            if (velocity_pillar2_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_pillar2_index_] = (double) readData.speedPillar2 ();
+            }
+            if (velocity_pillar3_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_pillar3_index_] = (double) readData.speedPillar3 ();
+            }
+            if (velocity_pillar4_index_ < velocity_state_.size ()){
+                velocity_state_[velocity_pillar4_index_] = (double) readData.speedPillar4 ();
+            }
+
+            if (position_pillar1_index_  <  position_state_.size()){
+                position_state_[position_pillar1_index_] = (double) readData.posPillar1 ();
+            }
+
+            if (position_pillar2_index_  <  position_state_.size()){
+                position_state_[position_pillar2_index_] = (double) readData.posPillar2 ();
+            }
+
+            if (position_pillar3_index_  <  position_state_.size()){
+                position_state_[position_pillar3_index_] = (double) readData.posPillar3 ();
+            }
+
+            if (position_pillar4_index_  <  position_state_.size()){
+                position_state_[position_pillar4_index_] = (double) readData.posPillar4 ();
+            }
+
+            if (position_blade_index_  <  position_state_.size()){
+                position_state_[position_blade_index_] = (double) readData.posShield ();
+            }
+
         }
         return return_type::OK;
     }
@@ -168,7 +301,7 @@ namespace  omnimove{
     hardware_interface::return_type OmnimoveExternalControl::write(const rclcpp::Time&, const rclcpp::Duration&){
         //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
           //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
-        client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[1],
+        client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
                             velocity_commands_[1],
                 velocity_commands_[2]).getSerialisedData());
         return return_type::OK;
