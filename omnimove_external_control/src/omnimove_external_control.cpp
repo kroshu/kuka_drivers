@@ -39,64 +39,17 @@ namespace  omnimove{
             return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
         }
 
-        int position_states_size = 0;
-        int velocity_states_size = 0;
-        int velocity_commands_size = 0;
-        int position_commands_size = 0;
-        for (size_t i=0; i < info.joints.size ();++i){
-            auto command_interfaces = info.joints[i].command_interfaces;
-            auto state_interfaces = info.joints[i].state_interfaces;
-            for (auto ci:command_interfaces){
-                std::string joint_name = info.joints[i].name;
-
-                if (ci.name == "velocity"){
-                    if (joint_name == "move_x"){
-                        velocity_x_index_ = velocity_commands_size;
-                    }else if (joint_name == "move_y"){
-                        velocity_y_index_ = velocity_commands_size;
-                    }else if (joint_name =="move_theta"){
-                        velocity_theta_index_ = velocity_commands_size;
-                    }else if (joint_name == "pillar1"){
-                        velocity_pillar1_index_ = velocity_commands_size;
-                    }else if (joint_name == "pillar2"){
-                        velocity_pillar2_index_ = velocity_commands_size;
-                    }else if (joint_name == "pillar3"){
-                        velocity_pillar3_index_ = velocity_commands_size;
-                    }else if (joint_name == "pillar4"){
-                        velocity_pillar4_index_ = velocity_commands_size;
-                    }else if (joint_name == "shield"){
-                        velocity_blade_index_ = velocity_commands_size;
-                    }
-                    velocity_commands_size++;
-                }
-                if (ci.name == "position"){
-                    if (joint_name == "pillar1"){
-                        position_pillar1_index_ = position_commands_size;
-                    }else if (joint_name == "pillar2"){
-                        position_pillar2_index_ = position_commands_size;
-                    }else if (joint_name == "pillar3"){
-                        position_pillar3_index_ = position_commands_size;
-                    }else if (joint_name == "pillar4"){
-                        position_pillar4_index_ = position_commands_size;
-                    }else if (joint_name == "shield"){
-                        position_blade_index_ = position_commands_size;
-                    }
-
-                    position_commands_size++;
-                }
-            }
-            for (auto si:state_interfaces){
-                if (si.name == "position"){
-                    position_states_size ++;
-                }else if (si.name =="velocity"){
-                    velocity_states_size++;
-                }
-            }
+        agv_type_ = info.hardware_parameters.at("agv_type");;
+        if (agv_type_ == "caterpillar"){
+            position_state_.resize(5,0);
+            velocity_state_.resize(7,0);
+            position_commands_.resize(5,0);
+            velocity_commands_.resize(7,0);
+        }else{
+            velocity_state_.resize(3,0);
+            velocity_commands_.resize(3,0);
         }
-        position_state_.resize(position_states_size);
-        velocity_state_.resize(velocity_states_size);
-        velocity_commands_.resize(velocity_commands_size);
-        position_commands_.resize (position_commands_size);
+
         protocol_version_ = info_.hardware_parameters["protocol_version"]; //should be 1.6
         external_control_port_ = std::stoi(info_.hardware_parameters["port"]);
         RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
@@ -157,18 +110,23 @@ namespace  omnimove{
 
     std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces(){
         std::vector<hardware_interface::StateInterface> state_interface;
-        size_t position_states = 0;
-        size_t velocity_states = 0;
-        for (size_t i=0; i < info_.joints.size ();++i){
-            auto state_interfaces = info_.joints[i].state_interfaces;
-            for (auto si:state_interfaces){
-                if (si.name == "position"){
-                    state_interface.emplace_back(info_.joints[i].name, "position", &position_state_[position_states++]);
-                }
-                if (si.name == "velocity"){
-                    state_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_state_[velocity_states++]);
-                }
-            }
+        if (agv_type_ == "caterpillar"){
+            state_interface.emplace_back("move_x", "velocity", &velocity_state_[0]);
+            state_interface.emplace_back("move_theta", "velocity", &velocity_state_[1]);
+            state_interface.emplace_back("pillar1", "velocity", &velocity_state_[2]);
+            state_interface.emplace_back("pillar2", "velocity", &velocity_state_[3]);
+            state_interface.emplace_back("pillar3", "velocity", &velocity_state_[4]);
+            state_interface.emplace_back("pillar4", "velocity", &velocity_state_[5]);
+            state_interface.emplace_back("shield", "velocity", &velocity_state_[6]);
+            state_interface.emplace_back("pillar1", "position", &position_state_[0]);
+            state_interface.emplace_back("pillar2", "position", &position_state_[1]);
+            state_interface.emplace_back("pillar3", "position", &position_state_[2]);
+            state_interface.emplace_back("pillar4", "position", &position_state_[3]);
+            state_interface.emplace_back("shield", "position", &position_state_[4]);
+        }else{
+            state_interface.emplace_back("move_x", "velocity", &velocity_state_[0]);
+            state_interface.emplace_back("move_y", "velocity", &velocity_state_[1]);
+            state_interface.emplace_back("move_theta", "velocity", &velocity_state_[2]);
         }
         return state_interface;
     }
@@ -176,19 +134,28 @@ namespace  omnimove{
 
     std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces(){
         std::vector<hardware_interface::CommandInterface> command_interface;
-        size_t position_commands = 0;
-        size_t velocity_commands = 0;
-        for(unsigned int i=0; i<info_.joints.size(); ++i){
-            auto command_interfaces = info_.joints[i].command_interfaces;
-            for (auto ci: command_interfaces){
-                if (ci.name == "velocity"){
-                    command_interface.emplace_back(info_.joints[i].name, "velocity", &velocity_commands_[velocity_commands++]);
-                }
-                if (ci.name == "position"){
-                    command_interface.emplace_back(info_.joints[i].name, "position", &position_commands_[position_commands++]);
-                }
-            }
+
+        if (agv_type_ == "caterpillar"){
+            command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
+            command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[1]);
+            command_interface.emplace_back("pillar1", "position", &position_commands_[0]);
+            command_interface.emplace_back("pillar1", "velocity", &velocity_commands_[2]);
+            command_interface.emplace_back("pillar2", "position", &position_commands_[1]);
+            command_interface.emplace_back("pillar2", "velocity", &velocity_commands_[3]);
+            command_interface.emplace_back("pillar3", "position", &position_commands_[2]);
+            command_interface.emplace_back("pillar3", "velocity", &velocity_commands_[4]);
+            command_interface.emplace_back("pillar4", "position", &position_commands_[3]);
+            command_interface.emplace_back("pillar4", "velocity", &velocity_commands_[5]);
+            command_interface.emplace_back("shield", "position", &position_commands_[4]);
+            command_interface.emplace_back("shield", "velocity", &velocity_commands_[6]);
+
+        }else{
+            command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
+            command_interface.emplace_back("move_y", "velocity", &velocity_commands_[1]);
+            command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[2]);
         }
+
+
 
         return command_interface;
     }
@@ -251,48 +218,25 @@ namespace  omnimove{
       //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
 
         if (readData.isDataValid()){
-            velocity_state_[velocity_x_index_] = (double) readData.speedX();
-            if (velocity_y_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_y_index_] = (double) readData.speedY();
-            }
-            velocity_state_[velocity_theta_index_] = (double) readData.speedW();
-            if (velocity_blade_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_blade_index_] = (double) readData.speedShield();
-            }
-            if (velocity_pillar1_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_pillar1_index_] = (double) readData.speedPillar1 ();
-            }
+            if (agv_type_ == "caterpillar"){
+                velocity_state_[0] = (double) readData.speedX();
+                velocity_state_[1] = (double) readData.speedW();
+                position_state_[0] = (double) readData.posPillar1 ();
+                velocity_state_[2] = (double) readData.speedPillar1 ();
+                position_state_[1] = (double) readData.posPillar2 ();
+                velocity_state_[3] = (double) readData.speedPillar2 ();
+                position_state_[2] = (double) readData.posPillar3 ();
+                velocity_state_[4] = (double) readData.speedPillar3 ();
+                position_state_[3] = (double) readData.posPillar4 ();
+                velocity_state_[5] = (double) readData.speedPillar4 ();
+                position_state_[4] = (double) readData.posShield ();
+                velocity_state_[6] = (double) readData.speedShield();
 
-            if (velocity_pillar2_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_pillar2_index_] = (double) readData.speedPillar2 ();
+            }else{
+                velocity_state_[0] = (double) readData.speedX();
+                velocity_state_[1] = (double) readData.speedY();
+                velocity_state_[2] = (double) readData.speedW();
             }
-            if (velocity_pillar3_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_pillar3_index_] = (double) readData.speedPillar3 ();
-            }
-            if (velocity_pillar4_index_ < velocity_state_.size ()){
-                velocity_state_[velocity_pillar4_index_] = (double) readData.speedPillar4 ();
-            }
-
-            if (position_pillar1_index_  <  position_state_.size()){
-                position_state_[position_pillar1_index_] = (double) readData.posPillar1 ();
-            }
-
-            if (position_pillar2_index_  <  position_state_.size()){
-                position_state_[position_pillar2_index_] = (double) readData.posPillar2 ();
-            }
-
-            if (position_pillar3_index_  <  position_state_.size()){
-                position_state_[position_pillar3_index_] = (double) readData.posPillar3 ();
-            }
-
-            if (position_pillar4_index_  <  position_state_.size()){
-                position_state_[position_pillar4_index_] = (double) readData.posPillar4 ();
-            }
-
-            if (position_blade_index_  <  position_state_.size()){
-                position_state_[position_blade_index_] = (double) readData.posShield ();
-            }
-
         }
         return return_type::OK;
     }

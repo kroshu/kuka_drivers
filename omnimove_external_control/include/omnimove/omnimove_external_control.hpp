@@ -28,6 +28,7 @@ namespace omnimove{
         std::vector<double> position_state_;
         std::vector<double> velocity_commands_;
         std::vector<double> position_commands_;
+        std::string agv_type_;
         std::string protocol_version_;
         int external_control_port_;
         size_t velocity_x_index_, velocity_y_index_, velocity_theta_index_;
