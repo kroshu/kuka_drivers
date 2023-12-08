@@ -12,14 +12,6 @@ using namespace std;
 namespace  omnimove{
 
     OmnimoveExternalControl::OmnimoveExternalControl():hardware_interface::SystemInterface(),
-        velocity_x_index_(-1),
-        velocity_y_index_(-1),
-        velocity_theta_index_(-1),
-        velocity_pillar1_index_(-1),
-        velocity_pillar2_index_(-1),
-        velocity_pillar3_index_(-1),
-        velocity_pillar4_index_(-1),
-        velocity_blade_index_(-1),
         read_buffer_(4096){
         rclcpp::get_logger("OmnimoveExternalControl") =  rclcpp::get_logger ("OmnimoveExternalControl");
     }
@@ -245,9 +237,16 @@ namespace  omnimove{
     hardware_interface::return_type OmnimoveExternalControl::write(const rclcpp::Time&, const rclcpp::Duration&){
         //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
           //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
-        client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
-                            velocity_commands_[1],
-                velocity_commands_[2]).getSerialisedData());
+        if(agv_type_=="caterpillar"){
+            client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
+                                 0,
+                                 velocity_commands_[1]).getSerialisedData());
+
+        }else{
+            client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
+                                 velocity_commands_[1],
+                    velocity_commands_[2]).getSerialisedData());
+        }
         return return_type::OK;
     }
 

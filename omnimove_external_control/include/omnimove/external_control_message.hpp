@@ -143,5 +143,14 @@ namespace omnimove{
         public:
             ExternalControlOmnimoveDriveCommand(int speed_x, int speed_y, int speed_w);
     };
+
+
+    class ExternalControlCaterpillarLiftCommand : public ExternalControlCommand {
+    private:
+        std::unique_ptr<char[]> getMessageData(char pillar1_pos, char pillar1_vel, char pillar2_pos, char pillar2_vel, char pillar3_pos, char pillar3_vel, char pillar4_pos, char pillar4_vel, char shield_pos, char shield_vel);
+    public:
+        ExternalControlCaterpillarLiftCommand(char pillar1_pos, char pillar1_vel, char pillar2_pos, char pillar2_vel, char pillar3_pos, char pillar3_vel, char pillar4_pos, char pillar4_vel, char shield_pos, char shield_vel);
+
+    };
 } // namespace omnimove
 #endif // EXTERNAL_CONTROL_MESSAGE_H

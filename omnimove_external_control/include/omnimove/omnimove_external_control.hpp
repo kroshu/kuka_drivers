@@ -31,10 +31,6 @@ namespace omnimove{
         std::string agv_type_;
         std::string protocol_version_;
         int external_control_port_;
-        size_t velocity_x_index_, velocity_y_index_, velocity_theta_index_;
-        size_t velocity_pillar1_index_, velocity_pillar2_index_, velocity_pillar3_index_, velocity_pillar4_index_, velocity_blade_index_;
-        size_t position_pillar1_index_, position_pillar2_index_, position_pillar3_index_, position_pillar4_index_, position_blade_index_;
-
         boost::asio::io_context io_context_;
         std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
         std::unique_ptr<boost::asio::ip::tcp::socket> client_socket_;
