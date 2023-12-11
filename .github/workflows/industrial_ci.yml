@@ -20,13 +20,6 @@ on:
   pull_request:
     branches:
       - master
-      - feature/**
-      - fix/**
-    paths-ignore:
-      - doc/**
-      - '**.md'
-      - LICENSE
-      - .github/workflows/deploy_wiki.yml
 
 jobs:
   industrial_ci:
@@ -37,7 +30,7 @@ jobs:
           BUILDER: colcon
           ANALYZER: sonarqube
           TEST_COVERAGE: true
-          UPSTREAM_WORKSPACE: 'github:kroshu/kroshu_ros2_core#master github:kroshu/kuka_simulators#main'
+          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: humble
     env:

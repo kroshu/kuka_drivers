@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<library path="kuka_rsi_hw_interface">
-  <class type="kuka_rsi_hw_interface::KukaRSIHardwareInterface"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>ros2_control hardware interface for KSS-powered robots</description>
-  </class>
-</library>

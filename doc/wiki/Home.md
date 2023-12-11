@@ -64,13 +64,13 @@ The following features of the FRI are exposed to ROS2:
 
 ## KUKA KSS driver (RSI)
 
-Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The guide to set up this driver on a real robot can be found in kuka_rsi_hw_interface\krl for both KCR4 and KRC5 controllers.
+Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The guide to set up this driver on a real robot can be found in kuka_kss_rsi_driver\krl for both KCR4 and KRC5 controllers.
 
 ### Simulation
 
 To try out the driver with an open-loop simulation the driver and the kuka_rsi_simulator must be started, (at first only a "collapsed" robot will be visible in rviz):
 
-**`ros2 launch kuka_rsi_hw_interface startup_with_rviz.launch.py`**
+**`ros2 launch kuka_kss_rsi_driver startup_with_rviz.launch.py`**
 
 **`ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py`**
 
@@ -97,7 +97,7 @@ Two additional packages (not listed in package.xml) must be installed with apt:
 
 By default, the mock libraries are used, this can be changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
 
-The IP addresses of the client machine and controller must be given in the *config/eci_config.yaml* configuration file. A rebuild is not needed after the changes, but the file has to be modified before starting the nodes. The control mode of the robot can also be modified in the same configuration file: you can choose either 1 (POSITION_CONTROL), 3 (JOINT_IMPEDANCE_CONTROL) or 5 (TORQUE_CONTROL). This also sets the control_mode parameter of the robot manager node, which can be only modified at startup, control mode changes are not supported in runtime at the current state.
+The IP addresses of the client machine and controller must be given in the *config/driver_config.yaml* configuration file. A rebuild is not needed after the changes, but the file has to be modified before starting the nodes. The control mode of the robot can also be modified in the same configuration file: you can choose either 1 (POSITION_CONTROL), 3 (JOINT_IMPEDANCE_CONTROL) or 5 (TORQUE_CONTROL). This also sets the control_mode parameter of the robot manager node, which can be only modified at startup, control mode changes are not supported in runtime at the current state.
 
 Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98" and restart) to enable real-time performance.
 
@@ -105,7 +105,7 @@ Besides, the setting of scheduling priorities must be allowed for your user (ext
 
 The usage of the driver is quite simple, one has to start the launch file in the package to start all required nodes (it also starts an rviz node for visualisation, which can be commented out if not needed):
 
-**`ros2 launch kuka_rox_hw_interface startup.launch.py`**
+**`ros2 launch kuka_iiqka_eac_driver startup.launch.py`**
 
 After all components have started successfully, the system needs to be configured and activated to start external control:
 
@@ -114,7 +114,7 @@ After all components have started successfully, the system needs to be configure
 
 **`ros2 lifecycle set robot_manager activate`**
 
-On successful activation the robot controller and the driver start communication with a 4 ms cycle time, and it is possible to move the robot through the joint trajectory controller. The easiest way to achieve this is to start an rqt_joint_trajcectory controller and move the joints with cursors or one can also execute trajectories planned with moveit - an example of this can be found in kuka_sunrise_control/eci_demo package.
+On successful activation the robot controller and the driver start communication with a 4 ms cycle time, and it is possible to move the robot through the joint trajectory controller. The easiest way to achieve this is to start an rqt_joint_trajcectory controller and move the joints with cursors or one can also execute trajectories planned with moveit - an example of this can be found in kuka_sunrise_fri_driver_control/iiqka_moveit_example package.
 
 To stop external control, the components have to be deactivated with **`ros2 lifecycle set robot_manager deactivate`**
 
@@ -130,7 +130,7 @@ The logs are the following:
 
     [spawner-4] Node not found
 
-    [ERROR] [spawner-4]: process has died [pid ..., exit code 1, cmd '/opt/ros/humble/lib/controller_manager/spawner joint_trajectory_controller -c /controller_manager -p .../kuka_rox_hw_interface/share/kuka_rox_hw_interface/config/joint_trajectory_controller_config.yaml --inactive --ros-args']
+    [ERROR] [spawner-4]: process has died [pid ..., exit code 1, cmd '/opt/ros/humble/lib/controller_manager/spawner joint_trajectory_controller -c /controller_manager -p .../kuka_iiqka_eac_driver/share/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml --inactive --ros-args']
 
 - If you activate and deactivate the robot manager node, the reactivation will fail, you must restart the whole process if you want to control the robot again
 
@@ -138,5 +138,5 @@ The logs are the following:
 
 ## Contact
 
-If you have questions, suggestions or want to contribute, feel free to open an [issue](https://github.com/kroshu/ros2_kuka_sunrise/issues) or start a [discussion](https://github.com/kroshu/ros2_kuka_sunrise/discussions).
+If you have questions, suggestions or want to contribute, feel free to open an [issue](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/issues) or start a [discussion](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/discussions).
 
