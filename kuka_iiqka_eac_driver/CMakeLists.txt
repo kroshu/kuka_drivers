@@ -71,11 +71,16 @@ else()
   remove_definitions(-DNON_MOCK_SETUP)
 endif()
 
-add_library(kuka_iiqka_eac_driver SHARED
+add_library(${PROJECT_NAME} SHARED
   src/hardware_interface.cpp
 )
-ament_target_dependencies(kuka_iiqka_eac_driver rclcpp sensor_msgs hardware_interface)
-target_link_libraries(kuka_iiqka_eac_driver motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
+
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
+
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
+target_link_libraries(${PROJECT_NAME} motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
   motion-services-ecs-proto-api-nanopb yaml-cpp kuka::os-core-udp-communication kuka::nanopb-helpers)
 
 
@@ -86,7 +91,7 @@ target_link_libraries(robot_manager_node kuka_drivers_core::communication_helper
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS kuka_iiqka_eac_driver robot_manager_node
+install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config launch
