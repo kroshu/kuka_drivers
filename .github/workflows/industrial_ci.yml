@@ -20,13 +20,6 @@ on:
   pull_request:
     branches:
       - master
-      - feature/**
-      - fix/**
-    paths-ignore:
-      - doc/**
-      - '**.md'
-      - LICENSE
-      - .github/workflows/deploy_wiki.yml
 
 jobs:
   industrial_ci:
