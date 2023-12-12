@@ -59,8 +59,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#define BUFSIZE 1024
-
 class UDPServer
 {
 public:
@@ -89,6 +87,9 @@ public:
   {
     close(sockfd_);
   }
+
+  UDPServer(UDPServer & other) = delete;
+  UDPServer & operator=(const UDPServer & other) = delete;
 
   bool set_timeout(int millisecs)
   {
@@ -128,7 +129,7 @@ public:
       tv.tv_sec = tv_.tv_sec;
       tv.tv_usec = tv_.tv_usec;
 
-      if (select(sockfd_ + 1, &read_fds, NULL, NULL, &tv) < 0) {
+      if (select(sockfd_ + 1, &read_fds, nullptr, nullptr, &tv) < 0) {
         return 0;
       }
 
@@ -157,6 +158,7 @@ public:
   }
 
 private:
+  static const int BUFSIZE = 1024;
   std::string local_host_;
   uint16_t local_port_;
   bool timeout_;
