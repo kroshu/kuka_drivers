@@ -24,18 +24,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration('robot_model')
+    robot_family = LaunchConfiguration('robot_family')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
-
-    # TODO(Svastits):better way to handle supported robot models and families
-    if robot_model.perform(context) in ["kr6_r700_sixx", "kr6_r900_sixx"]:
-        robot_family = "agilus"
-    elif robot_model.perform(context) in ["kr16_r2010_2"]:
-        robot_family = "cybertech"
-    elif robot_model.perform(context) in ["kr210_r2700_2", "kr210_r3100_2"]:
-        robot_family = "quantec"
-    else:
-        print("[ERROR] [launch]: robot model not recognized")
-        raise Exception
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -43,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare('kuka_{}_support'.format(robot_family)),
+                [FindPackageShare('kuka_{}_support'.format(robot_family.perform(context))),
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
@@ -115,6 +105,10 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument(
         'robot_model',
         default_value='kr6_r700_sixx'
+    ))
+    launch_arguments.append(DeclareLaunchArgument(
+        'robot_family',
+        default_value='agilus'
     ))
     launch_arguments.append(DeclareLaunchArgument(
         'use_fake_hardware',
