@@ -34,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
                  "urdf", robot_model.perform(context) + ".urdf.xacro"]
             ),
             " ",
-        ]
+        ], on_stderr='capture'
     )
 
     # Get URDF via xacro

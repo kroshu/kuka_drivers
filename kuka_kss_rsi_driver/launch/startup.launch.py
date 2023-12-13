@@ -39,7 +39,7 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
-        ]
+        ], on_stderr='capture'
     )
 
     robot_description = {'robot_description': robot_description_content}
