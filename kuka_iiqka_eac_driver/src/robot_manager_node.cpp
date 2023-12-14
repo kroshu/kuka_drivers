@@ -420,7 +420,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       // TODO(Svastits): this can be removed if rollback is implemented properly
       this->on_deactivate(get_current_state());
       return false;
-
     }
     if (!controller_handler_.ApproveControllerDeactivation()) {
       RCLCPP_ERROR(
