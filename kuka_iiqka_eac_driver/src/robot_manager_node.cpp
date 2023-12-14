@@ -376,8 +376,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   if (is_active_state) {
     // The driver is in active state
     // Activate controllers needed for the new control mode
-    auto controller_request =
-      std::make_shared<SwitchController::Request>();
     if (!switch_controllers.first.empty()) {
       if (!kuka_drivers_core::changeControllerState(
           change_controller_state_client_, switch_controllers.first, {}))
@@ -421,8 +419,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
 #endif
 
-    auto controller_request =
-      std::make_shared<SwitchController::Request>();
     // Deactivate unnecessary controllers
     if (!switch_controllers.second.empty()) {
       if (!kuka_drivers_core::changeControllerState(
