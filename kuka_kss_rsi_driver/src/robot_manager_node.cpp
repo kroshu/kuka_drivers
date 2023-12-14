@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_kss_rsi_driver/robot_manager_node.hpp"
-#include "kuka_drivers_core/control_mode.hpp"
-
 #include "communication_helpers/ros2_control_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 
+#include "kuka_kss_rsi_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;  // NOLINT

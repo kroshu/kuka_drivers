@@ -15,6 +15,8 @@
 #include <memory>
 
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
+#include "communication_helpers/ros2_control_tools.hpp"
+
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 
@@ -73,7 +75,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_INACTIVE))
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
@@ -156,7 +158,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // If it is inactive, cleanup will also succeed
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_UNCONFIGURED))
+      lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED))
   {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
@@ -193,7 +195,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_ACTIVE))
+      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     // 'unset config' does not exist, safe to return
@@ -266,7 +268,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // If it is inactive, deactivation will also succeed
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_INACTIVE))
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;

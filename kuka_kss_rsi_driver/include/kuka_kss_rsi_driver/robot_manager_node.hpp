@@ -22,13 +22,10 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/client.hpp"
-#include "lifecycle_msgs/srv/change_state.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
+#include "std_msgs/msg/bool.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
-#include "std_msgs/msg/bool.hpp"
 
-#include "communication_helpers/service_tools.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
