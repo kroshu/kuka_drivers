@@ -134,7 +134,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_INACTIVE, 2000))
+      State::PRIMARY_STATE_INACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
@@ -180,7 +180,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // Clean up hardware interface
   if (!kuka_drivers_core::changeHardwareState(
       change_hardware_state_client_, robot_model_,
-      State::PRIMARY_STATE_UNCONFIGURED, 2000))
+      State::PRIMARY_STATE_UNCONFIGURED))
   {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
@@ -324,21 +324,14 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
 
   // Stop RT controllers
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  // With best effort strictness, deactivation succeeds if specific controller is not active
-  controller_request->strictness =
-    SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers =
-    controller_handler_.GetControllersForDeactivation();
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      controller_handler_.GetControllersForDeactivation()), SwitchController::Request::BEST_EFFORT)
+  {
+    RCLCPP_ERROR(get_logger(), "Could not stop RT controllers");
     return ERROR;
   }
+
   if (!controller_handler_.ApproveControllerDeactivation()) {
     RCLCPP_ERROR(
       get_logger(),
@@ -391,13 +384,9 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     auto controller_request =
       std::make_shared<SwitchController::Request>();
     if (!switch_controllers.first.empty()) {
-      controller_request->activate_controllers = switch_controllers.first;
-      controller_request->strictness = SwitchController::Request::STRICT;
-      auto controller_response =
-        kuka_drivers_core::sendRequest<SwitchController::Response>(
-        change_controller_state_client_, controller_request, 0, 2000
-        );
-      if (!controller_response || !controller_response->ok) {
+      if (!kuka_drivers_core::changeControllerState(
+          change_controller_state_client_, switch_controllers.first, {}))
+      {
         RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
         // TODO(Svastits): this can be removed if rollback is implemented properly
         this->on_deactivate(get_current_state());

@@ -25,7 +25,7 @@ namespace kuka_drivers_core
 
 bool changeHardwareState(
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr client,
-  const std::string & hardware_name, uint8_t state, int timeout_ms)
+  const std::string & hardware_name, uint8_t state, int timeout_ms = 2000)
 {
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
@@ -42,11 +42,12 @@ bool changeHardwareState(
 bool changeControllerState(
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr client,
   const std::vector<std::string> & activate_controllers,
-  const std::vector<std::string> & deactivate_controllers)
+  const std::vector<std::string> & deactivate_controllers,
+  int32_t strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT)
 {
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-  controller_request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
+  controller_request->strictness = strictness;
   controller_request->activate_controllers = activate_controllers;
   controller_request->deactivate_controllers = deactivate_controllers;
 
