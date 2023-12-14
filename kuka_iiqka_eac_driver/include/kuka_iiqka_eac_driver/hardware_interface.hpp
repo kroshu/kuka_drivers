@@ -23,17 +23,11 @@
 #include <mutex>
 #include <thread>
 
-#include "rclcpp/macros.hpp"
-
-#include "hardware_interface/handle.hpp"
-#include "hardware_interface/hardware_info.hpp"
-#include "hardware_interface/system_interface.hpp"
-#include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-
 #include "pluginlib/class_list_macros.hpp"
+#include "hardware_interface/system_interface.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 #include "nanopb/kuka/core/motion/joint.pb.hh"

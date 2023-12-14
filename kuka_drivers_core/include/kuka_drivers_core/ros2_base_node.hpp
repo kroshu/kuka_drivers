@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_DRIVERS_CORE__ROS2BASENODE_HPP_
-#define KUKA_DRIVERS_CORE__ROS2BASENODE_HPP_
+#ifndef KUKA_DRIVERS_CORE__ROS2_BASE_NODE_HPP_
+#define KUKA_DRIVERS_CORE__ROS2_BASE_NODE_HPP_
 
 #include <string>
 #include <map>
@@ -65,4 +65,4 @@ private:
 };
 }  // namespace kuka_drivers_core
 
-#endif  // KUKA_DRIVERS_CORE__ROS2BASENODE_HPP_
+#endif  // KUKA_DRIVERS_CORE__ROS2_BASE_NODE_HPP_

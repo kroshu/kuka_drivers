@@ -14,15 +14,15 @@
 
 #include <memory>
 
-#include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
+#include "communication_helpers/service_tools.hpp"
 #include "communication_helpers/ros2_control_tools.hpp"
 
+#include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 
 namespace kuka_sunrise_fri_driver
 {
-
 RobotManagerNode::RobotManagerNode()
 : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
@@ -276,8 +276,10 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
-  if (!kuka_drivers_core::changeControllerState(change_controller_state_client_, {},
-    {controller_name_, "joint_state_broadcaster"}, SwitchController::Request::BEST_EFFORT)) {
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      {controller_name_, "joint_state_broadcaster"}, SwitchController::Request::BEST_EFFORT))
+  {
     RCLCPP_ERROR(get_logger(), "Could not deactivate controllers");
     return ERROR;
   }

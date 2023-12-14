@@ -22,20 +22,16 @@
 #include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include <hardware_interface/system_interface.hpp>
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "pluginlib/class_list_macros.hpp"
 
+#include "hardware_interface/system_interface.hpp"
 #include "kuka_driver_interfaces/srv/set_int.hpp"
+
 #include "fri_client_sdk/friLBRClient.h"
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friUdpConnection.h"
 #include "fri_client_sdk/friClientIf.h"
-
 #include "kuka_sunrise_fri_driver/visibility_control.h"
-
-
-#include "pluginlib/class_list_macros.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 

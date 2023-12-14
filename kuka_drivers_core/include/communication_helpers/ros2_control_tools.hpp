@@ -15,6 +15,10 @@
 #ifndef COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 #define COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 
+#include <string>
+#include <vector>
+#include <memory>
+
 #include "rclcpp/rclcpp.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
