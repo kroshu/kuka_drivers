@@ -200,8 +200,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
-
   // Start FRI (in monitoring mode)
   if (!fri_connection_->startFRI()) {
     RCLCPP_ERROR(get_logger(), "Could not start FRI");
@@ -273,8 +271,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
-
-  RCLCPP_INFO(get_logger(), "Deactivated LBR iiwa hardware interface");
 
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active

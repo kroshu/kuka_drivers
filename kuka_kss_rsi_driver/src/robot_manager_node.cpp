@@ -64,7 +64,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
-  RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -106,7 +105,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-
   // Activate RT controller(s)
   if (!kuka_drivers_core::changeControllerState(
       change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"},
@@ -133,8 +131,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
-
-  RCLCPP_INFO(get_logger(), "Deactivated hardware interface");
 
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active

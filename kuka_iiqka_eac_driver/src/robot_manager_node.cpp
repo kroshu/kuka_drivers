@@ -140,8 +140,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
-
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -315,8 +313,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
-
-  RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
 
   // Stop RT controllers
   if (!kuka_drivers_core::changeControllerState(
