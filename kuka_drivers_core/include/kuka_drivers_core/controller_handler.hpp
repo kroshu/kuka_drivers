@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_
-#define KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_
+#ifndef KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_
+#define KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_
 
 #include <string>
 #include <vector>
@@ -22,7 +22,7 @@
 #include <set>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ControlMode.hpp"
+#include "control_mode.hpp"
 
 namespace kuka_drivers_core
 {
@@ -128,4 +128,4 @@ public:
 }  // namespace kuka_drivers_core
 
 
-#endif  // KUKA_DRIVERS_CORE__CONTROLLERHANDLER_HPP_
+#endif  // KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_

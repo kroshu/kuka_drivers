@@ -29,7 +29,7 @@
 #include "controller_manager_msgs/srv/list_controllers.hpp"
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 namespace kuka_sunrise_fri_driver
 {

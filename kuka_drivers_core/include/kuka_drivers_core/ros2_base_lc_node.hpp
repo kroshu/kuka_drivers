@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_DRIVERS_CORE__ROS2BASELCNODE_HPP_
-#define KUKA_DRIVERS_CORE__ROS2BASELCNODE_HPP_
+#ifndef KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_
+#define KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_
 
 #include <string>
 #include <map>
@@ -23,7 +23,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
-#include "kuka_drivers_core/ParameterHandler.hpp"
+#include "kuka_drivers_core/parameter_handler.hpp"
 
 namespace kuka_drivers_core
 {
@@ -90,4 +90,4 @@ private:
 }  // namespace kuka_drivers_core
 
 
-#endif  // KUKA_DRIVERS_CORE__ROS2BASELCNODE_HPP_
+#endif  // KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_

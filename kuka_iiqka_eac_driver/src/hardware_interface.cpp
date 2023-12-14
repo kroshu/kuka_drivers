@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_iiqka_eac_driver/hardware_interface.hpp"
-
 #include <grpcpp/create_channel.h>
-
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+
 #include "nanopb-helpers/nanopb_serialization_helper.h"
+
+#include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
 using namespace kuka::ecs::v1;  // NOLINT
 

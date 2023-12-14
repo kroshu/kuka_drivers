@@ -22,10 +22,10 @@ find_package(lifecycle_msgs REQUIRED)
 find_package(controller_manager REQUIRED)
 
 add_library(kuka_drivers_core SHARED
-  src/ROS2BaseNode.cpp
-  src/ROS2BaseLCNode.cpp
-  src/ParameterHandler.cpp
-  src/ControllerHandler.cpp
+  src/ros2_base_node.cpp
+  src/ros2_base_lc_node.cpp
+  src/parameter_handler.cpp
+  src/controller_handler.cpp
 )
 ament_target_dependencies(kuka_drivers_core rclcpp rclcpp_lifecycle lifecycle_msgs)
 

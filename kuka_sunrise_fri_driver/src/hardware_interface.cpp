@@ -14,6 +14,8 @@
 
 #include <memory>
 
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
+
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
 
 namespace kuka_sunrise_fri_driver
