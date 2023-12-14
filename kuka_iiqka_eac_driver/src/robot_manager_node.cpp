@@ -318,7 +318,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   if (!kuka_drivers_core::changeControllerState(
       change_controller_state_client_, {},
-      controller_handler_.GetControllersForDeactivation()), SwitchController::Request::BEST_EFFORT)
+      controller_handler_.GetControllersForDeactivation(), SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop RT controllers");
     return ERROR;
