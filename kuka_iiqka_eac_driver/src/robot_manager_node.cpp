@@ -147,20 +147,15 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   is_configured_pub_->publish(is_configured_msg_);
 
   // Activate control mode handler
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = {"control_mode_handler"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {"control_mode_handler"}, {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate control mode handler");
     // TODO(Svastits): this can be removed if rollback is implemented properly
     this->on_cleanup(get_current_state());
     return FAILURE;
   }
+
   RCLCPP_INFO(get_logger(), "Activated control mode handler");
 
   return SUCCESS;
@@ -380,7 +375,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   // Activate controllers
   if (is_active_state) {
     // The driver is in active state
-    // Call request for activating controllers for the new control mode
+    // Activate controllers needed for the new control mode
     auto controller_request =
       std::make_shared<SwitchController::Request>();
     if (!switch_controllers.first.empty()) {
@@ -426,18 +421,13 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
 #endif
 
-    // Deactivate controllers
     auto controller_request =
       std::make_shared<SwitchController::Request>();
-    // Call request for deactivating controllers for the new control mode
+    // Deactivate unnecessary controllers
     if (!switch_controllers.second.empty()) {
-      controller_request->deactivate_controllers = switch_controllers.second;
-      controller_request->strictness = SwitchController::Request::STRICT;
-      auto controller_response =
-        kuka_drivers_core::sendRequest<SwitchController::Response>(
-        change_controller_state_client_, controller_request, 0, 2000
-        );
-      if (!controller_response || !controller_response->ok) {
+      if (!kuka_drivers_core::changeControllerState(
+          change_controller_state_client_, {}, switch_controllers.second))
+      {
         RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
         // TODO(Svastits): this can be removed if rollback is implemented properly
         this->on_deactivate(get_current_state());
