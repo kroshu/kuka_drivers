@@ -67,7 +67,6 @@ namespace  omnimove{
     }
 
     CallbackReturn OmnimoveExternalControl::on_activate (const rclcpp_lifecycle::State &previous_state){
-        boost::asio::io_context io_context;
 
         //        client_socket_ = std::make_shared<tcp::socket>(io_service_);
         //      client_socket_->connect(tcp::endpoint(address::from_string(external_control_host_), external_control_port_));
@@ -83,17 +82,19 @@ namespace  omnimove{
         RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Waiting for External Control Connection");
         //can i wait for a maximum amount of time
         try{
-            client_socket_ = std::make_unique<tcp::socket>(io_context);
+            client_socket_ = std::make_unique<tcp::socket>(io_context_);
         }catch(std::exception &e){
             RCLCPP_ERROR (rclcpp::get_logger("OmnimoveExternalControl"),  "Failed to initialise socket %s", e.what());
             return CallbackReturn::ERROR;
         }
         try{
-            acceptor_->accept(*client_socket_.get());
+            acceptor_->accept(*(client_socket_.get()));
         } catch (std::exception &e){
             RCLCPP_ERROR (rclcpp::get_logger("OmnimoveExternalControl"),  "Failed to accept connection %s", e.what());
             return CallbackReturn::ERROR;
         }
+        RCLCPP_ERROR(rclcpp::get_logger("OmnimoveExternalControl"),  "Accepted connection");
+
         return SystemInterface::on_activate(previous_state);
     }
     hardware_interface::CallbackReturn OmnimoveExternalControl::on_error(const rclcpp_lifecycle::State &previous_state){
@@ -188,7 +189,7 @@ namespace  omnimove{
 
         }
         ExternalControlData parsedData(msg_data.get() + 8);
-        read_buffer_.erase (read_buffer_.begin (), read_buffer_.begin ()+ expected_data_size);
+        read_buffer_.erase (read_buffer_.begin(), read_buffer_.begin() + expected_data_size);
         return parsedData;
         //now we will connect the latest message
 
@@ -197,6 +198,9 @@ namespace  omnimove{
     hardware_interface::return_type OmnimoveExternalControl::read(const rclcpp::Time&, const rclcpp::Duration&){
 
         std::array<char, 1024> buffer;
+        if (client_socket_.get()==NULL){
+            RCLCPP_WARN(rclcpp::get_logger("OmnimoveExternalControl"), "socker is null !!!");
+        }
      //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if available");
         size_t bytes_received = client_socket_->read_some(boost::asio::buffer(buffer));
        // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "received %lu", bytes_received);
@@ -237,10 +241,27 @@ namespace  omnimove{
     hardware_interface::return_type OmnimoveExternalControl::write(const rclcpp::Time&, const rclcpp::Duration&){
         //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
           //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
+
         if(agv_type_=="caterpillar"){
-            client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
-                                 0,
-                                 velocity_commands_[1]).getSerialisedData());
+            if (velocity_commands_[0]==0.0 && velocity_commands_[1]==0){
+                client_socket_->send(ExternalControlCaterpillarLiftCommand(
+                        position_commands_[0],
+                        velocity_commands_[2],
+                        position_commands_[1],
+                        velocity_commands_[3],
+                        position_commands_[2],
+                        velocity_commands_[4],
+                        position_commands_[3],
+                        velocity_commands_[5],
+                        position_commands_[4],
+                        velocity_commands_[6]).getSerialisedData());
+
+            }else{
+            client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
+                                                                        velocity_commands_[1],
+                                                                        position_commands_[4],
+                                                                        velocity_commands_[6]).getSerialisedData());
+            }
 
         }else{
             client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
