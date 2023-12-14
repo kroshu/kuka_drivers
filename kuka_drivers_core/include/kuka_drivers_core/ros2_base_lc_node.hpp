@@ -23,7 +23,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
-#include "kuka_drivers_core/ParameterHandler.hpp"
+#include "kuka_drivers_core/parameter_handler.hpp"
 
 namespace kuka_drivers_core
 {

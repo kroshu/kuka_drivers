@@ -33,7 +33,7 @@
 #include "kuka_sunrise_fri_driver/configuration_manager.hpp"
 #include "communication_helpers/service_tools.hpp"
 
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 namespace kuka_sunrise_fri_driver
 {

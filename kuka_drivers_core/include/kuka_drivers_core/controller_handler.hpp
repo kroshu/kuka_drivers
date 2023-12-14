@@ -22,7 +22,7 @@
 #include <set>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ControlMode.hpp"
+#include "control_mode.hpp"
 
 namespace kuka_drivers_core
 {

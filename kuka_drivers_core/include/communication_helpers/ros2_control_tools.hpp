@@ -15,25 +15,23 @@
 #ifndef COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 #define COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 
-#endif  // COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
-
 #include "rclcpp/rclcpp.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "communication_helpers/service_tools.hpp"
 
+namespace kuka_drivers_core
+{
 
 bool changeHardwareState(
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr client,
   const std::string & hardware_name, uint8_t state, int timeout_ms)
 {
-  // Deactivate hardware interface
   auto hw_request =
     std::make_shared<controller_manager_msgs::srv::SetHardwareComponentState::Request>();
   hw_request->name = hardware_name;
   hw_request->target_state.id = state;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
+  auto hw_response = sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     client, hw_request, 0, timeout_ms);
   if (!hw_response || !hw_response->ok) {
     return false;
@@ -43,7 +41,8 @@ bool changeHardwareState(
 
 bool changeControllerState(
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr client,
-  const std::vector<std::string> & activate_controllers, const std::vector<std::string> & deactivate_controllers)
+  const std::vector<std::string> & activate_controllers,
+  const std::vector<std::string> & deactivate_controllers)
 {
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
@@ -51,11 +50,13 @@ bool changeControllerState(
   controller_request->activate_controllers = activate_controllers;
   controller_request->deactivate_controllers = deactivate_controllers;
 
-  auto controller_response =
-    kuka_drivers_core::sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
+  auto controller_response = sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     client, controller_request, 0, 2000);
   if (!controller_response || !controller_response->ok) {
     return false;
   }
   return true;
 }
+}  // namespace kuka_drivers_core
+
+#endif  // COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_

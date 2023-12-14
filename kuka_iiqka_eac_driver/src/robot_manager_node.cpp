@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
+#include "communication_helpers/ros2_control_tools.hpp"
 
 
 #include <grpcpp/create_channel.h>
@@ -131,17 +132,14 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   control_mode_pub_->publish(message);
 
   // Configure hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_INACTIVE, 2000))
+  {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
+
   RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
   is_configured_pub_->on_activate();
@@ -172,27 +170,18 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Deactivate control mode handler
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->deactivate_controllers = {"control_mode_handler"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  deactivate controller");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      {"control_mode_handler"}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler");
   }
 
   // Clean up hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_UNCONFIGURED, 2000))
+  {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
@@ -262,14 +251,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
 
   // Activate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 5000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_ACTIVE, 5000))
+  {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     return FAILURE;
   }
@@ -286,30 +271,24 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  // Activate RT controller(s)
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = new_controllers.first;
-
+  // Deactivate list for activation should always be empty, safety check
   if (!new_controllers.second.empty()) {
-    // This should never happen
-    controller_request->deactivate_controllers = new_controllers.second;
     RCLCPP_ERROR(
       get_logger(),
       "Controller handler state is improper, active controller list not empty before activation");
+    return FAILURE;
   }
 
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
-    // TODO(Svastits): this can be removed if rollback is implemented properly
+  // Activate RT controller(s)
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, new_controllers.first,
+      new_controllers.second))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
+
   controller_handler_.ApproveControllerActivation();
   if (!controller_handler_.ApproveControllerDeactivation()) {
     RCLCPP_ERROR(
@@ -333,20 +312,16 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 3000);   // was not stable with 2000 ms timeout
-  if (!hw_response || !hw_response->ok) {
+  // Deactivation was not stable with 2000 ms timeout
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_INACTIVE, 3000))
+  {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
 
   RCLCPP_INFO(get_logger(), "Deactivated LBR iisy hardware interface");
-
 
   // Stop RT controllers
   auto controller_request =
@@ -395,13 +370,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     return false;
   }
 
-
   std::pair<std::vector<std::string>, std::vector<std::string>> switch_controllers;
 
   bool is_active_state = get_current_state().id() ==
     lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
 
-  // Calculates the controller to activate and deactivate
+  // Determine which controllers to activate and deactivate
   try {
     switch_controllers = controller_handler_.GetControllersForSwitch(
       kuka_drivers_core::ControlMode(control_mode));

@@ -30,8 +30,8 @@
 #include "std_msgs/msg/u_int32.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
-#include "kuka_drivers_core/ControllerHandler.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
+#include "kuka_drivers_core/controller_handler.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 

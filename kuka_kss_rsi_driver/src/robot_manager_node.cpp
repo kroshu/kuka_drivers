@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "kuka_kss_rsi_driver/robot_manager_node.hpp"
-#include "kuka_drivers_core/ControlMode.hpp"
+#include "kuka_drivers_core/control_mode.hpp"
 
 
 using namespace controller_manager_msgs::srv;  // NOLINT

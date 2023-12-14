@@ -29,7 +29,7 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include "communication_helpers/service_tools.hpp"
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
