@@ -369,19 +369,15 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     return false;
   }
 
-  // Activate controllers
+  // Activate controllers needed for the new control mode
   if (is_active_state) {
-    // The driver is in active state
-    // Activate controllers needed for the new control mode
-    if (!switch_controllers.first.empty()) {
-      if (!kuka_drivers_core::changeControllerState(
-          change_controller_state_client_, switch_controllers.first, {}))
-      {
-        RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
-        // TODO(Svastits): this can be removed if rollback is implemented properly
-        this->on_deactivate(get_current_state());
-        return false;
-      }
+    if (!switch_controllers.first.empty() && !kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, switch_controllers.first, {}))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
+      // TODO(Svastits): this can be removed if rollback is implemented properly
+      this->on_deactivate(get_current_state());
+      return false;
     }
     controller_handler_.ApproveControllerActivation();
   }
@@ -417,15 +413,14 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 #endif
 
     // Deactivate unnecessary controllers
-    if (!switch_controllers.second.empty()) {
-      if (!kuka_drivers_core::changeControllerState(
-          change_controller_state_client_, {}, switch_controllers.second))
-      {
-        RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
-        // TODO(Svastits): this can be removed if rollback is implemented properly
-        this->on_deactivate(get_current_state());
-        return false;
-      }
+    if (!switch_controllers.second.empty() && !kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, {}, switch_controllers.second))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
+      // TODO(Svastits): this can be removed if rollback is implemented properly
+      this->on_deactivate(get_current_state());
+      return false;
+
     }
     if (!controller_handler_.ApproveControllerDeactivation()) {
       RCLCPP_ERROR(
