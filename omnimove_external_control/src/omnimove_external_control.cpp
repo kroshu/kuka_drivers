@@ -22,7 +22,7 @@ namespace  omnimove{
         }
 
         if (client_socket_->is_open ()){
-           client_socket_->close ();
+            client_socket_->close ();
         }
     }
 
@@ -164,8 +164,8 @@ namespace  omnimove{
                          "Message too small last_message_start %lu, read_buffer_size %lu", last_message_start, read_buffer_.size ());
             return ExternalControlData();
         }
-//        RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
-//                     "last_message_start %lu, read_buffer_size %lu", last_message_start, read_buffer_.size ());
+        //        RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
+        //                     "last_message_start %lu, read_buffer_size %lu", last_message_start, read_buffer_.size ());
 
         for (size_t i=0 ; i < last_message_start; ++i){
             read_buffer_.pop_front();
@@ -179,10 +179,10 @@ namespace  omnimove{
             const char* EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
 
             for (size_t i = 0; i < strlen(EXTERNAL_CONTROL_DATA_HEADER); ++i) {
-              if (read_buffer_[i] != EXTERNAL_CONTROL_DATA_HEADER[i]) {
-                  RCLCPP_ERROR(rclcpp::get_logger("OmnimoveExternalControl"), "msg_data is %d, header is %d", read_buffer_[i], EXTERNAL_CONTROL_DATA_HEADER[i]);
+                if (read_buffer_[i] != EXTERNAL_CONTROL_DATA_HEADER[i]) {
+                    RCLCPP_ERROR(rclcpp::get_logger("OmnimoveExternalControl"), "msg_data is %d, header is %d", read_buffer_[i], EXTERNAL_CONTROL_DATA_HEADER[i]);
 
-              }
+                }
             }
 
             return ExternalControlData();
@@ -201,17 +201,17 @@ namespace  omnimove{
         if (client_socket_.get()==NULL){
             RCLCPP_WARN(rclcpp::get_logger("OmnimoveExternalControl"), "socker is null !!!");
         }
-     //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if available");
+        //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if available");
         size_t bytes_received = client_socket_->read_some(boost::asio::buffer(buffer));
-       // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "received %lu", bytes_received);
+        // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "received %lu", bytes_received);
 
         read_buffer_.insert(read_buffer_.end (), buffer.begin(), buffer.begin() + bytes_received);
-       // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Inserted into buffer");
+        // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Inserted into buffer");
 
         // parse all messages from the buffer.
         // incomplete messages need to be kept for further reading.
         ExternalControlData readData = parseLastMessageFromBuffer();
-      //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
+        //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
 
         if (readData.isDataValid()){
             if (agv_type_ == "caterpillar"){
@@ -240,33 +240,35 @@ namespace  omnimove{
 
     hardware_interface::return_type OmnimoveExternalControl::write(const rclcpp::Time&, const rclcpp::Duration&){
         //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
-          //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
+        //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
 
         if(agv_type_=="caterpillar"){
-            if (velocity_commands_[0]==0.0 && velocity_commands_[1]==0){
-                client_socket_->send(ExternalControlCaterpillarLiftCommand(
-                        position_commands_[0],
-                        velocity_commands_[2],
-                        position_commands_[1],
-                        velocity_commands_[3],
-                        position_commands_[2],
-                        velocity_commands_[4],
-                        position_commands_[3],
-                        velocity_commands_[5],
-                        position_commands_[4],
-                        velocity_commands_[6]).getSerialisedData());
+            if (velocity_commands_[0]==0.0 && velocity_commands_[1]==0.0)
+            {
+                client_socket_->send(ExternalControlCaterpillarLiftCommand(position_commands_[0],
+                                                                           velocity_commands_[2],
+                                                                           position_commands_[1],
+                                                                           velocity_commands_[3],
+                                                                           position_commands_[2],
+                                                                           velocity_commands_[4],
+                                                                           position_commands_[3],
+                                                                           velocity_commands_[5],
+                                                                           position_commands_[4],
+                                                                           velocity_commands_[6]).getSerialisedData());
 
-            }else{
-            client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
-                                                                        velocity_commands_[1],
-                                                                        position_commands_[4],
-                                                                        velocity_commands_[6]).getSerialisedData());
+            } else
+            {
+                client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
+                                                                            velocity_commands_[1],
+                                                                            position_commands_[4],
+                                                                            velocity_commands_[6]).getSerialisedData());
             }
 
-        }else{
+        } else
+        {
             client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
-                                 velocity_commands_[1],
-                    velocity_commands_[2]).getSerialisedData());
+                                                                     velocity_commands_[1],
+                                                                     velocity_commands_[2]).getSerialisedData());
         }
         return return_type::OK;
     }

@@ -36,8 +36,20 @@ add_library(
   src/external_control_message.cpp
 )
 
+add_executable(
+    platform_move_test
+    src/platform_move_test.cpp
+)
+ament_target_dependencies(
+    platform_move_test
+    rclcpp std_msgs
+)
 install(TARGETS omnimove_external_control
   DESTINATION lib)
+install(TARGETS platform_move_test
+  DESTINATION lib/${PROJECT_NAME})
+
+
 ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 pluginlib_export_plugin_description_file(hardware_interface omnimove_external_control.xml)
 
