@@ -182,13 +182,13 @@ namespace omnimove{
         return msg_data;
     }
 
-    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, char shield_pos, char shield_vel):
+    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos, int shield_vel):
         ExternalControlCommand(getMessageData(speed_x, speed_w, shield_pos, shield_vel).get()){
 
     }
 
 
-    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, char shield_pos, char shield_vel)
+    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, int shield_pos, int shield_vel)
     {
         auto msg_data = getMessageBuffer();
         msg_data.get()[0] = 0;
@@ -202,13 +202,13 @@ namespace omnimove{
         return msg_data;
     }
 
-    ExternalControlCaterpillarLiftCommand::ExternalControlCaterpillarLiftCommand(char pillar1_pos, char pillar1_vel, char pillar2_pos, char pillar2_vel, char pillar3_pos, char pillar3_vel, char pillar4_pos, char pillar4_vel, char shield_pos, char shield_vel):
+    ExternalControlCaterpillarLiftCommand::ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel):
         ExternalControlCommand(getMessageData(pillar1_pos, pillar1_vel, pillar2_pos, pillar2_vel, pillar3_pos, pillar3_vel, pillar4_pos, pillar4_vel, shield_pos, shield_vel).get()){
 
     }
 
 
-    std::unique_ptr<char[]> ExternalControlCaterpillarLiftCommand::getMessageData(char pillar1_pos, char pillar1_vel, char pillar2_pos, char pillar2_vel, char pillar3_pos, char pillar3_vel, char pillar4_pos, char pillar4_vel, char shield_pos, char shield_vel)
+    std::unique_ptr<char[]> ExternalControlCaterpillarLiftCommand::getMessageData(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel)
     {
         auto msg_data = getMessageBuffer();
         msg_data.get()[0] = 0;

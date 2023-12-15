@@ -130,7 +130,9 @@ namespace  omnimove{
 
         if (agv_type_ == "caterpillar"){
             command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
+            command_interface.emplace_back("move_x", "position", &position_commands_[0]);
             command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[1]);
+            command_interface.emplace_back("move_theta", "position", &position_commands_[0]);
             command_interface.emplace_back("pillar1", "position", &position_commands_[0]);
             command_interface.emplace_back("pillar1", "velocity", &velocity_commands_[2]);
             command_interface.emplace_back("pillar2", "position", &position_commands_[1]);

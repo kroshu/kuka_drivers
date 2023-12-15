@@ -7,22 +7,47 @@ using namespace std::chrono_literals;
 
 PlatformMoveTest::PlatformMoveTest():Node("PlatformMoveTest")
 {
-    publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/platform/forward_command_controller/commands", 10);
+    this->declare_parameter("agv_type", "omnimove");
+    std::string agv_type = this->get_parameter("agv_type").as_string();
+    velocity_publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/platform/velocity_command_controller/commands", 10);
+    position_publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/platform/position_command_controller/commands", 10);
     timer_ = this->create_wall_timer(10000ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this));
     command_change_timeout_ = 5;
     current_command_index_ = 0;
-    speed_commands_.push_back(std::vector<float>{50,0,0});
-    speed_commands_.push_back(std::vector<float>{-50,0,0});
-    speed_commands_.push_back(std::vector<float>{0,50,0});
-    speed_commands_.push_back(std::vector<float>{0,-50,0});
-    speed_commands_.push_back(std::vector<float>{50, 50,0});
-    speed_commands_.push_back(std::vector<float>{-50, -50,0});
-    speed_commands_.push_back(std::vector<float>{50, -50,0});
-    speed_commands_.push_back(std::vector<float>{-50, 50,0});
-    speed_commands_.push_back(std::vector<float>{0, 0,50});
-    speed_commands_.push_back(std::vector<float>{0, 0,-50});
-    speed_commands_.push_back(std::vector<float>{0, 0, 0});
-
+    if (this->get_parameter("agv_type").as_string() == "caterpillar")
+    {
+        speed_commands_.push_back(std::vector<float>{50,0,0,0,0,0,100});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,100});
+        speed_commands_.push_back(std::vector<float>{-50,0,0,0,0,0,-100});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,0});
+        speed_commands_.push_back(std::vector<float>{0,50,0,0,0,0,100});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,100});
+        speed_commands_.push_back(std::vector<float>{0,-50,0,0,0,0,-100});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,0});
+        speed_commands_.push_back(std::vector<float>{0, 0, 100,100,0,0,0});
+        position_commands_.push_back(std::vector<float>{100,100,0,0,0});
+        speed_commands_.push_back(std::vector<float>{0, 0, -100,-100,0,0,0});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,0});
+        speed_commands_.push_back(std::vector<float>{0, 0, 0,0,100,100,0});
+        position_commands_.push_back(std::vector<float>{0,0,100,100,0});
+        speed_commands_.push_back(std::vector<float>{0, 0,0,0,-100,-100,0});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,0});
+        speed_commands_.push_back(std::vector<float>{0, 0,0,0,0,0,0});
+        position_commands_.push_back(std::vector<float>{0,0,0,0,0});
+    } else
+    {
+        speed_commands_.push_back(std::vector<float>{50,0,0});
+        speed_commands_.push_back(std::vector<float>{-50,0,0});
+        speed_commands_.push_back(std::vector<float>{0,50,0});
+        speed_commands_.push_back(std::vector<float>{0,-50,0});
+        speed_commands_.push_back(std::vector<float>{50, 50,0});
+        speed_commands_.push_back(std::vector<float>{-50, -50,0});
+        speed_commands_.push_back(std::vector<float>{50, -50,0});
+        speed_commands_.push_back(std::vector<float>{-50, 50,0});
+        speed_commands_.push_back(std::vector<float>{0, 0,50});
+        speed_commands_.push_back(std::vector<float>{0, 0,-50});
+        speed_commands_.push_back(std::vector<float>{0, 0, 0});
+    }
 
 }
 
@@ -32,12 +57,20 @@ void PlatformMoveTest::sendSpeedCommand(){
         exit(0);
     }
     std_msgs::msg::Float64MultiArray velocity;
-    auto cur_speed = speed_commands_[current_command_index_++];
+    std_msgs::msg::Float64MultiArray position;
+    size_t command_index = current_command_index_++;
+    auto cur_speed = speed_commands_[command_index];
+    auto cur_pos = position_commands_[command_index];
     for(size_t i = 0; i < cur_speed.size(); ++i){
         velocity.data.push_back(cur_speed[i]);
     }
+    for(size_t i = 0; i < cur_pos.size(); ++i){
+        position.data.push_back(cur_pos[i]);
+    }
 
-    publisher_->publish(velocity);
+
+    velocity_publisher_->publish(velocity);
+    position_publisher_->publish(position);
 }
 
 int main(int argc, char **argv){
