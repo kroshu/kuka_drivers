@@ -86,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
         ("joint_trajectory_controller", joint_traj_controller_config),
-        ("joint_impedance_controller", joint_imp_controller_config),
+        ("joint_group_impedance_controller", joint_imp_controller_config),
         ("effort_controller", effort_controller_config),
         ("control_mode_handler", [])
     ]

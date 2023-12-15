@@ -1,7 +1,7 @@
 /publisher_joint_impedance_controller:
   ros__parameters:
 
-    controller_name: "joint_impedance_controller"
+    controller_name: "joint_group_impedance_controller"
 
     stiffness_goals: [30, 0, 30, 30, 30, 30]
     damping_goals: [0.7, 0.0, 0.7, 0.7, 0.7, 0.7]
