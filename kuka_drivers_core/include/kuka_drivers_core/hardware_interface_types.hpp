@@ -19,15 +19,15 @@
 namespace hardware_interface
 {
 // Constant defining stiffness interface
-  static constexpr char HW_IF_STIFFNESS[] = "stiffness";
+static constexpr char HW_IF_STIFFNESS[] = "stiffness";
 // Constant defining damping interface
-  static constexpr char HW_IF_DAMPING[] = "damping";
+static constexpr char HW_IF_DAMPING[] = "damping";
 
 // Constant defining prefix for interfaces of "configuration controllers"
-  static constexpr char CONFIG_PREFIX[] = "runtime_config";
+static constexpr char CONFIG_PREFIX[] = "runtime_config";
 
 // Constant defining control_mode configuration interface
-  static constexpr char CONTROL_MODE[] = "control_mode";
+static constexpr char CONTROL_MODE[] = "control_mode";
 }  // namespace hardware_interface
 
 #endif  // KUKA_DRIVERS_CORE__HARDWARE_INTERFACE_TYPES_HPP_
