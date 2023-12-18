@@ -15,6 +15,7 @@
 #include <memory>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
 
@@ -271,7 +272,7 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   // Register I/O outputs (read access)
   for (auto & output : gpio_outputs_) {
     state_interfaces.emplace_back(
-      "gpio", output.getName(),
+      hardware_interface::IO_PREFIX, output.getName(),
       &output.getData());
   }
 
@@ -294,12 +295,14 @@ export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX,
+    hardware_interface::RECEIVE_MULTIPLIER, &receive_multiplier_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_) {
     command_interfaces.emplace_back(
-      "gpio", input.getName(),
+      hardware_interface::IO_PREFIX, input.getName(),
       &input.getData());
   }
 
