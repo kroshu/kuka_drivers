@@ -80,7 +80,7 @@ add_library(${PROJECT_NAME} SHARED
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_SUNRISE_FRI_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface kuka_drivers_core)
 target_link_libraries(${PROJECT_NAME} fri_client_sdk)
 
 add_library(configuration_manager SHARED

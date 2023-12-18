@@ -15,6 +15,7 @@
 #include <memory>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
 
@@ -256,22 +257,38 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back("state", "session_state", &robot_state_.session_state_);
-  state_interfaces.emplace_back("state", "connection_quality", &robot_state_.connection_quality_);
-  state_interfaces.emplace_back("state", "safety_state", &robot_state_.safety_state_);
-  state_interfaces.emplace_back("state", "command_mode", &robot_state_.command_mode_);
-  state_interfaces.emplace_back("state", "control_mode", &robot_state_.control_mode_);
-  state_interfaces.emplace_back("state", "operation_mode", &robot_state_.operation_mode_);
-  state_interfaces.emplace_back("state", "drive_state", &robot_state_.drive_state_);
-  state_interfaces.emplace_back("state", "overlay_type", &robot_state_.overlay_type_);
   state_interfaces.emplace_back(
-    "state", "tracking_performance",
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
+    &robot_state_.session_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
+    &robot_state_.connection_quality_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
+    &robot_state_.safety_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
+    &robot_state_.command_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
+    &robot_state_.control_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
+    &robot_state_.operation_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
+    &robot_state_.drive_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
+    &robot_state_.overlay_type_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::TRACKING_PERFORMANCE,
     &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access)
   for (auto & output : gpio_outputs_) {
     state_interfaces.emplace_back(
-      "gpio", output.getName(),
+      hardware_interface::IO_PREFIX, output.getName(),
       &output.getData());
   }
 
@@ -284,7 +301,9 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
       &hw_torques_[i]);
 
-    state_interfaces.emplace_back(info_.joints[i].name, "external_torque", &hw_torques_ext_[i]);
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE,
+      &hw_torques_ext_[i]);
   }
   return state_interfaces;
 }
@@ -294,12 +313,14 @@ export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX,
+    hardware_interface::RECEIVE_MULTIPLIER, &receive_multiplier_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_) {
     command_interfaces.emplace_back(
-      "gpio", input.getName(),
+      hardware_interface::IO_PREFIX, input.getName(),
       &input.getData());
   }
 

@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "nanopb-helpers/nanopb_serialization_helper.h"
 
@@ -120,18 +121,18 @@ export_command_interfaces()
 
     command_interfaces.emplace_back(
       info_.joints[i].name,
-      HW_IF_STIFFNESS,
+      hardware_interface::HW_IF_STIFFNESS,
       &hw_stiffness_commands_[i]);
 
     command_interfaces.emplace_back(
       info_.joints[i].name,
-      HW_IF_DAMPING,
+      hardware_interface::HW_IF_DAMPING,
       &hw_damping_commands_[i]);
   }
 
   command_interfaces.emplace_back(
-    CONF_PREFIX,
-    CONTROL_MODE,
+    hardware_interface::CONFIG_PREFIX,
+    hardware_interface::CONTROL_MODE,
     &hw_control_mode_command_);
 
   return command_interfaces;

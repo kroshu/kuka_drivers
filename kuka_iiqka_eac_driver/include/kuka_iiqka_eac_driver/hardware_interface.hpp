@@ -107,12 +107,6 @@ private:
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
-
-  static constexpr char CONF_PREFIX[] = "runtime_config";
-
-  static constexpr char HW_IF_STIFFNESS[] = "stiffness";
-  static constexpr char HW_IF_DAMPING[] = "damping";
-  static constexpr char CONTROL_MODE[] = "control_mode";
 };
 }  // namespace kuka_eac
 
