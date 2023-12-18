@@ -41,7 +41,7 @@ static constexpr char CONTROL_MODE[] = "control_mode";
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
 
 /* FRI state interfaces */
-static constexpr char SESSIOM_STATE[] = "session_state";
+static constexpr char SESSION_STATE[] = "session_state";
 static constexpr char CONNECTION_QUALITY[] = "connection_quality";
 static constexpr char SAFETY_STATE[] = "safety_state";
 static constexpr char COMMAND_MODE[] = "command_mode";

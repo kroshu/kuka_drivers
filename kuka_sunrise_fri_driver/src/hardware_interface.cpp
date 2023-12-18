@@ -258,7 +258,7 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSIOM_STATE,
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
     &robot_state_.session_state_);
   state_interfaces.emplace_back(
     hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
