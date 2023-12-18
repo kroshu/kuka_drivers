@@ -31,12 +31,26 @@ static constexpr char HW_IF_EXTERNAL_TORQUE[] = "external_torque";
 static constexpr char IO_PREFIX[] = "gpio";
 // Constant defining prefix for interfaces of "configuration controllers"
 static constexpr char CONFIG_PREFIX[] = "runtime_config";
+// Constant defining prefix for fri state
+static constexpr char FRI_STATE_PREFIX[] = "fri_state";
 
 /* Configuration interfaces */
 // Constant defining control_mode configuration interface
 static constexpr char CONTROL_MODE[] = "control_mode";
 // Constant defining the receive multiplier interface needed for FRI
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
+
+/* FRI state interfaces */
+static constexpr char SESSIOM_STATE[] = "session_state";
+static constexpr char CONNECTION_QUALITY[] = "connection_quality";
+static constexpr char SAFETY_STATE[] = "safety_state";
+static constexpr char COMMAND_MODE[] = "command_mode";
+static constexpr char OPERATION_MODE[] = "operation_mode";
+static constexpr char DRIVE_STATE[] = "drive_state";
+static constexpr char OVERLAY_TYPE[] = "overlay_type";
+static constexpr char TRACKING_PERFORMANCE[] = "tracking_performance";
+
+
 }  // namespace hardware_interface
 
 #endif  // KUKA_DRIVERS_CORE__HARDWARE_INTERFACE_TYPES_HPP_
