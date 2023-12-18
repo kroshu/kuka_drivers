@@ -107,7 +107,6 @@ private:
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
-
 };
 }  // namespace kuka_eac
 
