@@ -25,7 +25,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetInt.srv"
   "srv/GetInt.srv"
   "srv/SetDouble.srv"
-  "msg/JointImpedance.msg"
+  "msg/FRIState.msg"
   DEPENDENCIES geometry_msgs
 )
 
