@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<library path="kuka_fri_hw_interface">
+<library path="kuka_sunrise_fri_driver">
     <class type="kuka_sunrise_fri_driver::KukaFRIHardwareInterface"
            base_class_type="hardware_interface::SystemInterface"/>
     <description>

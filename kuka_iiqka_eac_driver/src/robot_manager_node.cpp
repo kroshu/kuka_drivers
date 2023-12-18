@@ -56,7 +56,7 @@ RobotManagerNode::RobotManagerNode()
     is_configured_qos);
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
-    "control_mode", rclcpp::SystemDefaultsQoS()
+    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS()
   );
 
   // Register parameters
