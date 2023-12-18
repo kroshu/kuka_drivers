@@ -2,65 +2,6 @@
 
 ## KUKA Sunrise driver (FRI)
 
-### Project description
-
-This project centers on the development of a comprehensive ROS2 driver for external control of KUKA robots running on Sunrise OS through the real-time Fast Robot Interface (FRI). The following aspects are given particular consideration:
-
-1. Application lifecycle controlled completely from ROS2, e.g.
-   
-   - Parameter configuration
-   
-   - Start/stop of external monitoring and commanding 
-   
-   - Reacting to application errors
-
-2. Exposing all functionality of the FRI towards the ROS2 system, e.g.
-   
-   - All command and control modes of joints
-   
-   - Field bus I/O handling
-
-3. Exploiting new features of ROS2 w.r.t. ROS1, e.g.
-   
-   - Lifecycle management
-   
-   - Node-based ROS parameters
-   
-   - Real-time inter-node communication
-
-### Current state of project
-
-This project is currently experimental. The functionalities are not fully tested and the API and the internal architecture of the driver should be expected to change. This wiki is targeted at developers who would like to understand and potentially contribute to the project. Usage of this driver is discouraged except for the testing of the driver, only in controlled environment and with the proper safety configuration applied.
-
-### Features
-
-The following features of the FRI are exposed to ROS2:
-
-#### Real-time interface
-
-- [ ] Monitor joint states
-  - [x] Actual position
-  - [ ] Actual torque
-  - [ ] Setpoint position
-  - [ ] Setpoint torque
-  - [x] External torque
-- [ ] Joint commands
-  - [x] Position
-  - [x] Torque
-- [ ] Field bus
-  - [ ] Inputs
-  - [ ] Outputs
-- [ ] Connection quality
-- [ ] Safety state
-- [x] Tracking performance
-
-#### Manager interface
-
-- [x] Session state
-- [x] Control mode
-- [x] Client command mode
-- [ ] Operation mode
-- [ ] Number of axes
 
 ## KUKA KSS driver (RSI)
 
@@ -122,21 +63,8 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 
 It is also possible to use different controllers with some modifications in the launch and yaml files (for example ForwardCommandController, which forwards the commands send to a ROS2 topic towards the robot). In these cases, one has to make sure, that the commands sent to the robot are close to the current position, otherwise the machine protection will stop the robot movement.
 
-### Issues
 
-The driver is in an experimental state, with only joint position commands supported. We have encountered the following isses:
-- If there is an error after starting the launch file, the process must be stopped and started again. This error is related to spawning the joint_trajectory controller and comes forth sporadically.
-The logs are the following:
-
-    [spawner-4] Node not found
-
-    [ERROR] [spawner-4]: process has died [pid ..., exit code 1, cmd '/opt/ros/humble/lib/controller_manager/spawner joint_trajectory_controller -c /controller_manager -p .../kuka_iiqka_eac_driver/share/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml --inactive --ros-args']
-
-- If you activate and deactivate the robot manager node, the reactivation will fail, you must restart the whole process if you want to control the robot again
-
-
-
-## Contact
+## Contributing
 
 If you have questions, suggestions or want to contribute, feel free to open an [issue](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/issues) or start a [discussion](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/discussions).
 
