@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "kuka_drivers_core/hardware_interface_types.h"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "nanopb-helpers/nanopb_serialization_helper.h"
 
