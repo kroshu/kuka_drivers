@@ -64,7 +64,5 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 It is also possible to use different controllers with some modifications in the launch and yaml files (for example ForwardCommandController, which forwards the commands send to a ROS2 topic towards the robot). In these cases, one has to make sure, that the commands sent to the robot are close to the current position, otherwise the machine protection will stop the robot movement.
 
 
-## Contributing
 
-If you have questions, suggestions or want to contribute, feel free to open an [issue](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/issues) or start a [discussion](https://github.com/kroshu/ros2_kuka_sunrise_fri_driver/discussions).
 
