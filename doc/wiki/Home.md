@@ -57,7 +57,24 @@ The consequence of the lifecycle interface is, that 3 commands are necessary to 
 
 #### Control mode definitions
 
+The control mode specifications are also part of the common API. They are defined as an enum in the [`kuka_drivers_core`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) package, and have the following meaning:
 
+- joint position control: the driver streams cyclic position updates for every joint. 
+    - Needed command interface(s): `position`
+- joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally.
+    - Needed command interface(s): `position`, `stiffness`, `damping`
+- joint velocity control: the driver streams cyclic velocity updates for every joint.
+    - Needed command interface(s): `velocity`
+- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensatin and should not move)
+    - Needed command interface(s): `effort`
+- cartesian position control: the driver streams cyclic pose updates for every degree of freedom. The orientation representation is the KUKA ABC convention. It is the responsibility of the user to stream poses, for which a valid IK solution exists.
+    - Needed command interface(s): `cart_position`
+- cartesian impedance control: the driver streams cyclic pose updates for every degree of freedom. Additional stiffness [N/m or Nm/rad] and normalized damping [-] attributes define the behaviour of each degree of freedom. The nullspace stiffness and damping values defined the behaviour of the redundant degree(s) of freedom.
+    - Needed command interface(s): `cart_position`, `cart_stiffness`, `cart_damping`, (`nullspace_stiffness`, `nullspace_damping`)
+- cartesian velocity control: the driver streams cyclic cartesian velocity (twist) updates for every degree of freedom. It is the responsibility of the user to stream velocities, for which a valid IK solution exists.
+    - Needed command interface(s): `cart_velocity`
+- wrench control: the driver streams cyclic wrench updates, which define the forces and torques, that the robot end effector should exert on the environment. The effect of gravity is internally compensated. (If the environment does not have a counterforce, the robot will start to move)
+    - Needed command interface(s): `wrench`
 
 
 #### Supported features
