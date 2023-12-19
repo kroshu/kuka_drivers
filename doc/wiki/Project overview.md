@@ -96,6 +96,22 @@ The repository contains a few other packages aside from the 3 drivers:
 
 ## Moveit integration
 
+The `ros2_control` framework supports Moveit out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package (`iiqka_moveit_example`) is provided to help developers.
+
+The package contains a [launch file](../../examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup. 
+
+After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
+
+The package also contains examples of sending planning requests from C++ code, in which case the `rviz` plugin is not necessary. The `MoveitExample` class implements a wrapper around the `MoveGroupInterface`, the example executables in the package use this class to interact with Moveit. Four examples are provided:
+- `moveit_basic_planners_example`: the example uses the `PILZ` motion planner to plan a `PTP` and a `LIN` trajectory. It also demonstrates that planning with collision avoidance is not possible with the `PILZ` planner by adding a collision box that invalidates the planned trajectory.
+- `moveit_collision_avoidance_example`: the example adds a collision box to the scene and demonstrates, that path planning with collision avoidance is possible using the `OMPL` planning pipeline.
+- `moveit_constrained_planning_example`: this example demonstrates constrained planning capabilities, as the planner can find a valid path around the obstacle with the end effector orientation remaining constant (with small tolerance).
+- `moveit_depalletizing_example`: this example shows a depalletizing example: a 3x3x3 pallet pattern is added to the scene, the robot can successfully finish the depalletizing process by attaching each pallet to the end effector and moving it to a dropoff position with collision avoidance.
+
+Note: the first three examples should be executed consequently (without restarting the launch file) to ensure that the collision objects are indeed in the way of the trivial path. The 4. example should be executed independently, so that the collision box added in the other examples are not there (launch file should be restarted after the other examples).
+
+Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it. 
+
 ## Detailed setup and startup instructions
 
 [Instructions for industrial robots using KSS](KSS_RSI.md)
