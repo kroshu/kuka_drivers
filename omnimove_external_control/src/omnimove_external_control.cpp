@@ -245,31 +245,32 @@ namespace  omnimove{
         //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
 
         if(agv_type_=="caterpillar"){
-            if (velocity_commands_[0] == 0.0 && velocity_commands_[1] == 0.0)
-            {
-                client_socket_->send(ExternalControlCaterpillarLiftCommand(position_commands_[0],
-                                                                           position_commands_[1],
-                                                                           position_commands_[2],
-                                                                           position_commands_[3],
-                                                                           position_commands_[4]).getSerialisedData());
+            if (velocity_commands_ != last_sent_velocity_commands_){
+                last_sent_velocity_commands_ = velocity_commands_;
+                last_sent_velocity_time_ = boost::chrono::system_clock::now();
 
-            } else
-            {
-                if (velocity_commands_ != last_sent_velocity_commands_){
-                    last_sent_velocity_commands_ = velocity_commands_;
-                    last_sent_velocity_time_ = boost::chrono::system_clock::now();
-                    client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
-                                                                            velocity_commands_[1],
-                                                                            position_commands_[4]).getSerialisedData());
-                }  else {
-                    //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
-                    //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
+                if (velocity_commands_[0] == 0.0 && velocity_commands_[1] == 0.0)
+                {
+                    client_socket_->send(ExternalControlCaterpillarLiftCommand(position_commands_[0],
+                                                                               position_commands_[1],
+                                                                               position_commands_[2],
+                                                                               position_commands_[3],
+                                                                               position_commands_[4]).getSerialisedData());
 
-                    if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
-                        client_socket_->send(ExternalControlStopCommand().getSerialisedData());
-                    }
+                } else
+                {
+                        client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
+                                                                                velocity_commands_[1],
+                                                                                position_commands_[4]).getSerialisedData());
                 }
 
+            } else {
+                //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
+                //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
+
+                if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
+                    client_socket_->send(ExternalControlStopCommand().getSerialisedData());
+                }
             }
 
 
