@@ -12,6 +12,8 @@ It is also recommended to use a client machine with a real-time kernel, as all t
 
 
 # Installation
+The driver is not available as a binary package, building from source is necessary.
+
 Create ROS2 workspace (if not already created).
 ```bash
 mkdir -p ~/ros2_ws/src

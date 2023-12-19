@@ -2,11 +2,57 @@
 
 ## Goals of the project
 
+This project aims to provide reliable real-time capable drivers for all KUKA robots. Currently KUKA robots are available with 3 different operating systems with real-time control API-s:
+- KSS supporting industrial robots, with Robot Sensor Interface (RSI)
+- Sunrise supporting cobots (LBR iiwa-s), with Fast Robot Interface (FRI)
+- iiQKA supporting cobots (LBR iisy-s), with ExternalAPI.Control (EAC)
+
+It is also the goal of this project to provide the same API for all three OS-s, hiding the underlying startup procedure and communication technology, thus enabling changing seamlessly to a different KUKA OS.
+
+Additionally the aim was to write high quality, maintainable code with standardized interfaces, that conforms with the standards defined by the [ROS-Industrial project](https://www.rosin-project.eu/).
+
 ## Common interface
+
+Two different interfaces should be defined for all drivers supporting real-time control:
+- real-time interface, defining how to handle the cyclic dataflow
+- non-real-time interface, defining the startup procedure with optional configuration
+
+#### Real-time interface
+The choice for the real-time interface was straightforward, as a standardized control framework exists for ROS2, called `ros2_control`, also supported by ROS-Industrial. The drivers are built using this framework, therefore it is recommended the read through its [documentation](https://control.ros.org/master/doc/ros2_control/doc/index.html).
+
+All 3 of the KUKA real-time interfaces handle the timing on the controller side to be synchronized with the internal control cycle. This means, that callig the `read` method of the `controller_manager` cannot return immediately, but has to wait until the controller sends an update, which is triggered by the internal clock. Because of this blocking read, the deafult `ros2_control_node` cannot be used, as there it is expected that the controller_manager handles the timing according to the configured control frequency. Therefore a [custom control node](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/src/control_node.cpp) was implemented that uses the `controller_manager` and all other tools of `ros2_control`, but leaves the time management to the robot controller.
+
+#### Non-real-time interface
+The startup procedure for any system in ROS can be defined using a launch file, that can start multiple processes. By default, starting the control node with a hardware interface and controllers configured immediately start external control. This behaviour has a few drawbacks:
+- The user cannot configure some parameters during runtime, that cannot be changed during external control
+- The user cannot easily synchronize the start of external control with other components of the system
+- It can cause unexpected behaviour, which can be potentially dangerous to the hardware or surroundings.
+    - In torque control mode, the robot can start to move, if the torque sensors are not perfectly calibrated (and as that is hard to achieve, this can happen in most cases). This could be mitigated with a simple torque controller that tries to hold the position, but there is no guarantee that loading and activating the controller was successful, external control would start even if it failed. This could result in a scenario, where the robot starts to move unexpectedly.
+
+The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The harware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meanings:
+
+- `unconfigured`: all necessary components are started, but no connection is needed to the robot
+- `configured`: The driver has configured the parameters necessary to start external control. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
+- `active`: external control is running with cyclic real-time communication, controllers are active
+
+To achieve these synchronized states, the state transitions of the system do the following steps (implemented by the launch file and the `robot_manager` node):
+- startup: all components of the system are started: `control_node`, `robot_manager` node, `robot_state_publisher` (optionally `rviz`) and all of the necessary controllers are loaded and configured
+- `configure`: activate configuration controllers, configure hardware interface
+- `activate`: activate real-time controllers, activate hardware interface
+- `deactivate`: deactivate hardware interface, deactivate real-time controllers
+- `cleanup`: clean up hardware interface, deactivate configuration controllers
+
+Note: the lifecycle interface of the controllers are a little bit different, as they do not have a `cleanup` transition. To have a consequent `unconfigured` state, the configuration of the controllers are not handled in the `configure` transition, but at startup.
+
+Including the controller state handling in the system state makes the implementation more complex, as controllers must be deactivated and activated at control mode changes, but it has two advantages:
+ - minor performance increase: unused controllers are not active and therefore do not consume resources
+ - unexpected behaviour is not possible: external control will not start on the robot, unless all necessary controllers are successfully activated, while control mode changes (on the robot) are only possible after the controllers for the new control mode are activated.
 
 #### Control mode definitions
 
 #### Supported features
+
+## Additional packages
 
 ## Moveit integration
 
@@ -40,9 +86,6 @@ The third project in the repo is the driver for iiQKA robots.
 The driver uses the ros2_control framework, so a variaty of controllers are supported and it can be easily integrated into moveit. It consists of a realtime component for controlling the robot via UDP (ROS2 hardware interface) and a non-realtime one for lifecycle management of the controllers and the hardware interface. The driver supports a control cycle time of 4 milliseconds, but the round-trip time of one cycle should not exceed 3 milliseconds, as above that the packets are considered lost. Therefore it is advised to run the driver on a realtime-capable Linux machine (with the PRREMPT_RT patch applied). After a few lost packets the connection is considered not stable enough and external control is ended.
 
 The driver depends on some KUKA-specific packages, which are only available with the real robot, but setting the MOCK_HW_ONLY flag in the hardware_interface enables the usage of the driver in a simulated way, so that motion planning problems can be tried out with the same components running.
-Two additional packages (not listed in package.xml) must be installed with apt:
-- libnanopb-dev
-- libgrpc++-dev
 
 ### Setup
 

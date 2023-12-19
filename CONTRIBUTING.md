@@ -7,6 +7,8 @@ When filing an issue, please check open issues to make sure somebody else hasn't
 - Any modifications you've made relevant to the bug
 - Anything unusual about your environment or deployment
 
+Please do not add labels to the issue, that should be handled by the maintainers.
+
 ## Contributing
 
 Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
