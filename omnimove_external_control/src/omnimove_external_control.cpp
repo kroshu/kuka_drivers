@@ -44,6 +44,14 @@ namespace  omnimove{
 
         protocol_version_ = info_.hardware_parameters["protocol_version"]; //should be 1.6
         external_control_port_ = std::stoi(info_.hardware_parameters["port"]);
+        if (info.hardware_parameters.find("velocity_command_timeout_ms") != info.hardware_parameters.end()){
+            vel_cmd_timeout_ms_ = std::stoi(info_.hardware_parameters["velocity_command_timeout_ms"]);
+        } else{
+            RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
+                        "velocity timeout not set. Using 500 ms");
+
+            vel_cmd_timeout_ms_ = 500;
+        }
         RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
                     "port of external control server:%d", external_control_port_);
         return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
@@ -127,22 +135,14 @@ namespace  omnimove{
 
     std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces(){
         std::vector<hardware_interface::CommandInterface> command_interface;
-
         if (agv_type_ == "caterpillar"){
             command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
-            command_interface.emplace_back("move_x", "position", &position_commands_[0]);
             command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[1]);
-            command_interface.emplace_back("move_theta", "position", &position_commands_[0]);
             command_interface.emplace_back("pillar1", "position", &position_commands_[0]);
-            command_interface.emplace_back("pillar1", "velocity", &velocity_commands_[2]);
             command_interface.emplace_back("pillar2", "position", &position_commands_[1]);
-            command_interface.emplace_back("pillar2", "velocity", &velocity_commands_[3]);
             command_interface.emplace_back("pillar3", "position", &position_commands_[2]);
-            command_interface.emplace_back("pillar3", "velocity", &velocity_commands_[4]);
             command_interface.emplace_back("pillar4", "position", &position_commands_[3]);
-            command_interface.emplace_back("pillar4", "velocity", &velocity_commands_[5]);
             command_interface.emplace_back("shield", "position", &position_commands_[4]);
-            command_interface.emplace_back("shield", "velocity", &velocity_commands_[6]);
 
         }else{
             command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
@@ -201,7 +201,7 @@ namespace  omnimove{
 
         std::array<char, 1024> buffer;
         if (client_socket_.get()==NULL){
-            RCLCPP_WARN(rclcpp::get_logger("OmnimoveExternalControl"), "socker is null !!!");
+            RCLCPP_WARN(rclcpp::get_logger("OmnimoveExternalControl"), "socket is null !!!");
         }
         //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if available");
         size_t bytes_received = client_socket_->read_some(boost::asio::buffer(buffer));
@@ -245,32 +245,50 @@ namespace  omnimove{
         //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
 
         if(agv_type_=="caterpillar"){
-            if (velocity_commands_[0]==0.0 && velocity_commands_[1]==0.0)
+            if (velocity_commands_[0] == 0.0 && velocity_commands_[1] == 0.0)
             {
                 client_socket_->send(ExternalControlCaterpillarLiftCommand(position_commands_[0],
-                                                                           velocity_commands_[2],
                                                                            position_commands_[1],
-                                                                           velocity_commands_[3],
                                                                            position_commands_[2],
-                                                                           velocity_commands_[4],
                                                                            position_commands_[3],
-                                                                           velocity_commands_[5],
-                                                                           position_commands_[4],
-                                                                           velocity_commands_[6]).getSerialisedData());
+                                                                           position_commands_[4]).getSerialisedData());
 
             } else
             {
-                client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
+                if (velocity_commands_ != last_sent_velocity_commands_){
+                    last_sent_velocity_commands_ = velocity_commands_;
+                    last_sent_velocity_time_ = boost::chrono::system_clock::now();
+                    client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
                                                                             velocity_commands_[1],
-                                                                            position_commands_[4],
-                                                                            velocity_commands_[6]).getSerialisedData());
+                                                                            position_commands_[4]).getSerialisedData());
+                }  else {
+                    //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<< velocity_commands_[0]
+                    //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
+
+                    if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
+                        client_socket_->send(ExternalControlStopCommand().getSerialisedData());
+                    }
+                }
+
             }
+
 
         } else
         {
-            client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
+            if (velocity_commands_ != last_sent_velocity_commands_){
+                last_sent_velocity_commands_ = velocity_commands_;
+                last_sent_velocity_time_ = boost::chrono::system_clock::now();
+
+                client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
                                                                      velocity_commands_[1],
                                                                      velocity_commands_[2]).getSerialisedData());
+
+            }  else {
+
+                if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
+                    client_socket_->send(ExternalControlStopCommand().getSerialisedData());
+                }
+            }
         }
         return return_type::OK;
     }

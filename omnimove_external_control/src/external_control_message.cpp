@@ -182,13 +182,17 @@ namespace omnimove{
         return msg_data;
     }
 
-    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos, int shield_vel):
-        ExternalControlCommand(getMessageData(speed_x, speed_w, shield_pos, shield_vel).get()){
+    ExternalControlStopCommand::ExternalControlStopCommand():ExternalControlCommand(getMessageBuffer().get()){
+
+    }
+
+    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos):
+        ExternalControlCommand(getMessageData(speed_x, speed_w, shield_pos).get()){
 
     }
 
 
-    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, int shield_pos, int shield_vel)
+    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, int shield_pos)
     {
         auto msg_data = getMessageBuffer();
         msg_data.get()[0] = 0;
@@ -196,33 +200,27 @@ namespace omnimove{
 
         *((int32_t *)(msg_data.get() + 2)) = speed_x;
         *((int32_t *)(msg_data.get() + 10)) = speed_w;
-        *((msg_data.get() + 62)) = shield_vel;
         *((msg_data.get() + 63)) = shield_pos;
 
         return msg_data;
     }
 
-    ExternalControlCaterpillarLiftCommand::ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel):
-        ExternalControlCommand(getMessageData(pillar1_pos, pillar1_vel, pillar2_pos, pillar2_vel, pillar3_pos, pillar3_vel, pillar4_pos, pillar4_vel, shield_pos, shield_vel).get()){
+    ExternalControlCaterpillarLiftCommand::ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos):
+        ExternalControlCommand(getMessageData(pillar1_pos, pillar2_pos, pillar3_pos, pillar4_pos, shield_pos).get()){
 
     }
 
 
-    std::unique_ptr<char[]> ExternalControlCaterpillarLiftCommand::getMessageData(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel)
+    std::unique_ptr<char[]> ExternalControlCaterpillarLiftCommand::getMessageData(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos)
     {
         auto msg_data = getMessageBuffer();
         msg_data.get()[0] = 0;
         msg_data.get()[1] = 2; //set mode to AutoDrive
 
-        *((msg_data.get() + 54)) = pillar1_vel;
         *((msg_data.get() + 55)) = pillar1_pos;
-        *((msg_data.get() + 56)) = pillar2_vel;
         *((msg_data.get() + 57)) = pillar2_pos;
-        *((msg_data.get() + 58)) = pillar3_vel;
         *((msg_data.get() + 59)) = pillar3_pos;
-        *((msg_data.get() + 60)) = pillar4_vel;
         *((msg_data.get() + 61)) = pillar4_pos;
-        *((msg_data.get() + 62)) = shield_vel;
         *((msg_data.get() + 63)) = shield_pos;
 
         return msg_data;

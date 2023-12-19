@@ -144,20 +144,27 @@ namespace omnimove{
             ExternalControlOmnimoveDriveCommand(int speed_x, int speed_y, int speed_w);
     };
 
+    class ExternalControlStopCommand : public ExternalControlCommand {
+        public:
+            ExternalControlStopCommand();
+
+    };
+
 
     class ExternalControlCaterpillarDriveCommand : public ExternalControlCommand{
     private:
-        std::unique_ptr<char[]> getMessageData(int speed_x, int speed_w, int shield_pos, int shield_vel);
+        std::unique_ptr<char[]> getMessageData(int speed_x, int speed_w, int shield_pos);
     public:
-        ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos, int shield_vel);
+        ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos);
     };
 
     class ExternalControlCaterpillarLiftCommand : public ExternalControlCommand {
     private:
-        std::unique_ptr<char[]> getMessageData(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel);
+        std::unique_ptr<char[]> getMessageData(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos);
     public:
-        ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar1_vel, int pillar2_pos, int pillar2_vel, int pillar3_pos, int pillar3_vel, int pillar4_pos, int pillar4_vel, int shield_pos, int shield_vel);
+        ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos);
 
     };
+
 } // namespace omnimove
 #endif // EXTERNAL_CONTROL_MESSAGE_H

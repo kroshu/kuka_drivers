@@ -7,7 +7,7 @@
 #include <boost/asio.hpp>
 #include <boost/circular_buffer.hpp>
 #include <rcl/logging.h>
-
+#include <boost/chrono.hpp>
 namespace omnimove{
     class OmnimoveExternalControl:public hardware_interface::SystemInterface{
     public:
@@ -24,9 +24,12 @@ namespace omnimove{
         hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State&) override;
         hardware_interface::CallbackReturn on_activate (const rclcpp_lifecycle::State &) override;
      private:
+        int vel_cmd_timeout_ms_;
         std::vector<double> velocity_state_;
         std::vector<double> position_state_;
         std::vector<double> velocity_commands_;
+        boost::chrono::system_clock::time_point last_sent_velocity_time_;
+        std::vector<double> last_sent_velocity_commands_;
         std::vector<double> position_commands_;
         std::string agv_type_;
         std::string protocol_version_;

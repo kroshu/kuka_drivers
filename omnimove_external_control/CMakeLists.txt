@@ -13,6 +13,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+include(ConfigExtras.cmake)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   hardware_interface
@@ -44,13 +45,15 @@ ament_target_dependencies(
     platform_move_test
     rclcpp std_msgs
 )
+
 install(TARGETS omnimove_external_control
   DESTINATION lib)
+
 install(TARGETS platform_move_test
   DESTINATION lib/${PROJECT_NAME})
 
 
-ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
 pluginlib_export_plugin_description_file(hardware_interface omnimove_external_control.xml)
 
 if(BUILD_TESTING)
@@ -66,5 +69,6 @@ if(BUILD_TESTING)
 endif()
 ament_export_libraries(
   omnimove_external_control
+  ${BOOST_LIBRARIES}
 )
-ament_package()
+ament_package(CONFIG_EXTRAS ConfigExtras.cmake)
