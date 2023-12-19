@@ -1,5 +1,15 @@
 # Welcome to the ROS2 KUKA drivers project!
 
+## Goals of the project
+
+## Common interface
+
+#### Control mode definitions
+
+#### Supported features
+
+## Moveit integration
+
 ## KUKA Sunrise driver (FRI)
 
 

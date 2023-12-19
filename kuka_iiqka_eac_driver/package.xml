@@ -3,7 +3,7 @@
 <package format="3">
   <name>kuka_iiqka_eac_driver</name>
   <version>0.0.0</version>
-  <description>A ROS2 hardware interface for use with KUKA RoX</description>
+  <description>A ROS2 hardware interface for use with KUKA iiQKA OS</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <license>Apache 2.0</license>
 
