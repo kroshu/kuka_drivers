@@ -18,20 +18,20 @@ Two different interfaces should be defined for all drivers supporting real-time 
 - non-real-time interface, defining the startup procedure with optional configuration
 
 #### Real-time interface
-The choice for the real-time interface was straightforward, as a standardized control framework exists for ROS2, called `ros2_control`, also supported by ROS-Industrial. The drivers are built using this framework, therefore it is recommended the read through its [documentation](https://control.ros.org/master/doc/ros2_control/doc/index.html).
+The choice for the real-time interface was straightforward, as a standardized control framework exists for ROS2, called `ros2_control`, also supported by ROS-Industrial. The drivers are built using this framework, therefore it is recommended the read through its [documentation](https://control.ros.org/master/doc/ros2_control/doc/index.html), as this documentation builds on the knowledge of the framework.
 
-All 3 of the KUKA real-time interfaces handle the timing on the controller side to be synchronized with the internal control cycle. This means, that callig the `read` method of the `controller_manager` cannot return immediately, but has to wait until the controller sends an update, which is triggered by the internal clock. Because of this blocking read, the deafult `ros2_control_node` cannot be used, as there it is expected that the controller_manager handles the timing according to the configured control frequency. Therefore a [custom control node](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/src/control_node.cpp) was implemented that uses the `controller_manager` and all other tools of `ros2_control`, but leaves the time management to the robot controller.
+All 3 of the KUKA real-time interfaces handle the timing on the controller side, so external control is always synchronized with the internal control cycle. This means, that callig the `read` method of the `controller_manager` cannot return immediately, but has to wait until the controller sends an update, which is triggered by the internal clock. Because of this blocking read, the deafult `ros2_control_node` cannot be used, as there it is expected that the `controller_manager` handles the timing according to the configured control frequency. Therefore a [custom control node](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/src/control_node.cpp) was implemented that uses the `controller_manager` and all other tools of `ros2_control`, but leaves the time management to the robot controller.
 
 This change does not influence the API of the `ros2_control` framework, the real-time dataflow can be accessed by any controller.
 
 #### Non-real-time interface
-The startup procedure for any system in ROS can be defined using a launch file, that can start multiple processes. By default, starting the control node with a hardware interface and controllers configured immediately start external control. This behaviour has a few drawbacks:
+The startup procedure for any system in ROS can be defined using a launch file, that can start multiple processes. By default, starting the control node with a hardware interface and controllers configured immediately starts external control. This behaviour has a few drawbacks:
 - The user cannot configure some parameters during runtime, that cannot be changed during external control
 - The user cannot easily synchronize the start of external control with other components of the system
 - It can cause unexpected behaviour, which can be potentially dangerous to the hardware or surroundings.
     - In torque control mode, the robot can start to move, if the torque sensors are not perfectly calibrated (and as that is hard to achieve, this can happen in most cases). This could be mitigated with a simple torque controller that tries to hold the position, but there is no guarantee that loading and activating the controller was successful, external control would start even if it failed. This could result in a scenario, where the robot starts to move unexpectedly.
 
-The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The harware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meanings:
+The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The harware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meaning:
 
 - `unconfigured`: all necessary components are started, but no connection is needed to the robot
 - `configured`: The driver has configured the parameters necessary to start external control. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
@@ -53,7 +53,7 @@ Including the controller state handling in the system state makes the implementa
 The consequence of the lifecycle interface is, that 3 commands are necessary to start external control for all robots:
  - start the appropriate launch file for your robot with your robot model as parameter (details can be found [here](#detailed-setup-and-startup-instructions))
  - `ros2 lifecycle set robot_manager configure`
- - `ros2 lifecycle set robot_manager configure`
+ - `ros2 lifecycle set robot_manager activate`
 
 #### Control mode definitions
 
@@ -65,11 +65,11 @@ The control mode specifications are also part of the common API. They are define
     - Needed command interface(s): `position`, `stiffness`, `damping`
 - joint velocity control: the driver streams cyclic velocity updates for every joint.
     - Needed command interface(s): `velocity`
-- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensatin and should not move)
+- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensatin and should not move.)
     - Needed command interface(s): `effort`
 - cartesian position control: the driver streams cyclic pose updates for every degree of freedom. The orientation representation is the KUKA ABC convention. It is the responsibility of the user to stream poses, for which a valid IK solution exists.
     - Needed command interface(s): `cart_position`
-- cartesian impedance control: the driver streams cyclic pose updates for every degree of freedom. Additional stiffness [N/m or Nm/rad] and normalized damping [-] attributes define the behaviour of each degree of freedom. The nullspace stiffness and damping values defined the behaviour of the redundant degree(s) of freedom.
+- cartesian impedance control: the driver streams cyclic pose updates for every degree of freedom. Additional stiffness [N/m or Nm/rad] and normalized damping [-] attributes define the behaviour of each degree of freedom to external forces. The nullspace stiffness and damping values define the behaviour of the redundant degree(s) of freedom.
     - Needed command interface(s): `cart_position`, `cart_stiffness`, `cart_damping`, (`nullspace_stiffness`, `nullspace_damping`)
 - cartesian velocity control: the driver streams cyclic cartesian velocity (twist) updates for every degree of freedom. It is the responsibility of the user to stream velocities, for which a valid IK solution exists.
     - Needed command interface(s): `cart_velocity`
@@ -89,6 +89,12 @@ The following table shows the supported features and control modes of each drive
 
 
 ## Additional packages
+
+The repository contains a few other packages aside from the 3 drivers:
+- `kuka_driver_interfaces`: this package contains the custom message definition necessary for KUKA robots.
+- `kuka_drivers_core`: this package contains core functionalities used by more drivers, including the `control_node`, base classes for nodes with improved parameter handling, enum and constant definitions and a class for managing the controller activation and deactivation at control mode changes. Details about these features can be found in the package [documentation](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/README.md)
+- `kuka_rsi_simulator`: this package contains a simple simulator of RSI, that implements a UDP server accepting the same xml format as RSI and returning the commanded values as the current state, without any checks.
+- `iiqka_moveit_example`: this package contains basic examples of using moveit with the driver, more information in the [next section](#moveit-integration). Additionally it contains a [launch file](../../examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](../../examples/iiqka_moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
 
 ## Moveit integration
 
