@@ -57,7 +57,19 @@ The consequence of the lifecycle interface is, that 3 commands are necessary to 
 
 #### Control mode definitions
 
+
+
+
 #### Supported features
+
+The following table shows the supported features and control modes of each driver. (`✓` means supported, `✗` means not supported by the KUKA interface, empty means supported by the KUKA interface, but not yet supported by the driver)
+
+|OS | Joint position control | Joint impedance control | Joint velocity control | Joint torque control | Cartesian position control | Cartesian impedance control | Cartesian velocity control | Wrench control| I/O control|
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|KSS| ✓ | ✗ | ✗ | ✗ | | ✗ | ✗ | ✗ | |
+|Sunrise| ✓ | ✓ | ✗ | ✓ | | | ✗ | | |
+|iiQKA| ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+
 
 ## Additional packages
 
