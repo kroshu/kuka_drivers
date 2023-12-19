@@ -15,7 +15,7 @@
 #include <vector>
 #include <utility>
 
-#include "kuka_drivers_core/ControllerHandler.hpp"
+#include "kuka_drivers_core/controller_handler.hpp"
 
 namespace kuka_drivers_core
 {

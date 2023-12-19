@@ -1,34 +1,34 @@
 effort_controller:
   ros__parameters:
     joints: 
-    - joint_a1
-    - joint_a2
-    - joint_a3
-    - joint_a4
-    - joint_a5
-    - joint_a6
+    - joint_1
+    - joint_2
+    - joint_3
+    - joint_4
+    - joint_5
+    - joint_6
     gains:
-      joint_a1:
+      joint_1:
         p: 5.0
         i: 0.0
         d: 0.1
-      joint_a2:
+      joint_2:
         p: 5.0
         i: 0.0
         d: 0.1
-      joint_a3:
+      joint_3:
         p: 5.0
         i: 0.0
         d: 0.1
-      joint_a4:
+      joint_4:
         p: 5.0
         i: 0.0
         d: 0.1
-      joint_a5:
+      joint_5:
         p: 5.0
         i: 0.0
         d: 0.1
-      joint_a6:
+      joint_6:
         p: 5.0
         i: 0.0
         d: 0.1

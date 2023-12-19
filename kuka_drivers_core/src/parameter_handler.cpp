@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_drivers_core/ParameterHandler.hpp"
+#include "kuka_drivers_core/parameter_handler.hpp"
 
 #include <string>
 #include <vector>

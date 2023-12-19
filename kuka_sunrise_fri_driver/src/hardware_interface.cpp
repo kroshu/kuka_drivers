@@ -14,11 +14,14 @@
 
 #include <memory>
 
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "kuka_drivers_core/hardware_interface_types.hpp"
+
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
 
 namespace kuka_sunrise_fri_driver
 {
-CallbackReturn KUKAFRIHardwareInterface::on_init(
+CallbackReturn KukaFRIHardwareInterface::on_init(
   const hardware_interface::HardwareInfo & system_info)
 {
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
@@ -32,7 +35,7 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
 
   if (info_.gpios.size() != 1) {
     RCLCPP_FATAL(
-      rclcpp::get_logger("KUKAFRIHardwareInterface"),
+      rclcpp::get_logger("KukaFRIHardwareInterface"),
       "expecting exactly 1 GPIO");
     return CallbackReturn::ERROR;
   }
@@ -41,7 +44,7 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
     info_.gpios[0].state_interfaces.size() > 10)
   {
     RCLCPP_FATAL(
-      rclcpp::get_logger("KUKAFRIHardwareInterface"),
+      rclcpp::get_logger("KukaFRIHardwareInterface"),
       "A maximum of 10 inputs and outputs can be registered to FRI");
     return CallbackReturn::ERROR;
   }
@@ -60,7 +63,7 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     if (joint.command_interfaces.size() != 2) {
       RCLCPP_FATAL(
-        rclcpp::get_logger("KUKAFRIHardwareInterface"),
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
         "expecting exactly 2 command interface");
       return CallbackReturn::ERROR;
     }
@@ -68,42 +71,42 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting POSITION command interface as first");
+          "KukaFRIHardwareInterface"), "expecting POSITION command interface as first");
       return CallbackReturn::ERROR;
     }
 
     if (joint.command_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting EFFORT command interface as second");
+          "KukaFRIHardwareInterface"), "expecting EFFORT command interface as second");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces.size() != 3) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting exactly 3 state interface");
+          "KukaFRIHardwareInterface"), "expecting exactly 3 state interface");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting POSITION state interface as first");
+          "KukaFRIHardwareInterface"), "expecting POSITION state interface as first");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_EFFORT) {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting EFFORT state interface as second");
+          "KukaFRIHardwareInterface"), "expecting EFFORT state interface as second");
       return CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces[2].name != "external_torque") {
       RCLCPP_FATAL(
         rclcpp::get_logger(
-          "KUKAFRIHardwareInterface"), "expecting 'external torque' state interface as third");
+          "KukaFRIHardwareInterface"), "expecting 'external torque' state interface as third");
       return CallbackReturn::ERROR;
     }
   }
@@ -111,32 +114,32 @@ CallbackReturn KUKAFRIHardwareInterface::on_init(
   struct sched_param param;
   param.sched_priority = 95;
   if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "setscheduler error");
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), strerror(errno));
+    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "setscheduler error");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), strerror(errno));
     return CallbackReturn::ERROR;
   }
 
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KUKAFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   if (!client_application_.connect(30200, nullptr)) {
-    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Could not connect");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect");
     return CallbackReturn::FAILURE;
   }
   is_active_ = true;
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KUKAFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   client_application_.disconnect();
   is_active_ = false;
   return CallbackReturn::SUCCESS;
 }
 
-void KUKAFRIHardwareInterface::waitForCommand()
+void KukaFRIHardwareInterface::waitForCommand()
 {
   hw_commands_ = hw_states_;
   hw_effort_command_ = hw_torques_;
@@ -148,7 +151,7 @@ void KUKAFRIHardwareInterface::waitForCommand()
   }
 }
 
-void KUKAFRIHardwareInterface::command()
+void KukaFRIHardwareInterface::command()
 {
   rclcpp::Time stamp = ros_clock_.now();
   if (++receive_counter_ == receive_multiplier_) {
@@ -158,14 +161,14 @@ void KUKAFRIHardwareInterface::command()
 }
 
 
-hardware_interface::return_type KUKAFRIHardwareInterface::read(
+hardware_interface::return_type KukaFRIHardwareInterface::read(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
   // Read is called in inactive state, check is necessary
   if (!is_active_) {
     active_read_ = false;
-    RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
+    RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return hardware_interface::return_type::OK;
   }
@@ -174,7 +177,7 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   if (!client_application_.client_app_read()) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Failed to read data from controller");
+        "KukaFRIHardwareInterface"), "Failed to read data from controller");
     return hardware_interface::return_type::ERROR;
   }
 
@@ -203,13 +206,13 @@ hardware_interface::return_type KUKAFRIHardwareInterface::read(
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type KUKAFRIHardwareInterface::write(
+hardware_interface::return_type KukaFRIHardwareInterface::write(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
   // Client app update and read must be called if read has been called in current cycle
   if (!active_read_) {
-    RCLCPP_DEBUG(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Hardware interface not active");
+    RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }
 
@@ -220,19 +223,19 @@ hardware_interface::return_type KUKAFRIHardwareInterface::write(
   if (!client_application_.client_app_write() && is_active_) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Could not send command to controller");
+        "KukaFRIHardwareInterface"), "Could not send command to controller");
     return hardware_interface::return_type::ERROR;
   }
 
   return hardware_interface::return_type::OK;
 }
 
-void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
+void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 {
   if (!is_active_) {
     RCLCPP_ERROR(
       rclcpp::get_logger(
-        "KUKAFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
+        "KukaFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
   if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE) {
@@ -243,33 +246,49 @@ void KUKAFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     const double * joint_positions_ = hw_commands_.data();
     robotCommand().setJointPosition(joint_positions_);
   } else {
-    RCLCPP_ERROR(rclcpp::get_logger("KUKAFRIHardwareInterface"), "Unsupported command mode");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported command mode");
   }
   for (auto & input : gpio_inputs_) {
     input.setValue();
   }
 }
 
-std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back("state", "session_state", &robot_state_.session_state_);
-  state_interfaces.emplace_back("state", "connection_quality", &robot_state_.connection_quality_);
-  state_interfaces.emplace_back("state", "safety_state", &robot_state_.safety_state_);
-  state_interfaces.emplace_back("state", "command_mode", &robot_state_.command_mode_);
-  state_interfaces.emplace_back("state", "control_mode", &robot_state_.control_mode_);
-  state_interfaces.emplace_back("state", "operation_mode", &robot_state_.operation_mode_);
-  state_interfaces.emplace_back("state", "drive_state", &robot_state_.drive_state_);
-  state_interfaces.emplace_back("state", "overlay_type", &robot_state_.overlay_type_);
   state_interfaces.emplace_back(
-    "state", "tracking_performance",
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
+    &robot_state_.session_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
+    &robot_state_.connection_quality_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
+    &robot_state_.safety_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
+    &robot_state_.command_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
+    &robot_state_.control_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
+    &robot_state_.operation_mode_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
+    &robot_state_.drive_state_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
+    &robot_state_.overlay_type_);
+  state_interfaces.emplace_back(
+    hardware_interface::FRI_STATE_PREFIX, hardware_interface::TRACKING_PERFORMANCE,
     &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access)
   for (auto & output : gpio_outputs_) {
     state_interfaces.emplace_back(
-      "gpio", output.getName(),
+      hardware_interface::IO_PREFIX, output.getName(),
       &output.getData());
   }
 
@@ -282,22 +301,26 @@ std::vector<hardware_interface::StateInterface> KUKAFRIHardwareInterface::export
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
       &hw_torques_[i]);
 
-    state_interfaces.emplace_back(info_.joints[i].name, "external_torque", &hw_torques_ext_[i]);
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE,
+      &hw_torques_ext_[i]);
   }
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> KUKAFRIHardwareInterface::
+std::vector<hardware_interface::CommandInterface> KukaFRIHardwareInterface::
 export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  command_interfaces.emplace_back("timing", "receive_multiplier", &receive_multiplier_);
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX,
+    hardware_interface::RECEIVE_MULTIPLIER, &receive_multiplier_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_) {
     command_interfaces.emplace_back(
-      "gpio", input.getName(),
+      hardware_interface::IO_PREFIX, input.getName(),
       &input.getData());
   }
 
@@ -314,6 +337,6 @@ export_command_interfaces()
 }  // namespace kuka_sunrise_fri_driver
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_sunrise_fri_driver::KUKAFRIHardwareInterface,
+  kuka_sunrise_fri_driver::KukaFRIHardwareInterface,
   hardware_interface::SystemInterface
 )

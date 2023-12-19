@@ -22,18 +22,16 @@
 #include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include <hardware_interface/system_interface.hpp>
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "pluginlib/class_list_macros.hpp"
 
+#include "hardware_interface/system_interface.hpp"
 #include "kuka_driver_interfaces/srv/set_int.hpp"
+
 #include "fri_client_sdk/friLBRClient.h"
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friUdpConnection.h"
 #include "fri_client_sdk/friClientIf.h"
-
-
-#include "pluginlib/class_list_macros.hpp"
+#include "kuka_sunrise_fri_driver/visibility_control.h"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -51,30 +49,37 @@ static std::unordered_map<std::string,
   IOTypes> const types =
 {{"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
 
-class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
+class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
   public KUKA::FRI::LBRClient
 {
 public:
-  KUKAFRIHardwareInterface()
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaFRIHardwareInterface)
+
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
   : client_application_(udp_connection_, *this) {}
-  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
-  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn on_init(
+    const hardware_interface::HardwareInfo & info) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn on_activate(
+    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
+  export_state_interfaces() override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
+  export_command_interfaces() override;
 
-  hardware_interface::return_type read(
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC hardware_interface::return_type read(
     const rclcpp::Time & time,
     const rclcpp::Duration & period) override;
-  hardware_interface::return_type write(
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC hardware_interface::return_type write(
     const rclcpp::Time & time,
     const rclcpp::Duration & period) override;
-  void updateCommand(const rclcpp::Time & stamp);
-  bool setReceiveMultiplier(int receive_multiplier);
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void updateCommand(const rclcpp::Time & stamp);
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC bool setReceiveMultiplier(int receive_multiplier);
 
-  void waitForCommand() final;
-  void command() final;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void waitForCommand() final;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void command() final;
 
   class InvalidGPIOTypeException : public std::runtime_error
   {
@@ -124,7 +129,7 @@ private:
 
   RobotState robot_state_;
 
-  IOTypes getType(const std::string & type_string) const
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {
     auto it = types.find(type_string);
     if (it != types.end()) {

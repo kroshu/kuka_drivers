@@ -27,6 +27,8 @@
   <depend>libgrpc</depend>
 
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
+  <exec_depend>ros2_control</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
 
   <test_depend>ament_cmake_copyright</test_depend>
   <test_depend>ament_cmake_cppcheck</test_depend>

@@ -41,10 +41,6 @@
 #ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
 #define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
 
-#include <kuka_kss_rsi_driver/udp_server.h>
-#include <kuka_kss_rsi_driver/rsi_state.h>
-#include <kuka_kss_rsi_driver/rsi_command.h>
-
 #include <vector>
 #include <string>
 #include <memory>
@@ -52,19 +48,17 @@
 #include <cmath>
 #include <mutex>
 
-#include "rclcpp/macros.hpp"
-
-#include "kuka_kss_rsi_driver/visibility_control.h"
-#include "hardware_interface/handle.hpp"
-#include "hardware_interface/hardware_info.hpp"
-#include "hardware_interface/system_interface.hpp"
-#include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/macros.hpp"
+#include "pluginlib/class_list_macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "pluginlib/class_list_macros.hpp"
+#include "hardware_interface/system_interface.hpp"
 
+#include "kuka_kss_rsi_driver/udp_server.h"
+#include "kuka_kss_rsi_driver/rsi_state.h"
+#include "kuka_kss_rsi_driver/rsi_command.h"
+#include "kuka_kss_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;

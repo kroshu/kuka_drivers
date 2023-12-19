@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_kss_rsi_driver/robot_manager_node.hpp"
-#include "kuka_drivers_core/ControlMode.hpp"
+#include "communication_helpers/ros2_control_tools.hpp"
+#include "communication_helpers/service_tools.hpp"
 
+#include "kuka_kss_rsi_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;  // NOLINT
@@ -55,18 +56,13 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   // Configure hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_INACTIVE))
+  {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
-  RCLCPP_INFO(get_logger(), "Successfully configured hardware interface");
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -78,14 +74,10 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Clean up hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_UNCONFIGURED;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_UNCONFIGURED))
+  {
     RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
@@ -104,32 +96,20 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
   // Activate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_ACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 10000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_ACTIVE, 10000))
+  {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     return FAILURE;
   }
 
-
   // Activate RT controller(s)
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers =
-  {"joint_state_broadcaster", "joint_trajectory_controller"};
-
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not  activate controller");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"},
+      {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     // TODO(Svastits): this can be removed if rollback is implemented properly
     this->on_deactivate(get_current_state());
     return FAILURE;
@@ -143,34 +123,21 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = robot_model_;
-  hw_request->target_state.id = State::PRIMARY_STATE_INACTIVE;
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 3000);   // was not stable with 2000 ms timeout
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      State::PRIMARY_STATE_INACTIVE))
+  {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
 
-  RCLCPP_INFO(get_logger(), "Deactivated hardware interface");
-
-
   // Stop RT controllers
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
   // With best effort strictness, deactivation succeeds if specific controller is not active
-  controller_request->strictness =
-    SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers =
-  {"joint_state_broadcaster", "joint_trajectory_controller"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000
-    );
-  if (!controller_response || !controller_response->ok) {
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      {"joint_state_broadcaster", "joint_trajectory_controller"},
+      SwitchController::Request::BEST_EFFORT))
+  {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }

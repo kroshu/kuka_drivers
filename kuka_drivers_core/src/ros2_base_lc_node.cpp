@@ -16,7 +16,7 @@
 #include <vector>
 #include <memory>
 
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 
 namespace kuka_drivers_core

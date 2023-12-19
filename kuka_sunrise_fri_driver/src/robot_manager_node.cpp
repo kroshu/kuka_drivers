@@ -14,13 +14,15 @@
 
 #include <memory>
 
+#include "communication_helpers/service_tools.hpp"
+#include "communication_helpers/ros2_control_tools.hpp"
+
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 
 namespace kuka_sunrise_fri_driver
 {
-
 RobotManagerNode::RobotManagerNode()
 : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
@@ -58,20 +60,23 @@ RobotManagerNode::RobotManagerNode()
   is_configured_pub_ = this->create_publisher<std_msgs::msg::Bool>(
     "robot_manager/is_configured",
     is_configured_qos);
+
+  this->registerStaticParameter<std::string>(
+    "robot_model", "lbr_iiwa14_r820",
+    kuka_drivers_core::ParameterSetAccessRights{true, false,
+      false, false, false}, [this](const std::string & robot_model) {
+      return this->onRobotModelChangeRequest(robot_model);
+    });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   // Configure hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
-  hw_request->target_state.label = "inactive";
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
+  {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
@@ -88,16 +93,11 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(get_logger(), "Successfully set 'controller_ip' parameter");
 
   // Start non-RT controllers
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers =
-    std::vector<std::string>{"timing_controller", "fri_state_broadcaster"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 3000);
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not start controllers");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {"fri_configuration_controller", "fri_state_broadcaster"},
+      {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     result = FAILURE;
   }
 
@@ -144,32 +144,23 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   // Stop non-RT controllers
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
   // With best effort strictness, cleanup succeeds if specific controller is not active
-  controller_request->strictness =
-    SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers =
-    std::vector<std::string>{"fri_configuration_controller", "fri_state_broadcaster"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000);
-  if (!controller_response || !controller_response->ok) {
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      {"fri_configuration_controller", "fri_state_broadcaster"},
+      SwitchController::Request::BEST_EFFORT))
+  {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }
 
   // Cleanup hardware interface
   // If it is inactive, cleanup will also succeed
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
-  hw_request->target_state.label = "unconfigured";
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not cleanup hardware interface");
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
 
@@ -202,19 +193,14 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(get_logger(), "Successfully set FRI config");
 
   // Activate hardware interface
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
-  hw_request->target_state.label = "active";
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
+  {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
     // 'unset config' does not exist, safe to return
     return FAILURE;
   }
-  RCLCPP_INFO(get_logger(), "Activated LBR iiwa hardware interface");
 
   // Start FRI (in monitoring mode)
   if (!fri_connection_->startFRI()) {
@@ -226,16 +212,12 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   // Activate joint state broadcaster
   // The other controller must be started later so that it can initialize internal state
-  //   with broadcaster information
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = std::vector<std::string>{"joint_state_broadcaster"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000);
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not start joint state broadcaster");
+  //   with broadcaster information -> TODO(Svastits): validate whether this is true
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {"joint_state_broadcaster"},
+      {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate joint state broadcaster");
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
@@ -245,13 +227,11 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   controller_name_ = (this->get_parameter("command_mode").as_string() ==
     "position") ? position_controller_name : torque_controller_name;
   // Activate RT commander
-  controller_request->strictness = SwitchController::Request::STRICT;
-  controller_request->activate_controllers = std::vector<std::string>{controller_name_};
-  controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000);
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not activate controller");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {controller_name_},
+      {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate RT controller");
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
@@ -286,32 +266,21 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   // Deactivate hardware interface
   // If it is inactive, deactivation will also succeed
-  auto hw_request =
-    std::make_shared<SetHardwareComponentState::Request>();
-  hw_request->name = "iiwa_hardware";
-  hw_request->target_state.label = "inactive";
-  auto hw_response =
-    kuka_drivers_core::sendRequest<SetHardwareComponentState::Response>(
-    change_hardware_state_client_, hw_request, 0, 2000);
-  if (!hw_response || !hw_response->ok) {
+  if (!kuka_drivers_core::changeHardwareState(
+      change_hardware_state_client_, robot_model_,
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
+  {
     RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
     return ERROR;
   }
-  RCLCPP_INFO(get_logger(), "Deactivated LBR iiwa hardware interface");
 
   // Stop RT controllers
-  auto controller_request =
-    std::make_shared<SwitchController::Request>();
   // With best effort strictness, deactivation succeeds if specific controller is not active
-  controller_request->strictness =
-    SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers =
-    std::vector<std::string>{controller_name_, "joint_state_broadcaster"};
-  auto controller_response =
-    kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, 2000);
-  if (!controller_response || !controller_response->ok) {
-    RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+  if (!kuka_drivers_core::changeControllerState(
+      change_controller_state_client_, {},
+      {controller_name_, "joint_state_broadcaster"}, SwitchController::Request::BEST_EFFORT))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not deactivate controllers");
     return ERROR;
   }
 
@@ -369,6 +338,12 @@ void RobotManagerNode::handleFRIEndedError()
 {
   RCLCPP_INFO(get_logger(), "FRI ended");
   this->LifecycleNode::deactivate();
+}
+
+bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  robot_model_ = robot_model;
+  return true;
 }
 
 }  // namespace kuka_sunrise_fri_driver
