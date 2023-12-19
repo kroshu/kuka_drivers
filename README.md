@@ -1,7 +1,6 @@
 # ROS2 KUKA Drivers
 
 This repository contains ROS2 drivers for all KUKA operating systems.
-Experimental ROS2 driver for KUKA robots. Recommended distribution is [ROS 2 Humble Hawksbill:](https://docs.ros.org/en/humble/Installation.html).
 
 Github CI | SonarCloud
 ------------| ---------------
@@ -13,7 +12,6 @@ It is also recommended to use a client machine with a real-time kernel, as all t
 
 
 # Installation
-
 Create ROS2 workspace (if not already created).
 ```bash
 mkdir -p ~/ros2_ws/src
@@ -54,7 +52,6 @@ source ~/ros2_ws/install/setup.bash
 ```
 
 # Getting Started
-
 Documentation of this project can be found on the repository's [Wiki](https://github.com/kroshu/kuka_drivers/wiki) page.
 
 If you find something confusing, not working, or would like to contribute, please read our [contributing guide](CONTRIBUTING.md) before opening an issue or creating a pull request.
