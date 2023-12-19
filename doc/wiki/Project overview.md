@@ -78,7 +78,6 @@ The control mode specifications are also part of the common API. They are define
 
 
 #### Supported features
-
 The following table shows the supported features and control modes of each driver. (`✓` means supported, `✗` means not supported by the KUKA interface, empty means supported by the KUKA interface, but not yet supported by the driver)
 
 |OS | Joint position control | Joint impedance control | Joint velocity control | Joint torque control | Cartesian position control | Cartesian impedance control | Cartesian velocity control | Wrench control| I/O control|
@@ -89,7 +88,6 @@ The following table shows the supported features and control modes of each drive
 
 
 ## Additional packages
-
 The repository contains a few other packages aside from the 3 drivers:
 - `kuka_driver_interfaces`: this package contains the custom message definition necessary for KUKA robots.
 - `kuka_drivers_core`: this package contains core functionalities used by more drivers, including the `control_node`, base classes for nodes with improved parameter handling, enum and constant definitions and a class for managing the controller activation and deactivation at control mode changes. Details about these features can be found in the package [documentation](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/README.md)
@@ -105,67 +103,4 @@ The repository contains a few other packages aside from the 3 drivers:
 [Instructions for cobots using Sunrise](Sunrise_FRI.md)
 
 [Instructions for cobots using iiQKA](iiQKA_EAC.md)
-
-## KUKA Sunrise driver (FRI)
-
-
-## KUKA KSS driver (RSI)
-
-Another project in the repo centers on the development of a ROS2 driver for KSS robots through Robot Sensor Interface (RSI). It is in an experimental state, with only joint angle states and commands available. The guide to set up this driver on a real robot can be found in kuka_kss_rsi_driver\krl for both KCR4 and KRC5 controllers.
-
-### Simulation
-
-To try out the driver with an open-loop simulation the driver and the kuka_rsi_simulator must be started, (at first only a "collapsed" robot will be visible in rviz):
-
-**`ros2 launch kuka_kss_rsi_driver startup_with_rviz.launch.py`**
-
-**`ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py`**
-
-After all components have started successfully, the system needs to be configured and activated to start the simulation, the robot will be visible in rviz after activation:
-
-**`ros2 lifecycle set robot_manager configure`**
-
-**`ros2 lifecycle set robot_manager activate`**
-
-## iiQKA driver (ECI)
-
-The third project in the repo is the driver for iiQKA robots. 
-
-### Architecture
-
-The driver uses the ros2_control framework, so a variaty of controllers are supported and it can be easily integrated into moveit. It consists of a realtime component for controlling the robot via UDP (ROS2 hardware interface) and a non-realtime one for lifecycle management of the controllers and the hardware interface. The driver supports a control cycle time of 4 milliseconds, but the round-trip time of one cycle should not exceed 3 milliseconds, as above that the packets are considered lost. Therefore it is advised to run the driver on a realtime-capable Linux machine (with the PRREMPT_RT patch applied). After a few lost packets the connection is considered not stable enough and external control is ended.
-
-The driver depends on some KUKA-specific packages, which are only available with the real robot, but setting the MOCK_HW_ONLY flag in the hardware_interface enables the usage of the driver in a simulated way, so that motion planning problems can be tried out with the same components running.
-
-### Setup
-
-By default, the mock libraries are used, this can be changed in the cmake file by setting MOCK_KUKA_LIBS to FALSE before building.
-
-The IP addresses of the client machine and controller must be given in the *config/driver_config.yaml* configuration file. A rebuild is not needed after the changes, but the file has to be modified before starting the nodes. The control mode of the robot can also be modified in the same configuration file: you can choose either 1 (POSITION_CONTROL), 3 (JOINT_IMPEDANCE_CONTROL) or 5 (TORQUE_CONTROL). This also sets the control_mode parameter of the robot manager node, which can be only modified at startup, control mode changes are not supported in runtime at the current state.
-
-Besides, the setting of scheduling priorities must be allowed for your user (extend /etc/security/limits.conf with "username	 -	 rtprio		 98" and restart) to enable real-time performance.
-
-### Usage
-
-The usage of the driver is quite simple, one has to start the launch file in the package to start all required nodes (it also starts an rviz node for visualisation, which can be commented out if not needed):
-
-**`ros2 launch kuka_iiqka_eac_driver startup.launch.py`**
-
-After all components have started successfully, the system needs to be configured and activated to start external control:
-
-**`ros2 lifecycle set robot_manager configure`**
-
-
-**`ros2 lifecycle set robot_manager activate`**
-
-On successful activation the robot controller and the driver start communication with a 4 ms cycle time, and it is possible to move the robot through the joint trajectory controller. The easiest way to achieve this is to start an rqt_joint_trajcectory controller and move the joints with cursors or one can also execute trajectories planned with moveit - an example of this can be found in kuka_sunrise_fri_driver_control/iiqka_moveit_example package.
-
-To stop external control, the components have to be deactivated with **`ros2 lifecycle set robot_manager deactivate`**
-
-BEWARE, that this is a non-realtime process including lifecycle management, so the connection is not terminated immediately, in cases where an abrupt stop is needed, the safety stop of the SmartPad should be used!
-
-It is also possible to use different controllers with some modifications in the launch and yaml files (for example ForwardCommandController, which forwards the commands send to a ROS2 topic towards the robot). In these cases, one has to make sure, that the commands sent to the robot are close to the current position, otherwise the machine protection will stop the robot movement.
-
-
-
 
