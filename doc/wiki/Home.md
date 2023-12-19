@@ -22,6 +22,8 @@ The choice for the real-time interface was straightforward, as a standardized co
 
 All 3 of the KUKA real-time interfaces handle the timing on the controller side to be synchronized with the internal control cycle. This means, that callig the `read` method of the `controller_manager` cannot return immediately, but has to wait until the controller sends an update, which is triggered by the internal clock. Because of this blocking read, the deafult `ros2_control_node` cannot be used, as there it is expected that the controller_manager handles the timing according to the configured control frequency. Therefore a [custom control node](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/src/control_node.cpp) was implemented that uses the `controller_manager` and all other tools of `ros2_control`, but leaves the time management to the robot controller.
 
+This change does not influence the API of the `ros2_control` framework, the real-time dataflow can be accessed by any controller.
+
 #### Non-real-time interface
 The startup procedure for any system in ROS can be defined using a launch file, that can start multiple processes. By default, starting the control node with a hardware interface and controllers configured immediately start external control. This behaviour has a few drawbacks:
 - The user cannot configure some parameters during runtime, that cannot be changed during external control
@@ -48,6 +50,11 @@ Including the controller state handling in the system state makes the implementa
  - minor performance increase: unused controllers are not active and therefore do not consume resources
  - unexpected behaviour is not possible: external control will not start on the robot, unless all necessary controllers are successfully activated, while control mode changes (on the robot) are only possible after the controllers for the new control mode are activated.
 
+The consequence of the lifecycle interface is, that 3 commands are necessary to start external control for all robots:
+ - start the appropriate launch file for your robot with your robot model as parameter (details can be found [here](#detailed-setup-and-startup-instructions))
+ - `ros2 lifecycle set robot_manager configure`
+ - `ros2 lifecycle set robot_manager configure`
+
 #### Control mode definitions
 
 #### Supported features
@@ -55,6 +62,14 @@ Including the controller state handling in the system state makes the implementa
 ## Additional packages
 
 ## Moveit integration
+
+## Detailed setup and startup instructions
+
+[Instructions for industrial robots using KSS](KSS_RSI.md)
+
+[Instructions for cobots using Sunrise](Sunrise_FRI.md)
+
+[Instructions for cobots using iiQKA](iiQKA_EAC.md)
 
 ## KUKA Sunrise driver (FRI)
 
