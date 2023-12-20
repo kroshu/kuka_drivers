@@ -72,7 +72,7 @@ namespace FRI
 {
 
 /**
-    * \brief Wrapper class for the FRI monitoring message for a KUKA LBR (leightweight) robot.
+    * \brief Wrapper class for the FRI monitoring message for a KUKA LBR (lightweight) robot.
     */
 class LBRState
 {

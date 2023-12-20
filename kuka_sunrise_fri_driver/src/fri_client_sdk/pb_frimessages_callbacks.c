@@ -194,7 +194,7 @@ bool decode_repeatedInt(pb_istream_t *stream, const pb_field_t *field, void **ar
 
 void map_repeatedDouble(eNanopbCallbackDirection dir, int numDOF, pb_callback_t *values, tRepeatedDoubleArguments *arg)
 {
-   // IMPORTANT: the callbacks are stored in a union, therefor a message object
+   // IMPORTANT: the callbacks are stored in a union, therefore a message object
    // must be exclusive defined for transmission or reception
    if (dir == FRI_MANAGER_NANOPB_ENCODE)
    {
@@ -217,7 +217,7 @@ void map_repeatedDouble(eNanopbCallbackDirection dir, int numDOF, pb_callback_t 
 
 void map_repeatedInt(eNanopbCallbackDirection dir, int numDOF, pb_callback_t *values, tRepeatedIntArguments *arg)
 {
-   // IMPORTANT: the callbacks are stored in a union, therefor a message object
+   // IMPORTANT: the callbacks are stored in a union, therefore a message object
    // must be exclusive defined for transmission or reception
    if (dir == FRI_MANAGER_NANOPB_ENCODE)
    {

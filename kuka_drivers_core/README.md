@@ -1,5 +1,5 @@
 # Core classes which help function the repositories of kroshu.
-These classes provide functonalities which are frequently used in ROS2 environment.
+These classes provide functionalities which are frequently used in ROS2 environment.
 Deriving from these classes the user has a helpful wrapper around the base functionalities of ROS2.
 
 Right now there are two classes implemented in this repository, ROS2BaseNode for simple parameter handling, and ROS2BaseLCNode, which additionally furthers the rclcpp_lifecycle::LifecycleNode class by implementing lifecycle functions which would be usually implemented in the same way in every case. These are virtual functions, so it is possible to override them in the case of a different desired implementation.

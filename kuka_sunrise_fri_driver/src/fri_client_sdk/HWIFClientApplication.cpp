@@ -48,7 +48,7 @@ void HWIFClientApplication::client_app_update()
   // **************************************************************************
   // callbacks
   // **************************************************************************
-  // reset commmand message before callbacks
+  // reset command message before callbacks
   _data->resetCommandMessage();
 
   // callbacks for robot client

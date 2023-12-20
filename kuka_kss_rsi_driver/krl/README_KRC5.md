@@ -79,7 +79,7 @@ The next steps describe how to start external control using RSI:
   * in T1, a warning (!!! Attention - Sensor correction goes active !!!) should be visible after reaching RSI_MOVECORR(), which is also okay
 * Activate driver and controllers: ```ros2 lifecycle set robot_manager activate```
   * The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 2 seconds
-* Start step RSI_MOVECORR() withing the given timeout
+* Start step RSI_MOVECORR() within the given timeout
   * in T1 this can be done with confirming the previously described warning
   * This time the terminal where the driver is running should output **Got connection from robot**. The RSI connection is now up and running.
 
