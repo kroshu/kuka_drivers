@@ -62,8 +62,35 @@ class RobotManagerClient(Node):
         self.get_logger().info("Robot movement starting")
         self.action_client = ActionClient(self, FollowJointTrajectory,
                                           '/joint_trajectory_controller/follow_joint_trajectory')
-        self.start_robot_movement([0.0, -2.1995, 2.4529, 0.0, 1.308085, 0.0], 10)
-        self.start_robot_movement([0.0, -2.1995, 2.6529, 0.0, 1.308085, 0.0], 10)
+        home_pos_1 = 0.0
+        home_pos_2 = -2.3911
+        home_pos_3 = 2.6529
+        home_pos_4 = 0.0
+        home_pos_5 = 1.308
+        home_pos_6 = 0.0
+        home_pos = [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
+        # moving around joint_!
+        self.start_robot_movement([home_pos_1 + 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 6)
+        self.start_robot_movement([home_pos_1 - 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 12)
+        self.start_robot_movement(home_pos, 6)
+        # joint2 only moving in one direction since we are at the limit
+        self.start_robot_movement([home_pos_1, home_pos_2 + 0.4, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 10)
+        self.start_robot_movement(home_pos, 10)
+        # joint3 only moving in one direction since we are at the limit
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3 - 0.4, home_pos_4, home_pos_5, home_pos_6], 10)
+        self.start_robot_movement(home_pos, 10)
+        # joint4
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4 + 0.4, home_pos_5, home_pos_6], 5)
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4 - 0.4, home_pos_5, home_pos_6], 5)
+        self.start_robot_movement(home_pos, 5)
+        # joint5
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 + 0.4, home_pos_6], 5)
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 - 0.4, home_pos_6], 10)
+        self.start_robot_movement(home_pos, 5)
+        # joint6
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 + 0.4], 5)
+        self.start_robot_movement([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 - 0.4], 10)
+        self.start_robot_movement(home_pos, 5)
 
 
 def main(args=None):
