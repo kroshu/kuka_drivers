@@ -271,7 +271,7 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
       answer_received_ = true;
       cv_.notify_one();
       break;
-e  }
+  }
 }
 
 void FRIConnection::connectionLostCallback(const char * server_addr, int server_port)
