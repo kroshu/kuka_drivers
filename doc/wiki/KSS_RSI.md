@@ -50,21 +50,22 @@ There are 3 files necessary for RSI that are available in the `krl` directory:
 
 - `ros_rsi.src`: This contains the KRL program that starts external control and should not be modified.
 - `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
+  - For older RSI versions (<=4.0.3), the context can only be defined in 3 different files: `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi`, these can be found under `krl/deprecated`. In this case, these 3 files should be copied to the controller instead of the `ros_rsi.rsix`.
 
 There are two options to upload these files to the controller:
 
 Method 1:
 1. Copy the files to a USB-stick.
 2. Plug it into the teach pad or controller.
-3. Log in as **Expert** or **Administrator**.
+3. Log in as **Expert** or **Administrator** on the controller.
 4. Copy the `ros_rsi.src` file to `KRC:\R1\Program`.
 5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface`.
 
 Method 2:
-1. Use the WorkVisual, connect to the KRC
-2. Log in as **Expert** or **Administrator**.
-4. Copy the `ros_rsi.src` file to `KRC:\R1\Program` in the WorkVisual
-5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in the WorkVisual
+1. Connect to the KRC with WorkVisual
+2. Log in as **Expert** or **Administrator** on the controller.
+4. Copy the `ros_rsi.src` file to `KRC:\R1\Program` in WorkVisual
+5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in WorkVisual
 6. Deploy the project
 
 ### Configuration
