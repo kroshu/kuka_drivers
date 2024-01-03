@@ -97,7 +97,7 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
        - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
        - `joint_trajectory_controller` ([configuration file](../../kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
 
-     -  After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
+     -  After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
 2. Configure and activate all components the driver: 
    - `ros2 lifecycle set robot_manager configure`

@@ -43,7 +43,7 @@ The parameters in the driver configuration file can be also changed during runti
       - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
       - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
-3. After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
+3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     - `ros2 lifecycle set robot_manager configure`
     - `ros2 lifecycle set robot_manager activate`
 
@@ -68,6 +68,6 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 - Not all hardware-related communication is implemented in the hardware interface, therefore the mock hardware option is not working properly
 - The control mode handling for the driver is not the one defined in the `kuka_drivers_core` package
   - enum definition and controller switching logic is not used
-  - joint impedance control is not implemented properly using commmand interfaces
+  - joint impedance control is not implemented properly using command interfaces
 - I/O control was not tested at all
 - Cartesian modes are not yet supported
