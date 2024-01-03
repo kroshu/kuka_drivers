@@ -3,18 +3,18 @@
 ### Setup
 
 #### Client side
-It is recommended to use the driver in a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](Realtime.md)).
+It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](Realtime.md)).
 
 To set up the controller with WorkVisual (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
 ##### Client IP configuration
-1. Set a fixed IP in the subnet of the KLI interface for the Windows machine, which is required to connect to WorkVisual and transfer the project
-2. Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
+- Set a fixed IP in the subnet of the KLI interface for the Windows machine, which is required to connect to WorkVisual and transfer the project
+- Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
-These instructins were tested with RSI 4.1.3 (on KSS8.6) and  RSI 5.0.2 (on KSS8.7)
+These instructions were tested with RSI 4.1.3 (on KSS8.6) and  RSI 5.0.2 (on KSS8.7)
 
-##### 1. Controller network configuration
+##### Controller network configuration
 
 Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows interface** of the controller and the **PC with ROS** is connected to the same subnet.
 
@@ -22,6 +22,7 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
    There should already be an interface checked out as the **Windows interface**.
    - **Windows interface checkbox** should be checked.
 2. Add a new network for RSI:
+
    **KRC4:**
    - Minimize the SmartHMI (**Start-up > Service > Minimize HMI**).
    - Run **RSI-Network** from the Windows Start menu (**All Programs > RSI-Network**).
@@ -40,10 +41,7 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
   
 3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
 
-If your PC has an IP address on the same subnet as the **Windows interface** on the controller, the controller should receive answers from the PC:
-- If this is the case, add another IP address to the current PC connection on the same subnet as the **RSI** interface.
-
-##### 2. Update and upload configuration files
+##### Update and upload configuration files
 There are 3 files necessary for RSI that are available in the `krl` directory:
 
 - `ros_rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
@@ -100,13 +98,11 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
 
      -  After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
-2. `ros2 lifecycle set robot_manager configure`
-3. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and move to the step before `RSI_MOVECORR()` is run
-   - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`
-4. ```ros2 lifecycle set robot_manager activate```
+2. Configure all components the driver: `ros2 lifecycle set robot_manager configure`
+3. Activate all components of the driver: ```ros2 lifecycle set robot_manager activate```
     - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
-5. Start step RSI_MOVECORR() within the given timeout
-   - in T1 this can be done with confirming the previously described warning
+4. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
+   - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the *Additional packages* section of the [project overview](Project%20overview.md)).
 
@@ -137,3 +133,9 @@ After all components have started successfully, the system needs to be configure
 `ros2 lifecycle set robot_manager configure`
 
 `ros2 lifecycle set robot_manager activate`
+
+### Known issues and limitations
+
+- There are currently heap allocations in the control loop (hardware interface `read()` and `write()` functions), therefore the driver is not real-time safe
+- In case of an error on the controller side, the driver is not deactivated
+- Cartesian position control mode and I/O-s not yet supported
