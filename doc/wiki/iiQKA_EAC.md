@@ -1,4 +1,4 @@
-## iiQKA driver (ECI)
+## iiQKA driver (EAC)
 
 ### Setup
 
@@ -6,6 +6,8 @@
 It is recommended to use the driver in a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](Realtime.md)).
 
 The driver depends on some KUKA-specific packages, which are only available with the real robot, therefore a mock mode is provided to enable trying out solutions with the same components running. By default, the mock libraries are used, this can be changed in the `CmakeLists.txt` file by setting `MOCK_KUKA_LIBS` to `FALSE` before building.
+
+Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
 
@@ -56,7 +58,7 @@ This starts the 3 core components of every driver (described in the *Non-real-ti
 - `effort_controller` (of type `JointGroupPositionController`, [configuration file](../../kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
 
-After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller:
+After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
 
 `ros2 lifecycle set robot_manager configure`
 
