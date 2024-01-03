@@ -98,10 +98,11 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
 
      -  After succesful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
-2. Configure all components the driver: `ros2 lifecycle set robot_manager configure`
-3. Activate all components of the driver: ```ros2 lifecycle set robot_manager activate```
-    - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
-4. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
+2. Configure and activate all components the driver: 
+   - `ros2 lifecycle set robot_manager configure`
+   - ```ros2 lifecycle set robot_manager activate```
+   - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
+3. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the *Additional packages* section of the [project overview](Project%20overview.md)).
@@ -111,7 +112,7 @@ On successful activation the brakes of the robot will be released and external c
 
 Both launch files support the following arguments:
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware
+- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
 
 #### Stopping external control
 
