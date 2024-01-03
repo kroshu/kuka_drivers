@@ -12,7 +12,7 @@ To set up the controller with WorkVisual (which is necessary if RSI is not yet i
 - Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
-These instructions were tested with RSI 4.1.3 (on KSS8.6) and  RSI 5.0.2 (on KSS8.7)
+These instructions were tested with RSI 4.1.3 (on KSS8.6) and RSI 5.0.2 (on KSS8.7)
 
 ##### Controller network configuration
 
