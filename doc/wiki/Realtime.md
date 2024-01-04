@@ -12,20 +12,20 @@
 3. Download the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (linux-\<version\>.tar.gz)
 
 4. Create directory to build kernel
-- `mkdir ~/kernel`
-- `cd ~/kernel`
-- copy the downloaded archives to the `~/kernel` directory
+   - `mkdir ~/kernel`
+   - `cd ~/kernel`
+   - copy the downloaded archives to the `~/kernel` directory
 
 5. Unpack archives
-- `tar -xzf linux-<version>.tar.gz`
-- `gunzip patch-<version>-rt<nr>.patch.gz`
+   - `tar -xzf linux-<version>.tar.gz`
+   - `gunzip patch-<version>-rt<nr>.patch.gz`
 
 6. Patch the kernel with the realtime patch:
-- `cd linux-<version>`
-- `patch -p1 < ../patch-\<version\>-rt<nr>.patch`
+   - `cd linux-<version>`
+   - `patch -p1 < ../patch-\<version\>-rt<nr>.patch`
 
 7. Install dependencies needed for building the kernel
-`sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot`
+   - `sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot`
 
 ### Kernel configuration
 
@@ -81,13 +81,15 @@ Save (without modifying the name) and exit menuconfig.
    - `sudo dpkg -i ../*.deb`
 
 3. Reboot
-- Now the real time kernel should be installed. Reboot the system.
-- At startup, choose the built kernel from the boot menu (Advanced options) (or configure it to be default)
-- Check new kernel version: `uname -a`
+   - Now the real time kernel should be installed. Reboot the system.
+   - At startup, choose the built kernel from the boot menu (Advanced options) (or configure it to be default)
+   - Check new kernel version: `uname -a`
 
 ## Configuration
 
 After installing the real-time kernel, the setting of scheduling priorities must be enabled for your user:
 - extend `/etc/security/limits.conf` with 
-```username	 -	 rtprio		 98```
+```
+username	 -	 rtprio		 98
+```
 - `reboot`
