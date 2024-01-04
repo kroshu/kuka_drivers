@@ -25,8 +25,8 @@ using namespace kuka::motion::external;  // NOLINT
 
 namespace kuka_eac
 {
-// TODO(Komaromi): Readd "control_mode_handler" controller to controller_handlers constrctor
-// after controller handler poperly implemented with working initial control mode change
+// TODO(Komaromi): Re-add "control_mode_handler" controller to controller_handlers constructor
+// after controller handler properly implemented with working initial control mode change
 RobotManagerNode::RobotManagerNode()
 : kuka_drivers_core::ROS2BaseLCNode("robot_manager"),
   controller_handler_({"joint_state_broadcaster", })
@@ -127,7 +127,7 @@ RobotManagerNode::~RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  // Publish control mode paramater
+  // Publish control mode parameter
   auto message = std_msgs::msg::UInt32();
   message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
   control_mode_pub_->publish(message);

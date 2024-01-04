@@ -83,7 +83,7 @@ ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
     throw std::logic_error("UNSPECIFIED_CONTROL_MODE is not valid control mode");
   }
 
-  // Set controllers wich should be activated and deactivated
+  // Set controllers which should be activated and deactivated
   activate_controllers_.clear();
   auto control_mode_controllers = control_mode_map_.at(new_control_mode);
   activate_controllers_.insert(control_mode_controllers.standard_controller);
@@ -104,7 +104,7 @@ ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
     auto deactivate_controllers_it =
       deactivate_controllers_.find(*activate_controllers_it);
     if (deactivate_controllers_it != deactivate_controllers_.end()) {
-      // Delete those controllers wich not need to be activated or deactivated.
+      // Delete those controllers which not need to be activated or deactivated.
       activate_controllers_it = activate_controllers_.erase(activate_controllers_it);
       deactivate_controllers_.erase(deactivate_controllers_it);
     } else {

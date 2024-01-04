@@ -31,7 +31,7 @@ public class MessageEncoding {
 			objectStream.close();
 		} catch(IOException e){
 			e.printStackTrace();
-			throw new RuntimeException("IO Exception occured");
+			throw new RuntimeException("IO Exception occurred");
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("Message could not be decoded");
 		}

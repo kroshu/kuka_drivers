@@ -1,7 +1,7 @@
 <ROOT>
    <CONFIG>
       <IP_NUMBER>ip.address.of.rospc</IP_NUMBER>   <!-- IP-number of the external socket -->
-      <PORT>port.of.rospc</PORT>                   <!-- Port-number of the external socket -->      
+      <PORT>59152</PORT>                   <!-- Port-number of the external socket -->      
       <SENTYPE>KROSHU</SENTYPE>        <!-- The name of your system send in <Sen Type="" > -->     
       <ONLYSEND>FALSE</ONLYSEND>       <!-- TRUE means the client don't expect answers. Do not send anything to robot -->
    </CONFIG>

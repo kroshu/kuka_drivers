@@ -246,7 +246,7 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
             return nullptr;
           },
           this);
-        pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
+        pthread_detach(handler_thread);  // TODO(resizoltan) there might be a better way to do this
       }
       break;
     case ERROR_FRI_ENDED:
@@ -263,7 +263,7 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
             return nullptr;
           },
           this);
-        pthread_detach(handler_thread);  // TODO(resizoltan) ther might be a better way to do this
+        pthread_detach(handler_thread);  // TODO(resizoltan) there might be a better way to do this
       }
       break;
     default:

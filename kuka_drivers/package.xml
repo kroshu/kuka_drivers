@@ -2,10 +2,10 @@
 <package format="2">
   <name>kuka_drivers</name>
   <version>0.0.1</version>
-  <description>ROS2 Controllers for KUKA robots</description>
+  <description>ROS2 drivers for KUKA robots</description>
   <author>Áron Svastits</author>
   <maintainer email="svastits1@gmail.com">Áron Svastits</maintainer>
-  <license>BSD</license>
+  <license>Apache 2.0</license>
 
   <url type="bugtracker">https://github.com/kroshu/kuka_drivers/issues</url>
   <url type="repository">https://github.com/kroshu/kuka_drivers</url>
