@@ -21,4 +21,4 @@ jobs:
       with:
         path: "doc/wiki"
       env:
-        GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.WIKI_UPDATE_TOKEN }}
+        GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
