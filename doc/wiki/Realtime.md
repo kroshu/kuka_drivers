@@ -105,6 +105,7 @@ Save (without modifying the name) and exit menuconfig.
    - Now the real time kernel should be installed. Reboot the system.
    - At startup, choose the built kernel from the boot menu (*Advanced options*), or configure it to be default before restart.
    - Check new kernel version with `uname -a`
+      - you should see `PREEMPT_RT` in the kernel version
 
 ## Configuration
 
