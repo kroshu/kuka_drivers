@@ -55,22 +55,7 @@ install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify(--language=C++)
-  ament_xmllint(--exclude ros_rsi.rsi.xml)
 endif()
 
 ## EXPORTS

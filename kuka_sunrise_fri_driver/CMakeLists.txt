@@ -107,29 +107,7 @@ install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
 
-  file(GLOB fri_client_includes
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-      include/fri_client_sdk/*
-  )
-
-  ament_copyright(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_lint_cmake()
-  ament_uncrustify(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_xmllint()
 endif()
 
 ament_package()

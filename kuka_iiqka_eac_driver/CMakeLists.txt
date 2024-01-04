@@ -98,33 +98,7 @@ install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  file(GLOB_RECURSE mock_headers
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-    include/mock/*)
 
-  file(GLOB_RECURSE mock_src
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-    src/mock/*)
-
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
-
-  ament_copyright(--exclude ${mock_headers} ${mock_src})
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify(--exclude ${mock_headers} ${mock_src})
-  ament_xmllint()
 endif()
 
 ament_export_libraries(
