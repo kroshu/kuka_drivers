@@ -50,7 +50,7 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::onParamChange(
 bool ParameterHandler::canSetParameter(const ParameterBase & param) const
 {
   if (node_ == nullptr) {
-    // Node is not lifecycle node, paramater can always be set
+    // Node is not lifecycle node, parameter can always be set
     return true;
   }
   try {

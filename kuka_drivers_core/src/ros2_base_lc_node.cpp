@@ -82,7 +82,7 @@ ROS2BaseLCNode::on_deactivate(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BaseLCNode::on_error(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(get_logger(), "An error occured");
+  RCLCPP_INFO(get_logger(), "An error occurred");
   return SUCCESS;
 }
 

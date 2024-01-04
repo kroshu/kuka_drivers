@@ -45,7 +45,7 @@ private:
   };
 
   /**
-   * @brief Controller names thats have to be active in all control modes
+   * @brief Controller names that's have to be active in all control modes
    */
   std::set<std::string> fixed_controllers_;
 
@@ -86,8 +86,8 @@ public:
   /**
    * @brief Updates the controllers' name for a specific controller type.
    *
-   * @param controller_type: The type of the controller wich will be updated.
-   * @param controller_name: The new controller's name. From now on this controller will be activated on controller acivation.
+   * @param controller_type: The type of the controller which will be updated.
+   * @param controller_name: The new controller's name. From now on this controller will be activated on controller activation.
    * @return True, if update was successful.
    * @return False, if update failed.
    */

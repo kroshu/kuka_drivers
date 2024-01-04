@@ -54,7 +54,7 @@ file(GLOB fri_client_sources
     src/fri_client_sdk/pb_frimessages_callbacks.c
 )
 
-# Add the Fast Robot Interface libray
+# Add the Fast Robot Interface library
 add_library(fri_client_sdk SHARED ${fri_client_sources})
 
 file(GLOB private_headers
