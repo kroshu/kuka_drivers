@@ -3,7 +3,7 @@
 ### Setup
 
 #### Client side
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](Realtime.md)).
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/Realtime)).
 - The driver depends on some KUKA-specific packages, which are only available with the real robot, therefore a mock mode is provided to enable trying out solutions with the same components running. 
   - By default, the mock libraries are used, this can be changed in the `CmakeLists.txt` file by setting `MOCK_KUKA_LIBS` to `FALSE` before building.
 - Set a fixed IP in the subnet of the KONI interface for the real-time machine.
