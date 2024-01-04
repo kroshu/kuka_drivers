@@ -1,93 +1,93 @@
 ## Setting up the real-time patch
 
-
-### Downloading kernel
-
-Prerequisites:
+### Prerequisites:
 - at least 30GB free disk space.
 
-check your current kernel version
-`uname -r`
+### Downloading kernel source
+1. check your current kernel version
+   - `uname -r`
 
-Find the real-time patch with mathching major and minor versions here https://cdn.kernel.org/pub/linux/kernel/projects/rt/
+2. Find and download the real-time patch with matching major and minor versions from [here](https://cdn.kernel.org/pub/linux/kernel/projects/rt/) (patch-\<version\>-rt\<nr\>.patch.gz)
 
-Create directory to build kernel
-`mkdir ~/kernel`
-`cd ~/kernel`
+3. Download the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (linux-\<version\>.tar.gz)
 
-Check latest stable version [here](https://wiki.linuxfoundation.org/realtime/start)
+4. Create directory to build kernel
+- `mkdir ~/kernel`
+- `cd ~/kernel`
+- copy the downloaded archives to the `~/kernel` directory
 
-and download the appropriate patch from [here](https://cdn.kernel.org/pub/linux/kernel/projects/rt/) (patch-<version>-rt<nr>.patch.gz)
+5. Unpack archives
+- `tar -xzf linux-<version>.tar.gz`
+- `gunzip patch-<version>-rt<nr>.patch.gz`
 
-and the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (linux-<version>.tar.gz)
+6. Patch the kernel with the realtime patch:
+- `cd linux-<version>`
+- `patch -p1 < ../patch-\<version\>-rt<nr>.patch`
 
-copy the archives to the `~/kernel` directory and unpack with
-
-`tar -xzf linux-<version>.tar.gz`
-`gunzip patch-<version>-rt<nr>.patch.gz`
-
-Switch into the unpacked linux directory 
-`cd linux-<version>`
-
-Patch the kernel with the realtime patch:
-`patch -p1 < ../patch-<version>-rt<nr>.patch`
-
-We simply want to use the config of our current installation, so we copy the current config with
-`cp /boot/config-<version>-generic .config`
-
-Install dependencies needed for building the kernel
+7. Install dependencies needed for building the kernel
 `sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot`
-
-To enable all Ubuntu configurations, we simply use
-`yes '' | make oldconfig`
 
 ### Kernel configuration
 
-The kernel configuration must be modified to make it real-time-capable
-`make menuconfig`
+#### Create configuration for building the kernel
+   - The easiest is to use the configuration of the current installation: `cp /boot/config-\<version\>-generic .config`
+   - Enable all new Ubuntu configurations: `yes '' | make oldconfig`
+
+#### Real-time adaptations
+The kernel configuration must be modified to make it real-time-capable. To open GUI for modifications: `make menuconfig`
 
 ##### Enable CONFIG_PREEMPT_RT
+```
  -> General Setup
-  -> Preemption Model (Fully Preemptible Kernel (Real-Time))
-   (X) Fully Preemptible Kernel (Real-Time)
+   -> Preemption Model (Fully Preemptible Kernel (Real-Time))
+      (X) Fully Preemptible Kernel (Real-Time)
+```
 
 ##### Enable CONFIG_HIGH_RES_TIMERS
+```
  -> General setup
   -> Timers subsystem
    [*] High Resolution Timer Support
+```
 
 ##### Enable CONFIG_NO_HZ_FULL
+```
  -> General setup
   -> Timers subsystem
    -> Timer tick handling (Full dynticks system (tickless))
     (X) Full dynticks system (tickless)
+```
 
-##### Set CPU_FREQ_DEFAULT_GOV_PERFORMANCE [=y]
+##### Set CPU_FREQ_DEFAULT_GOV_PERFORMANCE
+```
  ->  Power management and ACPI options
   -> CPU Frequency scaling
-   -> CPU Frequency scaling (CPU_FREQ [=y])
-    -> Default CPUFreq governor (<choice> [=y])
+   -> CPU Frequency scaling
+    -> Default CPUFreq governor
      (X) performance
-Save and exit menuconfig. Now we’re going to build the kernel which will take quite some time.
-
-```
-make -j `getconf _NPROCESSORS_ONLN` deb-pkg
 ```
 
-After successfull completition, there should be 4 debian packages:
-`ls ../*deb`
+Save (without modifying the name) and exit menuconfig. 
 
-Then we install all kernel debian packages
-`sudo dpkg -i ../*.deb`
+### Build and install kernel
 
-Now the real time kernel should be installed. Reboot the system and check the new kernel version
+1. Build the kernel (which will take quite some time):
+   ```
+   make -j `getconf _NPROCESSORS_ONLN` deb-pkg
+   ```
+   After successful completion, there should be 4 debian packages in the `~/kernel` directory: `ls ../*deb`
 
-`reboot`
-`uname -a`
+2. Install all kernel debian packages: 
+   - `sudo dpkg -i ../*.deb`
+
+3. Reboot
+- Now the real time kernel should be installed. Reboot the system.
+- At startup, choose the built kernel from the boot menu (Advanced options) (or configure it to be default)
+- Check new kernel version: `uname -a`
 
 ## Configuration
 
-After installing the real-time kerenel, the setting of scheduling priorities must be enabled for your user:
+After installing the real-time kernel, the setting of scheduling priorities must be enabled for your user:
 - extend `/etc/security/limits.conf` with 
 ```username	 -	 rtprio		 98```
-- restart
+- `reboot`
