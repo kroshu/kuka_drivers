@@ -114,9 +114,6 @@ Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisu
 
 ## Detailed setup and startup instructions
 
-[Instructions for industrial robots using KSS](KSS_RSI.md)
+For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/iiQKA_EAC) robots.
 
-[Instructions for cobots using Sunrise](Sunrise_FRI.md)
-
-[Instructions for cobots using iiQKA](iiQKA_EAC.md)
 

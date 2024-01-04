@@ -3,7 +3,7 @@
 ### Setup
 
 #### Client side
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](Realtime.md)).
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/Realtime)).
 - Set a fixed IP in the subnet of the controller for the real-time machine.
 
 #### Controller side
