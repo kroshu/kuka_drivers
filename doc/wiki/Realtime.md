@@ -9,9 +9,9 @@
    uname -r
    ```
 
-2. Find and download the real-time patch with matching major and minor versions from [here](https://cdn.kernel.org/pub/linux/kernel/projects/rt/) (patch-\<version\>-rt\<nr\>.patch.gz)
+2. Find and download the real-time patch with matching major and minor versions from [here](https://cdn.kernel.org/pub/linux/kernel/projects/rt/) (*patch-\<version\>-rt\<nr\>.patch.gz*)
 
-3. Download the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (linux-\<version\>.tar.gz)
+3. Download the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (*linux-\<version\>.tar.gz*)
 
 4. Create directory to build kernel
    ```
@@ -103,7 +103,7 @@ Save (without modifying the name) and exit menuconfig.
 
 3. Reboot
    - Now the real time kernel should be installed. Reboot the system.
-   - At startup, choose the built kernel from the boot menu (Advanced options) (or configure it to be default)
+   - At startup, choose the built kernel from the boot menu (*Advanced options*), or configure it to be default before restart.
    - Check new kernel version with `uname -a`
 
 ## Configuration
