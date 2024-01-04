@@ -44,47 +44,53 @@
       ```
       cp /boot/config-<version>-generic .config
       ```
+   - Modify certificates for signature checking
+      ```
+      scripts/config --disable SYSTEM_REVOCATION_KEYS
+      scripts/config --disable SYSTEM_REVOCATION_LIST
+      scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
+      ```
    - Enable all new Ubuntu configurations: 
       ```
       yes '' | make oldconfig
       ```
 
 #### Real-time adaptations
-The kernel configuration must be modified to make it real-time-capable. To open GUI for modifications: 
+   The kernel configuration must be modified to make it real-time-capable. Open GUI for modifications: 
    ```
    make menuconfig
    ```
 
-##### Enable CONFIG_PREEMPT_RT
-```
- -> General Setup
-   -> Preemption Model (Fully Preemptible Kernel (Real-Time))
-      (X) Fully Preemptible Kernel (Real-Time)
-```
+##### Enable fully preemptible kernel
+   ```
+   -> General Setup
+      -> Preemption Model
+         (X) Fully Preemptible Kernel (Real-Time)
+   ```
 
-##### Enable CONFIG_HIGH_RES_TIMERS
-```
- -> General setup
-  -> Timers subsystem
-   [*] High Resolution Timer Support
-```
+##### Enable high resolution timer support
+   ```
+   -> General setup
+   -> Timers subsystem
+      [*] High Resolution Timer Support
+   ```
 
-##### Enable CONFIG_NO_HZ_FULL
-```
- -> General setup
-  -> Timers subsystem
-   -> Timer tick handling (Full dynticks system (tickless))
-    (X) Full dynticks system (tickless)
-```
+##### Omit scheduling-clock ticks on isolated CPU-s
+   ```
+   -> General setup
+   -> Timers subsystem
+      -> Timer tick handling
+      (X) Full dynticks system (tickless)
+   ```
 
-##### Set CPU_FREQ_DEFAULT_GOV_PERFORMANCE
-```
- ->  Power management and ACPI options
-  -> CPU Frequency scaling
+##### Enforce maximum CPU frequency
+   ```
+   ->  Power management and ACPI options
    -> CPU Frequency scaling
-    -> Default CPUFreq governor
-     (X) performance
-```
+      -> CPU Frequency scaling
+      -> Default CPUFreq governor
+      (X) performance
+   ```
 
 Save (without modifying the name) and exit menuconfig. 
 
