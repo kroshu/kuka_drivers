@@ -6,7 +6,7 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-typedef struct _kuka_motion_external_CartesianImpedanceControlAttributes { 
+typedef struct _kuka_motion_external_CartesianImpedanceControlAttributes {
     pb_size_t stiffness_count;
     double stiffness[24];
 
@@ -20,7 +20,7 @@ typedef struct _kuka_motion_external_CartesianImpedanceControlAttributes {
     double nullspace_damping[24];
 } kuka_motion_external_CartesianImpedanceControlAttributes;
 
-typedef struct _kuka_motion_external_JointImpedanceControlAttributes { 
+typedef struct _kuka_motion_external_JointImpedanceControlAttributes {
     pb_size_t stiffness_count;
     double stiffness[24];
 

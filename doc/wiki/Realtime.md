@@ -50,13 +50,13 @@
       scripts/config --disable SYSTEM_REVOCATION_LIST
       scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
       ```
-   - Enable all new Ubuntu configurations: 
+   - Enable all new Ubuntu configurations:
       ```
       yes '' | make oldconfig
       ```
 
 #### Real-time adaptations
-   The kernel configuration must be modified to make it real-time-capable. Open GUI for modifications: 
+   The kernel configuration must be modified to make it real-time-capable. Open GUI for modifications:
    ```
    make menuconfig
    ```
@@ -92,7 +92,7 @@
       (X) performance
    ```
 
-Save (without modifying the name) and exit menuconfig. 
+Save (without modifying the name) and exit menuconfig.
 
 ### Build and install kernel
 
@@ -102,7 +102,7 @@ Save (without modifying the name) and exit menuconfig.
    ```
    After successful completion, there should be 4 debian packages in the `~/kernel` directory
 
-2. Install all kernel debian packages: 
+2. Install all kernel debian packages:
     ```
     sudo dpkg -i ../*.deb
     ```
@@ -116,7 +116,7 @@ Save (without modifying the name) and exit menuconfig.
 ## Configuration
 
 After installing the real-time kernel, the setting of scheduling priorities must be enabled for your user:
-- extend `/etc/security/limits.conf` with 
+- extend `/etc/security/limits.conf` with
 ```
 username	 -	 rtprio		 98
 ```

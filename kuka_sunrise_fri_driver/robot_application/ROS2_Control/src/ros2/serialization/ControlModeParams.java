@@ -13,17 +13,17 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 public abstract class ControlModeParams implements Externalizable{
 	public static int length = 0;
-	
+
 	private enum ControlModeID{
 		POSITION(		(byte)1),
 		JOINT_IMPEDANCE((byte)2);
-		
+
 		public final byte value;
-		
+
 		ControlModeID(byte value){
 			this.value = value;
 		}
-		
+
 		public static ControlModeID fromByte(byte value){
 			for(ControlModeID id : ControlModeID.values()){
 				if(value == id.value){
@@ -33,7 +33,7 @@ public abstract class ControlModeParams implements Externalizable{
 			throw new RuntimeException("Byte " + value + " does not represent an ControlModeID");
 		}
 	}
-	
+
 	public static ControlModeParams fromSerialData(byte[] serialData){
 		if(serialData.length == 0){
 			throw new RuntimeException("serialData is empty");
@@ -52,7 +52,7 @@ public abstract class ControlModeParams implements Externalizable{
 		MessageEncoding.Decode(serialData, controlModeParams);
 		return controlModeParams;
 	}
-	
+
 	public static ControlModeParams fromMotionControlMode(IMotionControlMode controlMode){
 		if(controlMode == null){
 			throw new RuntimeException("ControlMode is null");
@@ -67,19 +67,19 @@ public abstract class ControlModeParams implements Externalizable{
 		}
 		return controlModeParams;
 	}
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		
-		
+
+
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
-	
+
 }
 
 class PositionControlModeParams extends ControlModeParams{
@@ -89,9 +89,9 @@ class PositionControlModeParams extends ControlModeParams{
 
 class JointImpedanceControlModeParams extends ControlModeParams{
 	public JointImpedanceControlModeParams(){
-		
+
 	}
 	public JointImpedanceControlModeParams(JointImpedanceControlMode controlMode){
-		
+
 	}
 }

@@ -42,4 +42,3 @@ be under the Apache 2 License, as dictated by that
    the terms of any separate license agreement you may have executed
    with Licensor regarding such Contributions.
 ~~~
-

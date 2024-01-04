@@ -65,7 +65,7 @@ repos:
     rev: v15.0.6
     hooks:
       - id: clang-format
-        exclude: .*/fri_client_sdk/.*|.*/mock/.*
+        exclude: .*/fri_client_sdk/.*|.*/mock/.*|.*/robot_application/.*
 
 
   - repo: local
@@ -75,7 +75,7 @@ repos:
         exclude: .*/fri_client_sdk/.*|.*/mock/.*
         description: Static code analysis of C/C++ files.
         stages: [commit]
-        entry: ament_cppcheck
+        entry: env AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS=TRUE ament_cppcheck
         language: system
         files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
 

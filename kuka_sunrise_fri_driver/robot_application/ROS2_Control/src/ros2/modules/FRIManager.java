@@ -32,7 +32,7 @@ public class FRIManager{
 		ERRORED;
 	}
 	private ROS2Connection _ROS2Connection;
-	
+
 	private State _currentState;
 	private LBR _lbr;
 	private FRISession _FRISession;
@@ -42,9 +42,9 @@ public class FRIManager{
 	private IMotionContainer _motionContainer;
 	private FRIMotionErrorHandler _friMotionErrorHandler = new FRIMotionErrorHandler();
 	//private IApplicationControl _applicationControl;
-	
+
 	private static double[] stiffness_ = new double[7];
-	
+
 	public FRIManager(LBR lbr, IApplicationControl applicationControl){
 		_currentState = new InactiveState();
 		_lbr = lbr;
@@ -57,11 +57,11 @@ public class FRIManager{
 		//_applicationControl = applicationControl;
 		applicationControl.registerMoveAsyncErrorHandler(_friMotionErrorHandler);
 	}
-	
+
 	public void registerROS2ConnectionModule(ROS2Connection ros2ConnectionModule){
 		_ROS2Connection = ros2ConnectionModule;
 	}
-	
+
 	public void close(){
 		if(_currentState instanceof ControlActiveState){
 			deactivateControl();
@@ -70,36 +70,36 @@ public class FRIManager{
 			endFRI();//TODO: handle error
 		}
 	}
-	
+
 	public FRIConfigurationParams getFRIConfig(){
 		FRIConfigurationParams friConfigurationParams = new FRIConfigurationParams(_FRIConfiguration);
 		return friConfigurationParams;
 	}
-	
+
 	public ClientCommandMode getClientCommandMode(){
 		return _clientCommandMode;
 	}
-	
+
 	public IMotionControlMode getControlMode(){
 		return _controlMode;
 	}
-	
+
 	public FRISessionState getFRISessionState(){
 		return _FRISession.getFRIChannelInformation().getFRISessionState();
 	}
-	
+
 	/*
 	 *  The Following commands change the state of the FRI Manager, and thus are forwarded to the state machine for validation
 	 *  */
-	
+
 	public CommandResult setControlMode(IMotionControlMode controlMode){
 		return _currentState.setControlMode(controlMode);
 	}
-	
+
 	public CommandResult setCommandMode(ClientCommandMode clientCommandMode){
 		return _currentState.setCommandMode(clientCommandMode);
 	}
-		
+
 	public CommandResult setFRIConfig(FRIConfigurationParams friConfigurationParams){
 		return _currentState.setFRIConfig(friConfigurationParams);
 	}
@@ -111,7 +111,7 @@ public class FRIManager{
 		}
 		return commandResult;
 	}
-	
+
 	public CommandResult endFRI(){
 		CommandResult commandResult = _currentState.endFRI();
 		if(commandResult == CommandResult.EXECUTED){
@@ -119,7 +119,7 @@ public class FRIManager{
 		}
 		return commandResult;
 	}
-	
+
 	public CommandResult activateControl(){
 		CommandResult commandResult = _currentState.activateControl();
 		if(commandResult == CommandResult.EXECUTED){
@@ -127,7 +127,7 @@ public class FRIManager{
 		}
 		return commandResult;
 	}
-	
+
 	public CommandResult deactivateControl(){
 		CommandResult commandResult = _currentState.deactivateControl();
 		if(commandResult == CommandResult.EXECUTED){
@@ -135,38 +135,38 @@ public class FRIManager{
 		}
 		return commandResult;
 	}
-	
+
 	private class State{
 		/* By default reject all commands */
 		public CommandResult startFRI(){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult endFRI(){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult activateControl(){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult deactivateControl(){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult setFRIConfig(FRIConfigurationParams friConfigurationParams){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult setControlMode(IMotionControlMode controlMode){
 			return CommandResult.REJECTED;
 		}
-		
+
 		public CommandResult setCommandMode(ClientCommandMode clientCommandMode){
 			return CommandResult.REJECTED;
 		}
 	}
-	
+
 	private class InactiveState extends State{
 		@Override
 		public CommandResult startFRI(){
@@ -177,7 +177,7 @@ public class FRIManager{
 				FRIManager.this._FRISession.close();
 				return CommandResult.ERRORED;
 			}
-			
+
 			return CommandResult.EXECUTED;
 		}
 		@Override
@@ -196,7 +196,7 @@ public class FRIManager{
 			return CommandResult.EXECUTED;
 		}
 	}
-	
+
 	private class FRIActiveState extends State {
 		@Override
 		public CommandResult endFRI(){
@@ -209,12 +209,12 @@ public class FRIManager{
 		}
 		@Override
 		public CommandResult activateControl(){
-			FRIJointOverlay friJointOverlay = 
+			FRIJointOverlay friJointOverlay =
 					new FRIJointOverlay(FRIManager.this._FRISession, FRIManager.this._clientCommandMode);
 			//friJointOverlay.overrideJointAcceleration(20.0);
-			PositionHold motion = 
+			PositionHold motion =
 					new PositionHold(FRIManager.this._controlMode, -1, null);
-			FRIManager.this._motionContainer = 
+			FRIManager.this._motionContainer =
 					FRIManager.this._lbr.moveAsync(motion.addMotionOverlay(friJointOverlay));
 			return CommandResult.EXECUTED;
 		}
@@ -229,7 +229,7 @@ public class FRIManager{
 			return CommandResult.EXECUTED;
 		}
 	}
-	
+
 	private class ControlActiveState extends State {
 		@Override
 		public CommandResult deactivateControl(){
@@ -237,7 +237,7 @@ public class FRIManager{
 			return CommandResult.EXECUTED;
 		}
 	}
-	
+
 	private class FRIMotionErrorHandler implements IErrorHandler{
 
 		@Override
@@ -261,11 +261,7 @@ public class FRIManager{
 			System.out.println("Cancelled containers: " + canceledContainers.toString());
 			return ErrorHandlingAction.Ignore;
 		}
-		
+
 	}
-	
+
 }
-
-
-
-

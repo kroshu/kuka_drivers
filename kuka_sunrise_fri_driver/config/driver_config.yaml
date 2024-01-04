@@ -7,4 +7,3 @@ robot_manager:
     send_period_ms: 10
     joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     joint_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-    

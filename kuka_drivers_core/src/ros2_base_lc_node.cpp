@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -26,10 +26,9 @@ ROS2BaseLCNode::ROS2BaseLCNode(const std::string & node_name, const rclcpp::Node
 : rclcpp_lifecycle::LifecycleNode(node_name, options)
 {
   param_handler_ = ParameterHandler(this);
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return param_handler_.onParamChange(parameters);
-    });
+  param_callback_ =
+    this->add_on_set_parameters_callback([this](const std::vector<rclcpp::Parameter> & parameters)
+                                         { return param_handler_.onParamChange(parameters); });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -48,10 +47,12 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BaseLCNode::on_shutdown(const rclcpp_lifecycle::State & state)
 {
   auto result = SUCCESS;
-  switch (state.id()) {
+  switch (state.id())
+  {
     case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
       result = this->on_deactivate(get_current_state());
-      if (result != SUCCESS) {
+      if (result != SUCCESS)
+      {
         break;
       }
       result = this->on_cleanup(get_current_state());
@@ -79,20 +80,17 @@ ROS2BaseLCNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BaseLCNode::on_error(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn ROS2BaseLCNode::on_error(
+  const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(get_logger(), "An error occurred");
   return SUCCESS;
 }
 
-const ParameterHandler & ROS2BaseLCNode::getParameterHandler() const
-{
-  return param_handler_;
-}
+const ParameterHandler & ROS2BaseLCNode::getParameterHandler() const { return param_handler_; }
 
 rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr ROS2BaseLCNode::ParamCallback()
-const
+  const
 {
   return param_callback_;
 }

@@ -25,10 +25,7 @@ int main(int argc, char * argv[])
   auto const example_node = std::make_shared<MoveitExample>();
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(example_node);
-  std::thread(
-    [&executor]()
-    {executor.spin();})
-  .detach();
+  std::thread([&executor]() { executor.spin(); }).detach();
 
   example_node->initialize();
 
@@ -38,7 +35,8 @@ int main(int argc, char * argv[])
   // Go to correct position for the example
   auto init_trajectory = example_node->planToPosition(
     std::vector<double>{0.0017, -2.096, 1.514, 0.0012, -0.9888, -0.0029});
-  if (init_trajectory != nullptr) {
+  if (init_trajectory != nullptr)
+  {
     example_node->moveGroupInterface()->execute(*init_trajectory);
   }
 
@@ -48,11 +46,8 @@ int main(int argc, char * argv[])
     geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(1.0).z(0.1));
   example_node->addBreakPoint();
 
-  auto cart_goal = Eigen::Isometry3d(
-    Eigen::Translation3d(
-      0.4, -0.15,
-      0.55) *
-    Eigen::Quaterniond::Identity());
+  auto cart_goal =
+    Eigen::Isometry3d(Eigen::Translation3d(0.4, -0.15, 0.55) * Eigen::Quaterniond::Identity());
 
   geometry_msgs::msg::Quaternion q;
   q.x = 0;
@@ -66,7 +61,8 @@ int main(int argc, char * argv[])
   // Plan with collision avoidance
   auto planned_trajectory =
     example_node->planToPointUntilSuccess(cart_goal, "ompl", "RRTkConfigDefault");
-  if (planned_trajectory != nullptr) {
+  if (planned_trajectory != nullptr)
+  {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
     example_node->moveGroupInterface()->execute(*planned_trajectory);

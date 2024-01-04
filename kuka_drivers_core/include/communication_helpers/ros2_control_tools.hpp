@@ -15,14 +15,14 @@
 #ifndef COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 #define COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
-#include "rclcpp/rclcpp.hpp"
+#include "communication_helpers/service_tools.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
-#include "communication_helpers/service_tools.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace kuka_drivers_core
 {
@@ -37,7 +37,8 @@ bool changeHardwareState(
   hw_request->target_state.id = state;
   auto hw_response = sendRequest<controller_manager_msgs::srv::SetHardwareComponentState::Response>(
     client, hw_request, 0, timeout_ms);
-  if (!hw_response || !hw_response->ok) {
+  if (!hw_response || !hw_response->ok)
+  {
     return false;
   }
   return true;
@@ -57,7 +58,8 @@ bool changeControllerState(
 
   auto controller_response = sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     client, controller_request, 0, 2000);
-  if (!controller_response || !controller_response->ok) {
+  if (!controller_response || !controller_response->ok)
+  {
     return false;
   }
   return true;

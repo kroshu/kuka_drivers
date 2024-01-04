@@ -7,9 +7,9 @@
 #endif
 
 /* An array of joint positions for a given kinematic structure. */
-typedef struct _kuka_core_motion_JointPositions { 
+typedef struct _kuka_core_motion_JointPositions {
     pb_size_t values_count;
-    double values[24]; 
+    double values[24];
 } kuka_core_motion_JointPositions;
 
 
@@ -29,4 +29,3 @@ extern "C" {
 #endif
 
 #endif
-

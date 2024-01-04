@@ -15,14 +15,14 @@
 #ifndef KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_
 #define KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_
 
-#include <string>
-#include <vector>
 #include <map>
-#include <utility>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "rclcpp/rclcpp.hpp"
 #include "control_mode.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace kuka_drivers_core
 {
@@ -87,18 +87,20 @@ public:
    * @brief Updates the controllers' name for a specific controller type.
    *
    * @param controller_type: The type of the controller which will be updated.
-   * @param controller_name: The new controller's name. From now on this controller will be activated on controller activation.
+   * @param controller_name: The new controller's name. From now on this controller will be
+   * activated on controller activation.
    * @return True, if update was successful.
    * @return False, if update failed.
    */
   bool UpdateControllerName(
-    const ControllerType controller_type,
-    const std::string & controller_name);
+    const ControllerType controller_type, const std::string & controller_name);
 
   /**
-   * @brief Calculates the controllers that have to be activated and deactivated for the control mode change
+   * @brief Calculates the controllers that have to be activated and deactivated for the control
+   * mode change
    *
-   * @param new_control_mode: The new control mode. It is based on Controller_handler::control_mode enum.
+   * @param new_control_mode: The new control mode. It is based on Controller_handler::control_mode
+   * enum.
    * @return std::pair<std::vector<std::string>, std::vector<std::string>>:
    * Two vectors, first has the controllers to activate, second has the controllers to deactivate
    * @exception std::out_of_range: new_control_mode attribute is invalid
@@ -126,6 +128,5 @@ public:
   bool ApproveControllerDeactivation();
 };
 }  // namespace kuka_drivers_core
-
 
 #endif  // KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_

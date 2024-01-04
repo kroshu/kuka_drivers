@@ -14,33 +14,32 @@
 
 #include "kuka_drivers_core/parameter_handler.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace kuka_drivers_core
 {
-ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode * node)
-: node_(node)
-{
-}
+ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode * node) : node_(node) {}
 
 rcl_interfaces::msg::SetParametersResult ParameterHandler::onParamChange(
   const std::vector<rclcpp::Parameter> & parameters) const
 {
   rcl_interfaces::msg::SetParametersResult result;
   result.successful = false;
-  for (const rclcpp::Parameter & param : parameters) {
+  for (const rclcpp::Parameter & param : parameters)
+  {
     auto found_param_it = std::find_if(
       params_.begin(), params_.end(),
-      [&param](auto param_ptr) {
-        return param_ptr->getName() == param.get_name();
-      });
+      [&param](auto param_ptr) { return param_ptr->getName() == param.get_name(); });
     // When used properly, we should not reach this
     // but better to keep additional check to filter improper use
-    if (found_param_it == params_.end()) {
+    if (found_param_it == params_.end())
+    {
       printf("Invalid parameter name\n");
-    } else if (canSetParameter(*(*found_param_it))) {
+    }
+    else if (canSetParameter(*(*found_param_it)))
+    {
       result.successful = (*found_param_it)->callCallback(param);
     }
   }
@@ -49,22 +48,25 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::onParamChange(
 
 bool ParameterHandler::canSetParameter(const ParameterBase & param) const
 {
-  if (node_ == nullptr) {
+  if (node_ == nullptr)
+  {
     // Node is not lifecycle node, parameter can always be set
     return true;
   }
-  try {
-    if (!param.getRights().isSetAllowed(node_->get_current_state().id())) {
+  try
+  {
+    if (!param.getRights().isSetAllowed(node_->get_current_state().id()))
+    {
       RCLCPP_ERROR(
-        node_->get_logger(),
-        "Parameter %s cannot be changed while in state %s",
+        node_->get_logger(), "Parameter %s cannot be changed while in state %s",
         param.getName().c_str(), node_->get_current_state().label().c_str());
       return false;
     }
-  } catch (const std::out_of_range &) {
+  }
+  catch (const std::out_of_range &)
+  {
     RCLCPP_ERROR(
-      node_->get_logger(),
-      "Parameter set access rights for parameter %s couldn't be determined",
+      node_->get_logger(), "Parameter set access rights for parameter %s couldn't be determined",
       param.getName().c_str());
     return false;
   }
@@ -72,13 +74,13 @@ bool ParameterHandler::canSetParameter(const ParameterBase & param) const
 }
 
 void ParameterHandler::registerParameter(
-  std::shared_ptr<ParameterBase> param_shared_ptr,
-  bool block)
+  std::shared_ptr<ParameterBase> param_shared_ptr, bool block)
 {
   params_.emplace_back(param_shared_ptr);
   param_shared_ptr->getParameterInterface()->declare_parameter(
     param_shared_ptr->getName(), param_shared_ptr->getDefaultValue());
-  if (block) {
+  if (block)
+  {
     param_shared_ptr->blockParameter();
   }
 }

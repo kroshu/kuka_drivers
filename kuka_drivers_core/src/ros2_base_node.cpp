@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "kuka_drivers_core/ros2_base_node.hpp"
-
 
 namespace kuka_drivers_core
 {
@@ -25,19 +24,15 @@ namespace kuka_drivers_core
 ROS2BaseNode::ROS2BaseNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : rclcpp::Node(node_name, options)
 {
-  param_callback_ = this->add_on_set_parameters_callback(
-    [this](const std::vector<rclcpp::Parameter> & parameters) {
-      return param_handler_.onParamChange(parameters);
-    });
+  param_callback_ =
+    this->add_on_set_parameters_callback([this](const std::vector<rclcpp::Parameter> & parameters)
+                                         { return param_handler_.onParamChange(parameters); });
 }
 
-const ParameterHandler & ROS2BaseNode::getParameterHandler() const
-{
-  return param_handler_;
-}
+const ParameterHandler & ROS2BaseNode::getParameterHandler() const { return param_handler_; }
 
 rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr ROS2BaseNode::ParamCallback()
-const
+  const
 {
   return param_callback_;
 }

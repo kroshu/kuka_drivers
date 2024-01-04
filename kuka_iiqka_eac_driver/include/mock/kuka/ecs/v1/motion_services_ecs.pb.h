@@ -1244,7 +1244,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint32 OpenControlChannelRequest::timeout() cons
   return _internal_timeout();
 }
 inline void OpenControlChannelRequest::_internal_set_timeout(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  
+
   timeout_ = value;
 }
 inline void OpenControlChannelRequest::set_timeout(::PROTOBUF_NAMESPACE_ID::uint32 value) {
@@ -1264,7 +1264,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint32 OpenControlChannelRequest::cycle_time() c
   return _internal_cycle_time();
 }
 inline void OpenControlChannelRequest::_internal_set_cycle_time(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  
+
   cycle_time_ = value;
 }
 inline void OpenControlChannelRequest::set_cycle_time(::PROTOBUF_NAMESPACE_ID::uint32 value) {
@@ -1284,7 +1284,7 @@ inline ::kuka::motion::external::ExternalControlMode OpenControlChannelRequest::
   return _internal_external_control_mode();
 }
 inline void OpenControlChannelRequest::_internal_set_external_control_mode(::kuka::motion::external::ExternalControlMode value) {
-  
+
   external_control_mode_ = value;
 }
 inline void OpenControlChannelRequest::set_external_control_mode(::kuka::motion::external::ExternalControlMode value) {
@@ -1379,7 +1379,7 @@ inline ::kuka::ecs::v1::CommandEvent CommandState::event() const {
   return _internal_event();
 }
 inline void CommandState::_internal_set_event(::kuka::ecs::v1::CommandEvent value) {
-  
+
   event_ = value;
 }
 inline void CommandState::set_event(::kuka::ecs::v1::CommandEvent value) {
@@ -1407,31 +1407,31 @@ inline const std::string& CommandState::_internal_message() const {
   return message_.Get();
 }
 inline void CommandState::_internal_set_message(const std::string& value) {
-  
+
   message_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
 }
 inline void CommandState::set_message(std::string&& value) {
-  
+
   message_.Set(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
   // @@protoc_insertion_point(field_set_rvalue:kuka.ecs.v1.CommandState.message)
 }
 inline void CommandState::set_message(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
-  
+
   message_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
               GetArena());
   // @@protoc_insertion_point(field_set_char:kuka.ecs.v1.CommandState.message)
 }
 inline void CommandState::set_message(const char* value,
     size_t size) {
-  
+
   message_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
       reinterpret_cast<const char*>(value), size), GetArena());
   // @@protoc_insertion_point(field_set_pointer:kuka.ecs.v1.CommandState.message)
 }
 inline std::string* CommandState::_internal_mutable_message() {
-  
+
   return message_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
 inline std::string* CommandState::release_message() {
@@ -1440,9 +1440,9 @@ inline std::string* CommandState::release_message() {
 }
 inline void CommandState::set_allocated_message(std::string* message) {
   if (message != nullptr) {
-    
+
   } else {
-    
+
   }
   message_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), message,
       GetArena());
@@ -1451,7 +1451,7 @@ inline void CommandState::set_allocated_message(std::string* message) {
 inline std::string* CommandState::unsafe_arena_release_message() {
   // @@protoc_insertion_point(field_unsafe_arena_release:kuka.ecs.v1.CommandState.message)
   GOOGLE_DCHECK(GetArena() != nullptr);
-  
+
   return message_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       GetArena());
 }
@@ -1459,9 +1459,9 @@ inline void CommandState::unsafe_arena_set_allocated_message(
     std::string* message) {
   GOOGLE_DCHECK(GetArena() != nullptr);
   if (message != nullptr) {
-    
+
   } else {
-    
+
   }
   message_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       message, GetArena());

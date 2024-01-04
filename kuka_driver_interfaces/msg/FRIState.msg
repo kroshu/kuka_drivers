@@ -1,6 +1,6 @@
 # Message describing the state of the robot and FRI
 
-# FRI session state enum 
+# FRI session state enum
 # IDLE = 0, MONITORING_WAIT = 1, MONITORING_READY = 2,COMMANDING_WAIT = 3, COMMANDING_ACTIVE = 4
 int32 session_state
 

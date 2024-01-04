@@ -31,14 +31,14 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
      - Select the entry **New** under **RSI Ethernet** in the tree structure and press **Edit**.
      - Enter the IP address and confirm with **OK**.
      - Close **RSI-Network** and maximize the SmartHMI.
-  
+
    **KRC5:**
    - Press the **Advanced** button and **New interface**.
    - Select **Mixed IP address** and keep the default **Receiving task: Target subnet** and **Real-time receiving Task: UDP**
    - Set the IP address to a different subnet then the **KLI interface**.
      - **Default gateway**: leave it empty
      - **Windows interface checkbox** should NOT be checked
-  
+
 3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
 
 ##### Update and upload configuration files
@@ -100,7 +100,7 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
 
      -  After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
-2. Configure and activate all components the driver: 
+2. Configure and activate all components the driver:
     ```
     ros2 lifecycle set robot_manager configure
     ros2 lifecycle set robot_manager activate

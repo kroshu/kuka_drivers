@@ -15,17 +15,17 @@
 #ifndef KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
 #define KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
 
-#include <string>
-#include <memory>
-#include <vector>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/client.hpp"
-#include "std_msgs/msg/bool.hpp"
-#include "std_msgs/msg/u_int32.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "rclcpp/client.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/u_int32.hpp"
 
 #include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
@@ -40,17 +40,17 @@ public:
   RobotManagerNode();
   ~RobotManagerNode();
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State &) override;
 
 private:
   void ObserveControl();
@@ -90,7 +90,6 @@ private:
   static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
-}   // namespace kuka_eac
-
+}  // namespace kuka_eac
 
 #endif  // KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
