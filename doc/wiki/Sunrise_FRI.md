@@ -47,9 +47,10 @@ The parameters in the driver configuration file can be also changed during runti
       - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
-    - ```ros2 lifecycle set robot_manager configure```
-    - ```ros2 lifecycle set robot_manager activate```
-
+    ```
+    ros2 lifecycle set robot_manager configure
+    ros2 lifecycle set robot_manager activate
+    ```
 On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the *Additional packages* section of the [project overview](Project%20overview.md)).
 
 

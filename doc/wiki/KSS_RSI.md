@@ -91,8 +91,9 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
 #### Starting the driver
 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
-
-   - `ros2 launch kuka_kss_rsi_driver startup.launch.py`
+    ```
+    ros2 launch kuka_kss_rsi_driver startup.launch.py
+    ```
      - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
        - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
        - `joint_trajectory_controller` ([configuration file](../../kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
@@ -100,8 +101,10 @@ The KSS driver currently does not have runtime parameters. Control mode cannot b
      -  After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
 2. Configure and activate all components the driver: 
-   - `ros2 lifecycle set robot_manager configure`
-   - ```ros2 lifecycle set robot_manager activate```
+    ```
+    ros2 lifecycle set robot_manager configure
+    ros2 lifecycle set robot_manager activate
+    ```
    - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
 3. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
@@ -126,15 +129,20 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 
 To try out the driver with an open-loop simulation, the driver and the `kuka_rsi_simulator` must be started, (before activation only a "collapsed" robot will be visible in `rviz`):
 
-`ros2 launch kuka_kss_rsi_driver startup_with_rviz.launch.py`
+```
+ros2 launch kuka_kss_rsi_driver startup_with_rviz.launch.py
+```
 
-`ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py`
+```
+ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py
+```
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
 
-`ros2 lifecycle set robot_manager configure`
-
-`ros2 lifecycle set robot_manager activate`
+```
+ros2 lifecycle set robot_manager configure
+ros2 lifecycle set robot_manager activate
+```
 
 ### Known issues and limitations
 
