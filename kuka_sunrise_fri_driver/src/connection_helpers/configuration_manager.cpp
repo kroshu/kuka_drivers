@@ -33,7 +33,7 @@ ConfigurationManager::ConfigurationManager(
     robot_manager_node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   receive_multiplier_client_ =
     robot_manager_node->create_client<kuka_driver_interfaces::srv::SetInt>(
-      "set_receive_multiplier", qos.get_rmw_qos_profile(), cbg_);
+      "fri_configuration_controller/set_receive_multiplier", qos.get_rmw_qos_profile(), cbg_);
 
   robot_manager_node_->registerParameter<std::string>(
     "controller_ip", "",
