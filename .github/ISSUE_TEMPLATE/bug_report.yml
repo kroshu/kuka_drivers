@@ -1,0 +1,80 @@
+name: "Bug Report"
+description: Create a new ticket for a bug.
+title: "[BUG] - <title>"
+labels: [
+  "bug"
+]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: Please enter an explicit description of your issue
+      placeholder: Describe your issue in a few sentences
+    validations:
+      required: true
+  - type: dropdown
+    id: robot-os
+    attributes:
+      label: "KUKA robot OS"
+      description: Which KUKA OS are you using
+      multiple: true
+      options:
+        - KSS
+        - Sunrise
+        - iiQKA
+  - type: input
+    id: os-version
+    attributes:
+      label: "KUKA robot OS version"
+      description: Version of the KUKA robot OS
+      placeholder: eg. KSS 8.6
+    validations:
+      required: true
+  - type: input
+    id: if-version
+    attributes:
+      label: "KUKA external interface version"
+      description: Version of the KUKA external interface
+      placeholder: eg. RSI 4.1.3
+    validations:
+      required: true
+  - type: input
+    id: robot-model
+    attributes:
+      label: "Affected robot model(s)"
+      description: Robot model the issue came up with
+      placeholder: eg. KR10 R1100-2
+    validations:
+      required: true
+  - type: input
+    id: driver-version
+    attributes:
+      label: "Version or commit has of the driver"
+      description: If the issue came up with an older version (not master), provide the release version or commit hash
+    validations:
+      required: false
+  - type: textarea
+    id: setup
+    attributes:
+      label: "Setup"
+      description: Describe your setup, launch files and executables started (optionally attach rqt_graph output), modifications to code
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: reprod
+    attributes:
+      label: "Reproduction steps"
+      description: Clear and ordered steps of reporoducing
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs"
+      description: Attach relevant log output here, mentioning if lines were omitted to help readability.
+      render: bash
+    validations:
+      required: false
