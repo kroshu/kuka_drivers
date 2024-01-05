@@ -17,7 +17,7 @@ body:
     id: robot-os
     attributes:
       label: "KUKA robot OS"
-      description: Which KUKA OS are you using
+      description: Version of the KUKA OS are you using
       multiple: true
       options:
         - KSS
@@ -50,7 +50,7 @@ body:
   - type: input
     id: driver-version
     attributes:
-      label: "Version or commit has of the driver"
+      label: "Version or commit hash of the driver"
       description: If the issue came up with an older version (not master), provide the release version or commit hash
     validations:
       required: false
