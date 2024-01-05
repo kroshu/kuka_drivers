@@ -23,6 +23,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
+    ns = LaunchConfiguration("namespace")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -69,18 +70,20 @@ def launch_setup(context, *args, **kwargs):
     controller_manager_node = "/controller_manager"
 
     control_node = Node(
+        namespace=ns.perform(context),
         package="kuka_drivers_core",
         executable="control_node",
         parameters=[robot_description, controller_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
-        namespace="",
+        namespace=ns.perform(context),
         package="kuka_iiqka_eac_driver",
         executable="robot_manager_node",
         parameters=[driver_config, {"robot_model": robot_model.perform(context)}],
     )
     robot_state_publisher = Node(
+        namespace=ns.perform(context),
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
@@ -99,6 +102,8 @@ def launch_setup(context, *args, **kwargs):
                 "-p",
                 controller_with_config[1],
                 "--inactive",
+                "-n",
+                ns.perform(context),
             ],
         )
 
@@ -126,4 +131,5 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iisy3_r760"))
+    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
