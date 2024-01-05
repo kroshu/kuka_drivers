@@ -205,7 +205,7 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
   {
     return;
   }
-  pthread_t handler_thread;
+  std::thread handler_thread;
   std::lock_guard<std::mutex> lk(m_);
   // TODO(resizoltan) handle invalid data
   switch ((CommandState)data[0])
@@ -245,15 +245,8 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
       }
       else
       {
-        pthread_create(
-          &handler_thread, nullptr,
-          [](void * self) -> void *
-          {
-            static_cast<FRIConnection *>(self)->handleControlEndedError_();
-            return nullptr;
-          },
-          this);
-        pthread_detach(handler_thread);  // TODO(resizoltan) there might be a better way to do this
+        handler_thread = std::thread([this] { this->handleControlEndedError_(); });
+        handler_thread.detach();  // Detach the thread
       }
       break;
     case ERROR_FRI_ENDED:
@@ -265,15 +258,8 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
       }
       else
       {
-        pthread_create(
-          &handler_thread, nullptr,
-          [](void * self) -> void *
-          {
-            static_cast<FRIConnection *>(self)->handleFRIEndedError_();
-            return nullptr;
-          },
-          this);
-        pthread_detach(handler_thread);  // TODO(resizoltan) there might be a better way to do this
+        handler_thread = std::thread([this] { this->handleFRIEndedError_(); });
+        handler_thread.detach();  // Detach the thread
       }
       break;
     default:
