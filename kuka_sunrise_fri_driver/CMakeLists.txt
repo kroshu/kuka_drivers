@@ -97,8 +97,12 @@ target_link_libraries(robot_manager_node
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} fri_connection fri_client_sdk robot_manager_node
+install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS fri_connection fri_client_sdk configuration_manager
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME})
