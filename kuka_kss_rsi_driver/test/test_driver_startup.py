@@ -20,7 +20,9 @@ import launch_testing.actions
 import launch_testing.markers
 import pytest
 
-from launch.launch_description_sources.python_launch_description_source import PythonLaunchDescriptionSource  # noqa: E501
+from launch.launch_description_sources.python_launch_description_source import (
+    PythonLaunchDescriptionSource,
+)  # noqa: E501
 from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
 
@@ -29,20 +31,28 @@ from ament_index_python.packages import get_package_share_directory
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    return launch.LaunchDescription([
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(
-            [get_package_share_directory('kuka_sunrise_fri_driver'),
-             '/launch/', 'startup.launch.py'])),
-        launch_testing.actions.ReadyToTest()
-    ])
+    return launch.LaunchDescription(
+        [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    [
+                        get_package_share_directory("kuka_sunrise_fri_driver"),
+                        "/launch/",
+                        "startup.launch.py",
+                    ]
+                )
+            ),
+            launch_testing.actions.ReadyToTest(),
+        ]
+    )
 
 
 class TestModels(unittest.TestCase):
-
     def test_read_stdout(self, proc_output):
-        # Check for successfull initialization
-        proc_output.assertWaitFor('got segment base', timeout=5)
+        # Check for successful initialization
+        proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5)
-        # Check whether disabling automatic activation was successfull
+            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
+        )
+        # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
