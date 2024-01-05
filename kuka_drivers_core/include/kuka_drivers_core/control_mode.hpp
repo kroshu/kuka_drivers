@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #ifndef KUKA_DRIVERS_CORE__CONTROL_MODE_HPP_
 #define KUKA_DRIVERS_CORE__CONTROL_MODE_HPP_
 
 namespace kuka_drivers_core
 {
 /**
-  * @brief Enum to identify every control mode
-  */
+ * @brief Enum to identify every control mode
+ */
 enum class ControlMode : std::uint8_t
 {
   UNSPECIFIED_CONTROL_MODE = 0,
@@ -34,10 +33,9 @@ enum class ControlMode : std::uint8_t
   WRENCH_CONTROL = 8,
 };
 
-
 /**
-   * @brief Enum for identify every type of controllers
-   */
+ * @brief Enum for identify every type of controllers
+ */
 enum class ControllerType : std::uint8_t
 {
   JOINT_POSITION_CONTROLLER_TYPE = 0,

@@ -15,13 +15,13 @@
 #ifndef KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_
 #define KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_
 
-#include <string>
 #include <map>
-#include <vector>
 #include <memory>
+#include <string>
+#include <vector>
 
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 
 #include "kuka_drivers_core/parameter_handler.hpp"
 
@@ -31,45 +31,42 @@ class ROS2BaseLCNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   explicit ROS2BaseLCNode(
-    const std::string & node_name,
-    const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_shutdown(const rclcpp_lifecycle::State & state) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_shutdown(
+    const rclcpp_lifecycle::State & state) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_error(const rclcpp_lifecycle::State &) override;
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_error(
+    const rclcpp_lifecycle::State &) override;
 
-  template<typename T>
+  template <typename T>
   void registerParameter(
     const std::string & name, const T & value, const ParameterSetAccessRights & rights,
     std::function<bool(const T &)> on_change_callback)
   {
     param_handler_.registerParameter<T>(
-      name, value, rights,
-      on_change_callback, this->get_node_parameters_interface());
+      name, value, rights, on_change_callback, this->get_node_parameters_interface());
   }
 
-  template<typename T>
+  template <typename T>
   void registerStaticParameter(
     const std::string & name, const T & value, const ParameterSetAccessRights & rights,
     std::function<bool(const T &)> on_change_callback)
   {
     param_handler_.registerParameter<T>(
-      name, value, rights,
-      on_change_callback, this->get_node_parameters_interface(), true);
+      name, value, rights, on_change_callback, this->get_node_parameters_interface(), true);
   }
   const ParameterHandler & getParameterHandler() const;
 
@@ -88,6 +85,5 @@ private:
 };
 
 }  // namespace kuka_drivers_core
-
 
 #endif  // KUKA_DRIVERS_CORE__ROS2_BASE_LC_NODE_HPP_

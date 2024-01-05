@@ -15,16 +15,16 @@
 #ifndef KUKA_SUNRISE_FRI_DRIVER__TCP_CONNECTION_HPP_
 #define KUKA_SUNRISE_FRI_DRIVER__TCP_CONNECTION_HPP_
 
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
+#include <atomic>
+#include <functional>
 #include <stdexcept>
 #include <string>
-#include <functional>
 #include <vector>
-#include <atomic>
 
 namespace kuka_sunrise_fri_driver
 {

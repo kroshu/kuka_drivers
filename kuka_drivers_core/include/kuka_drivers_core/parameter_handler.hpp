@@ -20,10 +20,9 @@
 #include <string>
 #include <vector>
 
+#include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/node_interfaces/node_parameters_interface.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
-
 
 namespace kuka_drivers_core
 {
@@ -36,7 +35,8 @@ struct ParameterSetAccessRights
   bool configuring = false;
   bool isSetAllowed(std::uint8_t current_state) const
   {
-    switch (current_state) {
+    switch (current_state)
+    {
       case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
         return unconfigured;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
@@ -57,7 +57,7 @@ class ParameterHandler
 {
   class ParameterBase
   {
-public:
+  public:
     ParameterBase(
       const std::string & name, const ParameterSetAccessRights & rights,
       rclcpp::node_interfaces::NodeParametersInterface::SharedPtr param_IF)
@@ -67,20 +67,11 @@ public:
 
     virtual ~ParameterBase() = default;
 
-    const std::string & getName() const
-    {
-      return name_;
-    }
+    const std::string & getName() const { return name_; }
 
-    const ParameterSetAccessRights & getRights() const
-    {
-      return rights_;
-    }
+    const ParameterSetAccessRights & getRights() const { return rights_; }
 
-    const rclcpp::ParameterValue & getDefaultValue() const
-    {
-      return default_value_;
-    }
+    const rclcpp::ParameterValue & getDefaultValue() const { return default_value_; }
 
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr getParameterInterface() const
     {
@@ -89,25 +80,22 @@ public:
 
     virtual void blockParameter() = 0;
 
-    virtual bool callCallback(const rclcpp::Parameter &) const {return false;}
+    virtual bool callCallback(const rclcpp::Parameter &) const { return false; }
 
-protected:
-    void setDefaultValue(rclcpp::ParameterValue && value)
-    {
-      default_value_ = value;
-    }
+  protected:
+    void setDefaultValue(rclcpp::ParameterValue && value) { default_value_ = value; }
     const std::string name_;
 
-private:
+  private:
     const ParameterSetAccessRights rights_;
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr paramIF_;
     rclcpp::ParameterValue default_value_;
   };
 
-  template<typename T>
+  template <typename T>
   class Parameter : public ParameterBase
   {
-public:
+  public:
     Parameter(
       const std::string & name, const T & value, const ParameterSetAccessRights & rights,
       std::function<bool(const T &)> on_change_callback,
@@ -121,9 +109,12 @@ public:
 
     bool callCallback(const rclcpp::Parameter & new_param) const override
     {
-      try {
+      try
+      {
         return on_change_callback_(new_param.get_value<T>());
-      } catch (const rclcpp::exceptions::InvalidParameterTypeException & e) {
+      }
+      catch (const rclcpp::exceptions::InvalidParameterTypeException & e)
+      {
         printf("%s", e.what());
         return false;
       }
@@ -132,13 +123,13 @@ public:
     void blockParameter() override
     {
       on_change_callback_ = [this](const T &) -> bool
-        {
-          printf("Parameter %s can be set only at startup\n", name_.c_str());
-          return false;
-        };
+      {
+        printf("Parameter %s can be set only at startup\n", name_.c_str());
+        return false;
+      };
     }
 
-private:
+  private:
     std::function<bool(const T &)> on_change_callback_;
   };
 
@@ -149,26 +140,23 @@ public:
     const std::vector<rclcpp::Parameter> & parameters) const;
   bool canSetParameter(const ParameterBase & param) const;
 
-  template<typename T>
+  template <typename T>
   void registerParameter(
     const std::string & name, const T & value, const ParameterSetAccessRights & rights,
     std::function<bool(const T &)> on_change_callback,
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr param_IF, bool block = false)
   {
     auto param_shared_ptr = std::make_shared<ParameterHandler::Parameter<T>>(
-      name, value, rights,
-      on_change_callback, param_IF);
+      name, value, rights, on_change_callback, param_IF);
     registerParameter(param_shared_ptr, block);
   }
-  template<typename T>
+  template <typename T>
   void registerParameter(
-    const std::string & name, const T & value,
-    std::function<bool(const T &)> on_change_callback,
+    const std::string & name, const T & value, std::function<bool(const T &)> on_change_callback,
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr param_IF, bool block = false)
   {
     auto param_shared_ptr = std::make_shared<ParameterHandler::Parameter<T>>(
-      name, value, ParameterSetAccessRights(),
-      on_change_callback, param_IF);
+      name, value, ParameterSetAccessRights(), on_change_callback, param_IF);
     registerParameter(param_shared_ptr, block);
   }
 
@@ -178,6 +166,5 @@ private:
   void registerParameter(std::shared_ptr<ParameterBase> param_shared_ptr, bool block);
 };
 }  // namespace kuka_drivers_core
-
 
 #endif  // KUKA_DRIVERS_CORE__PARAMETER_HANDLER_HPP_

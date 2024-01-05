@@ -23,16 +23,18 @@
 namespace kuka_drivers_core
 {
 
-template<typename FutureT, typename WaitTimeT>
+template <typename FutureT, typename WaitTimeT>
 std::future_status wait_for_result(FutureT & future, WaitTimeT time_to_wait)
 {
   auto end = std::chrono::steady_clock::now() + time_to_wait;
   std::chrono::milliseconds wait_period(100);
   std::future_status status = std::future_status::timeout;
-  do {
+  do
+  {
     auto now = std::chrono::steady_clock::now();
     auto time_left = end - now;
-    if (time_left <= std::chrono::seconds(0)) {
+    if (time_left <= std::chrono::seconds(0))
+    {
       break;
     }
     status = future.wait_for((time_left < wait_period) ? time_left : wait_period);
@@ -40,22 +42,22 @@ std::future_status wait_for_result(FutureT & future, WaitTimeT time_to_wait)
   return status;
 }
 
-template<typename ResponseT, typename RequestT, typename ClientT>
-std::shared_ptr<ResponseT>
-sendRequest(
+template <typename ResponseT, typename RequestT, typename ClientT>
+std::shared_ptr<ResponseT> sendRequest(
   ClientT client, RequestT request, const uint32_t & service_timeout_ms = 2000,
   const uint32_t & response_timeout_ms = 100)
 {
-  if (service_timeout_ms && !client->wait_for_service(
-      std::chrono::milliseconds(service_timeout_ms)))
+  if (
+    service_timeout_ms && !client->wait_for_service(std::chrono::milliseconds(service_timeout_ms)))
   {
     printf("Wait for service failed\n");
     return nullptr;
   }
   auto future_result = client->async_send_request(request);
-  auto future_status = wait_for_result(
-    future_result, std::chrono::milliseconds(response_timeout_ms));
-  if (future_status != std::future_status::ready) {
+  auto future_status =
+    wait_for_result(future_result, std::chrono::milliseconds(response_timeout_ms));
+  if (future_status != std::future_status::ready)
+  {
     printf("Request timed out\n");
     return nullptr;
   }

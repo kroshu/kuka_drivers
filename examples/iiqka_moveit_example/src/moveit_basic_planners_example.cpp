@@ -18,7 +18,6 @@
 
 #include "iiqka_moveit_example/moveit_example.hpp"
 
-
 int main(int argc, char * argv[])
 {
   // Setup
@@ -27,10 +26,7 @@ int main(int argc, char * argv[])
   auto const example_node = std::make_shared<MoveitExample>();
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(example_node);
-  std::thread(
-    [&executor]()
-    {executor.spin();})
-  .detach();
+  std::thread([&executor]() { executor.spin(); }).detach();
 
   example_node->initialize();
   example_node->addBreakPoint();
@@ -39,16 +35,13 @@ int main(int argc, char * argv[])
   example_node->addRobotPlatform();
 
   // Pilz PTP planner
-  auto standing_pose = Eigen::Isometry3d(
-    Eigen::Translation3d(
-      0.1, 0,
-      0.8) *
-    Eigen::Quaterniond::Identity());
+  auto standing_pose =
+    Eigen::Isometry3d(Eigen::Translation3d(0.1, 0, 0.8) * Eigen::Quaterniond::Identity());
 
-  auto planned_trajectory = example_node->planToPoint(
-    standing_pose,
-    "pilz_industrial_motion_planner", "PTP");
-  if (planned_trajectory != nullptr) {
+  auto planned_trajectory =
+    example_node->planToPoint(standing_pose, "pilz_industrial_motion_planner", "PTP");
+  if (planned_trajectory != nullptr)
+  {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
     example_node->moveGroupInterface()->execute(*planned_trajectory);
@@ -56,14 +49,12 @@ int main(int argc, char * argv[])
   example_node->addBreakPoint();
 
   // Pilz LIN planner
-  auto cart_goal = Eigen::Isometry3d(
-    Eigen::Translation3d(
-      0.4, -0.15,
-      0.55) *
-    Eigen::Quaterniond::Identity());
+  auto cart_goal =
+    Eigen::Isometry3d(Eigen::Translation3d(0.4, -0.15, 0.55) * Eigen::Quaterniond::Identity());
   planned_trajectory =
     example_node->planToPoint(cart_goal, "pilz_industrial_motion_planner", "LIN");
-  if (planned_trajectory != nullptr) {
+  if (planned_trajectory != nullptr)
+  {
     example_node->drawTrajectory(*planned_trajectory);
     example_node->addBreakPoint();
     example_node->moveGroupInterface()->execute(*planned_trajectory);
@@ -76,23 +67,27 @@ int main(int argc, char * argv[])
   example_node->addBreakPoint();
 
   // Try moving back with Pilz LIN
-  planned_trajectory = example_node->planToPoint(
-    standing_pose, "pilz_industrial_motion_planner",
-    "LIN");
-  if (planned_trajectory != nullptr) {
+  planned_trajectory =
+    example_node->planToPoint(standing_pose, "pilz_industrial_motion_planner", "LIN");
+  if (planned_trajectory != nullptr)
+  {
     example_node->drawTrajectory(*planned_trajectory);
-  } else {
+  }
+  else
+  {
     example_node->drawTitle("Failed planning with Pilz LIN");
   }
   example_node->addBreakPoint();
 
   // Try moving back with Pilz PTP
-  planned_trajectory = example_node->planToPoint(
-    standing_pose, "pilz_industrial_motion_planner",
-    "PTP");
-  if (planned_trajectory != nullptr) {
+  planned_trajectory =
+    example_node->planToPoint(standing_pose, "pilz_industrial_motion_planner", "PTP");
+  if (planned_trajectory != nullptr)
+  {
     example_node->drawTrajectory(*planned_trajectory);
-  } else {
+  }
+  else
+  {
     example_node->drawTitle("Failed planning with Pilz PTP");
   }
   example_node->addBreakPoint();

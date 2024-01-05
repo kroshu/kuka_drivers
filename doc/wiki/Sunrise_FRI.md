@@ -36,7 +36,7 @@ The parameters in the driver configuration file can be also changed during runti
 #### Starting the driver
 
 1. On the controller, start the uploaded robot application (ROS2_Control).
-2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run 
+2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
     ```
     ros2 launch kuka_iiqka_eac_driver startup.launch.py`
     ```

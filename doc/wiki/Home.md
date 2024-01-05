@@ -59,7 +59,7 @@ The consequence of the lifecycle interface is, that 3 commands are necessary to 
 
 The control mode specifications are also part of the common API. They are defined as an enum in the [`kuka_drivers_core`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) package, and have the following meaning:
 
-- joint position control: the driver streams cyclic position updates for every joint. 
+- joint position control: the driver streams cyclic position updates for every joint.
     - Needed command interface(s): `position`
 - joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally.
     - Needed command interface(s): `position`, `stiffness`, `damping`
@@ -98,7 +98,7 @@ The repository contains a few other packages aside from the 3 drivers:
 
 The `ros2_control` framework supports Moveit out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package (`iiqka_moveit_example`) is provided to help developers.
 
-The package contains a [launch file](../../examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup. 
+The package contains a [launch file](../../examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
 
 After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
 
@@ -110,10 +110,8 @@ The package also contains examples of sending planning requests from C++ code, i
 
 Note: the first three examples should be executed consequently (without restarting the launch file) to ensure that the collision objects are indeed in the way of the trivial path. The 4. example should be executed independently, so that the collision box added in the other examples are not there (launch file should be restarted after the other examples).
 
-Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it. 
+Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it.
 
 ## Detailed setup and startup instructions
 
 For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/iiQKA_EAC) robots.
-
-

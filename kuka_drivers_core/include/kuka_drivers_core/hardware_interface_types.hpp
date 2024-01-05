@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #ifndef KUKA_DRIVERS_CORE__HARDWARE_INTERFACE_TYPES_HPP_
 #define KUKA_DRIVERS_CORE__HARDWARE_INTERFACE_TYPES_HPP_
 
@@ -49,7 +48,6 @@ static constexpr char OPERATION_MODE[] = "operation_mode";
 static constexpr char DRIVE_STATE[] = "drive_state";
 static constexpr char OVERLAY_TYPE[] = "overlay_type";
 static constexpr char TRACKING_PERFORMANCE[] = "tracking_performance";
-
 
 }  // namespace hardware_interface
 

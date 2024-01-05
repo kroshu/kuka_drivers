@@ -22,7 +22,7 @@ public class MessageEncoding {
 		}
 		return serialDataOut;
 	}
-	
+
 	public static void Decode(byte[] serialDataIn, Externalizable objectOut) throws RuntimeException{
 		try{
 			ByteArrayInputStream serialDataStream = new ByteArrayInputStream(serialDataIn);

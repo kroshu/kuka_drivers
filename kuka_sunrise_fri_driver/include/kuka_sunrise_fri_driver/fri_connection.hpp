@@ -15,10 +15,10 @@
 #ifndef KUKA_SUNRISE_FRI_DRIVER__FRI_CONNECTION_HPP_
 #define KUKA_SUNRISE_FRI_DRIVER__FRI_CONNECTION_HPP_
 
-#include <memory>
-#include <functional>
-#include <vector>
 #include <condition_variable>
+#include <functional>
+#include <memory>
+#include <vector>
 
 namespace kuka_sunrise_fri_driver
 {
@@ -27,29 +27,45 @@ class TCPConnection;
 
 enum CommandState : std::uint8_t
 {
-  ACCEPTED = 1, REJECTED = 2, UNKNOWN = 3, ERROR_CONTROL_ENDED = 4, ERROR_FRI_ENDED = 5
+  ACCEPTED = 1,
+  REJECTED = 2,
+  UNKNOWN = 3,
+  ERROR_CONTROL_ENDED = 4,
+  ERROR_FRI_ENDED = 5
 };
 
 enum CommandID : std::uint8_t
 {
-  CONNECT = 1, DISCONNECT = 2, START_FRI = 3, END_FRI = 4, ACTIVATE_CONTROL = 5,
-  DEACTIVATE_CONTROL = 6, GET_FRI_CONFIG = 7, SET_FRI_CONFIG = 8, GET_CONTROL_MODE = 9,
-  SET_CONTROL_MODE = 10, GET_COMMAND_MODE = 11, SET_COMMAND_MODE = 12
+  CONNECT = 1,
+  DISCONNECT = 2,
+  START_FRI = 3,
+  END_FRI = 4,
+  ACTIVATE_CONTROL = 5,
+  DEACTIVATE_CONTROL = 6,
+  GET_FRI_CONFIG = 7,
+  SET_FRI_CONFIG = 8,
+  GET_CONTROL_MODE = 9,
+  SET_CONTROL_MODE = 10,
+  GET_COMMAND_MODE = 11,
+  SET_COMMAND_MODE = 12
 };
 
 enum CommandSuccess : std::uint8_t
 {
-  SUCCESS = 1, NO_SUCCESS = 2
+  SUCCESS = 1,
+  NO_SUCCESS = 2
 };
 
 enum ControlModeID : std::uint8_t
 {
-  POSITION_CONTROL_MODE = 1, JOINT_IMPEDANCE_CONTROL_MODE = 2
+  POSITION_CONTROL_MODE = 1,
+  JOINT_IMPEDANCE_CONTROL_MODE = 2
 };
 
 enum ClientCommandModeID : std::uint8_t
 {
-  POSITION_COMMAND_MODE = 1, TORQUE_COMMAND_MODE = 3
+  POSITION_COMMAND_MODE = 1,
+  TORQUE_COMMAND_MODE = 3
 };
 
 static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
@@ -70,8 +86,7 @@ public:
   bool deactivateControl();
   bool setPositionControlMode();
   bool setJointImpedanceControlMode(
-    const std::vector<double> & joint_stiffness,
-    const std::vector<double> & joint_damping);
+    const std::vector<double> & joint_stiffness, const std::vector<double> & joint_damping);
   bool setClientCommandMode(ClientCommandModeID client_command_mode);
   // bool getControlMode();
   bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);

@@ -15,14 +15,14 @@
 #ifndef KUKA_DRIVERS_CORE__ROS2_BASE_NODE_HPP_
 #define KUKA_DRIVERS_CORE__ROS2_BASE_NODE_HPP_
 
-#include <string>
-#include <map>
-#include <vector>
-#include <memory>
 #include <functional>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "rclcpp/node.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
+#include "rclcpp/node.hpp"
 
 #include "kuka_drivers_core/parameter_handler.hpp"
 
@@ -32,28 +32,23 @@ class ROS2BaseNode : public rclcpp::Node
 {
 public:
   explicit ROS2BaseNode(
-    const std::string & node_name,
-    const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
   const ParameterHandler & getParameterHandler() const;
-  template<typename T>
+  template <typename T>
   void registerParameter(
-    const std::string & name, const T & value,
-    std::function<bool(const T &)> on_change_callback)
+    const std::string & name, const T & value, std::function<bool(const T &)> on_change_callback)
   {
     param_handler_.registerParameter<T>(
-      name, value,
-      on_change_callback, this->get_node_parameters_interface());
+      name, value, on_change_callback, this->get_node_parameters_interface());
   }
 
-  template<typename T>
+  template <typename T>
   void registerStaticParameter(
-    const std::string & name, const T & value,
-    std::function<bool(const T &)> on_change_callback)
+    const std::string & name, const T & value, std::function<bool(const T &)> on_change_callback)
   {
     param_handler_.registerParameter<T>(
-      name, value,
-      on_change_callback, this->get_node_parameters_interface(), true);
+      name, value, on_change_callback, this->get_node_parameters_interface(), true);
   }
 
 protected:

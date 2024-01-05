@@ -15,9 +15,9 @@
 #ifndef COMMUNICATION_HELPERS__SERIALIZATION_HPP_
 #define COMMUNICATION_HELPERS__SERIALIZATION_HPP_
 
-#include <vector>
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
+#include <vector>
 
 namespace kuka_drivers_core
 {
@@ -38,7 +38,8 @@ int serializeNext(int integer_in, std::vector<std::uint8_t> & serialized_out)
 
 int deserializeNext(const std::vector<std::uint8_t> & serialized_in, int & integer_out)
 {
-  if (serialized_in.size() < sizeof(int)) {
+  if (serialized_in.size() < sizeof(int))
+  {
     // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;
@@ -61,7 +62,8 @@ int serializeNext(double double_in, std::vector<std::uint8_t> & serialized_out)
 
 int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & double_out)
 {
-  if (serialized_in.size() < sizeof(double)) {
+  if (serialized_in.size() < sizeof(double))
+  {
     // TODO(resizoltan): error
   }
   std::vector<std::uint8_t> serialized_copy = serialized_in;

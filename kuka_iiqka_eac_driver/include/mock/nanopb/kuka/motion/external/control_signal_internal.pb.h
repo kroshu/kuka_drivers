@@ -11,9 +11,9 @@
 #endif
 
 typedef struct _kuka_core_geometry_Vector {
-    double x; 
-    double y; 
-    double z; 
+    double x;
+    double y;
+    double z;
 } kuka_core_geometry_Vector;
 
 #define kuka_core_geometry_Vector_init_default   {0, 0, 0}
@@ -21,31 +21,31 @@ typedef struct _kuka_core_geometry_Vector {
 #define kuka_core_geometry_Vector_size           27
 
 typedef struct _kuka_core_geometry_Quaternion {
-    double qx; 
-    double qy; 
-    double qz; 
-    double qw; 
+    double qx;
+    double qy;
+    double qz;
+    double qw;
 } kuka_core_geometry_Quaternion;
 
 #define kuka_core_geometry_Quaternion_init_default {0, 0, 0, 0}
 #define kuka_core_geometry_Quaternion_init_zero  {0, 0, 0, 0}
 #define kuka_core_geometry_Quaternion_size       36
 
-typedef struct _kuka_core_geometry_Transform { 
+typedef struct _kuka_core_geometry_Transform {
     bool has_translation;
-    kuka_core_geometry_Vector translation; 
+    kuka_core_geometry_Vector translation;
     bool has_rotation;
-    kuka_core_geometry_Quaternion rotation; 
+    kuka_core_geometry_Quaternion rotation;
 } kuka_core_geometry_Transform;
 
 #define kuka_core_geometry_Transform_init_default {false, kuka_core_geometry_Vector_init_default, false, kuka_core_geometry_Quaternion_init_default}
 #define kuka_core_geometry_Transform_init_zero   {false, kuka_core_geometry_Vector_init_zero, false, kuka_core_geometry_Quaternion_init_zero}
 
-typedef struct _kuka_core_motion_Twist { 
+typedef struct _kuka_core_motion_Twist {
     bool has_linear;
-    kuka_core_geometry_Vector linear; 
+    kuka_core_geometry_Vector linear;
     bool has_angular;
-    kuka_core_geometry_Vector angular; 
+    kuka_core_geometry_Vector angular;
 } kuka_core_motion_Twist;
 
 #define kuka_core_motion_Twist_init_default      {false, kuka_core_geometry_Vector_init_default, false, kuka_core_geometry_Vector_init_default}
@@ -53,34 +53,34 @@ typedef struct _kuka_core_motion_Twist {
 #define kuka_core_motion_Twist_size              58
 
 
-typedef struct _kuka_motion_external_ControlSignalInternal { 
-    bool stop_ipo; 
+typedef struct _kuka_motion_external_ControlSignalInternal {
+    bool stop_ipo;
 
     bool has_joint_command;
-    kuka_core_motion_JointPositions joint_command; 
+    kuka_core_motion_JointPositions joint_command;
 
     bool has_cartesian_command;
-    kuka_core_geometry_Transform cartesian_command; 
+    kuka_core_geometry_Transform cartesian_command;
 
     bool has_joint_velocity_command;
-    kuka_core_motion_JointPositions joint_velocity_command; 
-  
+    kuka_core_motion_JointPositions joint_velocity_command;
+
     bool has_twist_command;
-    kuka_core_motion_Twist twist_command; 
+    kuka_core_motion_Twist twist_command;
 
     bool has_joint_torque_command;
-    kuka_core_motion_JointPositions joint_torque_command; 
+    kuka_core_motion_JointPositions joint_torque_command;
 
     bool has_wrench_command;
-    kuka_core_motion_JointPositions wrench_command; 
+    kuka_core_motion_JointPositions wrench_command;
 
     bool has_joint_attributes;
-    kuka_motion_external_JointImpedanceControlAttributes joint_attributes; 
+    kuka_motion_external_JointImpedanceControlAttributes joint_attributes;
 
     bool has_cartesian_attributes;
-    kuka_motion_external_CartesianImpedanceControlAttributes cartesian_attributes; 
+    kuka_motion_external_CartesianImpedanceControlAttributes cartesian_attributes;
 
-    kuka_motion_external_ExternalControlMode control_mode; 
+    kuka_motion_external_ExternalControlMode control_mode;
 } kuka_motion_external_ControlSignalInternal;
 
 

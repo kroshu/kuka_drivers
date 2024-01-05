@@ -23,23 +23,27 @@ class Depalletizer : public MoveitExample
 public:
   void Depalletize()
   {
-    for (int k = 0; k < 3; k++) {
-      for (int j = 0; j < 3; j++) {
-        for (int i = 0; i < 3; i++) {
+    for (int k = 0; k < 3; k++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+        for (int i = 0; i < 3; i++)
+        {
           std::string object_name = "pallet_" + std::to_string(9 * k + 3 * j + i);
           RCLCPP_INFO(LOGGER, "Going for object %s", object_name.c_str());
 
           // Go to pickup
           Eigen::Isometry3d pose = Eigen::Isometry3d(
-            Eigen::Translation3d(
-              0.3 + i * 0.1, j * 0.1 - 0.1,
-              0.35 - 0.1 * k) *
+            Eigen::Translation3d(0.3 + i * 0.1, j * 0.1 - 0.1, 0.35 - 0.1 * k) *
             Eigen::Quaterniond(0, 1, 0, 0));
           auto planned_trajectory =
             planToPointUntilSuccess(pose, "ompl", "RRTConnectkConfigDefault");
-          if (planned_trajectory != nullptr) {
+          if (planned_trajectory != nullptr)
+          {
             move_group_interface_->execute(*planned_trajectory);
-          } else {
+          }
+          else
+          {
             RCLCPP_ERROR(LOGGER, "Planning failed");
           }
 
@@ -49,12 +53,14 @@ public:
           // Drop off to -0.3, 0.0, 0.35 pointing down
           Eigen::Isometry3d dropoff_pose = Eigen::Isometry3d(
             Eigen::Translation3d(-0.3, 0.0, 0.35) * Eigen::Quaterniond(0, 1, 0, 0));
-          auto drop_trajectory = planToPointUntilSuccess(
-            dropoff_pose, "ompl",
-            "RRTConnectkConfigDefault");
-          if (drop_trajectory != nullptr) {
+          auto drop_trajectory =
+            planToPointUntilSuccess(dropoff_pose, "ompl", "RRTConnectkConfigDefault");
+          if (drop_trajectory != nullptr)
+          {
             move_group_interface_->execute(*drop_trajectory);
-          } else {
+          }
+          else
+          {
             RCLCPP_ERROR(LOGGER, "Planning failed");
           }
 
@@ -74,10 +80,7 @@ int main(int argc, char * argv[])
   auto const node = std::make_shared<Depalletizer>();
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
-  std::thread(
-    [&executor]()
-    {executor.spin();})
-  .detach();
+  std::thread([&executor]() { executor.spin(); }).detach();
 
   node->initialize();
 

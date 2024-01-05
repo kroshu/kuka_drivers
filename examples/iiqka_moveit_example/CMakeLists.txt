@@ -74,23 +74,7 @@ install(DIRECTORY config
 )
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright()
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify()
-  ament_xmllint()
 endif()
 
 ament_package()

@@ -55,3 +55,14 @@ jobs:
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4.7.1
+        with:
+          python-version: '3.10'
+      - run: pip install git+https://github.com/codespell-project/codespell.git
+      - uses: codespell-project/actions-codespell@v2
+        with:
+          check_filenames: true

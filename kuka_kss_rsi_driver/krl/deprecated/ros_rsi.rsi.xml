@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RSIObjects xsi:noNamespaceSchemaLocation="/Roboter/Config/System/Common/Schemes/RSIContext.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <RSIObject ObjType="AXISCORR" ObjTypeID="33" ObjID="AXISCORR1">
     <Inputs>

@@ -22,22 +22,24 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     rsi_ip_address = DeclareLaunchArgument(
-        'rsi_ip_address', default_value=TextSubstitution(text='127.0.0.1')
+        "rsi_ip_address", default_value=TextSubstitution(text="127.0.0.1")
     )
-    rsi_port = DeclareLaunchArgument(
-        'rsi_port', default_value=TextSubstitution(text='59152')
-    )
+    rsi_port = DeclareLaunchArgument("rsi_port", default_value=TextSubstitution(text="59152"))
 
-    return LaunchDescription([
-        rsi_ip_address,
-        rsi_port,
-        Node(
-            package='kuka_rsi_simulator',
-            executable='rsi_simulator',
-            name='kuka_rsi_simulator',
-            parameters=[{
-                'rsi_ip_address': LaunchConfiguration('rsi_ip_address'),
-                'rsi_port': LaunchConfiguration('rsi_port'),
-            }]
-        )
-    ])
+    return LaunchDescription(
+        [
+            rsi_ip_address,
+            rsi_port,
+            Node(
+                package="kuka_rsi_simulator",
+                executable="rsi_simulator",
+                name="kuka_rsi_simulator",
+                parameters=[
+                    {
+                        "rsi_ip_address": LaunchConfiguration("rsi_ip_address"),
+                        "rsi_port": LaunchConfiguration("rsi_port"),
+                    }
+                ],
+            ),
+        ]
+    )
