@@ -23,6 +23,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     ns = LaunchConfiguration("namespace")
 
     # Get URDF via xacro
@@ -38,6 +39,11 @@ def launch_setup(context, *args, **kwargs):
                 ]
             ),
             " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
+            " ",
+            "prefix:=",
+            ns,
         ],
         on_stderr="capture",
     )
@@ -129,5 +135,6 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iisy3_r760"))
+    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
