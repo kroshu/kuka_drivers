@@ -26,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    ns = LaunchConfiguration("namespace")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -57,21 +58,23 @@ def launch_setup(context, *args, **kwargs):
         + "/config/joint_trajectory_controller_config.yaml"
     )
 
-    controller_manager_node = "/controller_manager"
+    controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
+        namespace=ns.perform(context),
         package="kuka_drivers_core",
         executable="control_node",
         parameters=[robot_description, controller_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
-        namespace="",
+        namespace=ns.perform(context),
         package="kuka_kss_rsi_driver",
         executable="robot_manager_node",
         parameters=[{"robot_model": robot_model}],
     )
     robot_state_publisher = Node(
+        namespace=ns.perform(context),
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
@@ -86,6 +89,8 @@ def launch_setup(context, *args, **kwargs):
             controller_manager_node,
             "-p",
             controller_with_config[1],
+            "-n",
+            ns.perform(context),
         ]
         if not activate:
             arg_list.append("--inactive")
@@ -114,4 +119,5 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
