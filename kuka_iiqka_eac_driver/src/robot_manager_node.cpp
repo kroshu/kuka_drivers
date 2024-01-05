@@ -37,7 +37,7 @@ RobotManagerNode::RobotManagerNode()
   control_mode_change_finished_(false)
 #endif
 {
-  RCLCPP_INFO(get_logger(), "Starting Robot Manager Node init");
+  RCLCPP_DEBUG(get_logger(), "Starting Robot Manager Node init");
 
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();

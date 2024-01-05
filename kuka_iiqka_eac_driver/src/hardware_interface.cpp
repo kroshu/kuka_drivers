@@ -76,6 +76,71 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_position_commands_[4] = 90 * (M_PI / 180);
 #endif
 
+  for (const hardware_interface::ComponentInfo & joint : info_.joints)
+  {
+    if (joint.command_interfaces.size() != 4)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 4 command interface");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'POSITION' command interface as first");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_STIFFNESS)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'STIFFNESS' command interface as second");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.command_interfaces[2].name != hardware_interface::HW_IF_DAMPING)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'DAMPING' command interface as third");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.command_interfaces[3].name != hardware_interface::HW_IF_EFFORT)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'EFFORT' command interface as fourth");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.state_interfaces.size() != 2)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 2 state interface");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'POSITION' state interface as first");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_EFFORT)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'EFFORT' state interface as second");
+      return CallbackReturn::ERROR;
+    }
+  }
+
   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Init successful");
 
   return CallbackReturn::SUCCESS;
@@ -83,7 +148,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
 
 std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export_state_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Export state interfaces");
+  RCLCPP_DEBUG(rclcpp::get_logger("KukaEACHardwareInterface"), "Export state interfaces");
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
@@ -99,7 +164,7 @@ std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export
 std::vector<hardware_interface::CommandInterface>
 KukaEACHardwareInterface::export_command_interfaces()
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Export command interfaces");
+  RCLCPP_DEBUG(rclcpp::get_logger("KukaEACHardwareInterface"), "Export command interfaces");
 
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)

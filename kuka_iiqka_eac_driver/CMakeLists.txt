@@ -98,7 +98,8 @@ install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-
+  find_package(launch_testing_ament_cmake)
+  add_launch_test(test/test_driver_startup.py)
 endif()
 
 ament_export_libraries(

@@ -108,22 +108,13 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
       return CallbackReturn::ERROR;
     }
 
-    if (joint.state_interfaces[2].name != "external_torque")
+    if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EXTERNAL_TORQUE)
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting 'external torque' state interface as third");
+        "expecting 'EXTERNAL_TORQUE' state interface as third");
       return CallbackReturn::ERROR;
     }
-  }
-
-  struct sched_param param;
-  param.sched_priority = 95;
-  if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "setscheduler error");
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), strerror(errno));
-    return CallbackReturn::ERROR;
   }
 
   return CallbackReturn::SUCCESS;

@@ -55,7 +55,8 @@ install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-
+  find_package(launch_testing_ament_cmake)
+  add_launch_test(test/test_driver_startup.py)
 endif()
 
 ## EXPORTS
