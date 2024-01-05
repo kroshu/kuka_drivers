@@ -111,31 +111,3 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
-
-# #####################
-# # Project analysis ##
-# #####################
-
-# Additional options for project analysis
-set(SONARQUBE_PACKAGES_FILE "none" CACHE STRING "Path to the file that contains the package source directories for SonarQube.")
-option(TEST_COVERAGE "Generate test coverage reports upon testing." OFF)
-
-if(NOT ${SONARQUBE_PACKAGES_FILE} MATCHES "none")
-  file(APPEND ${SONARQUBE_PACKAGES_FILE} "${PROJECT_NAME};${PROJECT_SOURCE_DIR}\n")
-  message(${SONARQUBE_PACKAGES_FILE})
-endif()
-
-if(TEST_COVERAGE)
-  # Set build type to debug to avoid compiler optimization when checking coverage
-  set(CMAKE_BUILD_TYPE Debug)
-
-  # Include coverage report related functions
-  list(APPEND CMAKE_MODULE_PATH "/usr/lib/cmake/CodeCoverage")
-  include(CodeCoverage)
-
-  # Append compiler flags to gcc for generating coverage notes
-  append_coverage_compiler_flags()
-
-  # Set coverage output dir to ${CMAKE_BINARY_DIR}/test_coverage
-  set_coverage_output_dir()
-endif()
