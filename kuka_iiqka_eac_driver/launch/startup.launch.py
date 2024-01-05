@@ -67,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
         get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
 
-    controller_manager_node = "/controller_manager"
+    controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
         namespace=ns.perform(context),
@@ -91,21 +91,19 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config):
-        return Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[
-                controller_with_config[0],
-                "-c",
-                controller_manager_node,
-                "-p",
-                controller_with_config[1],
-                "--inactive",
-                "-n",
-                ns.perform(context),
-            ],
-        )
+    def controller_spawner(controller_with_config, activate=False):
+        arg_list = [
+            controller_with_config[0],
+            "-c",
+            controller_manager_node,
+            "-p",
+            controller_with_config[1],
+            "-n",
+            ns.perform(context),
+        ]
+        if not activate:
+            arg_list.append("--inactive")
+        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
