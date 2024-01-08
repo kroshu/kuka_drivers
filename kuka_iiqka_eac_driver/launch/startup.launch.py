@@ -49,6 +49,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "client_ip:=",
             client_ip,
+            " ",
+            "prefix:=",
+            ns,
         ],
         on_stderr="capture",
     )

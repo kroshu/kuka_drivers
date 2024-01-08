@@ -448,7 +448,13 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
-  robot_model_ = robot_model;
+  auto ns = std::string(this->get_namespace());
+  // Remove '/' from namespace
+  if (ns.size() > 0)
+  {
+    ns.erase(ns.begin());
+  }
+  robot_model_ = ns + robot_model;
   return true;
 }
 }  // namespace kuka_eac
