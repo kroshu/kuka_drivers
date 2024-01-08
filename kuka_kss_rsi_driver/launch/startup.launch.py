@@ -26,6 +26,16 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    client_ip = LaunchConfiguration("client_ip")
+    client_port = LaunchConfiguration("client_port")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
+    qos_config = LaunchConfiguration("qos_config")
     ns = LaunchConfiguration("namespace")
 
     # Get URDF via xacro
@@ -43,6 +53,33 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
+            " ",
+            "client_port:=",
+            client_port,
+            " ",
+            "client_ip:=",
+            client_ip,
+            " ",
+            "prefix:=",
+            ns,
+            " ",
+            "x:=",
+            x,
+            " ",
+            "y:=",
+            y,
+            " ",
+            "z:=",
+            z,
+            " ",
+            "roll:=",
+            roll,
+            " ",
+            "pitch:=",
+            pitch,
+            " ",
+            "yaw:=",
+            yaw,
         ],
         on_stderr="capture",
     )
@@ -120,4 +157,12 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
+    launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

@@ -25,6 +25,12 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     ns = LaunchConfiguration("namespace")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -41,6 +47,24 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
+            " ",
+            "x:=",
+            x,
+            " ",
+            "y:=",
+            y,
+            " ",
+            "z:=",
+            z,
+            " ",
+            "roll:=",
+            roll,
+            " ",
+            "pitch:=",
+            pitch,
+            " ",
+            "yaw:=",
+            yaw,
         ],
         on_stderr="capture",
     )
@@ -130,4 +154,10 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iiwa14_r820"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
