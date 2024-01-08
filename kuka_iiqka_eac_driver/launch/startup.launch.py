@@ -77,6 +77,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "yaw:=",
             yaw,
+            " ",
+            "qos_config_file:=",
+            qos_config,
         ],
         on_stderr="capture",
     )
