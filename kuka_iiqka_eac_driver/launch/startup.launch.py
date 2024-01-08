@@ -122,7 +122,8 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns.perform(context),
         package="kuka_iiqka_eac_driver",
         executable="robot_manager_node",
-        parameters=[driver_config, {"robot_model": robot_model.perform(context)}],
+        parameters=[driver_config, {"robot_model": robot_model.perform(
+            context), "controller_ip": controller_ip.perform(context)}],
     )
     robot_state_publisher = Node(
         namespace=ns.perform(context),
