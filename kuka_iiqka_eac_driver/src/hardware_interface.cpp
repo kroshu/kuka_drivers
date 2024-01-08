@@ -46,7 +46,9 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     info_.hardware_parameters.at("controller_ip") + ":49335", grpc::InsecureChannelCredentials()));
 
 #endif
-  hw_control_mode_command_ = std::stod(info_.hardware_parameters.at("control_mode"));
+  // Initialize control mode with 'undefined', which should be changed by the appropriate controller
+  // during configuration
+  hw_control_mode_command_ = 0;
   hw_position_states_.resize(info_.joints.size(), 0.0);
   hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
@@ -141,7 +143,11 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     }
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Init successful");
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"),
+    "Init successful with controller ip: %s and client ip: %s",
+    info_.hardware_parameters.at("controller_ip").c_str(),
+    info_.hardware_parameters.at("client_ip").c_str());
 
   return CallbackReturn::SUCCESS;
 }

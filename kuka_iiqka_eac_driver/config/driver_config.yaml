@@ -1,8 +1,6 @@
 robot_manager:
   ros__parameters:
     control_mode: 1
-    client_ip: "0.0.0.0"
-    controller_ip: "0.0.0.0"
     position_controller_name: "joint_trajectory_controller"
     impedance_controller_name: "joint_group_impedance_controller"
     torque_controller_name: "effort_controller"

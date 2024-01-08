@@ -122,7 +122,7 @@ RobotManagerNode::~RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  // Publish control mode parameter
+  // Publish control mode parameter to notify control_mode_handler of initial control mode
   auto message = std_msgs::msg::UInt32();
   message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
   control_mode_pub_->publish(message);
