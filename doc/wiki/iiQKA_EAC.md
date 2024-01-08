@@ -21,7 +21,7 @@
 
 The following configuration files are available in the `config` directory of the package:
 - `driver_config.yaml`: contains IP addresses and runtime parameters
-- `qos_profiles.yaml`: contains the configuration options for the QoS profile defining the connection quality (description later)
+- `qos_config.yaml`: contains the configuration options for the QoS profile defining the connection quality (description later)
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 

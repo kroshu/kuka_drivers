@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
+    qos_config = LaunchConfiguration("qos_config")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -102,7 +103,8 @@ def launch_setup(context, *args, **kwargs):
     )
 
     driver_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
+        get_package_share_directory(
+            "kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
@@ -118,7 +120,8 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns.perform(context),
         package="kuka_iiqka_eac_driver",
         executable="robot_manager_node",
-        parameters=[driver_config, {"robot_model": robot_model.perform(context)}],
+        parameters=[driver_config, {
+            "robot_model": robot_model.perform(context)}],
     )
     robot_state_publisher = Node(
         namespace=ns.perform(context),
@@ -166,15 +169,22 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     launch_arguments = []
-    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iisy3_r760"))
-    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
-    launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
-    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
-    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument(
+        "robot_model", default_value="lbr_iisy3_r760"))
+    launch_arguments.append(DeclareLaunchArgument(
+        "controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument(
+        "client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument(
+        "use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument(
+        "namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("qos_config", default_value=get_package_share_directory(
+        "kuka_iiqka_eac_driver") + "/config/qos_config.yaml"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
