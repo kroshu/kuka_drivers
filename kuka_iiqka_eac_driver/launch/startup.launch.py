@@ -30,6 +30,9 @@ def launch_setup(context, *args, **kwargs):
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -64,6 +67,15 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "z:=",
             z,
+            " ",
+            "roll:=",
+            roll,
+            " ",
+            "pitch:=",
+            pitch,
+            " ",
+            "yaw:=",
+            yaw,
         ],
         on_stderr="capture",
     )
@@ -162,4 +174,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
