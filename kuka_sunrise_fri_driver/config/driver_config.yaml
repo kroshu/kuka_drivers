@@ -1,6 +1,6 @@
 robot_manager:
   ros__parameters:
-    controller_ip: "<insert ip here>"
+    controller_ip: "0.0.0.0"
     control_mode: "position"
     command_mode: "position"
     receive_multiplier: 1
