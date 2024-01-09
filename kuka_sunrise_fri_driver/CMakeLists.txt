@@ -104,7 +104,7 @@ install(TARGETS fri_connection fri_client_sdk configuration_manager
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config test
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY config

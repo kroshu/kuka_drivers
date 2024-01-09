@@ -74,7 +74,7 @@ ament_export_dependencies(
   rclcpp_lifecycle
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
 ament_package()
