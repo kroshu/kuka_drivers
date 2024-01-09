@@ -58,7 +58,7 @@ RobotManagerNode::RobotManagerNode()
 
   // Register parameters
   this->registerParameter<std::string>(
-    "position_controller_name", "",
+    "position_controller_name", "joint_trajectory_controller",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
@@ -66,7 +66,7 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE, controller_name);
     });
   this->registerParameter<std::string>(
-    "impedance_controller_name", "",
+    "impedance_controller_name", "joint_group_impedance_controllers",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
@@ -74,7 +74,7 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE, controller_name);
     });
   this->registerParameter<std::string>(
-    "torque_controller_name", "",
+    "torque_controller_name", "effort_controller",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
