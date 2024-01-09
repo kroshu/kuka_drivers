@@ -31,6 +31,8 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
+    controller_config = LaunchConfiguration("controller_config")
+    jtc_config = LaunchConfiguration("jtc_config")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -72,16 +74,7 @@ def launch_setup(context, *args, **kwargs):
     # Get URDF via xacro
     robot_description = {"robot_description": robot_description_content}
 
-    controller_config = (
-        get_package_share_directory("kuka_sunrise_fri_driver")
-        + "/config/ros2_controller_config.yaml"
-    )
-
-    joint_traj_controller_config = (
-        get_package_share_directory("kuka_sunrise_fri_driver")
-        + "/config/joint_trajectory_controller_config.yaml"
-    )
-
+    # The driver config contains only parameters that can be changed after startup
     driver_config = (
         get_package_share_directory("kuka_sunrise_fri_driver") + "/config/driver_config.yaml"
     )
@@ -131,7 +124,7 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", joint_traj_controller_config),
+        ("joint_trajectory_controller", jtc_config.perform(context)),
         ("fri_configuration_controller", []),
         ("fri_state_broadcaster", []),
     ]
@@ -160,4 +153,18 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "controller_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/ros2_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "jtc_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
