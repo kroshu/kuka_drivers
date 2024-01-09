@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__RSI_STATE_H_
-#define KUKA_KSS_RSI_DRIVER__RSI_STATE_H_
+#ifndef KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_
+#define KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_
 
 #include <tinyxml.h>
 #include <string>
@@ -81,4 +81,4 @@ public:
 };
 }  // namespace kuka_kss_rsi_driver
 
-#endif  // KUKA_KSS_RSI_DRIVER__RSI_STATE_H_
+#endif  // KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_

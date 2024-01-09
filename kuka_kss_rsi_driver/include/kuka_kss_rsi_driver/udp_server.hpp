@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_
-#define KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_
+#ifndef KUKA_KSS_RSI_DRIVER__UDP_SERVER_HPP_
+#define KUKA_KSS_RSI_DRIVER__UDP_SERVER_HPP_
 
 // Select includes
 #include <sys/time.h>
@@ -156,4 +156,4 @@ private:
   int optval;
 };
 
-#endif  // KUKA_KSS_RSI_DRIVER__UDP_SERVER_H_
+#endif  // KUKA_KSS_RSI_DRIVER__UDP_SERVER_HPP_

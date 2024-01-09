@@ -35,7 +35,6 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
-    qos_config = LaunchConfiguration("qos_config")
     ns = LaunchConfiguration("namespace")
 
     # Get URDF via xacro

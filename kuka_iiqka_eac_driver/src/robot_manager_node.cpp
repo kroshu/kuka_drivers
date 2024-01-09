@@ -451,7 +451,7 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   auto ns = std::string(this->get_namespace());
   // Remove '/' from namespace (even empty namespace contains one '/')
   ns.erase(ns.begin());
-  
+
   // Add '_' to prefix
   if (ns.size() > 0)
   {
