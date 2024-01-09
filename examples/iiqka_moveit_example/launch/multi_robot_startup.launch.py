@@ -56,6 +56,7 @@ def generate_launch_description():
                     "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",
                     "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",
                     "ec_config": f"{test_config_dir + 'test2_effort_controller_config.yaml'}",
+                    "robot_model": "lbr_iisy11_r1300",
                     "x": "2",
                 }.items(),
             )
