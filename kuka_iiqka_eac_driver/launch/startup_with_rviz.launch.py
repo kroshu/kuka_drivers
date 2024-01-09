@@ -27,11 +27,13 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    rviz_config = LaunchConfiguration('rviz_config')
+    rviz_config = LaunchConfiguration("rviz_config")
     rviz_config_launch_arg = DeclareLaunchArgument(
-        'rviz_config',
-        default_value=os.path.join(get_package_share_directory("kuka_resources"),
-                                   "config", "view_6_axis_urdf.rviz"))
+        "rviz_config",
+        default_value=os.path.join(
+            get_package_share_directory("kuka_resources"), "config", "view_6_axis_urdf.rviz"
+        ),
+    )
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

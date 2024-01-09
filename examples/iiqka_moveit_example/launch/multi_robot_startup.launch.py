@@ -39,7 +39,7 @@ def generate_launch_description():
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",
                     "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",
                     "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
-                    "rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}"
+                    "rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -59,6 +59,6 @@ def generate_launch_description():
                     "robot_model": "lbr_iisy11_r1300",
                     "x": "2",
                 }.items(),
-            )
+            ),
         ]
     )

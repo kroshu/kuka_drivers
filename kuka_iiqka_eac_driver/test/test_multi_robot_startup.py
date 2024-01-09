@@ -47,7 +47,7 @@ def generate_test_description():
                     "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",
                     "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",
-                    "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}"
+                    "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -84,5 +84,4 @@ class TestModels(unittest.TestCase):
             "Successful initialization of hardware 'test2_lbr_iisy3_r760'", timeout=20
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor(
-            "Hardware Component with name '' does not exists", timeout=20)
+        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=20)
