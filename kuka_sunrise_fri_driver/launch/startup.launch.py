@@ -33,6 +33,10 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration("yaw")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    if ns.perform(context) == "":
+        tf_prefix = ""
+    else:
+        tf_prefix = ns.perform(context) + "_"
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -49,6 +53,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
+            " ",
+            "prefix:=",
+            tf_prefix,
             " ",
             "x:=",
             x,

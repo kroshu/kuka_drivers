@@ -38,6 +38,10 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    if ns.perform(context) == "":
+        tf_prefix = ""
+    else:
+        tf_prefix = ns.perform(context) + "_"
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -62,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
             client_ip,
             " ",
             "prefix:=",
-            ns,
+            tf_prefix,
             " ",
             "x:=",
             x,
