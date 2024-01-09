@@ -138,7 +138,7 @@ def launch_setup(context, *args, **kwargs):
             "-p",
             controller_with_config[1],
             "-n",
-            ns.perform(context),
+            ns,
         ]
         if not activate:
             arg_list.append("--inactive")
