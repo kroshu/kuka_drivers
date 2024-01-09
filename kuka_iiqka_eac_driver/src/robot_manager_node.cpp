@@ -449,10 +449,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
   auto ns = std::string(this->get_namespace());
-  // Remove '/' from namespace
+  // Remove '/' from namespace (even empty namespace contains one '/')
+  ns.erase(ns.begin());
+  
+  // Add '_' to prefix
   if (ns.size() > 0)
   {
-    ns.erase(ns.begin());
     ns += "_";
   }
   robot_model_ = ns + robot_model;

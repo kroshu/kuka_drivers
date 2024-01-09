@@ -34,6 +34,10 @@ def launch_setup(context, *args, **kwargs):
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
     qos_config = LaunchConfiguration("qos_config")
+    controller_config = LaunchConfiguration("controller_config")
+    jtc_config = LaunchConfiguration("jtc_config")
+    jic_config = LaunchConfiguration("jic_config")
+    ec_config = LaunchConfiguration("ec_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -91,24 +95,7 @@ def launch_setup(context, *args, **kwargs):
     # Get URDF via xacro
     robot_description = {"robot_description": robot_description_content}
 
-    controller_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver")
-        + "/config/ros2_controller_config.yaml"
-    )
-
-    joint_traj_controller_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver")
-        + "/config/joint_trajectory_controller_config.yaml"
-    )
-    effort_controller_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver")
-        + "/config/effort_controller_config.yaml"
-    )
-    joint_imp_controller_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver")
-        + "/config/joint_impedance_controller_config.yaml"
-    )
-
+    # The driver config contains only parameters that can be changed after startup
     driver_config = (
         get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
@@ -119,7 +106,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns.perform(context),
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config],
+        parameters=[robot_description, controller_config.perform(context)],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -154,9 +141,9 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", joint_traj_controller_config),
-        ("joint_group_impedance_controller", joint_imp_controller_config),
-        ("effort_controller", effort_controller_config),
+        ("joint_trajectory_controller", jtc_config.perform(context)),
+        ("joint_group_impedance_controller", jic_config.perform(context)),
+        ("effort_controller", ec_config.perform(context)),
         ("control_mode_handler", []),
     ]
 
@@ -189,4 +176,18 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument
                             ("qos_config", default_value=get_package_share_directory
                              ("kuka_iiqka_eac_driver") + "/config/qos_config.yaml"))
+    launch_arguments.append(DeclareLaunchArgument
+                            ("controller_config", default_value=get_package_share_directory
+                             ("kuka_iiqka_eac_driver") + "/config/ros2_controller_config.yaml"))
+    launch_arguments.append(DeclareLaunchArgument
+                            ("jtc_config", default_value=get_package_share_directory
+                             ("kuka_iiqka_eac_driver") + 
+                             "/config/joint_trajectory_controller_config.yaml"))
+    launch_arguments.append(DeclareLaunchArgument
+                            ("jic_config", default_value=get_package_share_directory
+                             ("kuka_iiqka_eac_driver") + 
+                             "/config/joint_impedance_controller_config.yaml"))
+    launch_arguments.append(DeclareLaunchArgument
+                            ("ec_config", default_value=get_package_share_directory
+                             ("kuka_iiqka_eac_driver") + "/config/effort_controller_config.yaml"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
