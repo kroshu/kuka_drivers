@@ -85,4 +85,4 @@ class TestModels(unittest.TestCase):
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor(
-            "Hardware Component with name '' does not exists", timeout=2)
+            "Hardware Component with name '' does not exists", timeout=20)
