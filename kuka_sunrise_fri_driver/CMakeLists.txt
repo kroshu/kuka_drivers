@@ -113,6 +113,7 @@ install(DIRECTORY config
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ament_package()
