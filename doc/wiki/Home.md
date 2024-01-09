@@ -112,6 +112,10 @@ Note: the first three examples should be executed consequently (without restarti
 
 Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it.
 
+## Multi-robot scenario
+
+As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components has to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modifed to reflect the new node and joint names. An example of this can found in the `iiqka_moveit_example` package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
+
 ## Detailed setup and startup instructions
 
 For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/iiQKA_EAC) robots.
