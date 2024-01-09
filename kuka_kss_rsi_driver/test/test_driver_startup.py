@@ -22,7 +22,7 @@ import pytest
 
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
-)  # noqa: E501
+)
 from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
 

@@ -20,7 +20,7 @@ from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
-)  # noqa: E501
+)
 from launch.substitutions import LaunchConfiguration
 
 
@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
             + f"/urdf/{robot_model.perform(context)}.urdf.xacro"
         )
         .robot_description_semantic(
-            get_package_share_directory("kuka_lbr_iisy_moveit_config")  # noqa: E501
+            get_package_share_directory("kuka_lbr_iisy_moveit_config")
             + f"/urdf/{robot_model.perform(context)}.srdf"
         )
         .robot_description_kinematics(file_path="config/kinematics.yaml")
