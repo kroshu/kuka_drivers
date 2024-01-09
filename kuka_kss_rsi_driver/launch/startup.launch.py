@@ -36,6 +36,8 @@ def launch_setup(context, *args, **kwargs):
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
     ns = LaunchConfiguration("namespace")
+    controller_config = LaunchConfiguration("controller_config")
+    jtc_config = LaunchConfiguration("jtc_config")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -85,15 +87,6 @@ def launch_setup(context, *args, **kwargs):
 
     robot_description = {"robot_description": robot_description_content}
 
-    controller_config = (
-        get_package_share_directory("kuka_kss_rsi_driver") + "/config/ros2_controller_config.yaml"
-    )
-
-    joint_traj_controller_config = (
-        get_package_share_directory("kuka_kss_rsi_driver")
-        + "/config/joint_trajectory_controller_config.yaml"
-    )
-
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
@@ -134,7 +127,7 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", joint_traj_controller_config),
+        ("joint_trajectory_controller", jtc_config.perform(context)),
     ]
 
     controller_spawners = [
@@ -164,4 +157,18 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "controller_config",
+            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            + "/config/ros2_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "jtc_config",
+            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
