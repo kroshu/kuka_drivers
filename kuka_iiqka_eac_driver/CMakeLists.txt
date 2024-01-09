@@ -94,7 +94,7 @@ pluginlib_export_plugin_description_file(hardware_interface hardware_interface.x
 install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
