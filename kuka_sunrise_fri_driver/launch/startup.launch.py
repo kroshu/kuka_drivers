@@ -89,25 +89,25 @@ def launch_setup(context, *args, **kwargs):
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
-        namespace=ns.perform(context),
+        namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
         parameters=[robot_description, controller_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
-        namespace=ns.perform(context),
+        namespace=ns,
         package="kuka_sunrise_fri_driver",
         executable="robot_manager_node",
         parameters=[
             driver_config,
-            {"robot_model": robot_model.perform(context)},
+            {"robot_model": robot_model},
             {"position_controller_name": "joint_trajectory_controller"},
             {"torque_controller_name": ""},
         ],
     )
     robot_state_publisher = Node(
-        namespace=ns.perform(context),
+        namespace=ns,
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
