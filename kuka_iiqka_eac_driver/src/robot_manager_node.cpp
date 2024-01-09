@@ -453,6 +453,7 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   if (ns.size() > 0)
   {
     ns.erase(ns.begin());
+    ns += "_";
   }
   robot_model_ = ns + robot_model;
   return true;
