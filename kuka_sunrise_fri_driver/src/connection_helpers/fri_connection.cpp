@@ -17,7 +17,7 @@
 #include <thread>
 #include <vector>
 
-#include "communication_helpers/serialization.hpp"
+#include "kuka_sunrise_fri_driver/serialization.hpp"
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/tcp_connection.hpp"
 

@@ -38,7 +38,7 @@ ament_export_dependencies(rclcpp rclcpp_lifecycle lifecycle_msgs)
 ament_export_libraries(${PROJECT_NAME})
 
 add_library(communication_helpers SHARED
-  include/communication_helpers/serialization.hpp
+  include/communication_helpers/ros2_control_tools.hpp
   include/communication_helpers/service_tools.hpp)
 ament_target_dependencies(communication_helpers rclcpp)
 set_target_properties(communication_helpers PROPERTIES LINKER_LANGUAGE CXX)
