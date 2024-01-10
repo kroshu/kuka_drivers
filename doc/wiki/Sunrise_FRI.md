@@ -15,14 +15,13 @@
 #### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
-- `driver_config.yaml`: contains IP addresses and runtime parameters
+- `driver_config.yaml`: : contains runtime parameters of the `robot_manager` node
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
 ##### IP configuration
-The following parameter must be set in the driver configuration file:
-- `controller_ip`: IP address of the controller
+The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
 
 #### Runtime parameters
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
@@ -30,6 +29,8 @@ The parameters in the driver configuration file can be also changed during runti
 - `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`send_period_ms` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
 - `control_mode`, `command_mode` (strings): control mode related parameters, which will be combined to support the defined enums. They cannot be changed in active state.
 - `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. They will be removed after changing to using the `joint_group_impedance_controller` to adapt to conventions.
+- `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
+- `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
 
 ### Usage
 
@@ -38,11 +39,11 @@ The parameters in the driver configuration file can be also changed during runti
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
     ```
-    ros2 launch kuka_iiqka_eac_driver startup.launch.py`
+    ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
     ```
     - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-      - `joint_trajectory_controller` ([configuration file](../../kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
+      - `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
       - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
       - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
@@ -57,8 +58,19 @@ On successful activation the brakes of the robot will be released and external c
 ##### Launch arguments
 
 Both launch files support the following argument:
+- `controller_ip`: IP address of the robot controller
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
+- `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_sunrise_fri_driver/config/ros2_controller_config.yaml`)
+- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
+
+
+The `startup_with_rviz.launch.py` additionally contains one argument:
+- `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/"view_6_axis_urdf.rviz`)
+
 
 #### Stopping external control
 
@@ -73,5 +85,5 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 - The control mode handling for the driver is not the one defined in the `kuka_drivers_core` package
   - enum definition and controller switching logic is not used
   - joint impedance control is not implemented properly using command interfaces
-- I/O control was not tested at all
+- I/O control was not tested
 - Cartesian modes are not yet supported

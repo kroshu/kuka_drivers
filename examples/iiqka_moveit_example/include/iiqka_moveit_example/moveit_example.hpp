@@ -39,7 +39,7 @@ public:
       shared_from_this(), PLANNING_GROUP);
 
     moveit_visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
-      shared_from_this(), "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
+      shared_from_this(), "world", rviz_visual_tools::RVIZ_MARKER_TOPIC,
       move_group_interface_->getRobotModel());
 
     moveit_visual_tools_->deleteAllMarkers();

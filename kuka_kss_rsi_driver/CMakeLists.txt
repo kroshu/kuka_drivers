@@ -57,6 +57,7 @@ install(TARGETS ${PROJECT_NAME} robot_manager_node
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ## EXPORTS
@@ -73,7 +74,7 @@ ament_export_dependencies(
   rclcpp_lifecycle
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
 ament_package()

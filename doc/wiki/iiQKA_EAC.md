@@ -17,30 +17,28 @@
 
 ### Configuration
 
-#### Startup configuration
+#### Configuration files
 
 The following configuration files are available in the `config` directory of the package:
-- `driver_config.yaml`: contains IP addresses and runtime parameters
-- `qos_profiles.yaml`: contains the configuration options for the QoS profile defining the connection quality (description later)
+- `driver_config.yaml`: contains runtime parameters of the `robot_manager` node
+- `qos_config.yaml`: contains the configuration options for the QoS profile defining the connection quality (description later)
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
-- configuration files for specific controllers, for further information, see the documentation of the given controller
+- configuration files for specific controllers (for further information, see the documentation of the given controller)
 
 ##### QoS profile configuration
 It is possible to configure the required connection quality of external control using a QoS profile, which defines under which conditions should external control be terminated in case of packet losses. A packet is considered lost if the controller does not receive a command in 2.5 milliseconds after publishing the state. In case of a packet loss, extrapolation is used to optimize the robot behaviour, unless the limits defined in the profile are violated. Two limits can be defined:
 - Consequent packet losses allowed, defined by `consequent_lost_packets` parameter, maximum value is 5
 - Allowed packet losses in given timeframe: defined by `lost_packets_in_timeframe` (maximum value is 25) and `timeframe_ms` parameters, maximum ratio is 25/sec
 
-##### IP configuration
-The following parameters must be set in the driver configuration file:
-- `client_ip`: IP address of the client machine
-- `controller_ip`: KONI IP of the controller
-
 #### Runtime parameters
-The not IP-related parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
+The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 - `control_mode`: The enum value of the control mode should be given. It can be changed in all primary states, but in active state the brakes are always closed before control is started in a new mode.
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `impedance_controller_name`: The name of the controller (string) that controls the `stiffness` and `damping` interfaces of the robot. It can't be changed in active state.
 - `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
+
+#### IP Configuration
+The IP address of the client machine and robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
 
 ### Usage
 
@@ -49,7 +47,7 @@ The not IP-related parameters in the driver configuration file can be also chang
 To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
 ```
-ros2 launch kuka_iiqka_eac_driver startup.launch.py
+ros2 launch kuka_iiqka_eac_driver startup.launch.py client_ip:=0.0.0.0 controller_ip=0.0.0.0
 ```
 
 This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
@@ -70,8 +68,23 @@ On successful activation the brakes of the robot will be released and external c
 
 ##### Launch arguments
 
-Both launch files support the following argument:
+Both launch files support the following arguments:
+- `client_ip`: IP address of the client machine
+- `controller_ip`: KONI IP of the controller
 - `robot_model`: defines which LBR iisy robot to use. Available options: `lbr_iisy3_r760` (default), `lbr_iisy11_r1300`, `lbr_iisy15_r930`
+- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaEACHardwareInterface`. This enables trying out the driver without actual hardware.
+- `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
+- `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `qos_config`: the location of the QoS configuration file (defaults to `kuka_iiqka_eac_driver/config/qos_config.yaml`)
+- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_iiqka_eac_driver/config/ros2_controller_config.yaml`)
+- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml`)
+- `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml`)
+- `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_iiqka_eac_driver/config/effort_controller_config.yaml`)
+
+
+The `startup_with_rviz.launch.py` additionally contains one argument:
+- `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/"view_6_axis_urdf.rviz`)
 
 #### Stopping external control
 

@@ -23,6 +23,21 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    controller_ip = LaunchConfiguration("controller_ip")
+    ns = LaunchConfiguration("namespace")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
+    controller_config = LaunchConfiguration("controller_config")
+    jtc_config = LaunchConfiguration("jtc_config")
+    if ns.perform(context) == "":
+        tf_prefix = ""
+    else:
+        tf_prefix = ns.perform(context) + "_"
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -37,6 +52,29 @@ def launch_setup(context, *args, **kwargs):
                 ]
             ),
             " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
+            " ",
+            "prefix:=",
+            tf_prefix,
+            " ",
+            "x:=",
+            x,
+            " ",
+            "y:=",
+            y,
+            " ",
+            "z:=",
+            z,
+            " ",
+            "roll:=",
+            roll,
+            " ",
+            "pitch:=",
+            pitch,
+            " ",
+            "yaw:=",
+            yaw,
         ],
         on_stderr="capture",
     )
@@ -44,40 +82,34 @@ def launch_setup(context, *args, **kwargs):
     # Get URDF via xacro
     robot_description = {"robot_description": robot_description_content}
 
-    controller_config = (
-        get_package_share_directory("kuka_sunrise_fri_driver")
-        + "/config/ros2_controller_config.yaml"
-    )
-
-    joint_traj_controller_config = (
-        get_package_share_directory("kuka_sunrise_fri_driver")
-        + "/config/joint_trajectory_controller_config.yaml"
-    )
-
+    # The driver config contains only parameters that can be changed after startup
     driver_config = (
         get_package_share_directory("kuka_sunrise_fri_driver") + "/config/driver_config.yaml"
     )
 
-    controller_manager_node = "/controller_manager"
+    controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
+        namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
         parameters=[robot_description, controller_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
-        namespace="",
+        namespace=ns,
         package="kuka_sunrise_fri_driver",
         executable="robot_manager_node",
         parameters=[
             driver_config,
-            {"robot_model": robot_model.perform(context)},
-            {"position_controller_name": "joint_trajectory_controller"},
-            {"torque_controller_name": ""},
+            {
+                "robot_model": robot_model,
+                "controller_ip": controller_ip,
+            },
         ],
     )
     robot_state_publisher = Node(
+        namespace=ns,
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
@@ -85,23 +117,23 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config):
-        return Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[
-                controller_with_config[0],
-                "-c",
-                controller_manager_node,
-                "-p",
-                controller_with_config[1],
-                "--inactive",
-            ],
-        )
+    def controller_spawner(controller_with_config, activate=False):
+        arg_list = [
+            controller_with_config[0],
+            "-c",
+            controller_manager_node,
+            "-p",
+            controller_with_config[1],
+            "-n",
+            ns,
+        ]
+        if not activate:
+            arg_list.append("--inactive")
+        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", joint_traj_controller_config),
+        ("joint_trajectory_controller", jtc_config.perform(context)),
         ("fri_configuration_controller", []),
         ("fri_state_broadcaster", []),
     ]
@@ -122,4 +154,27 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iiwa14_r820"))
+    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "controller_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/ros2_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "jtc_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

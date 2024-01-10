@@ -104,7 +104,7 @@ install(TARGETS fri_connection fri_client_sdk configuration_manager
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config test
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY config
@@ -113,6 +113,7 @@ install(DIRECTORY config
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ament_package()

@@ -58,7 +58,7 @@ RobotManagerNode::RobotManagerNode()
 
   // Register parameters
   this->registerParameter<std::string>(
-    "position_controller_name", "",
+    "position_controller_name", "joint_trajectory_controller",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
@@ -66,7 +66,7 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE, controller_name);
     });
   this->registerParameter<std::string>(
-    "impedance_controller_name", "",
+    "impedance_controller_name", "joint_group_impedance_controllers",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
@@ -74,7 +74,7 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::JOINT_IMPEDANCE_CONTROLLER_TYPE, controller_name);
     });
   this->registerParameter<std::string>(
-    "torque_controller_name", "",
+    "torque_controller_name", "effort_controller",
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
@@ -122,7 +122,7 @@ RobotManagerNode::~RobotManagerNode()
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  // Publish control mode parameter
+  // Publish control mode parameter to notify control_mode_handler of initial control mode
   auto message = std_msgs::msg::UInt32();
   message.data = static_cast<uint32_t>(this->get_parameter("control_mode").as_int());
   control_mode_pub_->publish(message);
@@ -448,7 +448,16 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
-  robot_model_ = robot_model;
+  auto ns = std::string(this->get_namespace());
+  // Remove '/' from namespace (even empty namespace contains one '/')
+  ns.erase(ns.begin());
+
+  // Add '_' to prefix
+  if (ns.size() > 0)
+  {
+    ns += "_";
+  }
+  robot_model_ = ns + robot_model;
   return true;
 }
 }  // namespace kuka_eac

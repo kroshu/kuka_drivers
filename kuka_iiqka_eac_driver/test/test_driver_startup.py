@@ -22,12 +22,12 @@ import pytest
 
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
-)  # noqa: E501
+)
 from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
 
 
-# Launch all of the robot visualisation launch files one by one
+# Launch driver startup
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():

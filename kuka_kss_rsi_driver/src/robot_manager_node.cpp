@@ -138,7 +138,16 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
-  robot_model_ = robot_model;
+  auto ns = std::string(this->get_namespace());
+  // Remove '/' from namespace (even empty namespace contains one '/')
+  ns.erase(ns.begin());
+
+  // Add '_' to prefix
+  if (ns.size() > 0)
+  {
+    ns += "_";
+  }
+  robot_model_ = ns + robot_model;
   return true;
 }
 }  // namespace kuka_rsi
