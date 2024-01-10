@@ -24,6 +24,7 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    controller_ip = LaunchConfiguration("controller_ip")
     ns = LaunchConfiguration("namespace")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
@@ -101,9 +102,10 @@ def launch_setup(context, *args, **kwargs):
         executable="robot_manager_node",
         parameters=[
             driver_config,
-            {"robot_model": robot_model},
-            {"position_controller_name": "joint_trajectory_controller"},
-            {"torque_controller_name": ""},
+            {
+                "robot_model": robot_model,
+                "controller_ip": controller_ip,
+            },
         ],
     )
     robot_state_publisher = Node(
@@ -152,6 +154,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iiwa14_r820"))
+    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
