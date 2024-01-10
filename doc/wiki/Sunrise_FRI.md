@@ -21,8 +21,7 @@ The following configuration files are available in the `config` directory of the
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
 ##### IP configuration
-The following parameter must be set in the driver configuration file:
-- `controller_ip`: IP address of the controller
+The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
 
 #### Runtime parameters
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
@@ -40,7 +39,7 @@ The parameters in the driver configuration file can be also changed during runti
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
     ```
-    ros2 launch kuka_sunrise_fri_driver startup.launch.py`
+    ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
     ```
     - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
