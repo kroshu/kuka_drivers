@@ -44,9 +44,9 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "namespace": "test1",
-                    "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",
-                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",
-                    "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",
+                    "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
+                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",  # noqa: E501
                     "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
                 }.items(),
             ),
@@ -60,9 +60,9 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "namespace": "test2",
-                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",
-                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",
-                    "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",
+                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
+                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",  # noqa: E501
                     "ec_config": f"{test_config_dir + 'test2_effort_controller_config.yaml'}",
                     "x": "2",
                 }.items(),
