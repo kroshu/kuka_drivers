@@ -1,6 +1,6 @@
 # Core functionalities for the drivers
 
-This package contains two libraries that implement the common functionalities of the 3 kuka drivers to reduce code duplications and make the code more maintainable. 
+This package contains two libraries that implement the common functionalities of the 3 kuka drivers to reduce code duplications and make the code more maintainable.
 
 ## Wrapper methods for specific services
 The `kuka_drivers_core::communication_helpers` is a header-only library providing wrapper methods for commonly used features.
@@ -39,7 +39,7 @@ The `changeHardwareState()` can change the state of one hardware component and h
 - `state` [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
 - `timeout_ms` [int] (default: 1000): timeout for the response
 
-The method returns whether the transition was successul.
+The method returns whether the transition was successful.
 
 The `changeControllerState()` can change the state of more controllers and has the following arguments:
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
@@ -47,7 +47,7 @@ The `changeControllerState()` can change the state of more controllers and has t
 - `deactivate_controllers` [std::vector\<std::string\>]: names of the controllers to deactivate
 - `strictness` [int32_t] (default: STRICT): whether to fail if one state change is unsuccessful
 
-The method returns whether the transitions were successul.
+The method returns whether the transitions were successful.
 
 
 Examples:
@@ -73,7 +73,7 @@ There are two core classes implemented in this repository, `ROS2BaseNode` for im
 #### Parameter handling
 
 The base classes provide a wrapper method for parameter registration, which makes handling of parameters more convenient.
-This is done with the help of the `ParameterHandler` class, which includes a `ParameterBase` and a template `Parameter<T>` nested class for this purpose. 
+This is done with the help of the `ParameterHandler` class, which includes a `ParameterBase` and a template `Parameter<T>` nested class for this purpose.
 
 Improvements:
 - The `add_on_set_parameters_callback()` is called in both of the constructors to register the callback for parameter change requests. This makes sure that the initial values of the parameters are synced from the parameter server.
@@ -96,8 +96,8 @@ The `Parameter<T>` class supports the following parameter types (identical to th
 
 
 The nodes provide the `registerParameter()` and `registerStaticParameter()` endpoints with the following arguments:
- - `name` [std::string]: name of the parameter 
- - `value` [T]: default value of the parameter 
+ - `name` [std::string]: name of the parameter
+ - `value` [T]: default value of the parameter
  - `rights` [ParameterAccessRights]: structure defining in which states is the setting of the parameter allowed (only for ROS2BaseLCNode)
  - `on_change_callback` [std::function<bool(const T &)>]: the callback to call when determining the validity of a parameter change request
 
@@ -143,7 +143,7 @@ There is a defined set of controllers that must be active for every control mode
 
 If the switch was successful, the `ApproveControllerActivation()` and `ApproveControllerDeactivation()` methods should be called to update the internal state of the `ControllerHandler` class.
 
-The class can also handle controllers that shoud be active in every control mode (e.g. `joint_state_broadcaster`), these should be be given in the constructor as the `fixed_controllers` argument (std::vector).
+The class can also handle controllers that should be active in every control mode (e.g. `joint_state_broadcaster`), these should be be given in the constructor as the `fixed_controllers` argument (std::vector).
 
 ## Type definitions and modified control node
 

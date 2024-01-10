@@ -17,8 +17,8 @@
 #include <thread>
 #include <vector>
 
-#include "kuka_sunrise_fri_driver/serialization.hpp"
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
+#include "kuka_sunrise_fri_driver/serialization.hpp"
 #include "kuka_sunrise_fri_driver/tcp_connection.hpp"
 
 namespace kuka_sunrise_fri_driver

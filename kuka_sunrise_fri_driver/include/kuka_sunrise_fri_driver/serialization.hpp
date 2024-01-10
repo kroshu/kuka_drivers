@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMUNICATION_HELPERS__SERIALIZATION_HPP_
-#define COMMUNICATION_HELPERS__SERIALIZATION_HPP_
+#ifndef KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
+#define KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 
 #include <algorithm>
 #include <cstdint>
@@ -73,4 +73,4 @@ int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & do
 
 }  // namespace kuka_drivers_core
 
-#endif  // COMMUNICATION_HELPERS__SERIALIZATION_HPP_
+#endif  // KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
