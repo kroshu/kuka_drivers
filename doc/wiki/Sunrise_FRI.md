@@ -85,5 +85,5 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 - The control mode handling for the driver is not the one defined in the `kuka_drivers_core` package
   - enum definition and controller switching logic is not used
   - joint impedance control is not implemented properly using command interfaces
-- I/O control was not tested at all
+- I/O control was not tested
 - Cartesian modes are not yet supported
