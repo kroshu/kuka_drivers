@@ -1,6 +1,6 @@
 # Core functionalities for the drivers
 
-This package contains two libraries that implement the common functionalities of the 3 kuka drivers.
+This package contains two libraries that implement the common functionalities of the 3 kuka drivers to reduce code duplications and make the code more maintainable. 
 
 ## Wrapper methods for specific services
 The `kuka_drivers_core::communication_helpers` is a header-only library providing wrapper methods for commonly used features.
@@ -31,19 +31,22 @@ auto response =  kuka_drivers_core::sendRequest<controller_manager_msgs::srv::Li
 
 The library also contains the [`ros2_control_tools.hpp`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/communication_helpers/ros2_control_tools.hpp) header, which implements wrapper methods for modifying the states of controllers and hardware components.
 
-Endpoints:
+**Endpoints:**
+
 The `changeHardwareState()` can change the state of one hardware component and has the following arguments:
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
 - hardware_name` [std::string]: name of the hardware component
 - `state` [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
 - `timeout_ms` [int] (default: 1000): timeout for the response
+
 The method returns whether the transition was successul.
 
 The `changeControllerState()` can change the state of more controllers and has the following arguments:
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
-- `activate_controllers` [std::vector<std::string>]: names of the controllers to activate
-- `deactivate_controllers` [std::vector<std::string>]: names of the controllers to deactivate
+- `activate_controllers` [std::vector\<std::string\>]: names of the controllers to activate
+- `deactivate_controllers` [std::vector\<std::string\>]: names of the controllers to deactivate
 - `strictness` [int32_t] (default: STRICT): whether to fail if one state change is unsuccessful
+
 The method returns whether the transitions were successul.
 
 
@@ -54,52 +57,75 @@ rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr change
 
 // [...]
 
-// Activate hardware named 'lbr_iisy_r760'
-bool success1 = changeHardwareState(change_hardware_state_client_, "lbr_iisy_r760", State::PRIMARY_STATE_ACTIVE);
+// Activate hardware named 'lbr_iisy3_r760'
+bool success1 = changeHardwareState(change_hardware_state_client_, "lbr_iisy3_r760", State::PRIMARY_STATE_ACTIVE);
 
 // Activate 'joint_state_broadcaster' and 'joint_trajectory_controller'
 bool success2 = changeControllerState(change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"}, {/*nothing to deactivate*/});
 ```
 
-## Core classes which help function the repositories of kroshu.
-These classes provide functionalities which are frequently used in ROS2 environment.
-Deriving from these classes the user has a helpful wrapper around the base functionalities of ROS2.
+## Core classes
 
-Right now there are two classes implemented in this repository, ROS2BaseNode for simple parameter handling, and ROS2BaseLCNode, which additionally furthers the rclcpp_lifecycle::LifecycleNode class by implementing lifecycle functions which would be usually implemented in the same way in every case. These are virtual functions, so it is possible to override them in the case of a different desired implementation.
+### Base classes with improved parameter handling
 
-The parameter handling is better designed, than the one provided by the rclcpp::Parameter class.
-This is done with the help of the ParameterHandler class, which includes a ParameterBase and a template Parameter<T> nested class for this purpose. They are extended with the member functions of the ParameterHandler class, which handle all the node's parameters and the related issues with the help of a heterogeneous collection.
+There are two core classes implemented in this repository, `ROS2BaseNode` for improved parameter handling, and `ROS2BaseLCNode`, which derives from the `rclcpp_lifecycle::LifecycleNode` class and implements lifecycle state transitions which would be usually implemented in the same way in every case. These are virtual functions, so it is possible to override them in the case of a different desired implementation.
 
-One can use these base classes by deriving from one of them.
-To declare a parameter and manage its changes, the registerParameter\<T\> template function must be used with the following arguments:
- - name of parameter (std::string)
- - default value of Parameter (type T)
- - ParameterAccessRights structure defining in which states is the setting of the Parameter allowed (only for ROS2BaseLCNode)
- - the callback to call when determining the validity of a parameter change request (std::function<bool(const T &)>)
+#### Parameter handling
 
-Example code for registering an integer parameter for both base nodes (onRateChangeRequest() returns a boolean):
+The base classes provide a wrapper method for parameter registration, which makes handling of parameters more convenient.
+This is done with the help of the `ParameterHandler` class, which includes a `ParameterBase` and a template `Parameter<T>` nested class for this purpose. 
+
+Improvements:
+- The `add_on_set_parameters_callback()` is called in both of the constructors to register the callback for parameter change requests. This makes sure that the initial values of the parameters are synced from the parameter server.
+- The parameter type is enforced automatically.
+- The registered callback has access over all of the registered parameters, therefore the parameter server and the node is always in sync
+- It is easy to register a callback for additional checks before requested parameter value is accepted.
+- The user can define the lifecycle states, in which parameter changes are allowed.
+- There is a different endpoint for static parameters, which cannot be changed after initialization.
+
+The `Parameter<T>` class supports the following parameter types (identical to the types supported by `rclcpp::Parameter`):
+ - bool
+ - int64_t (or type satisfying `std::is_integral` except bool)
+ - double (or type satisfying `std::is_floating_point`)
+ - std::string
+ - std::vector\<uint8_t\>
+ - std::vector\<bool\>
+ - std::vector\<int64_t\>
+ - std::vector\<double\>
+ - std::vector\<std::string\>
+
+
+The nodes provide the `registerParameter()` and `registerStaticParameter()` endpoints with the following arguments:
+ - `name` [std::string]: name of the parameter 
+ - `value` [T]: default value of the parameter 
+ - `rights` [ParameterAccessRights]: structure defining in which states is the setting of the parameter allowed (only for ROS2BaseLCNode)
+ - `on_change_callback` [std::function<bool(const T &)>]: the callback to call when determining the validity of a parameter change request
+
+Both methods register a parameter with the given `name` and `type`, and the `on_change_callback` is called if a parameter change is requested to check validity. In case of the `registerStaticParameter()`, the callback always returns false after initializing the value.
+
+Example code for registering an integer parameter for both base nodes (`onRateChangeRequest()` checks the validity of the requested rate and returns a boolean):
 ```C++
-  // Derived from  ROS2BaseLCNode
+  // For class derived from ROS2BaseLCNode
   registerParameter<int>(
     "rate", 2, kuka_drivers_core::ParameterSetAccessRights {true, true,
       false, false}, [this](int rate) {
       return this->onRateChangeRequest(rate);
     });
 
-  // Derived from  ROS2BaseNode
+  // For class derived from ROS2BaseNode
   registerParameter<int>(
     "rate", 2, [this](int rate) {
       return this->onRateChangeRequest(rate);
     });
 ```
 
-The add_on_set_parameters_callback() is called in the base node constructors, always before the parameter declarations, so the initial values of the parameters will be always synced from the parameter server. To modify this callback (e.g. add a condition to all parameter change callbacks), one has to remove the registered callback and add the new one:
+To modify the callback that is called for validating every parameter change, one has to remove the registered callback and add the new one. For example to disable all parameter changes if a *parameter_change_blocked_* flag is set, it is possible to add the condition to the registered callback:
 
 ```C++
   remove_on_set_parameters_callback(ParamCallback().get());
   ParamCallback() = this->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> & parameters) {
-      if (<condition>) {
+      if (!parameter_change_blocked_) {
         return getParameterHandler().onParamChange(parameters);
       } else {
         rcl_interfaces::msg::SetParametersResult result;
@@ -109,13 +135,18 @@ The add_on_set_parameters_callback() is called in the base node constructors, al
     });
 ```
 
-The template argument of the Parameter class should be one of the following (others result in a compile error):
- - bool
- - int64_t (or type satisfying std::is_integral except bool)
- - double (or type satisfying std::is_floating_point)
- - std::string
- - std::vector\<uint8_t\>
- - std::vector\<bool\>
- - std::vector\<int64_t\>
- - std::vector\<double\>
- - std::vector\<std::string\>
+## Control mode handler
+
+The package also contains the `ControllerHandler` class, which is responsible for tracking the active controllers and on control mode changes return the controller names that need to be activated and deactivated based on the control mode definitions.
+
+There is a defined set of controllers that must be active for every control mode, the `GetControllersForSwitch()` method determines the switches necessary in case of a control mode change. The method returns the names of the controllers to be switched, to make this possible, the names of the controllers should be provided for every controller type with the `UpdateControllerName()` method.
+
+If the switch was successful, the `ApproveControllerActivation()` and `ApproveControllerDeactivation()` methods should be called to update the internal state of the `ControllerHandler` class.
+
+The class can also handle controllers that shoud be active in every control mode (e.g. `joint_state_broadcaster`), these should be be given in the constructor as the `fixed_controllers` argument (std::vector).
+
+## Type definitions and modified control node
+
+Additionally common type definitions are included for control modes (see details on the [wiki](https://github.com/kroshu/kuka_drivers/wiki#control-mode-definitions)) and hardware interface types.
+
+The package also contains the [modified `control_node`](https://github.com/kroshu/kuka_drivers/wiki#real-time-interface) that instantiates the `controller_manager` without managing the timing.
