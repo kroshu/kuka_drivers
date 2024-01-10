@@ -68,11 +68,23 @@ On successful activation the brakes of the robot will be released and external c
 
 ##### Launch arguments
 
-Both launch files support the following argument:
+Both launch files support the following arguments:
 - `client_ip`: IP address of the client machine
 - `controller_ip`: KONI IP of the controller
 - `robot_model`: defines which LBR iisy robot to use. Available options: `lbr_iisy3_r760` (default), `lbr_iisy11_r1300`, `lbr_iisy15_r930`
+- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaEACHardwareInterface`. This enables trying out the driver without actual hardware.
+- `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
+- `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `qos_config`: the location of the QoS configuration file (defaults to `kuka_iiqka_eac_driver/config/qos_config.yaml`)
+- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_iiqka_eac_driver/config/ros2_controller_config.yaml`)
+- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml`)
+- `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml`)
+- `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_iiqka_eac_driver/config/effort_controller_config.yaml`)
 
+
+The `startup_with_rviz.launch.py` additionally contains one argument:
+- `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/"view_6_axis_urdf.rviz`)
 
 #### Stopping external control
 
