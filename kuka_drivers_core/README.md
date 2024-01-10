@@ -23,6 +23,7 @@ rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_con
 auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
 
 // [...]
+
 auto response =  kuka_drivers_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(get_controllers_client_, request, 0, 1000);
 ```
 
@@ -32,19 +33,33 @@ The library also contains the [`ros2_control_tools.hpp`](https://github.com/kros
 
 Endpoints:
 The `changeHardwareState()` can change the state of one hardware component and has the following arguments:
-- client [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
-- hardware_name [std::string]: name of the hardware component
-- state [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
-- timeout_ms [int] (default: 1000): timeout for the response
+- `client` [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
+- hardware_name` [std::string]: name of the hardware component
+- `state` [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
+- `timeout_ms` [int] (default: 1000): timeout for the response
 The method returns whether the transition was successul.
 
 The `changeControllerState()` can change the state of more controllers and has the following arguments:
-- client [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
-- activate_controllers [std::vector<std::string>]: names of the controllers to activate
-- deactivate_controllers [std::vector<std::string>]: names of the controllers to deactivate
-- strictness [int32_t] (default: STRICT): whether to fail if one state change is unsuccessful
+- `client` [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
+- `activate_controllers` [std::vector<std::string>]: names of the controllers to activate
+- `deactivate_controllers` [std::vector<std::string>]: names of the controllers to deactivate
+- `strictness` [int32_t] (default: STRICT): whether to fail if one state change is unsuccessful
 The method returns whether the transitions were successul.
 
+
+Examples:
+```C++
+rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr change_hardware_state_client_;
+rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr change_controller_state_client_;
+
+// [...]
+
+// Activate hardware named 'lbr_iisy_r760'
+bool success1 = changeHardwareState(change_hardware_state_client_, "lbr_iisy_r760", State::PRIMARY_STATE_ACTIVE);
+
+// Activate 'joint_state_broadcaster' and 'joint_trajectory_controller'
+bool success2 = changeControllerState(change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"}, {/*nothing to deactivate*/});
+```
 
 ## Core classes which help function the repositories of kroshu.
 These classes provide functionalities which are frequently used in ROS2 environment.
