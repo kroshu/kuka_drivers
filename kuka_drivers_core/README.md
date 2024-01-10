@@ -1,4 +1,52 @@
-# Core classes which help function the repositories of kroshu.
+# Core functionalities for the drivers
+
+This package contains two libraries that implement the common functionalities of the 3 kuka drivers.
+
+## Wrapper methods for specific services
+The `kuka_drivers_core::communication_helpers` is a header-only library providing wrapper methods for commonly used features.
+
+#### Synchronous service calls
+
+`rclcpp` does not provide synchronous service calls, this is implemented in the [`service_tools.hpp`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/communication_helpers/service_tools.hpp)
+
+It provides the `sendRequest()` endpoint with following arguments:
+- client [ClientT]: the initialized service client
+- request [RequestT]: the filled request with appropriate type
+- service_timeout_ms [int] (default: 2000): timeout for service discovery
+- response_timeout_ms [int] (default: 1000): timeout for getting the response
+
+The method returns the service response (as a shared pointer).
+
+Example for calling the `ListControllers` service of the `controller_manager`:
+```C++
+rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
+auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
+
+// [...]
+auto response =  kuka_drivers_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(get_controllers_client_, request, 0, 1000);
+```
+
+#### `ros2_control` state handling
+
+The library also contains the [`ros2_control_tools.hpp`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/communication_helpers/ros2_control_tools.hpp) header, which implements wrapper methods for modifying the states of controllers and hardware components.
+
+Endpoints:
+The `changeHardwareState()` can change the state of one hardware component and has the following arguments:
+- client [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
+- hardware_name [std::string]: name of the hardware component
+- state [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
+- timeout_ms [int] (default: 1000): timeout for the response
+The method returns whether the transition was successul.
+
+The `changeControllerState()` can change the state of more controllers and has the following arguments:
+- client [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
+- activate_controllers [std::vector<std::string>]: names of the controllers to activate
+- deactivate_controllers [std::vector<std::string>]: names of the controllers to deactivate
+- strictness [int32_t] (default: STRICT): whether to fail if one state change is unsuccessful
+The method returns whether the transitions were successul.
+
+
+## Core classes which help function the repositories of kroshu.
 These classes provide functionalities which are frequently used in ROS2 environment.
 Deriving from these classes the user has a helpful wrapper around the base functionalities of ROS2.
 
