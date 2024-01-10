@@ -8,7 +8,8 @@
 
 #### Controller side
 
-- Upload the robot application under `robot_application/src` to the controller using the Sunrise Workbench
+- Modify the `_remoteIP` variable of the [FRIConfigurationParams.java](https://github.com/kroshu/kuka_drivers/blob/master/kuka_sunrise_fri_driver/robot_application/ROS2_Control/src/ros2/serialization/FRIConfigurationParams.java) file to the IP address of the client machine
+- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench
 
 ### Configuration
 
