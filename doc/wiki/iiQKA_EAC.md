@@ -31,7 +31,7 @@ It is possible to configure the required connection quality of external control 
 - Allowed packet losses in given timeframe: defined by `lost_packets_in_timeframe` (maximum value is 25) and `timeframe_ms` parameters, maximum ratio is 25/sec
 
 #### Runtime parameters
-The not IP-related parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
+The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 - `control_mode`: The enum value of the control mode should be given. It can be changed in all primary states, but in active state the brakes are always closed before control is started in a new mode.
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `impedance_controller_name`: The name of the controller (string) that controls the `stiffness` and `damping` interfaces of the robot. It can't be changed in active state.
