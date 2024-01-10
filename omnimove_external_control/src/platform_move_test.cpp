@@ -1,5 +1,7 @@
 #include "omnimove/platform_move_test.h"
 #include <chrono>
+#include <std_srvs/srv/empty.hpp>
+#include <future>
 
 using namespace rclcpp;
 using namespace std::chrono_literals;
@@ -8,12 +10,22 @@ using namespace std::chrono_literals;
 PlatformMoveTest::PlatformMoveTest():Node("PlatformMoveTest")
 {
     this->declare_parameter("agv_type", "omnimove");
+    this->declare_parameter("start_service", false);
+
     std::string agv_type = this->get_parameter("agv_type").as_string();
+    bool start_service = this->get_parameter("start_service").as_bool();
+
     velocity_publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/platform/velocity_command_controller/commands", 10);
     position_publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/platform/position_command_controller/commands", 10);
-    timer_ = this->create_wall_timer(100ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this));
-    command_change_timeout_ = 5;
-    current_command_index_ = 0;
+    timer_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+    if (start_service){
+        platformTestService_ = this->create_service<std_srvs::srv::Empty>("start_platform_test", std::bind(&PlatformMoveTest::startPlatformTest, this, std::placeholders::_1, std::placeholders::_2));
+    } else {
+        timer_ = this->create_wall_timer(100ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this), timer_group_);
+        command_change_timeout_ = 5;
+        current_command_index_ = 0;
+    }
     if (this->get_parameter("agv_type").as_string() == "caterpillar")
     {
         speed_commands_.push_back(std::vector<float>{50,0});
@@ -49,10 +61,23 @@ PlatformMoveTest::PlatformMoveTest():Node("PlatformMoveTest")
 
 }
 
+void PlatformMoveTest::startPlatformTest(const std::shared_ptr<std_srvs::srv::Empty::Request>, const std::shared_ptr<std_srvs::srv::Empty::Response>){
+    move_result_ = std::make_shared<std::promise<bool> >();
+    timer_ = this->create_wall_timer(100ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this), timer_group_);
+    command_change_timeout_ = 5;
+    current_command_index_ = 0;
+    move_result_->get_future().wait();
+}
+
 void PlatformMoveTest::sendSpeedCommand(){
     if (current_command_index_ >= speed_commands_.size()){
         timer_->cancel();
-        exit(0);
+        if (move_result_.get()!=NULL){
+            move_result_->set_value(true);
+        }else{
+          exit(0);
+        }
+
     }
     std_msgs::msg::Float64MultiArray velocity;
     std_msgs::msg::Float64MultiArray position;
@@ -89,6 +114,10 @@ void PlatformMoveTest::sendSpeedCommand(){
 
 int main(int argc, char **argv){
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<PlatformMoveTest>());
+    auto node = std::make_shared<PlatformMoveTest>();    //rclcpp::spin(std::make_shared<PlatformMoveTest>());
+    rclcpp::WallRate loop_rate(30);
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(node);
+    executor.spin();
     return 0;
 }

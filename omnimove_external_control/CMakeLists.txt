@@ -13,6 +13,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(std_srvs REQUIRED)
 include(ConfigExtras.cmake)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
@@ -43,7 +44,7 @@ add_executable(
 )
 ament_target_dependencies(
     platform_move_test
-    rclcpp std_msgs
+    rclcpp std_msgs std_srvs
 )
 
 install(TARGETS omnimove_external_control
