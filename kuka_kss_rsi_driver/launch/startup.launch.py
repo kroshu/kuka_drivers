@@ -132,9 +132,7 @@ def launch_setup(context, *args, **kwargs):
         "joint_trajectory_controller",
     ]
 
-    controller_spawners = [
-        controller_spawner(name) for name in controller_names
-    ]
+    controller_spawners = [controller_spawner(name) for name in controller_names]
 
     nodes_to_start = [
         control_node,

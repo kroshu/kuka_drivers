@@ -150,9 +150,7 @@ def launch_setup(context, *args, **kwargs):
         "control_mode_handler",
     ]
 
-    controller_spawners = [
-        controller_spawner(name) for name in controller_names
-    ]
+    controller_spawners = [controller_spawner(name) for name in controller_names]
 
     nodes_to_start = [
         control_node,
