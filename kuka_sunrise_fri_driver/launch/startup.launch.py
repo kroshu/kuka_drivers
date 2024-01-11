@@ -117,13 +117,11 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config, activate=False):
+    def controller_spawner(controller_names, activate=False):
         arg_list = [
-            controller_with_config[0],
+            controller_names,
             "-c",
             controller_manager_node,
-            "-p",
-            controller_with_config[1],
             "-n",
             ns,
         ]
@@ -131,15 +129,15 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names_and_config = [
-        ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", []),
-        ("fri_configuration_controller", []),
-        ("fri_state_broadcaster", []),
+    controller_names = [
+        "joint_state_broadcaster",
+        "joint_trajectory_controller",
+        "fri_configuration_controller",
+        "fri_state_broadcaster",
     ]
 
     controller_spawners = [
-        controller_spawner(controllers) for controllers in controller_names_and_config
+        controller_spawner(name) for name in controller_names
     ]
 
     nodes_to_start = [
