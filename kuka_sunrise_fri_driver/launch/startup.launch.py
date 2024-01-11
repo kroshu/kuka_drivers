@@ -93,7 +93,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config],
+        parameters=[robot_description, controller_config, jtc_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -133,7 +133,7 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names_and_config = [
         ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", jtc_config.perform(context)),
+        ("joint_trajectory_controller", []),
         ("fri_configuration_controller", []),
         ("fri_state_broadcaster", []),
     ]
