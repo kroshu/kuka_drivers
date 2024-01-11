@@ -27,7 +27,7 @@ from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
 
 
-# Launch all of the robot visualisation launch files one by one
+# Launch driver startup
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
@@ -36,23 +36,52 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_sunrise_fri_driver"),
+                        get_package_share_directory("kuka_iiqka_eac_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
                 )
+            ),
+            launch.actions.TimerAction(
+                period=2.0,
+                actions=[
+                    launch.actions.ExecuteProcess(
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
+                        output="screen",
+                    ),
+                ],
+            ),
+            launch.actions.TimerAction(
+                period=4.0,
+                actions=[
+                    launch.actions.ExecuteProcess(
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
+                        output="screen",
+                    ),
+                ],
             ),
             launch_testing.actions.ReadyToTest(),
         ]
     )
 
 
-class TestDriverStartup(unittest.TestCase):
+class TestDriverActivation(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
         proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'lbr_iiwa14_r820'", timeout=5
+            "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
+        proc_output.assertWaitFor(
+            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=10
+        )
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=15)
+
+
+@launch_testing.post_shutdown_test()
+class TestDriverShutdown(unittest.TestCase):
+    def test_graceful_shutdown(self, proc_info):
+        """Test graceful shutdown."""
+        launch_testing.asserts.assertExitCodes(proc_info)
