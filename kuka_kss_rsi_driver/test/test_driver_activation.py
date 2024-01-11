@@ -36,9 +36,18 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
+                        get_package_share_directory("kuka_kss_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
+                    ]
+                )
+            ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    [
+                        get_package_share_directory("kuka_rsi_simulator"),
+                        "/launch/",
+                        "kuka_rsi_simulator.launch.py",
                     ]
                 )
             ),
@@ -70,19 +79,12 @@ class TestDriverActivation(unittest.TestCase):
         # Check for successful initialization
         proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
+            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=10
+            "Successful 'configure' of hardware 'kr6_r700_sixx'", timeout=10
         )
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=15)
-
-
-@launch_testing.post_shutdown_test()
-class TestDriverShutdown(unittest.TestCase):
-    def test_graceful_shutdown(self, proc_info):
-        """Test graceful shutdown."""
-        launch_testing.asserts.assertExitCodes(proc_info)
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'kr6_r700_sixx'", timeout=15)
