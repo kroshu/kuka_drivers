@@ -106,7 +106,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config],
+        parameters=[robot_description, controller_config, jtc_config, jic_config, ec_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -130,13 +130,11 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_with_config, activate=False):
+    def controller_spawner(controller_names, activate=False):
         arg_list = [
-            controller_with_config[0],
+            controller_names,
             "-c",
             controller_manager_node,
-            "-p",
-            controller_with_config[1],
             "-n",
             ns,
         ]
@@ -144,17 +142,15 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names_and_config = [
-        ("joint_state_broadcaster", []),
-        ("joint_trajectory_controller", jtc_config.perform(context)),
-        ("joint_group_impedance_controller", jic_config.perform(context)),
-        ("effort_controller", ec_config.perform(context)),
-        ("control_mode_handler", []),
+    controller_names = [
+        "joint_state_broadcaster",
+        "joint_trajectory_controller",
+        "joint_group_impedance_controller",
+        "effort_controller",
+        "control_mode_handler",
     ]
 
-    controller_spawners = [
-        controller_spawner(controllers) for controllers in controller_names_and_config
-    ]
+    controller_spawners = [controller_spawner(name) for name in controller_names]
 
     nodes_to_start = [
         control_node,

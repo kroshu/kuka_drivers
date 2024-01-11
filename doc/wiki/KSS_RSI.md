@@ -130,7 +130,7 @@ Both launch files support the following arguments:
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
-- `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/"view_6_axis_urdf.rviz`)
+- `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
 #### Stopping external control
 
