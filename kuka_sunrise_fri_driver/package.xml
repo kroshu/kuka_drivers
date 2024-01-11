@@ -24,8 +24,8 @@
 
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
-  <exec_depend>fri_state_broadcaster</exec_depend>
-  <exec_depend>fri_configuration_controller</exec_depend>
+  <test_depend>fri_state_broadcaster</test_depend>
+  <test_depend>fri_configuration_controller</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
