@@ -3,7 +3,7 @@ robot_manager:
     control_mode: "position"
     command_mode: "position"
     position_controller_name: "joint_trajectory_controller"
-    torque_controller_name: "effort_controller"
+    torque_controller_name: ""
     receive_multiplier: 1
     send_period_ms: 10
     joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
