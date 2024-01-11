@@ -36,7 +36,7 @@ jobs:
           BUILDER: colcon
           ANALYZER: sonarqube
           TEST_COVERAGE: true
-          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master'
+          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: humble
     env:
