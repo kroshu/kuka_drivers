@@ -23,6 +23,7 @@
 
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>kuka_controllers</exec_depend>
 
   <test_depend>kuka_rsi_simulator</test_depend>
 
