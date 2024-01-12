@@ -28,9 +28,11 @@
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
-  <test_depend>joint_group_impedance_controller</test_depend>
-  <test_depend>effort_controllers</test_depend>
-  <test_depend>control_mode_handler</test_depend>
+  <exec_depend>joint_group_impedance_controller</exec_depend>
+  <exec_depend>effort_controllers</exec_depend>
+  <exec_depend>control_mode_handler</exec_depend>
+
+  <test_depend>ros2lifecycle</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
