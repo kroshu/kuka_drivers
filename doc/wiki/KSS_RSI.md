@@ -22,22 +22,13 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
    There should already be an interface checked out as the **Windows interface**.
    - **Windows interface checkbox** should be checked.
 2. Add a new network for RSI:
-
-   **KRC4:**
-   - Minimize the SmartHMI (**Start-up > Service > Minimize HMI**).
-   - Run **RSI-Network** from the Windows Start menu (**All Programs > RSI-Network**).
-   - Check that the **Network - Kuka User Interface** shows the Windows interface with the specified IP address.
-   - Add a new IP address on another subnet for the **RSI interface**.
-     - Select the entry **New** under **RSI Ethernet** in the tree structure and press **Edit**.
-     - Enter the IP address and confirm with **OK**.
-     - Close **RSI-Network** and maximize the SmartHMI.
-
-   **KRC5:**
-   - Press the **Advanced** button and **New interface**.
-   - Select **Mixed IP address** and keep the default **Receiving task: Target subnet** and **Real-time receiving Task: UDP**
-   - Set the IP address to a different subnet then the **KLI interface**.
-     - **Default gateway**: leave it empty
-     - **Windows interface checkbox** should NOT be checked
+  - Press the **Advanced** button and **New interface**.
+  - Select **Mixed IP address** and keep the default settings:
+    - **Receiving task: Target subnet** 
+    - **Real-time receiving Task: UDP**
+  - Set the IP address to a different subnet then the **KLI interface**.
+    - **Default gateway**: leave it empty
+    - **Windows interface checkbox** should NOT be checked
 
 3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
 
