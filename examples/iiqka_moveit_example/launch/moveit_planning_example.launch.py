@@ -26,11 +26,33 @@ from launch.substitutions import LaunchConfiguration
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
+    ns = LaunchConfiguration("namespace")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
+
+    if ns.perform(context) == "":
+        tf_prefix = ""
+    else:
+        tf_prefix = ns.perform(context) + "_"
+
     moveit_config = (
         MoveItConfigsBuilder("kuka_lbr_iisy")
         .robot_description(
             file_path=get_package_share_directory("kuka_lbr_iisy_support")
-            + f"/urdf/{robot_model.perform(context)}.urdf.xacro"
+            + f"/urdf/{robot_model.perform(context)}.urdf.xacro",
+            mappings={
+                "x": x.perform(context),
+                "y": y.perform(context),
+                "z": z.perform(context),
+                "roll": roll.perform(context),
+                "pitch": pitch.perform(context),
+                "yaw": yaw.perform(context),
+                "prefix": tf_prefix,
+            },
         )
         .robot_description_semantic(
             get_package_share_directory("kuka_lbr_iisy_moveit_config")
@@ -82,4 +104,11 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iisy3_r760"))
+    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
