@@ -78,7 +78,6 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource(
             [get_package_share_directory("kuka_iiqka_eac_driver"), "/launch/startup.launch.py"]
         ),
-        launch_arguments={"robot_model": f"{robot_model.perform(context)}"}.items(),
     )
 
     move_group_server = Node(
