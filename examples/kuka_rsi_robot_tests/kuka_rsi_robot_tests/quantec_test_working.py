@@ -3,6 +3,7 @@ import copy
 import rclpy
 import std_srvs.srv
 from builtin_interfaces.msg import Duration
+from rclpy import Future
 from rclpy.node import Node
 from lifecycle_msgs.srv import ChangeState, GetState
 from lifecycle_msgs.msg import Transition, State
@@ -15,9 +16,6 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 class RobotManagerClient(Node):
     def __init__(self, service_group):
         super().__init__('robot_manager_client')
-        self.times = None
-        self.moves = None
-        self.current_index = None
         self.actionFinished = None
         self.declare_parameter('start_service', False)
         self.start_service = self.get_parameter('start_service').get_parameter_value().bool_value
@@ -38,56 +36,6 @@ class RobotManagerClient(Node):
         self.action_client = ActionClient(self, FollowJointTrajectory,
                                           '/joint_trajectory_controller/follow_joint_trajectory',
                                           callback_group=action_client_group)
-        self.create_movements()
-
-    def create_movements(self):
-        home_pos_1 = 0.0
-        home_pos_2 = -2.3911
-        home_pos_3 = 2.6529
-        home_pos_4 = 0.0
-        home_pos_5 = 1.308
-        home_pos_6 = 0.0
-        home_pos = [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
-        # moving around joint_!
-        self.moves = []
-        self.times = []
-        self.moves.append([home_pos_1 + 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6])
-        self.times.append(6)
-        self.moves.append([home_pos_1 - 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6])
-        self.times.append(12)
-        self.moves.append(home_pos)
-        self.times.append(6)
-        # joint2 only moving in one direction since we are at the limit
-        self.moves.append([home_pos_1, home_pos_2 + 0.4, home_pos_3, home_pos_4, home_pos_5, home_pos_6])
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(10)
-        # joint3 only moving in one direction since we are at the limit
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3 - 0.4, home_pos_4, home_pos_5, home_pos_6])
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(10)
-        # joint4
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4 + 0.4, home_pos_5, home_pos_6])
-        self.times.append(5)
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4 - 0.4, home_pos_5, home_pos_6])
-        self.times.append(5)
-        self.moves.append(home_pos)
-        self.times.append(5)
-        # joint5
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 + 0.4, home_pos_6])
-        self.times.append(5)
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 - 0.4, home_pos_6])
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(5)
-        # joint6
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 + 0.4])
-        self.times.append(5)
-        self.moves.append([home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 - 0.4])
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(5)
 
     def send_configure(self):
         self.req.transition.id = Transition.TRANSITION_CONFIGURE
@@ -95,48 +43,27 @@ class RobotManagerClient(Node):
             self.get_logger().info('service not available, waiting again...')
         self.get_logger().info('calling client')
         future = self.cli.call_async(self.req)
-        future.add_done_callback(self.configure_done_callback)
-
-    def configure_done_callback(self, future):
-        self.get_logger().info("configure done")
-        self.send_activate()
+        self.get_logger().info("waiting for configure to end")
+        self.executor.spin_until_future_complete(future)
+        self.get_logger().info("configure complete")
+        return future.result()
 
     def send_activate(self):
         self.req.transition.id = Transition.TRANSITION_ACTIVATE
         future = self.cli.call_async(self.req)
-        future.add_done_callback(self.activate_done_callback)
-
-    def activate_done_callback(self, future):
-        self.get_logger().info("activate done")
-        self.get_state()
+        self.executor.spin_until_future_complete(future)
+        return future.result()
 
     def activate_robot(self):
-        self.send_configure()  # this will in callback send the activate
+        self.send_configure()
+        return self.send_activate()
 
     def get_state(self):
         state_future = self.state_client.call_async(GetState.Request())
-        state_future.add_done_callback(self.get_state_callback)
         self.get_logger().info('waiting for getting state')
-
-    def get_state_callback(self, future):
-        self.get_logger().info("got current state")
-        state_resp = future.result()
-        if state_resp.current_state.id == State.PRIMARY_STATE_ACTIVE:
-            self.get_logger().info('Robot is active')
-            self.current_index = 0
-            self.start_next_movement()
-        else:
-            self.get_logger().error("could not activate robot")
-
-    def start_next_movement(self):
-        self.get_logger().info("should start movement")
-        self.get_logger().info("length of positions is %d" % (len(self.times)))
-        if self.current_index < len(self.times):
-            self.get_logger().info("going to submit movement")
-            position = self.moves[self.current_index]
-            duration = self.times[self.current_index]
-            self.current_index = self.current_index + 1
-            self.start_robot_movement(position, duration)
+        self.executor.spin_until_future_complete(state_future)
+        self.get_logger().info('got state')
+        return state_future.result()
 
     def start_robot_movement(self, position, duration):
         goal = FollowJointTrajectory.Goal()
@@ -152,10 +79,10 @@ class RobotManagerClient(Node):
         self.get_logger().info("waiting for action to be submitted")
         self.executor.spin_until_future_complete(cur_action_submit)
         result_action = cur_action_submit.result().get_result_async()
-        result_action.add_done_callback(self.start_next_movement())
-       # self.get_logger().info("waiting for action to finish")
-        #self.executor.spin_until_future_complete(result_action)
-        #self.get_logger().info("action finished")
+        result_action.add_done_callback(self.action_done_callback)
+        self.get_logger().info("waiting for action to finish")
+        self.executor.spin_until_future_complete(result_action)
+        self.get_logger().info("action finished")
 
     def action_done_callback(self, future):
         self.get_logger().info("action finished in callback")
@@ -196,6 +123,13 @@ class RobotManagerClient(Node):
 
     def do_robot_movements(self):
         self.activate_robot()
+        self.get_logger().info('Finished calling client')
+        state_resp = self.get_state()
+        if state_resp.current_state.id == State.PRIMARY_STATE_ACTIVE:
+            self.get_logger().info('Robot is active')
+            self.start_robot_movements()
+        else:
+            self.get_logger().error("could not activate robot")
 
     def start_robot_movements_callback(self, request, response):
         self.get_logger().info("Got service call")
