@@ -47,7 +47,7 @@ The IP address of the client machine and robot controller must be provided as a 
 To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
 ```
-ros2 launch kuka_iiqka_eac_driver startup.launch.py client_ip:=0.0.0.0 controller_ip=0.0.0.0
+ros2 launch kuka_iiqka_eac_driver startup.launch.py client_ip:=0.0.0.0 controller_ip:=0.0.0.0
 ```
 
 This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:

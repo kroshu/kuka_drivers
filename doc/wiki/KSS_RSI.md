@@ -22,22 +22,13 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
    There should already be an interface checked out as the **Windows interface**.
    - **Windows interface checkbox** should be checked.
 2. Add a new network for RSI:
-
-   **KRC4:**
-   - Minimize the SmartHMI (**Start-up > Service > Minimize HMI**).
-   - Run **RSI-Network** from the Windows Start menu (**All Programs > RSI-Network**).
-   - Check that the **Network - Kuka User Interface** shows the Windows interface with the specified IP address.
-   - Add a new IP address on another subnet for the **RSI interface**.
-     - Select the entry **New** under **RSI Ethernet** in the tree structure and press **Edit**.
-     - Enter the IP address and confirm with **OK**.
-     - Close **RSI-Network** and maximize the SmartHMI.
-
-   **KRC5:**
-   - Press the **Advanced** button and **New interface**.
-   - Select **Mixed IP address** and keep the default **Receiving task: Target subnet** and **Real-time receiving Task: UDP**
-   - Set the IP address to a different subnet then the **KLI interface**.
-     - **Default gateway**: leave it empty
-     - **Windows interface checkbox** should NOT be checked
+  - Press the **Advanced** button and **New interface**.
+  - Select **Mixed IP address** and keep the default settings:
+    - **Receiving task: Target subnet**
+    - **Real-time receiving Task: UDP**
+  - Set the IP address to a different subnet then the **KLI interface**.
+    - **Default gateway**: leave it empty
+    - **Windows interface checkbox** should NOT be checked
 
 3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
 
@@ -48,7 +39,7 @@ There are 3 files necessary for RSI that are available in the `krl` directory:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
   - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
 
-- `ros_rsi.src`: This contains the KRL program that starts external control and should not be modified.
+- `ros_rsi.src`: This contains the KRL program that starts external control. The program contains a movement to the (0, -90, 90, 0, 90, 0) position, as the first motion instruction in a KRL program must define an unambiguous starting position. The goal position might be modified if necessary, the other parts of the program should be left unchanged.
 - `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
   - For older RSI versions (<=4.0.3), the context can only be defined in 3 different files: `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi`, these can be found under `krl/deprecated`. In this case, these 3 files should be copied to the controller instead of the `ros_rsi.rsix`.
 

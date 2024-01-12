@@ -22,9 +22,10 @@
   <depend>hardware_interface</depend>
   <depend>controller_manager_msgs</depend>
 
-  <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>fri_state_broadcaster</exec_depend>
+  <exec_depend>fri_configuration_controller</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

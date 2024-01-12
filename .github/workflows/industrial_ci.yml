@@ -22,6 +22,10 @@ on:
     branches:
       - master
 
+  schedule:
+    # Run every Monday at 1PM UTC
+    - cron: 0 13 * * 1
+
 jobs:
   industrial_ci:
     name: ROS-Industrial CI
@@ -32,7 +36,9 @@ jobs:
           BUILDER: colcon
           ANALYZER: sonarqube
           TEST_COVERAGE: true
-          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master'
+          # Hacky solution needed to be able to build upstream WS:
+          #  kuka_driver_interfaces and kuka_drivers_core must be also added to upstream
+          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master github:kroshu/kuka_drivers#master -kuka_drivers/examples -kuka_drivers/kuka_drivers -kuka_drivers/kuka_iiqka_eac_driver -kuka_drivers/kuka_kss_rsi_driver -kuka_drivers/kuka_sunrise_fri_driver'
           CMAKE_ARGS: '-DMOCK_FRI=ON'
           ROS_DISTRO: humble
     env:

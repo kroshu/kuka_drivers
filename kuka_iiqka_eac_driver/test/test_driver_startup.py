@@ -47,7 +47,7 @@ def generate_test_description():
     )
 
 
-class TestModels(unittest.TestCase):
+class TestDriverStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
         proc_output.assertWaitFor("got segment base", timeout=5)

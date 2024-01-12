@@ -65,6 +65,8 @@ DECL INT CONTID	; ContainerID
   ;ENDFOLD (USER INI)
 ;ENDFOLD (INI)
 
+PTP {A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0}
+
 ; Create RSI Context
 ret = RSI_CREATE("ros_rsi",CONTID,TRUE)
 IF (ret <> RSIOK) THEN
