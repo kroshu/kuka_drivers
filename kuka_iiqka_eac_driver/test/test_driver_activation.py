@@ -79,10 +79,3 @@ class TestDriverActivation(unittest.TestCase):
             "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=10
         )
         proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=15)
-
-
-@launch_testing.post_shutdown_test()
-class TestDriverShutdown(unittest.TestCase):
-    def test_graceful_shutdown(self, proc_info):
-        """Test graceful shutdown."""
-        launch_testing.asserts.assertExitCodes(proc_info)

@@ -24,7 +24,7 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
 2. Add a new network for RSI:
   - Press the **Advanced** button and **New interface**.
   - Select **Mixed IP address** and keep the default settings:
-    - **Receiving task: Target subnet** 
+    - **Receiving task: Target subnet**
     - **Real-time receiving Task: UDP**
   - Set the IP address to a different subnet then the **KLI interface**.
     - **Default gateway**: leave it empty
