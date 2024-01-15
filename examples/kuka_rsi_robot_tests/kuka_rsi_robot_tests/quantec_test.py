@@ -10,6 +10,7 @@ from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from rclpy.action import ActionClient
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from threading import Event
 
 
 class RobotManagerClient(Node):
@@ -23,6 +24,7 @@ class RobotManagerClient(Node):
         self.start_service = self.get_parameter('start_service').get_parameter_value().bool_value
         self.action_client = None
         self.movement_service = None
+        self.movement_done = Event()
         if self.start_service is True:
             self.service_group = service_group
             self.movement_service = self.create_service(std_srvs.srv.Empty, 'start_robot_movements',
@@ -93,12 +95,12 @@ class RobotManagerClient(Node):
         self.req.transition.id = Transition.TRANSITION_CONFIGURE
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
-        self.get_logger().info('calling client')
+        self.get_logger().info('calling  configure')
         future = self.cli.call_async(self.req)
         future.add_done_callback(self.configure_done_callback)
 
     def configure_done_callback(self, future):
-        self.get_logger().info("configure done")
+        self.get_logger().info("configure done. Calling activate")
         self.send_activate()
 
     def send_activate(self):
@@ -129,14 +131,18 @@ class RobotManagerClient(Node):
             self.get_logger().error("could not activate robot")
 
     def start_next_movement(self):
-        self.get_logger().info("should start movement")
-        self.get_logger().info("length of positions is %d" % (len(self.times)))
         if self.current_index < len(self.times):
             self.get_logger().info("going to submit movement")
             position = self.moves[self.current_index]
             duration = self.times[self.current_index]
             self.current_index = self.current_index + 1
             self.start_robot_movement(position, duration)
+        else:
+            self.get_logger().info("All movements done")
+            if self.start_service:
+                self.movement_done.set()
+            else:
+                self.executor.shutdown()
 
     def start_robot_movement(self, position, duration):
         goal = FollowJointTrajectory.Goal()
@@ -150,17 +156,17 @@ class RobotManagerClient(Node):
         self.action_client.wait_for_server()
         cur_action_submit = self.action_client.send_goal_async(goal)
         self.get_logger().info("waiting for action to be submitted")
-        self.executor.spin_until_future_complete(cur_action_submit)
-        result_action = cur_action_submit.result().get_result_async()
-        result_action.add_done_callback(self.start_next_movement())
-       # self.get_logger().info("waiting for action to finish")
-        #self.executor.spin_until_future_complete(result_action)
-        #self.get_logger().info("action finished")
+        # self.executor.spin_until_future_complete(cur_action_submit)
+        cur_action_submit.add_done_callback(self.action_submit_callback)
+
+    def action_submit_callback(self, future):
+        self.get_logger().info("action submitted, waiting for action to be done")
+        result_action = future.result().get_result_async()
+        result_action.add_done_callback(self.action_done_callback)
 
     def action_done_callback(self, future):
         self.get_logger().info("action finished in callback")
-        self.actionFinished.set_result(True)
-        future.set_result(True)
+        self.start_next_movement()
 
     def start_robot_movements(self):
         self.get_logger().info("Robot movement starting")
@@ -199,7 +205,11 @@ class RobotManagerClient(Node):
 
     def start_robot_movements_callback(self, request, response):
         self.get_logger().info("Got service call")
+        self.movement_done.clear()
         self.do_robot_movements()
+        self.get_logger().info("waiting for all actions to be done")
+        self.movement_done.wait()
+        self.get_logger().info("service returning")
         return response
 
 
@@ -211,6 +221,7 @@ def main(args=None):
     executor.add_node(robot_manager_client)
     if robot_manager_client.start_service is False:
         robot_manager_client.do_robot_movements()
+        executor.spin()
         robot_manager_client.destroy_node()
     else:
         executor.spin()
