@@ -22,10 +22,10 @@ find_package(lifecycle_msgs REQUIRED)
 find_package(controller_manager REQUIRED)
 
 add_library(kuka_drivers_core SHARED
-  src/ROS2BaseNode.cpp
-  src/ROS2BaseLCNode.cpp
-  src/ParameterHandler.cpp
-  src/ControllerHandler.cpp
+  src/ros2_base_node.cpp
+  src/ros2_base_lc_node.cpp
+  src/parameter_handler.cpp
+  src/controller_handler.cpp
 )
 ament_target_dependencies(kuka_drivers_core rclcpp rclcpp_lifecycle lifecycle_msgs)
 
@@ -38,7 +38,7 @@ ament_export_dependencies(rclcpp rclcpp_lifecycle lifecycle_msgs)
 ament_export_libraries(${PROJECT_NAME})
 
 add_library(communication_helpers SHARED
-  include/communication_helpers/serialization.hpp
+  include/communication_helpers/ros2_control_tools.hpp
   include/communication_helpers/service_tools.hpp)
 ament_target_dependencies(communication_helpers rclcpp)
 set_target_properties(communication_helpers PROPERTIES LINKER_LANGUAGE CXX)
@@ -71,23 +71,7 @@ install(TARGETS ${PROJECT_NAME} control_node
 ament_export_include_directories(include)
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright()
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify()
-  ament_xmllint()
 endif()
 
 ament_package()

@@ -19,21 +19,17 @@
 #include <memory>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/client.hpp"
-#include "lifecycle_msgs/srv/change_state.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
-#include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
-#include "std_msgs/msg/bool.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "rclcpp/client.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
-#include "kuka_sunrise_fri_driver/fri_connection.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
+
 #include "kuka_sunrise_fri_driver/configuration_manager.hpp"
-#include "communication_helpers/service_tools.hpp"
-
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_sunrise_fri_driver/fri_connection.hpp"
 
 namespace kuka_sunrise_fri_driver
 {
@@ -43,19 +39,17 @@ class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 public:
   RobotManagerNode();
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State &);
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State &);
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &);
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State &);
 
-  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &);
-
-  // TODO(Svastits): implement on_error callback to clean up node
+  virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State &);
 
   bool activateControl();
   bool deactivateControl();

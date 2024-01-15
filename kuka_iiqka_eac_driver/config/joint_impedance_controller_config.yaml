@@ -1,6 +1,6 @@
-joint_impedance_controller:
+joint_group_impedance_controller:
   ros__parameters:
-    joints: 
+    joints:
     - joint_1
     - joint_2
     - joint_3

@@ -189,7 +189,7 @@ int UdpConnection::receive(char * buffer, int maxSize)
       // initialize file descriptor
       /**
       * Replace FD_ZERO with memset, because bzero is not available for VxWorks
-      * User Space Aplications(RTPs). Therefore the macro FD_ZERO does not compile.
+      * User Space Applications(RTPs). Therefore the macro FD_ZERO does not compile.
       */
 #ifndef VXWORKS
       FD_ZERO(&_filedescriptor);
@@ -207,7 +207,7 @@ int UdpConnection::receive(char * buffer, int maxSize)
       }
       // a negative value indicates an error
       else if (numberActiveFileDescr == -1) {
-        printf("An error has occured \n");
+        printf("An error has occurred \n");
         return -1;
       }
     }

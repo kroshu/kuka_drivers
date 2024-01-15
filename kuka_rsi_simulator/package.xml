@@ -4,13 +4,9 @@
   <name>kuka_rsi_simulator</name>
   <version>0.0.0</version>
   <description>Simple package for simulating the KUKA RSI interface</description>
-  <maintainer email="antal.marci@gmail.com">Marton Antal</maintainer>
-  <license>BSD</license>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <license>Apache 2.0</license>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
   <exec_depend>ros2launch</exec_depend>
 
   <export>

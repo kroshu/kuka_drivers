@@ -54,7 +54,7 @@ file(GLOB fri_client_sources
     src/fri_client_sdk/pb_frimessages_callbacks.c
 )
 
-# Add the Fast Robot Interface libray
+# Add the Fast Robot Interface library
 add_library(fri_client_sdk SHARED ${fri_client_sources})
 
 file(GLOB private_headers
@@ -80,7 +80,7 @@ add_library(${PROJECT_NAME} SHARED
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_SUNRISE_FRI_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface kuka_drivers_core)
 target_link_libraries(${PROJECT_NAME} fri_client_sdk)
 
 add_library(configuration_manager SHARED
@@ -97,67 +97,23 @@ target_link_libraries(robot_manager_node
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} fri_connection fri_client_sdk robot_manager_node
+install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch config
+install(TARGETS fri_connection fri_client_sdk configuration_manager
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(DIRECTORY launch config test
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
-
-  file(GLOB fri_client_includes
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-      include/fri_client_sdk/*
-  )
-
-  ament_copyright(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_lint_cmake()
-  ament_uncrustify(--exclude ${fri_client_sources} ${private_headers} ${fri_client_includes})
-  ament_xmllint()
+  find_package(launch_testing_ament_cmake)
+  add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ament_package()
-
-# #####################
-# # Project analysis ##
-# #####################
-
-# Additional options for project analysis
-set(SONARQUBE_PACKAGES_FILE "none" CACHE STRING "Path to the file that contains the package source directories for SonarQube.")
-option(TEST_COVERAGE "Generate test coverage reports upon testing." OFF)
-
-if(NOT ${SONARQUBE_PACKAGES_FILE} MATCHES "none")
-  file(APPEND ${SONARQUBE_PACKAGES_FILE} "${PROJECT_NAME};${PROJECT_SOURCE_DIR}\n")
-  message(${SONARQUBE_PACKAGES_FILE})
-endif()
-
-if(TEST_COVERAGE)
-  # Set build type to debug to avoid compiler optimization when checking coverage
-  set(CMAKE_BUILD_TYPE Debug)
-
-  # Include coverage report related functions
-  list(APPEND CMAKE_MODULE_PATH "/usr/lib/cmake/CodeCoverage")
-  include(CodeCoverage)
-
-  # Append compiler flags to gcc for generating coverage notes
-  append_coverage_compiler_flags()
-
-  # Set coverage output dir to ${CMAKE_BINARY_DIR}/test_coverage
-  set_coverage_output_dir()
-endif()

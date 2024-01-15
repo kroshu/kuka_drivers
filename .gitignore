@@ -1,3 +1,4 @@
 build*
 CMake*.user
 .idea
+__pycache__/

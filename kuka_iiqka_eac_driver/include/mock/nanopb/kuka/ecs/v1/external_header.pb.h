@@ -7,8 +7,8 @@
 #endif
 
 typedef struct _kuka_ecs_v1_ExternalHeader {
-    uint32_t message_id; 
-    uint32_t ipoc; 
+    uint32_t message_id;
+    uint32_t ipoc;
 } kuka_ecs_v1_ExternalHeader;
 
 

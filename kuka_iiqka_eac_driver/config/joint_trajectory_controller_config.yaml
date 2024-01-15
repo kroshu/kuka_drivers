@@ -1,6 +1,6 @@
 joint_trajectory_controller:
   ros__parameters:
-    joints: 
+    joints:
     - joint_1
     - joint_2
     - joint_3
@@ -12,5 +12,6 @@ joint_trajectory_controller:
       - position
     state_interfaces:
       - position
-    state_publish_rate: 250.0
+    state_publish_rate: 50.0
     action_monitor_rate: 20.0
+    allow_nonzero_velocity_at_trajectory_end: True

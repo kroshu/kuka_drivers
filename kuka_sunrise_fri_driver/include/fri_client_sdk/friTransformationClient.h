@@ -174,7 +174,7 @@ public:
      * [Transformation(3x4)] = [Rotation(3x3) | Translation(3x1) ]
      * <p>
      * All provided transformation matrices need a timestamp that corresponds to their
-     * time of acquisiton. This timestamp must be synchronized to the timestamp
+     * time of acquisition. This timestamp must be synchronized to the timestamp
      * provided by the KUKA Sunrise controller (see getTimestampSec(), getTimestampNanoSec()).
      * <p>
      * If an update to the last transformation is not yet available when the provide()

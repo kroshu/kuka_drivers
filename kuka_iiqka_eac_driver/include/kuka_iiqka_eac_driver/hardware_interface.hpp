@@ -15,25 +15,19 @@
 #ifndef KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 #define KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 
-#include <vector>
-#include <string>
-#include <memory>
 #include <chrono>
 #include <cmath>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
 
-#include "rclcpp/macros.hpp"
-
-#include "hardware_interface/handle.hpp"
-#include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
-#include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "pluginlib/class_list_macros.hpp"
+#include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-
-#include "pluginlib/class_list_macros.hpp"
 
 #include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 #include "nanopb/kuka/core/motion/joint.pb.hh"
@@ -54,8 +48,8 @@ class KukaEACHardwareInterface : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEACHardwareInterface)
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_init(const hardware_interface::HardwareInfo & info)
-  override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
+  on_init(const hardware_interface::HardwareInfo & info) override;
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
   export_state_interfaces() override;
@@ -63,22 +57,20 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
   export_command_interfaces() override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_configure(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
+  on_configure(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_activate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn on_deactivate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type read(
-    const rclcpp::Time & time,
-    const rclcpp::Duration & period) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
+  read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type write(
-    const rclcpp::Time & time,
-    const rclcpp::Duration & period) override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
+  write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL void ObserveControl();
@@ -105,7 +97,7 @@ private:
   std::thread observe_thread_;
 
   std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
-  std::chrono::milliseconds receive_timeout_ {100};
+  std::chrono::milliseconds receive_timeout_{100};
 
   uint8_t out_buff_arr_[1500];
 
@@ -113,12 +105,6 @@ private:
     nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
   nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
     nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
-
-  static constexpr char CONF_PREFIX[] = "runtime_config";
-
-  static constexpr char HW_IF_STIFFNESS[] = "stiffness";
-  static constexpr char HW_IF_DAMPING[] = "damping";
-  static constexpr char CONTROL_MODE[] = "control_mode";
 };
 }  // namespace kuka_eac
 

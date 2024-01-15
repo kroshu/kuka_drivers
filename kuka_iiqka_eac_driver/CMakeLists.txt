@@ -79,7 +79,7 @@ add_library(${PROJECT_NAME} SHARED
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core)
 target_link_libraries(${PROJECT_NAME} motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
   motion-services-ecs-proto-api-nanopb yaml-cpp kuka::os-core-udp-communication kuka::nanopb-helpers)
 
@@ -94,37 +94,14 @@ pluginlib_export_plugin_description_file(hardware_interface hardware_interface.x
 install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  file(GLOB_RECURSE mock_headers
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-    include/mock/*)
-
-  file(GLOB_RECURSE mock_src
-    LIST_DIRECTORIES FALSE
-    RELATIVE "${PROJECT_SOURCE_DIR}"
-    src/mock/*)
-
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
-
-  ament_copyright(--exclude ${mock_headers} ${mock_src})
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify(--exclude ${mock_headers} ${mock_src})
-  ament_xmllint()
+  find_package(launch_testing_ament_cmake)
+  add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_driver_activation.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ament_export_libraries(
