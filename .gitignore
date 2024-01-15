@@ -1,1 +1,3 @@
 build*
+CMake*.user
+.idea
