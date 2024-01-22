@@ -52,6 +52,9 @@ def launch_setup(context, *args, **kwargs):
                 ]
             ),
             " ",
+            "controller_ip:=",
+            controller_ip,
+            " ",
             "use_fake_hardware:=",
             use_fake_hardware,
             " ",
