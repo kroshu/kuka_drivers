@@ -94,6 +94,7 @@ public:
 private:
   bool is_active_ = false;
   bool active_read_ = false;
+  std::string controller_ip_;
   KUKA::FRI::UdpConnection udp_connection_;
   KUKA::FRI::HWIFClientApplication client_application_;
 

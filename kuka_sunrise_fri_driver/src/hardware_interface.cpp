@@ -24,6 +24,7 @@ namespace kuka_sunrise_fri_driver
 CallbackReturn KukaFRIHardwareInterface::on_init(
   const hardware_interface::HardwareInfo & system_info)
 {
+  controller_ip_ = info_.hardware_parameters.at("controller_ip");
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
@@ -122,7 +123,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  if (!client_application_.connect(30200, nullptr))
+  if (!client_application_.connect(30200, controller_ip_))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect");
     return CallbackReturn::FAILURE;
