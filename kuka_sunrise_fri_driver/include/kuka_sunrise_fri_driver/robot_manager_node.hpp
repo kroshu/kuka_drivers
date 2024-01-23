@@ -51,28 +51,20 @@ public:
   virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State &);
 
-  bool activateControl();
-  bool deactivateControl();
-
 private:
   std::shared_ptr<FRIConnection> fri_connection_;
   std::unique_ptr<ConfigurationManager> configuration_manager_;
-  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr
-    command_state_changed_publisher_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
   std::string controller_name_;
-  std::string robot_model_;
 
   void handleControlEndedError();
   void handleFRIEndedError();
-  bool onRobotModelChangeRequest(const std::string & robot_model);
 };
 
 }  // namespace kuka_sunrise_fri_driver

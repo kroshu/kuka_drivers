@@ -211,7 +211,6 @@ public class FRIManager{
 		public CommandResult activateControl(){
 			FRIJointOverlay friJointOverlay =
 					new FRIJointOverlay(FRIManager.this._FRISession, FRIManager.this._clientCommandMode);
-			//friJointOverlay.overrideJointAcceleration(20.0);
 			PositionHold motion =
 					new PositionHold(FRIManager.this._controlMode, -1, null);
 			FRIManager.this._motionContainer =

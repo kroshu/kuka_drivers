@@ -29,28 +29,40 @@ ConfigurationManager::ConfigurationManager(
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = robot_manager_node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  param_cbg_ =
-    robot_manager_node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  receive_multiplier_client_ =
-    robot_manager_node->create_client<kuka_driver_interfaces::srv::SetInt>(
-      "fri_configuration_controller/set_receive_multiplier", qos.get_rmw_qos_profile(), cbg_);
+  fri_config_client_ =
+    robot_manager_node->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
+      "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
 
-  robot_manager_node_->registerParameter<std::string>(
+  robot_manager_node_->registerStaticParameter<std::string>(
+    "robot_model", "lbr_iiwa14_r820",
+    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
+    [this](const std::string & robot_model)
+    { return this->onRobotModelChangeRequest(robot_model); });
+
+  robot_manager_node_->registerStaticParameter<std::string>(
     "controller_ip", "",
-    kuka_drivers_core::ParameterSetAccessRights{false, false, false, false, true},
+    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
     [this](const std::string & controller_ip)
     { return this->onControllerIpChangeRequest(controller_ip); });
-
-  set_parameter_service_ = robot_manager_node->create_service<std_srvs::srv::Trigger>(
-    "configuration_manager/set_params",
-    [this](
-      std_srvs::srv::Trigger::Request::SharedPtr,
-      std_srvs::srv::Trigger::Response::SharedPtr response) { this->setParameters(response); },
-    ::rmw_qos_profile_default, param_cbg_);
 
   get_controllers_client_ =
     robot_manager_node->create_client<controller_manager_msgs::srv::ListControllers>(
       "controller_manager/list_controllers", qos.get_rmw_qos_profile(), cbg_);
+}
+
+bool ConfigurationManager::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  auto ns = std::string(robot_manager_node_->get_namespace());
+  // Remove '/' from namespace (even empty namespace contains one '/')
+  ns.erase(ns.begin());
+
+  // Add '_' to prefix
+  if (ns.size() > 0)
+  {
+    ns += "_";
+  }
+  robot_model_ = ns + robot_model;
+  return true;
 }
 
 bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
@@ -104,7 +116,7 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
   {
     try
     {
-      return fri_connection_->setJointImpedanceControlMode(joint_stiffness_, joint_damping_);
+      return fri_connection_->setJointImpedanceControlMode({}, {});
     }
     catch (const std::exception & e)
     {
@@ -121,49 +133,6 @@ bool ConfigurationManager::onControlModeChangeRequest(const std::string & contro
   }
 }
 
-bool ConfigurationManager::onJointStiffnessChangeRequest(
-  const std::vector<double> & joint_stiffness)
-{
-  if (joint_stiffness.size() != 7)
-  {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Invalid parameter array length for parameter joint stiffness");
-    return false;
-  }
-  for (double js : joint_stiffness)
-  {
-    if (js < 0)
-    {
-      RCLCPP_ERROR(robot_manager_node_->get_logger(), "Joint stiffness values must be >=0");
-      return false;
-    }
-  }
-  joint_stiffness_ = joint_stiffness;
-  return true;
-}
-
-bool ConfigurationManager::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
-{
-  if (joint_damping.size() != 7)
-  {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(),
-      "Invalid parameter array length for parameter joint damping");
-    return false;
-  }
-  for (double jd : joint_damping)
-  {
-    if (jd < 0 || jd > 1)
-    {
-      RCLCPP_ERROR(robot_manager_node_->get_logger(), "Joint damping values must be >=0 && <=1");
-      return false;
-    }
-  }
-  joint_damping_ = joint_damping;
-  return true;
-}
-
 bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) const
 {
   if (send_period < 1 || send_period > 100)
@@ -175,7 +144,7 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) co
   return true;
 }
 
-bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier) const
+bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_multiplier)
 {
   if (receive_multiplier < 1)
   {
@@ -302,13 +271,22 @@ bool ConfigurationManager::setCommandMode(const std::string & command_mode) cons
   return true;
 }
 
-bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
+bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 {
   // Set receive multiplier of hardware interface through controller manager service
-  auto request = std::make_shared<kuka_driver_interfaces::srv::SetInt::Request>();
-  request->data = receive_multiplier;
-  auto response = kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetInt::Response>(
-    receive_multiplier_client_, request, 0, 1000);
+  if(!setFriConfiguration(send_period_ms_, receive_multiplier)) return false;
+
+  receive_multiplier_ = receive_multiplier;
+  return true;
+}
+
+bool ConfigurationManager::setFriConfiguration(int send_period_ms, int receive_multiplier)
+{
+  auto request = std::make_shared<kuka_driver_interfaces::srv::SetFriConfiguration::Request>();
+  request->receive_multiplier = receive_multiplier;
+  request->send_period_ms = send_period_ms;
+  auto response = kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetFriConfiguration::Response>(
+    fri_config_client_, request, 0, 1000);
 
   if (!response || !response->success)
   {
@@ -318,12 +296,11 @@ bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier) const
   return true;
 }
 
-void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::SharedPtr response)
+void ConfigurationManager::registerParameters()
 {
   if (configured_)
   {
     RCLCPP_WARN(robot_manager_node_->get_logger(), "Parameters already registered");
-    response->success = true;
     return;
   }
   // The parameter callbacks are called on this thread
@@ -335,18 +312,6 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     "send_period_ms", 10,
     kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
-
-  robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, true, false, true},
-    [this](const std::vector<double> & joint_stiffness)
-    { return this->onJointStiffnessChangeRequest(joint_stiffness); });
-
-  robot_manager_node_->registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, true, false, true},
-    [this](const std::vector<double> & joint_damping)
-    { return this->onJointDampingChangeRequest(joint_damping); });
 
   robot_manager_node_->registerParameter<std::string>(
     "control_mode", POSITION_CONTROL,
@@ -366,12 +331,6 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     [this](const std::string & controller_name)
     { return this->onControllerNameChangeRequest(controller_name, false); });
 
-  robot_manager_node_->registerParameter<std::string>(
-    "command_mode", POSITION_COMMAND,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, true, false, true},
-    [this](const std::string & command_mode)
-    { return this->onCommandModeChangeRequest(command_mode); });
-
   robot_manager_node_->registerParameter<int>(
     "receive_multiplier", 1,
     kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
@@ -379,6 +338,6 @@ void ConfigurationManager::setParameters(std_srvs::srv::Trigger::Response::Share
     { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
   configured_ = true;
-  response->success = true;
+  return;
 }
 }  // namespace kuka_sunrise_fri_driver

@@ -121,19 +121,88 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   return CallbackReturn::SUCCESS;
 }
 
+
+CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+{
+  if (!fri_connection_->isConnected())
+  {
+    if (!fri_connection_->connect(controller_ip_.c_str(), 30000))
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not connect");
+      return CallbackReturn::FAILURE;
+    }
+  }
+  else
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Robot manager is connected in inactive state");
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI");
+}
+
+CallbackReturn KukaFRIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+{
+  if (fri_connection_->isConnected() && !fri_connection_->disconnect())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not disconnect");
+    return CallbackReturn::ERROR;
+  }
+}
+ 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  if (!client_application_.connect(30200, controller_ip_))
+  if (!fri_connection_->setFRIConfig(30200, send_period_ms_, receive_multiplier_))
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not set FRI config");
+    return CallbackReturn::FAILURE;
+
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
+
+  if (!client_application_.connect(30200, controller_ip_.c_str()))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect");
     return CallbackReturn::FAILURE;
   }
   is_active_ = true;
   return CallbackReturn::SUCCESS;
+
+    // Start FRI (in monitoring mode)
+  if (!fri_connection_->startFRI())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
+
+  // Start commanding mode
+  if (!activateControl())
+  {
+    return CallbackReturn::FAILURE;
+  }
 }
 
 CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
+  if (!fri_connection_->isConnected())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
+    return CallbackReturn::ERROR;
+  }
+
+  if (!this->deactivateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
+    return CallbackReturn::ERROR;
+  }
+
+  if (!fri_connection_->endFRI())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not end FRI");
+    return CallbackReturn::ERROR;
+  }
+
+
   client_application_.disconnect();
   is_active_ = false;
   return CallbackReturn::SUCCESS;
@@ -322,6 +391,9 @@ KukaFRIHardwareInterface::export_command_interfaces()
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
+    &send_period_ms_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_)
@@ -339,6 +411,40 @@ KukaFRIHardwareInterface::export_command_interfaces()
   }
   return command_interfaces;
 }
+
+bool KukaFRIHardwareInterface::activateControl()
+{
+  if (!fri_connection_->isConnected())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
+    return false;
+  }
+
+  if (!fri_connection_->activateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
+    return false;
+  }
+  return true;
+}
+
+bool KukaFRIHardwareInterface::deactivateControl()
+{
+  if (!fri_connection_->isConnected())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
+    return false;
+  }
+
+  if (!fri_connection_->deactivateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
+    return false;
+  }
+  return true;
+}
+
+
 }  // namespace kuka_sunrise_fri_driver
 
 PLUGINLIB_EXPORT_CLASS(

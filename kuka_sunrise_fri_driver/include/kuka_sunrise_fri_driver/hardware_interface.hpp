@@ -25,12 +25,13 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "hardware_interface/system_interface.hpp"
-#include "kuka_driver_interfaces/srv/set_int.hpp"
+#include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
 
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friClientIf.h"
 #include "fri_client_sdk/friLBRClient.h"
 #include "fri_client_sdk/friUdpConnection.h"
+#include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/visibility_control.h"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -60,6 +61,10 @@ public:
   }
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_init(const hardware_interface::HardwareInfo & info) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_activate(const rclcpp_lifecycle::State & previous_state) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
@@ -97,13 +102,13 @@ private:
   std::string controller_ip_;
   KUKA::FRI::UdpConnection udp_connection_;
   KUKA::FRI::HWIFClientApplication client_application_;
-
-  rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
+  std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::Clock ros_clock_;
 
   // Command interface must be of type double, but controller can set only integers
   // this is a temporary solution, until runtime parameters are supported for hardware interfaces
   double receive_multiplier_ = 1;
+  double send_period_ms_ = 10;
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 
@@ -129,6 +134,9 @@ private:
   };
 
   RobotState robot_state_;
+
+  bool activateControl();
+  bool deactivateControl();
 
   KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {
