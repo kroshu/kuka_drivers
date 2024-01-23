@@ -1,0 +1,6 @@
+# Attempt to set the FRI configuration through a controller and indicate and explain if RPC failed
+int32 receive_multiplier
+int32 send_period_ms
+---
+bool success
+string reason
