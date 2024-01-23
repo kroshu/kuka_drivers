@@ -68,26 +68,21 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  auto result = SUCCESS;
-
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {"fri_configuration_controller", "fri_state_broadcaster"},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
-    result = FAILURE;
+    return FAILURE;
   }
 
-  if (result == SUCCESS)
-  {
-    configuration_manager_->registerParameters();
-    is_configured_pub_->on_activate();
-    is_configured_msg_.data = true;
-    is_configured_pub_->publish(is_configured_msg_);
-  }
+  configuration_manager_->registerParameters();
+  is_configured_pub_->on_activate();
+  is_configured_msg_.data = true;
+  is_configured_pub_->publish(is_configured_msg_);
 
-  return result;
+  return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -181,7 +176,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
         change_controller_state_client_, {}, {controller_name_, "joint_state_broadcaster"},
         SwitchController::Request::BEST_EFFORT))
   {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate controllers");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
     return ERROR;
   }
 

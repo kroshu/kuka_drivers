@@ -53,10 +53,8 @@ private:
   std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node_;
   std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::CallbackGroup::SharedPtr param_cbg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;
   rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
 
   int receive_multiplier_;
   int send_period_ms_;
