@@ -38,6 +38,7 @@ static constexpr char FRI_STATE_PREFIX[] = "fri_state";
 static constexpr char CONTROL_MODE[] = "control_mode";
 // Constant defining the receive multiplier interface needed for FRI
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
+static constexpr char SEND_PERIOD[] = "send_period_ms";
 
 /* FRI state interfaces */
 static constexpr char SESSION_STATE[] = "session_state";

@@ -45,6 +45,43 @@ ConfigurationManager::ConfigurationManager(
     "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
     [this](const std::string & controller_ip)
     { return this->onControllerIpChangeRequest(controller_ip); });
+
+  robot_manager_node_->registerParameter<int>(
+    "send_period_ms", 10,
+    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
+    [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
+
+  robot_manager_node_->registerParameter<int>(
+    "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
+    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false},
+    [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "position_controller_name", "",
+    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE);
+    });
+
+  robot_manager_node_->registerParameter<std::string>(
+    "torque_controller_name", "",
+    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
+    });
+
+  robot_manager_node_->registerParameter<int>(
+    "receive_multiplier", 1,
+    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
+    [this](const int & receive_multiplier)
+    { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
+
+  // TODO(Svastits): consider readding stiffness and damping as params, that update the joint imp
+  // controller
 }
 
 bool ConfigurationManager::onRobotModelChangeRequest(const std::string & robot_model)
@@ -211,59 +248,10 @@ bool ConfigurationManager::setFriConfiguration(int send_period_ms, int receive_m
 
   if (!response || !response->success)
   {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not set receive_multiplier");
+    RCLCPP_ERROR(
+      robot_manager_node_->get_logger(), "Could not set receive_multiplierFRI configuration");
     return false;
   }
   return true;
-}
-
-void ConfigurationManager::registerParameters()
-{
-  if (configured_)
-  {
-    RCLCPP_WARN(robot_manager_node_->get_logger(), "Parameters already registered");
-    return;
-  }
-  // The parameter callbacks are called on this thread
-  // Response is sent only after all parameters are declared (or error occurs)
-  // Parameter exceptions are intentionally not caught, because in case of an invalid
-  //   parameter type (or value), the nodes must be launched again with changed parameters
-  //   because they could not be declared, therefore change is not possible in runtime
-  robot_manager_node_->registerParameter<int>(
-    "send_period_ms", 10,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
-    [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
-
-  robot_manager_node_->registerParameter<int>(
-    "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
-    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false},
-    [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
-
-  robot_manager_node_->registerParameter<std::string>(
-    "position_controller_name", "",
-    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
-    [this](const std::string & controller_name)
-    {
-      return this->onControllerNameChangeRequest(
-        controller_name, kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE);
-    });
-
-  robot_manager_node_->registerParameter<std::string>(
-    "torque_controller_name", "",
-    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
-    [this](const std::string & controller_name)
-    {
-      return this->onControllerNameChangeRequest(
-        controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
-    });
-
-  robot_manager_node_->registerParameter<int>(
-    "receive_multiplier", 1,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
-    [this](const int & receive_multiplier)
-    { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
-
-  configured_ = true;
-  return;
 }
 }  // namespace kuka_sunrise_fri_driver

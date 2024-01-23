@@ -127,45 +127,49 @@ CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   {
     if (!fri_connection_->connect(controller_ip_.c_str(), 30000))
     {
-      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not connect");
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Could not initialize TCP connection to controller");
       return CallbackReturn::FAILURE;
     }
+    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI");
   }
   else
   {
     RCLCPP_ERROR(
       rclcpp::get_logger("KukaFRIHardwareInterface"),
-      "Robot manager is connected in inactive state");
+      "FRI connection was already up before configuration");
+    return CallbackReturn::ERROR;
+  }
+
+  if (!fri_connection_->setFRIConfig(30200, send_period_ms_, receive_multiplier_))
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
     return CallbackReturn::FAILURE;
   }
-  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI");
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaFRIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  if (fri_connection_->isConnected() && !fri_connection_->disconnect())
+  if (!fri_connection_->disconnect())
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not disconnect");
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaFRIHardwareInterface"),
+      "Could not close TCP connection to controller");
     return CallbackReturn::ERROR;
   }
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  if (!fri_connection_->setFRIConfig(30200, send_period_ms_, receive_multiplier_))
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "could not set FRI config");
-    return CallbackReturn::FAILURE;
-  }
-  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
-
   if (!client_application_.connect(30200, controller_ip_.c_str()))
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect to controller");
     return CallbackReturn::FAILURE;
   }
-  is_active_ = true;
-  return CallbackReturn::SUCCESS;
 
   // Start FRI (in monitoring mode)
   if (!fri_connection_->startFRI())
@@ -180,16 +184,12 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   {
     return CallbackReturn::FAILURE;
   }
+  is_active_ = true;
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  if (!fri_connection_->isConnected())
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
-    return CallbackReturn::ERROR;
-  }
-
   if (!this->deactivateControl())
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
@@ -209,15 +209,10 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 void KukaFRIHardwareInterface::waitForCommand()
 {
+  // Update first commmmand based on the actual state
   hw_commands_ = hw_states_;
-  hw_effort_command_ = hw_torques_;
-  // TODO(Svastits): is this really the purpose of waitForCommand?
   rclcpp::Time stamp = ros_clock_.now();
-  if (++receive_counter_ == receive_multiplier_)
-  {
-    updateCommand(stamp);
-    receive_counter_ = 0;
-  }
+  updateCommand(stamp);
 }
 
 void KukaFRIHardwareInterface::command()
@@ -279,7 +274,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
 hardware_interface::return_type KukaFRIHardwareInterface::write(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // Client app update and read must be called if read has been called in current cycle
+  // Client app update and read must be called only if read has been called in current cycle
   if (!active_read_)
   {
     RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
@@ -308,21 +303,31 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
-  if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE)
+
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
   {
-    const double * joint_torques_ = hw_effort_command_.data();
-    robotCommand().setJointPosition(robotState().getIpoJointPosition());
-    robotCommand().setTorque(joint_torques_);
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      [[fallthrough]];
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+    {
+      const double * joint_positions_ = hw_commands_.data();
+      robotCommand().setJointPosition(joint_positions_);
+      break;
+    }
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+    {
+      const double * joint_torques_ = hw_effort_command_.data();
+      robotCommand().setJointPosition(robotState().getIpoJointPosition());
+      robotCommand().setTorque(joint_torques_);
+      break;
+    }
+    default:
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Unsupported control mode, exiting updateCommand");
+      return;
   }
-  else if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::POSITION)
-  {
-    const double * joint_positions_ = hw_commands_.data();
-    robotCommand().setJointPosition(joint_positions_);
-  }
-  else
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported command mode");
-  }
+
   for (auto & input : gpio_inputs_)
   {
     input.setValue();
@@ -388,10 +393,12 @@ KukaFRIHardwareInterface::export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &control_mode_);
+  command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER, &send_period_ms_);
+    hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD, &send_period_ms_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_)

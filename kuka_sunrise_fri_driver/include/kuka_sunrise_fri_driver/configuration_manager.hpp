@@ -43,12 +43,10 @@ public:
   explicit ConfigurationManager(
     std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node);
 
-  void registerParameters();
   std::string getRobotModel() { return robot_model_; }
   std::string GetControllerName();
 
 private:
-  bool configured_ = false;
   std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;

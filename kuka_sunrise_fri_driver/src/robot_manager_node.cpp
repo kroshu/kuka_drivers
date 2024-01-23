@@ -69,14 +69,14 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"fri_configuration_controller", "fri_state_broadcaster"},
+        change_controller_state_client_,
+        {"fri_configuration_controller", "fri_state_broadcaster", "joint_impedance_controller"},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
   }
 
-  configuration_manager_->registerParameters();
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -91,7 +91,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "fri_state_broadcaster"},
+        {"fri_configuration_controller", "fri_state_broadcaster", "joint_impedance_controller"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -135,11 +135,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    // 'unset config' does not exist, safe to return
     return FAILURE;
   }
 
-  // Activate joint state broadcaster and controller(s) for given control mode
+  // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
         {"joint_state_broadcaster", configuration_manager_->GetControllerName()}, {}))

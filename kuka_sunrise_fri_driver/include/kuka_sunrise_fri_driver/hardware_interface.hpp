@@ -26,6 +26,7 @@
 
 #include "hardware_interface/system_interface.hpp"
 #include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
+#include "kuka_drivers_core/control_mode.hpp"
 
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friClientIf.h"
@@ -107,6 +108,7 @@ private:
 
   // Command interface must be of type double, but controller can set only integers
   // this is a temporary solution, until runtime parameters are supported for hardware interfaces
+  double control_mode_ = 0;  // default to undefined
   double receive_multiplier_ = 1;
   double send_period_ms_ = 10;
   int receive_counter_ = 0;
