@@ -51,9 +51,9 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
-    configuration_manager_ = std::make_unique<ConfigurationManager>(
-      std::dynamic_pointer_cast<kuka_drivers_core::ROS2BaseLCNode>(this->shared_from_this()),
-      fri_connection_);
+  configuration_manager_ = std::make_unique<ConfigurationManager>(
+    std::dynamic_pointer_cast<kuka_drivers_core::ROS2BaseLCNode>(this->shared_from_this()),
+    fri_connection_);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -189,7 +189,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     get_logger(), "Successfully deactivated driver, reactivation is possible after 5 seconds");
   return SUCCESS;
 }
-
 
 void RobotManagerNode::handleControlEndedError()
 {

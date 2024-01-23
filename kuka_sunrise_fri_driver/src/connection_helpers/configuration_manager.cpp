@@ -40,8 +40,7 @@ ConfigurationManager::ConfigurationManager(
     { return this->onRobotModelChangeRequest(robot_model); });
 
   robot_manager_node_->registerStaticParameter<std::string>(
-    "controller_ip", "",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
     [this](const std::string & controller_ip)
     { return this->onControllerIpChangeRequest(controller_ip); });
 
@@ -274,7 +273,10 @@ bool ConfigurationManager::setCommandMode(const std::string & command_mode) cons
 bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
 {
   // Set receive multiplier of hardware interface through controller manager service
-  if(!setFriConfiguration(send_period_ms_, receive_multiplier)) return false;
+  if (!setFriConfiguration(send_period_ms_, receive_multiplier))
+  {
+    return false;
+  }
 
   receive_multiplier_ = receive_multiplier;
   return true;
@@ -285,8 +287,9 @@ bool ConfigurationManager::setFriConfiguration(int send_period_ms, int receive_m
   auto request = std::make_shared<kuka_driver_interfaces::srv::SetFriConfiguration::Request>();
   request->receive_multiplier = receive_multiplier;
   request->send_period_ms = send_period_ms;
-  auto response = kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetFriConfiguration::Response>(
-    fri_config_client_, request, 0, 1000);
+  auto response =
+    kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetFriConfiguration::Response>(
+      fri_config_client_, request, 0, 1000);
 
   if (!response || !response->success)
   {
