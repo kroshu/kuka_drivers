@@ -34,6 +34,8 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration("yaw")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    jic_config = LaunchConfiguration("jic_config")
+    ec_config = LaunchConfiguration("ec_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -96,7 +98,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config, jtc_config],
+        parameters=[robot_description, controller_config, jtc_config, jic_config, ec_config],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -137,6 +139,8 @@ def launch_setup(context, *args, **kwargs):
         "joint_trajectory_controller",
         "fri_configuration_controller",
         "fri_state_broadcaster",
+        "joint_group_impedance_controller",
+        "effort_controller",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -174,6 +178,20 @@ def generate_launch_description():
             "jtc_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "jic_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/joint_impedance_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "ec_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/effort_controller_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

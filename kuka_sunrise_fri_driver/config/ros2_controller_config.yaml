@@ -4,14 +4,17 @@ controller_manager:
 
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-
+    effort_controller:
+      type: effort_controllers/JointGroupPositionController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-
-    fri_configuration_controller:
-      type: kuka_controllers/FRIConfigurationController
-
     fri_state_broadcaster:
       type: kuka_controllers/FRIStateBroadcaster
+
+    # Configuration controllers 
+    joint_group_impedance_controller:
+      type: kuka_controllers/JointGroupImpedanceController
+    fri_configuration_controller:
+      type: kuka_controllers/FRIConfigurationController
 
     configure_components_on_start: [""]
