@@ -52,8 +52,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   configuration_manager_ = std::make_unique<ConfigurationManager>(
-    std::dynamic_pointer_cast<kuka_drivers_core::ROS2BaseLCNode>(this->shared_from_this()),
-    fri_connection_);
+    std::dynamic_pointer_cast<kuka_drivers_core::ROS2BaseLCNode>(this->shared_from_this()));
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -140,15 +139,10 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
-  controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
-                       ? position_controller_name
-                       : torque_controller_name;
-
   // Activate joint state broadcaster and controller(s) for given control mode
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_state_broadcaster", controller_name_}, {}))
+        change_controller_state_client_,
+        {"joint_state_broadcaster", configuration_manager_->GetControllerName()}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -173,7 +167,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, {controller_name_, "joint_state_broadcaster"},
+        change_controller_state_client_, {},
+        {configuration_manager_->GetControllerName(), "joint_state_broadcaster"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");

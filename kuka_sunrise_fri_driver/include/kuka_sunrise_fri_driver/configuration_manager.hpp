@@ -26,9 +26,10 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "std_msgs/msg/u_int32.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
 
+#include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 namespace kuka_sunrise_fri_driver
@@ -39,43 +40,36 @@ class RobotManager;
 class ConfigurationManager
 {
 public:
-  ConfigurationManager(
-    std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node,
-    std::shared_ptr<FRIConnection> fri_connection);
+  explicit ConfigurationManager(
+    std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node);
 
   void registerParameters();
   std::string getRobotModel() { return robot_model_; }
+  std::string GetControllerName();
 
 private:
   bool configured_ = false;
-  bool position_controller_available_ = false;
-  bool torque_controller_available_ = false;
   std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node_;
-  std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;
   rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
+  std_msgs::msg::UInt32 control_mode_msg_;
 
   int receive_multiplier_;
   int send_period_ms_;
   std::string robot_model_;
+  std::string joint_pos_controller_name_;
+  std::string joint_torque_controller_name_;
 
-  const std::string POSITION_COMMAND = "position";
-  const std::string TORQUE_COMMAND = "torque";
-  const std::string POSITION_CONTROL = "position";
-  const std::string IMPEDANCE_CONTROL = "joint_impedance";
-
-  bool onCommandModeChangeRequest(const std::string & command_mode) const;
-  bool onControlModeChangeRequest(const std::string & control_mode) const;
+  bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
-  bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
-  bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
-  bool onSendPeriodChangeRequest(const int & send_period) const;
+  bool onSendPeriodChangeRequest(int send_period);
+  bool setReceiveMultiplier(int receive_multiplier);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
   bool onControllerIpChangeRequest(const std::string & controller_ip) const;
-  bool onControllerNameChangeRequest(const std::string & controller_name, bool position);
-  bool setCommandMode(const std::string & control_mode) const;
-  bool setReceiveMultiplier(int receive_multiplier);
+  bool onControllerNameChangeRequest(
+    const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
   bool setFriConfiguration(int send_period_ms, int receive_multiplier);
 };
 }  // namespace kuka_sunrise_fri_driver

@@ -346,7 +346,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   }
 
   RCLCPP_INFO(get_logger(), "Control mode change requested");
-  // TODO(komaromi): Remove this if a new control mode is supported
   if (
     control_mode == static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL) ||
     control_mode == static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL) ||

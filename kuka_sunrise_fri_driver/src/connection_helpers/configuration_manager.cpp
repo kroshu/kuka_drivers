@@ -22,9 +22,8 @@
 namespace kuka_sunrise_fri_driver
 {
 ConfigurationManager::ConfigurationManager(
-  std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node,
-  std::shared_ptr<FRIConnection> fri_connection)
-: robot_manager_node_(robot_manager_node), fri_connection_(fri_connection)
+  std::shared_ptr<kuka_drivers_core::ROS2BaseLCNode> robot_manager_node)
+: robot_manager_node_(robot_manager_node)
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -32,6 +31,9 @@ ConfigurationManager::ConfigurationManager(
   fri_config_client_ =
     robot_manager_node->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
       "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
+
+  control_mode_pub_ = robot_manager_node->create_publisher<std_msgs::msg::UInt32>(
+    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   robot_manager_node_->registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820",
@@ -43,10 +45,6 @@ ConfigurationManager::ConfigurationManager(
     "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false, false},
     [this](const std::string & controller_ip)
     { return this->onControllerIpChangeRequest(controller_ip); });
-
-  get_controllers_client_ =
-    robot_manager_node->create_client<controller_manager_msgs::srv::ListControllers>(
-      "controller_manager/list_controllers", qos.get_rmw_qos_profile(), cbg_);
 }
 
 bool ConfigurationManager::onRobotModelChangeRequest(const std::string & robot_model)
@@ -64,75 +62,39 @@ bool ConfigurationManager::onRobotModelChangeRequest(const std::string & robot_m
   return true;
 }
 
-bool ConfigurationManager::onCommandModeChangeRequest(const std::string & command_mode) const
+bool ConfigurationManager::onControlModeChangeRequest(int control_mode)
 {
-  if (command_mode == POSITION_COMMAND)
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode))
   {
-    if (!position_controller_available_ || !setCommandMode(POSITION_COMMAND))
-    {
-      return false;
-    }
-  }
-  else if (command_mode == TORQUE_COMMAND)
-  {
-    if (robot_manager_node_->get_parameter("control_mode").as_string() != IMPEDANCE_CONTROL)
-    {
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      break;
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+      // TODO(Svastits): check whether this is necessary for impedance mode too
+      [[fallthrough]];
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+      if (send_period_ms_ > 5)
+      {
+        RCLCPP_ERROR(
+          robot_manager_node_->get_logger(),
+          "Unable to set non-position control mode, if send period is bigger than 5 [ms]");
+        return false;
+      }
+      break;
+    default:
       RCLCPP_ERROR(
-        robot_manager_node_->get_logger(),
-        "Unable to set torque command mode, if control mode is not 'joint impedance'");
+        robot_manager_node_->get_logger(), "Tried to change to a not implemented control mode");
       return false;
-    }
-    if (robot_manager_node_->get_parameter("send_period_ms").as_int() > 5)
-    {
-      RCLCPP_ERROR(
-        robot_manager_node_->get_logger(),
-        "Unable to set torque command mode, if send period is bigger than 5 [ms]");
-      return false;
-    }
-    if (!torque_controller_available_ || !setCommandMode(TORQUE_COMMAND))
-    {
-      return false;
-    }
   }
-  else
-  {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Command mode should be '%s' or '%s'",
-      POSITION_COMMAND.c_str(), TORQUE_COMMAND.c_str());
-    return false;
-  }
-  RCLCPP_INFO(robot_manager_node_->get_logger(), "Successfully set command mode");
+
+  // Publish the control mode to controller handler
+  control_mode_msg_.data = control_mode;
+  control_mode_pub_->publish(control_mode_msg_);
+  RCLCPP_INFO(robot_manager_node_->get_logger(), "Control mode change successful");
+
   return true;
 }
 
-bool ConfigurationManager::onControlModeChangeRequest(const std::string & control_mode) const
-{
-  if (control_mode == POSITION_CONTROL)
-  {
-    return fri_connection_->setPositionControlMode();
-  }
-  else if (control_mode == IMPEDANCE_CONTROL)
-  {
-    try
-    {
-      return fri_connection_->setJointImpedanceControlMode({}, {});
-    }
-    catch (const std::exception & e)
-    {
-      RCLCPP_ERROR(robot_manager_node_->get_logger(), e.what());
-    }
-    return false;
-  }
-  else
-  {
-    RCLCPP_ERROR(
-      robot_manager_node_->get_logger(), "Control mode should be '%s' or '%s'",
-      POSITION_CONTROL.c_str(), IMPEDANCE_CONTROL.c_str());
-    return false;
-  }
-}
-
-bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) const
+bool ConfigurationManager::onSendPeriodChangeRequest(int send_period)
 {
   if (send_period < 1 || send_period > 100)
   {
@@ -140,6 +102,13 @@ bool ConfigurationManager::onSendPeriodChangeRequest(const int & send_period) co
       robot_manager_node_->get_logger(), "Send period milliseconds must be >=1 && <=100");
     return false;
   }
+  // Set send period of hardware interface through controller manager service
+  if (!setFriConfiguration(send_period, receive_multiplier_))
+  {
+    return false;
+  }
+
+  send_period_ms_ = send_period;
   return true;
 }
 
@@ -150,10 +119,14 @@ bool ConfigurationManager::onReceiveMultiplierChangeRequest(const int & receive_
     RCLCPP_ERROR(robot_manager_node_->get_logger(), "Receive multiplier must be >=1");
     return false;
   }
-  if (!setReceiveMultiplier(receive_multiplier))
+
+  // Set receive multiplier of hardware interface through controller manager service
+  if (!setFriConfiguration(send_period_ms_, receive_multiplier))
   {
     return false;
   }
+
+  receive_multiplier_ = receive_multiplier;
   return true;
 }
 
@@ -192,94 +165,39 @@ bool ConfigurationManager::onControllerIpChangeRequest(const std::string & contr
 }
 
 bool ConfigurationManager::onControllerNameChangeRequest(
-  const std::string & controller_name, bool position)
+  const std::string & controller_name, kuka_drivers_core::ControllerType controller_type)
 {
-  auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
-  auto response =
-    kuka_drivers_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(
-      get_controllers_client_, request, 0, 1000);
-
-  if (!response)
+  switch (controller_type)
   {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Could not get controller names");
-    return false;
-  }
-
-  if (controller_name == "")
-  {
-    RCLCPP_WARN(
-      robot_manager_node_->get_logger(), "Controller for %s command mode not available",
-      position ? POSITION_COMMAND.c_str() : TORQUE_COMMAND.c_str());
-    if (position)
-    {
-      position_controller_available_ = false;
-    }
-    else
-    {
-      torque_controller_available_ = false;
-    }
-    return true;
-  }
-
-  for (const auto & controller : response->controller)
-  {
-    if (controller_name == controller.name)
-    {
-      if (position)
-      {
-        position_controller_available_ = true;
-      }
-      else
-      {
-        torque_controller_available_ = true;
-      }
-      return true;
-    }
-  }
-  RCLCPP_ERROR(
-    robot_manager_node_->get_logger(), "Controller name '%s' not available",
-    controller_name.c_str());
-  return false;
-}
-
-bool ConfigurationManager::setCommandMode(const std::string & command_mode) const
-{
-  ClientCommandModeID client_command_mode;
-  if (command_mode == POSITION_COMMAND)
-  {
-    client_command_mode = POSITION_COMMAND_MODE;
-  }
-  else if (command_mode == TORQUE_COMMAND)
-  {
-    client_command_mode = TORQUE_COMMAND_MODE;
-  }
-  else
-  {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid control mode");
-    return false;
-  }
-  if (fri_connection_)
-  {
-    fri_connection_->setClientCommandMode(client_command_mode);
-  }
-  else
-  {
-    RCLCPP_ERROR(robot_manager_node_->get_logger(), "Robot Manager not available");
-    return false;
+    case kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE:
+      joint_pos_controller_name_ = controller_name;
+      break;
+    case kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE:
+      joint_torque_controller_name_ = controller_name;
+      break;
+    default:
+      // This should actually never happen
+      RCLCPP_ERROR(robot_manager_node_->get_logger(), "Invalid controller type");
+      return false;
   }
   return true;
 }
 
-bool ConfigurationManager::setReceiveMultiplier(int receive_multiplier)
+// the joint impedannce attributes cannot be modified in FRI after activation, therefore only one
+// controller controls in each control mode
+std::string ConfigurationManager::GetControllerName()
 {
-  // Set receive multiplier of hardware interface through controller manager service
-  if (!setFriConfiguration(send_period_ms_, receive_multiplier))
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_msg_.data))
   {
-    return false;
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      return joint_pos_controller_name_;
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+      return joint_pos_controller_name_;
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+      return joint_torque_controller_name_;
+    default:
+      throw std::runtime_error("Stored control mode is not allowed");
   }
-
-  receive_multiplier_ = receive_multiplier;
-  return true;
 }
 
 bool ConfigurationManager::setFriConfiguration(int send_period_ms, int receive_multiplier)
@@ -316,23 +234,28 @@ void ConfigurationManager::registerParameters()
     kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
-  robot_manager_node_->registerParameter<std::string>(
-    "control_mode", POSITION_CONTROL,
-    kuka_drivers_core::ParameterSetAccessRights{false, true, true, false, true},
-    [this](const std::string & control_mode)
-    { return this->onControlModeChangeRequest(control_mode); });
+  robot_manager_node_->registerParameter<int>(
+    "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
+    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false},
+    [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
 
   robot_manager_node_->registerParameter<std::string>(
     "position_controller_name", "",
     kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
     [this](const std::string & controller_name)
-    { return this->onControllerNameChangeRequest(controller_name, true); });
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE);
+    });
 
   robot_manager_node_->registerParameter<std::string>(
     "torque_controller_name", "",
     kuka_drivers_core::ParameterSetAccessRights{false, true, false, false, true},
     [this](const std::string & controller_name)
-    { return this->onControllerNameChangeRequest(controller_name, false); });
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
+    });
 
   robot_manager_node_->registerParameter<int>(
     "receive_multiplier", 1,
