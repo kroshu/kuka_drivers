@@ -61,7 +61,7 @@ The control mode specifications are also part of the common API. They are define
 
 - joint position control: the driver streams cyclic position updates for every joint.
     - Needed command interface(s): `position`
-- joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally.
+- joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally. (FRI does not allow changing the impedance attributes in runtime, therefore the initial damping and stiffness values are valid for the whole motion.)
     - Needed command interface(s): `position`, `stiffness`, `damping`
 - joint velocity control: the driver streams cyclic velocity updates for every joint.
     - Needed command interface(s): `velocity`
