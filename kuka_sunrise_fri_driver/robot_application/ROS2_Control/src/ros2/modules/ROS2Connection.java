@@ -174,9 +174,6 @@ public class ROS2Connection {
 			}
 			System.out.println("Command executed.");
 			feedbackCommandSuccess(command, feedbackData);
-			/*if(_disconnect == true){
-				_TCPConnection.closeConnection();
-			}*/
 		} catch(RuntimeException e){
 			System.out.println(e.getMessage());
 			feedbackCommandNoSuccess(command, e.getMessage().getBytes());

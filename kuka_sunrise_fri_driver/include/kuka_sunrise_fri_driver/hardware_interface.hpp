@@ -127,6 +127,8 @@ private:
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_ext_torque_states_;
 
+  static const int TCP_SERVER_PORT = 30000;
+
   struct RobotState
   {
     double tracking_performance_ = 1;

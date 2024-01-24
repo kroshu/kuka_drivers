@@ -67,7 +67,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     if (joint.command_interfaces.size() != 4)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 2 command interface");
+        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 4 command interface");
       return CallbackReturn::ERROR;
     }
 
@@ -75,15 +75,28 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting POSITION command interface as first");
+        "expecting 'POSITION' command interface as first");
       return CallbackReturn::ERROR;
     }
-
+    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_STIFFNESS)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "expecting 'STIFFNESS' command interface as second");
+      return CallbackReturn::ERROR;
+    }
+        if (joint.command_interfaces[2].name != hardware_interface::HW_IF_DAMPING)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "expecting 'DAMPING' command interface as third");
+      return CallbackReturn::ERROR;
+    }
     if (joint.command_interfaces[3].name != hardware_interface::HW_IF_EFFORT)
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting EFFORT command interface as fourth");
+        "expecting 'EFFORT' command interface as fourth");
       return CallbackReturn::ERROR;
     }
 
@@ -98,7 +111,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting POSITION state interface as first");
+        "expecting 'POSITION' state interface as first");
       return CallbackReturn::ERROR;
     }
 
@@ -106,7 +119,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting EFFORT state interface as second");
+        "expecting 'EFFORT' state interface as second");
       return CallbackReturn::ERROR;
     }
 
@@ -126,7 +139,7 @@ CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 {
   if (!fri_connection_->isConnected())
   {
-    if (!fri_connection_->connect(controller_ip_.c_str(), 30000))
+    if (!fri_connection_->connect(controller_ip_.c_str(), TCP_SERVER_PORT))
     {
       RCLCPP_ERROR(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
