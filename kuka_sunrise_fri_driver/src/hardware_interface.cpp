@@ -24,16 +24,17 @@ namespace kuka_sunrise_fri_driver
 CallbackReturn KukaFRIHardwareInterface::on_init(
   const hardware_interface::HardwareInfo & system_info)
 {
-  controller_ip_ = info_.hardware_parameters.at("controller_ip");
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
   }
-  hw_states_.resize(info_.joints.size());
-  hw_commands_.resize(info_.joints.size());
-  hw_torques_.resize(info_.joints.size());
-  hw_torques_ext_.resize(info_.joints.size());
-  hw_effort_command_.resize(info_.joints.size());
+  controller_ip_ = info_.hardware_parameters.at("controller_ip");
+
+  hw_position_states_.resize(info_.joints.size());
+  hw_position_commands_.resize(info_.joints.size());
+  hw_torque_states_.resize(info_.joints.size());
+  hw_ext_torque_states_.resize(info_.joints.size());
+  hw_torque_commands_.resize(info_.joints.size());
 
   if (info_.gpios.size() != 1)
   {
@@ -63,7 +64,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
-    if (joint.command_interfaces.size() != 2)
+    if (joint.command_interfaces.size() != 4)
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 2 command interface");
@@ -78,11 +79,11 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
       return CallbackReturn::ERROR;
     }
 
-    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_EFFORT)
+    if (joint.command_interfaces[3].name != hardware_interface::HW_IF_EFFORT)
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting EFFORT command interface as second");
+        "expecting EFFORT command interface as fourth");
       return CallbackReturn::ERROR;
     }
 
@@ -210,7 +211,7 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 void KukaFRIHardwareInterface::waitForCommand()
 {
   // Update first commmmand based on the actual state
-  hw_commands_ = hw_states_;
+  hw_position_commands_ = hw_position_states_;
   rclcpp::Time stamp = ros_clock_.now();
   updateCommand(stamp);
 }
@@ -247,11 +248,12 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
 
   // get the position and efforts and share them with exposed state interfaces
   const double * position = robotState().getMeasuredJointPosition();
-  hw_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_position_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * torque = robotState().getMeasuredTorque();
-  hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_torque_states_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * external_torque = robotState().getExternalTorque();
-  hw_torques_ext_.assign(external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_ext_torque_states_.assign(
+    external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
   robot_state_.session_state_ = robotState().getSessionState();
@@ -310,13 +312,13 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       [[fallthrough]];
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
     {
-      const double * joint_positions_ = hw_commands_.data();
+      const double * joint_positions_ = hw_position_commands_.data();
       robotCommand().setJointPosition(joint_positions_);
       break;
     }
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
     {
-      const double * joint_torques_ = hw_effort_command_.data();
+      const double * joint_torques_ = hw_torque_commands_.data();
       robotCommand().setJointPosition(robotState().getIpoJointPosition());
       robotCommand().setTorque(joint_torques_);
       break;
@@ -376,13 +378,13 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torques_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_torques_ext_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
   }
   return state_interfaces;
 }
@@ -410,9 +412,13 @@ KukaFRIHardwareInterface::export_command_interfaces()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_effort_command_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
   return command_interfaces;
 }

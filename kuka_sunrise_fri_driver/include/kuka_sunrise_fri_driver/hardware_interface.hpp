@@ -115,11 +115,14 @@ private:
   bool torque_command_mode_ = false;
 
   // State and command interfaces
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_states_;
-  std::vector<double> hw_torques_ext_;
-  std::vector<double> hw_torques_;
-  std::vector<double> hw_effort_command_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_torque_commands_;
+  std::vector<double> hw_stiffness_commands_;
+  std::vector<double> hw_damping_commands_;
+
+  std::vector<double> hw_position_states_;
+  std::vector<double> hw_torque_states_;
+  std::vector<double> hw_ext_torque_states_;
 
   struct RobotState
   {

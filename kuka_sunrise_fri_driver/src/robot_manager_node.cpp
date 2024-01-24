@@ -50,9 +50,8 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
-  fri_config_client_ =
-    this->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
-      "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
+  fri_config_client_ = this->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
+    "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
@@ -69,9 +68,13 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     { return this->onControllerIpChangeRequest(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10,
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
+
+  registerParameter<int>(
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    [this](const int & receive_multiplier)
+    { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
   registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
@@ -79,8 +82,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
 
   registerParameter<std::string>(
-    "position_controller_name", "",
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
     [this](const std::string & controller_name)
     {
       return this->onControllerNameChangeRequest(
@@ -88,19 +90,12 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   registerParameter<std::string>(
-    "torque_controller_name", "",
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
     [this](const std::string & controller_name)
     {
       return this->onControllerNameChangeRequest(
         controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
     });
-
-  registerParameter<int>(
-    "receive_multiplier", 1,
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false},
-    [this](const int & receive_multiplier)
-    { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
   // TODO(Svastits): consider readding stiffness and damping as params, that update the joint imp
   // controller
@@ -109,6 +104,11 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Set FRI configuration of hardware interface through controller manager service
+  if (!setFriConfiguration(send_period_ms_, receive_multiplier_))
+  {
+    return FAILURE;
+  }
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -121,8 +121,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {"fri_configuration_controller", "fri_state_broadcaster", "joint_impedance_controller"},
-        {}))
+        {"fri_configuration_controller", "joint_impedance_controller"}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
@@ -142,7 +141,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "fri_state_broadcaster", "joint_impedance_controller"},
+        {"fri_configuration_controller", "joint_impedance_controller"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -192,7 +191,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {"joint_state_broadcaster", GetControllerName()}, {}))
+        {"joint_state_broadcaster", "fri_state_broadcaster", GetControllerName()},
+        {"joint_impedance_controller"}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -217,8 +217,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {},
-        {GetControllerName(), "joint_state_broadcaster"},
+        change_controller_state_client_, {"joint_impedance_controller"},
+        {GetControllerName(), "joint_state_broadcaster", "fri_state_broadcaster"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
@@ -241,7 +241,6 @@ void RobotManagerNode::handleFRIEndedError()
   RCLCPP_INFO(get_logger(), "FRI ended");
   this->LifecycleNode::deactivate();
 }
-
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
@@ -277,8 +276,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       }
       break;
     default:
-      RCLCPP_ERROR(
-        get_logger(), "Tried to change to a not implemented control mode");
+      RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
       return false;
   }
 
@@ -294,13 +292,7 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
 {
   if (send_period < 1 || send_period > 100)
   {
-    RCLCPP_ERROR(
-      get_logger(), "Send period milliseconds must be >=1 && <=100");
-    return false;
-  }
-  // Set send period of hardware interface through controller manager service
-  if (!setFriConfiguration(send_period, receive_multiplier_))
-  {
+    RCLCPP_ERROR(get_logger(), "Send period milliseconds must be >=1 && <=100");
     return false;
   }
 
@@ -313,12 +305,6 @@ bool RobotManagerNode::onReceiveMultiplierChangeRequest(const int & receive_mult
   if (receive_multiplier < 1)
   {
     RCLCPP_ERROR(get_logger(), "Receive multiplier must be >=1");
-    return false;
-  }
-
-  // Set receive multiplier of hardware interface through controller manager service
-  if (!setFriConfiguration(send_period_ms_, receive_multiplier))
-  {
     return false;
   }
 
@@ -352,8 +338,7 @@ bool RobotManagerNode::onControllerIpChangeRequest(const std::string & controlle
       ip.empty() || (ip.find_first_not_of("[0123456789]") != std::string::npos) || stoi(ip) > 255 ||
       stoi(ip) < 0)
     {
-      RCLCPP_ERROR(
-        get_logger(), "Valid IP must contain only numbers between 0 and 255");
+      RCLCPP_ERROR(get_logger(), "Valid IP must contain only numbers between 0 and 255");
       return false;
     }
   }
@@ -407,8 +392,7 @@ bool RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
 
   if (!response || !response->success)
   {
-    RCLCPP_ERROR(
-      get_logger(), "Could not set receive_multiplierFRI configuration");
+    RCLCPP_ERROR(get_logger(), "Could not set FRI configuration");
     return false;
   }
   return true;

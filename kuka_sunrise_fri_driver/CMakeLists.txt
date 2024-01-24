@@ -85,7 +85,8 @@ target_link_libraries(${PROJECT_NAME} fri_client_sdk)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kuka_drivers_core std_srvs controller_manager_msgs)
+ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kuka_drivers_core std_srvs
+  controller_manager_msgs)
 target_link_libraries(robot_manager_node
   fri_connection)
 

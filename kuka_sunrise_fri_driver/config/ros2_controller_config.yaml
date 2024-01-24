@@ -11,7 +11,7 @@ controller_manager:
     fri_state_broadcaster:
       type: kuka_controllers/FRIStateBroadcaster
 
-    # Configuration controllers 
+    # Configuration controllers
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController
     fri_configuration_controller:

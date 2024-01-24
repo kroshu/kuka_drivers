@@ -28,8 +28,8 @@
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
-#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 

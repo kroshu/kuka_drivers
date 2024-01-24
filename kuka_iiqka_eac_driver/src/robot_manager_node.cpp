@@ -86,8 +86,7 @@ RobotManagerNode::RobotManagerNode()
     kuka_drivers_core::ParameterSetAccessRights{true, true, true},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
   this->registerStaticParameter<std::string>(
-    "controller_ip", "",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false},
     [this](const std::string &) { return true; });
   this->registerStaticParameter<std::string>(
     "robot_model", "lbr_iisy3_r760",
