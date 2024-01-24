@@ -15,10 +15,10 @@
 #ifndef KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 #define KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 
+#include <string.h>
 #include <algorithm>
 #include <cstdint>
 #include <vector>
-#include <string.h>
 
 namespace kuka_sunrise_fri_driver
 {
@@ -72,9 +72,9 @@ int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & do
   return sizeof(int);
 }
 
-int serializeNext(const std::string& str_in, std::vector<std::uint8_t>& serialized_out)
+int serializeNext(const std::string & str_in, std::vector<std::uint8_t> & serialized_out)
 {
-  const std::uint8_t* bytes = reinterpret_cast<const std::uint8_t*>(str_in.data());
+  const std::uint8_t * bytes = reinterpret_cast<const std::uint8_t *>(str_in.data());
   auto it = serialized_out.end();
   serialized_out.insert(it, bytes, bytes + str_in.size());
 
@@ -85,7 +85,7 @@ int serializeNext(const std::string& str_in, std::vector<std::uint8_t>& serializ
   return str_in.size();
 }
 
-int deserializeNext(const std::vector<std::uint8_t>& serialized_in, std::string& str_out)
+int deserializeNext(const std::vector<std::uint8_t> & serialized_in, std::string & str_out)
 {
   if (serialized_in.empty())
   {
@@ -95,11 +95,10 @@ int deserializeNext(const std::vector<std::uint8_t>& serialized_in, std::string&
 
   std::vector<std::uint8_t> serialized_copy = serialized_in;
   std::reverse(serialized_copy.begin(), serialized_copy.end());
-  str_out = std::string(reinterpret_cast<char*>(serialized_copy.data()), serialized_copy.size());
+  str_out = std::string(reinterpret_cast<char *>(serialized_copy.data()), serialized_copy.size());
 
   return serialized_copy.size();
 }
-
 
 }  // namespace kuka_sunrise_fri_driver
 

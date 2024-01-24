@@ -68,6 +68,8 @@ private:
 
   int receive_multiplier_;
   int send_period_ms_;
+  std::string client_ip_;
+  int client_port_;
   std::string robot_model_;
   std::string joint_pos_controller_name_;
   std::string joint_torque_controller_name_;
@@ -78,7 +80,7 @@ private:
   bool onSendPeriodChangeRequest(int send_period);
   bool setReceiveMultiplier(int receive_multiplier);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
-  bool onControllerIpChangeRequest(const std::string & controller_ip) const;
+  bool ValidateIPAdress(const std::string & controller_ip) const;
   bool onControllerNameChangeRequest(
     const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
   bool setFriConfiguration(int send_period_ms, int receive_multiplier);

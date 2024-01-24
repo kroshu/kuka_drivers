@@ -126,10 +126,11 @@ bool FRIConnection::setClientCommandMode(ClientCommandModeID client_command_mode
   return sendCommandAndWait(SET_COMMAND_MODE, command_data);
 }
 
-bool FRIConnection::setFRIConfig(const std::string & client_ip, int remote_port, int send_period_ms, int receive_multiplier)
+bool FRIConnection::setFRIConfig(
+  const std::string & client_ip, int remote_port, int send_period_ms, int receive_multiplier)
 {
   std::vector<std::uint8_t> serialized;
-  // Max size of valid IP address is 16 
+  // Max size of valid IP address is 16
   serialized.reserve(FRI_CONFIG_HEADER.size() + 16 * sizeof(char) + 3 * sizeof(int));
   int msg_size = 0;
   for (std::uint8_t byte : FRI_CONFIG_HEADER)
