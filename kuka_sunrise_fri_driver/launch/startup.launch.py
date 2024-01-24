@@ -149,6 +149,7 @@ def launch_setup(context, *args, **kwargs):
         "fri_state_broadcaster",
         "joint_group_impedance_controller",
         "effort_controller",
+        "control_mode_handler",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
