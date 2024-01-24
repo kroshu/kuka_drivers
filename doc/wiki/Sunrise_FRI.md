@@ -8,7 +8,6 @@
 
 #### Controller side
 
-- Modify the `_remoteIP` variable of the [FRIConfigurationParams.java](https://github.com/kroshu/kuka_drivers/blob/master/kuka_sunrise_fri_driver/robot_application/ROS2_Control/src/ros2/serialization/FRIConfigurationParams.java) file to the IP address of the client machine
 - Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench
 
 ### Configuration
@@ -28,8 +27,8 @@ The IP address of robot controller must be provided as a launch argument. For fu
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 - `send_period_ms` (integer): this parameter defines the send rate in milliseconds (with which the controller sends robot state updates). It must be between 1 and 10 for control and can be only changed in `inactive` and `configuring` states.
 - `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`send_period_ms` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
-- `control_mode`, `command_mode` (strings): control mode related parameters, which will be combined to support the defined enums. They cannot be changed in active state.
-- `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. They will be removed after changing to using the `joint_group_impedance_controller` to adapt to conventions.
+- `control_mode`: The enum value of the control mode should be given, which updates the `ControlMode` and `ClientCommandMode` parameters of FRI. It cannot be changed in active state.
+- `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. The updated values are sent to the hardware interface using the `joint_group_impedance_controller` to adapt to conventions, but it is not possible to change them in active state due to the constraints of FRI. (Therefore the `joint_group_impedance_controller` is deactivated at driver activation.)
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
 
@@ -40,7 +39,7 @@ The parameters in the driver configuration file can be also changed during runti
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
 ```
-ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
+ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0 client_ip:=0.0.0.0
 ```
 This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
 - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
