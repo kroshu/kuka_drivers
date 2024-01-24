@@ -183,8 +183,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  // Publish the values of the joint impedance parameters to the controller
   std_msgs::msg::Float64MultiArray joint_imp_msg;
-  // Publish the control mode to controller handler
   for (int i = 0; i < 7; i++)
   {
     joint_imp_msg.data.push_back(joint_stiffness_[i]);
