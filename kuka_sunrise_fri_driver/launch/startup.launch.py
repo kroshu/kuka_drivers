@@ -25,6 +25,8 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     controller_ip = LaunchConfiguration("controller_ip")
+    client_ip = LaunchConfiguration("client_ip")
+    client_port = LaunchConfiguration("client_port")
     ns = LaunchConfiguration("namespace")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
@@ -56,6 +58,12 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "controller_ip:=",
             controller_ip,
+            " ",
+            "client_ip:=",
+            client_ip,
+            " ",
+            "client_port:=",
+            client_port,
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
@@ -158,6 +166,8 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iiwa14_r820"))
     launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="30200"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))

@@ -30,7 +30,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   }
   controller_ip_ = info_.hardware_parameters.at("controller_ip");
   client_ip_ = info_.hardware_parameters.at("client_ip");
-  client_port_ = info_.hardware_parameters.at("client_port");
+  client_port_ = std::stoi(info_.hardware_parameters.at("client_port"));
 
   hw_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());
@@ -133,6 +133,11 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
       return CallbackReturn::ERROR;
     }
   }
+
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaFRIHardwareInterface"),
+    "Init successful with controller ip: %s and client ip: %s:%i", controller_ip_.c_str(),
+    client_ip_.c_str(), client_port_);
 
   return CallbackReturn::SUCCESS;
 }
