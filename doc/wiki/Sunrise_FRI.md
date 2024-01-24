@@ -39,14 +39,17 @@ The parameters in the driver configuration file can be also changed during runti
 
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
-    ```
-    ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
-    ```
-    - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
-      - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-      - `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
-      - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
-      - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
+```
+ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
+```
+This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
+- `joint_state_broadcaster` (no configuration file, all state interfaces are published)
+- `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+- [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
+- [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
+- `joint_group_impedance_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
+- `effort_controller` (of type `JointGroupPositionController`, [configuration file](../../kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
+- [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
 
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
@@ -60,6 +63,8 @@ On successful activation the brakes of the robot will be released and external c
 
 Both launch files support the following argument:
 - `controller_ip`: IP address of the robot controller
+- `client_ip`: IP address of the client PC
+- `client_port`: port of the client machine (default: 30200)
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
 - `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
@@ -67,6 +72,8 @@ Both launch files support the following argument:
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_sunrise_fri_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
+- `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
+- `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
