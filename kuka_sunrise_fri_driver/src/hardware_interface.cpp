@@ -29,6 +29,8 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     return CallbackReturn::ERROR;
   }
   controller_ip_ = info_.hardware_parameters.at("controller_ip");
+  client_ip_ = info_.hardware_parameters.at("client_ip");
+  client_port_ = info_.hardware_parameters.at("client_port");
 
   hw_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());

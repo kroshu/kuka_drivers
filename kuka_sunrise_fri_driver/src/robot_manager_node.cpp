@@ -66,26 +66,6 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false},
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
-  registerStaticParameter<std::string>(
-    "client_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false},
-    [this](const std::string & client_ip)
-    {
-      if (this->ValidateIPAdress(client_ip))
-      {
-        client_ip_ = client_ip;
-        return true;
-      };
-      return false;
-    });
-
-  registerStaticParameter<int>(
-    "client_port", 30200, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
-    [this](int client_port)
-    {
-      client_port_ = client_port;
-      return true;
-    });
-
   registerParameter<int>(
     "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
