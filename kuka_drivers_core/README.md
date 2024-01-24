@@ -108,7 +108,7 @@ Example code for registering an integer parameter for both base nodes (`onRateCh
   // For class derived from ROS2BaseLCNode
   registerParameter<int>(
     "rate", 2, kuka_drivers_core::ParameterSetAccessRights {true, true,
-      false, false}, [this](int rate) {
+      false}, [this](int rate) {
       return this->onRateChangeRequest(rate);
     });
 
