@@ -111,6 +111,8 @@ private:
   double control_mode_ = 0;  // default to undefined
   double receive_multiplier_ = 1;
   double send_period_ms_ = 10;
+  int client_port_ = 30200;
+  std::string client_ip_ = "0.0.0.0";
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 

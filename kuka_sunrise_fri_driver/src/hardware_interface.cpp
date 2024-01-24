@@ -156,7 +156,7 @@ CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
     return CallbackReturn::ERROR;
   }
 
-  if (!fri_connection_->setFRIConfig(30200, send_period_ms_, receive_multiplier_))
+  if (!fri_connection_->setFRIConfig(client_ip_, client_port_, send_period_ms_, receive_multiplier_))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
     return CallbackReturn::FAILURE;

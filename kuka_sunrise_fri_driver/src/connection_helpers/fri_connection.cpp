@@ -17,6 +17,8 @@
 #include <thread>
 #include <vector>
 
+#include "rclcpp/logging.hpp"
+
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/serialization.hpp"
 #include "kuka_sunrise_fri_driver/tcp_connection.hpp"
@@ -98,10 +100,6 @@ bool FRIConnection::setJointImpedanceControlMode(
   const std::vector<double> & joint_stiffness, const std::vector<double> & joint_damping)
 {
   int msg_size = 0;
-  printf("Sizeof(double) = %lu\n", sizeof(double));
-  printf(
-    "Joint_stiffness size: %lu, joint damping size: %lu\n", joint_stiffness.size(),
-    joint_damping.size());
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
   serialized.emplace_back(JOINT_IMPEDANCE_CONTROL_MODE);
@@ -113,13 +111,11 @@ bool FRIConnection::setJointImpedanceControlMode(
   }
   for (double js : joint_stiffness)
   {
-    printf("js = %lf\n", js);
-    msg_size += kuka_drivers_core::serializeNext(js, serialized);
+    msg_size += serializeNext(js, serialized);
   }
   for (double jd : joint_damping)
   {
-    printf("jd = %lf\n", jd);
-    msg_size += kuka_drivers_core::serializeNext(jd, serialized);
+    msg_size += serializeNext(jd, serialized);
   }
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
@@ -130,19 +126,21 @@ bool FRIConnection::setClientCommandMode(ClientCommandModeID client_command_mode
   return sendCommandAndWait(SET_COMMAND_MODE, command_data);
 }
 
-bool FRIConnection::setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier)
+bool FRIConnection::setFRIConfig(const std::string & client_ip, int remote_port, int send_period_ms, int receive_multiplier)
 {
   std::vector<std::uint8_t> serialized;
-  serialized.reserve(FRI_CONFIG_HEADER.size() + 3 * sizeof(int));
+  // Max size of valid IP address is 16 
+  serialized.reserve(FRI_CONFIG_HEADER.size() + 16 * sizeof(char) + 3 * sizeof(int));
   int msg_size = 0;
   for (std::uint8_t byte : FRI_CONFIG_HEADER)
   {
     serialized.emplace_back(byte);
     msg_size++;
   }
-  msg_size += kuka_drivers_core::serializeNext(remote_port, serialized);
-  msg_size += kuka_drivers_core::serializeNext(send_period_ms, serialized);
-  msg_size += kuka_drivers_core::serializeNext(receive_multiplier, serialized);
+  msg_size += serializeNext(client_ip.c_str(), serialized);
+  msg_size += serializeNext(remote_port, serialized);
+  msg_size += serializeNext(send_period_ms, serialized);
+  msg_size += serializeNext(receive_multiplier, serialized);
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }
 
@@ -272,7 +270,7 @@ void FRIConnection::handleReceivedTCPData(const std::vector<std::uint8_t> & data
 
 void FRIConnection::connectionLostCallback(const char * server_addr, int server_port)
 {
-  printf("Connection lost, trying to reconnect");
+  RCLCPP_ERROR(rclcpp::get_logger("fri_connection"), "Connection lost, trying to reconnect");
   connect(server_addr, server_port);
 }
 
