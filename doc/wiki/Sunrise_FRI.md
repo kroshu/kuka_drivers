@@ -39,17 +39,14 @@ The parameters in the driver configuration file can be also changed during runti
 
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
-```
-ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
-```
-This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
-- `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-- `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
-- [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
-- [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
-- `joint_group_impedance_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
-- `effort_controller` (of type `JointGroupPositionController`, [configuration file](../../kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
-- [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
+    ```
+    ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
+    ```
+    - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
+      - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
+      - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+      - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
+      - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```

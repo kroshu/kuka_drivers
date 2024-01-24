@@ -52,9 +52,9 @@ ros2 launch kuka_iiqka_eac_driver startup.launch.py client_ip:=0.0.0.0 controlle
 
 This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
 - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-- `joint_trajectory_controller` ([configuration file](../../kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
-- `joint_group_impedance_controller` ([configuration file](../../kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml))
-- `effort_controller` (of type `JointGroupPositionController`, [configuration file](../../kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
+- `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
+- `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml))
+- `effort_controller` (of type `JointGroupPositionController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
 
 After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
