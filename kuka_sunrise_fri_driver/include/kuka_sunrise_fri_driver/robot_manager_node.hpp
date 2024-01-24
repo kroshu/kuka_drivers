@@ -18,12 +18,14 @@
 #include <atomic>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
@@ -64,6 +66,7 @@ private:
   std_msgs::msg::Bool is_configured_msg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_imp_pub_;
   std_msgs::msg::UInt32 control_mode_msg_;
 
   int receive_multiplier_;
@@ -71,6 +74,8 @@ private:
   std::string robot_model_;
   std::string joint_pos_controller_name_;
   std::string joint_torque_controller_name_;
+  std::vector<double> joint_stiffness_ = std::vector<double>(7, 100.0);
+  std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
 
   std::string GetControllerName();
   bool onControlModeChangeRequest(int control_mode);
@@ -81,6 +86,8 @@ private:
   bool ValidateIPAdress(const std::string & controller_ip) const;
   bool onControllerNameChangeRequest(
     const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
+  bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
+  bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
   bool setFriConfiguration(int send_period_ms, int receive_multiplier);
 
   void handleControlEndedError();

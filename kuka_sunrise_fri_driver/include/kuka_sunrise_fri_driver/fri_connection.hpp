@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace kuka_sunrise_fri_driver

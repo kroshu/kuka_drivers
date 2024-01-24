@@ -56,6 +56,9 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
+  joint_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+    "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
+
   registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820",
     kuka_drivers_core::ParameterSetAccessRights{true, false, false},
@@ -96,8 +99,16 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
         controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
     });
 
-  // TODO(Svastits): consider readding stiffness and damping as params, that update the joint imp
-  // controller
+  registerParameter<std::vector<double>>(
+    "joint_stiffness", joint_stiffness_,
+    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::vector<double> & joint_stiffness)
+    { return this->onJointStiffnessChangeRequest(joint_stiffness); });
+
+  registerParameter<std::vector<double>>(
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::vector<double> & joint_damping)
+    { return this->onJointDampingChangeRequest(joint_damping); });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -172,6 +183,15 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  std_msgs::msg::Float64MultiArray joint_imp_msg;
+  // Publish the control mode to controller handler
+  for (int i = 0; i < 7; i++)
+  {
+    joint_imp_msg.data.push_back(joint_stiffness_[i]);
+    joint_imp_msg.data.push_back(joint_damping_[i]);
+  }
+  joint_imp_pub_->publish(joint_imp_msg);
+
   if (!fri_connection_->isConnected())
   {
     RCLCPP_ERROR(get_logger(), "not connected");
@@ -394,6 +414,44 @@ bool RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
     RCLCPP_ERROR(get_logger(), "Could not set FRI configuration");
     return false;
   }
+  return true;
+}
+
+bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)
+{
+  if (joint_stiffness.size() != 7)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter joint stiffness");
+    return false;
+  }
+  for (double js : joint_stiffness)
+  {
+    if (js < 0)
+    {
+      RCLCPP_ERROR(get_logger(), "Joint stiffness values must be >=0");
+      return false;
+    }
+  }
+  joint_stiffness_ = joint_stiffness;
+  return true;
+}
+
+bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
+{
+  if (joint_damping.size() != 7)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter joint damping");
+    return false;
+  }
+  for (double jd : joint_damping)
+  {
+    if (jd < 0 || jd > 1)
+    {
+      RCLCPP_ERROR(get_logger(), "Joint damping values must be >=0 && <=1");
+      return false;
+    }
+  }
+  joint_damping_ = joint_damping;
   return true;
 }
 }  // namespace kuka_sunrise_fri_driver
