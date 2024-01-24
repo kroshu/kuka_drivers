@@ -232,6 +232,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
   // Read is called in inactive state, check is necessary
   if (!is_active_)
   {
+    if (prev_control_mode_ != control_mode_)
+    {
+      control_mode_change_ = true;
+      prev_control_mode_ = control_mode_;
+    }
     active_read_ = false;
     RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -279,6 +284,31 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   // Client app update and read must be called only if read has been called in current cycle
   if (!active_read_)
   {
+    if (control_mode_change_)
+    {
+      switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
+      {
+        case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+          fri_connection_->setPositionControlMode();
+          fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
+          break;
+        case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+          fri_connection_->setJointImpedanceControlMode(
+            hw_stiffness_commands_, hw_damping_commands_);
+          fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
+          break;
+        case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+          fri_connection_->setJointImpedanceControlMode(
+            std::vector<double>(7, 0), std::vector<double>(7, 0));
+          fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
+          break;
+
+        default:
+          RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported control mode");
+          return hardware_interface::return_type::ERROR;
+      }
+      control_mode_change_ = false;
+    }
     RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }

@@ -114,6 +114,9 @@ private:
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 
+  double prev_control_mode_ = 0;
+  bool control_mode_change_ = false;
+
   // State and command interfaces
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;

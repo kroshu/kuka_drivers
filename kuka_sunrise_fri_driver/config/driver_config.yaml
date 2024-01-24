@@ -1,7 +1,6 @@
 robot_manager:
   ros__parameters:
-    control_mode: "position"
-    command_mode: "position"
+    control_mode: 1
     position_controller_name: "joint_trajectory_controller"
     torque_controller_name: "effort_controller"
     receive_multiplier: 1

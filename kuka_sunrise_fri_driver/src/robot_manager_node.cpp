@@ -121,7 +121,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {"fri_configuration_controller", "joint_impedance_controller"}, {}))
+        {"fri_configuration_controller", "joint_group_impedance_controller"}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
@@ -141,7 +141,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "joint_impedance_controller"},
+        {"fri_configuration_controller", "joint_group_impedance_controller"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -192,7 +192,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
         {"joint_state_broadcaster", "fri_state_broadcaster", GetControllerName()},
-        {"joint_impedance_controller"}))
+        {"joint_group_impedance_controller"}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -217,7 +217,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_impedance_controller"},
+        change_controller_state_client_, {"joint_group_impedance_controller"},
         {GetControllerName(), "joint_state_broadcaster", "fri_state_broadcaster"},
         SwitchController::Request::BEST_EFFORT))
   {
