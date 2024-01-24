@@ -83,24 +83,18 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_SUNRISE_FRI_DRIVER_BUIL
 ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces rclcpp rclcpp_lifecycle hardware_interface kuka_drivers_core)
 target_link_libraries(${PROJECT_NAME} fri_client_sdk)
 
-add_library(configuration_manager SHARED
-  src/connection_helpers/configuration_manager.cpp)
-ament_target_dependencies(configuration_manager kuka_driver_interfaces rclcpp rclcpp_lifecycle std_msgs std_srvs kuka_drivers_core
-  controller_manager_msgs)
-
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kuka_drivers_core controller_manager_msgs)
+ament_target_dependencies(robot_manager_node kuka_driver_interfaces rclcpp rclcpp_lifecycle kuka_drivers_core std_srvs controller_manager_msgs)
 target_link_libraries(robot_manager_node
-  fri_connection
-  configuration_manager)
+  fri_connection)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
 install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(TARGETS fri_connection fri_client_sdk configuration_manager
+install(TARGETS fri_connection fri_client_sdk
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 

@@ -24,11 +24,13 @@
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 
+#include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
+#include "kuka_drivers_core/control_mode.hpp"
 
-#include "kuka_sunrise_fri_driver/configuration_manager.hpp"
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 
 namespace kuka_sunrise_fri_driver
@@ -53,7 +55,6 @@ public:
 
 private:
   std::shared_ptr<FRIConnection> fri_connection_;
-  std::unique_ptr<ConfigurationManager> configuration_manager_;
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
@@ -61,6 +62,26 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
+  rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
+  std_msgs::msg::UInt32 control_mode_msg_;
+
+  int receive_multiplier_;
+  int send_period_ms_;
+  std::string robot_model_;
+  std::string joint_pos_controller_name_;
+  std::string joint_torque_controller_name_;
+
+  std::string GetControllerName();
+  bool onControlModeChangeRequest(int control_mode);
+  bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onSendPeriodChangeRequest(int send_period);
+  bool setReceiveMultiplier(int receive_multiplier);
+  bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
+  bool onControllerIpChangeRequest(const std::string & controller_ip) const;
+  bool onControllerNameChangeRequest(
+    const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
+  bool setFriConfiguration(int send_period_ms, int receive_multiplier);
 
   void handleControlEndedError();
   void handleFRIEndedError();
