@@ -44,7 +44,7 @@ The parameters in the driver configuration file can be also changed during runti
     ```
     - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-      - `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+      - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
       - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
       - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
