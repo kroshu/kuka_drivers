@@ -130,6 +130,7 @@ private:
   std::vector<double> hw_ext_torque_states_;
 
   static const int TCP_SERVER_PORT = 30000;
+  static const int DOF = 7;
 
   struct RobotState
   {
@@ -149,6 +150,7 @@ private:
 
   bool activateControl();
   bool deactivateControl();
+  void activateFrictionCompensation(double * values);
 
   KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {

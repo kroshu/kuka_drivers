@@ -320,7 +320,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
           break;
         case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
           fri_connection_->setJointImpedanceControlMode(
-            std::vector<double>(7, 0), std::vector<double>(7, 0));
+            std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
           fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
           break;
 
@@ -370,7 +370,11 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
     {
       const double * joint_torques_ = hw_torque_commands_.data();
-      robotCommand().setJointPosition(robotState().getIpoJointPosition());
+      const double * joint_pos = robotState().getMeasuredJointPosition();
+      double joint_pos_corr[DOF];
+      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr);
+      activateFrictionCompensation(joint_pos_corr);
+      robotCommand().setJointPosition(joint_pos_corr);
       robotCommand().setTorque(joint_torques_);
       break;
     }
@@ -504,6 +508,15 @@ bool KukaFRIHardwareInterface::deactivateControl()
     return false;
   }
   return true;
+}
+
+// Friction compensation is activated only if the commanded and measured joint positons differ
+void KukaFRIHardwareInterface::activateFrictionCompensation(double * values)
+{
+  for (int i = 0; i < DOF; i++)
+  {
+    values[i] -= (values[i] / fabs(values[i]) * 0.1);
+  }
 }
 
 }  // namespace kuka_sunrise_fri_driver
