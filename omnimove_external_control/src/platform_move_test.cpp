@@ -32,9 +32,9 @@ PlatformMoveTest::PlatformMoveTest():Node("PlatformMoveTest")
         position_commands_.push_back(std::vector<float>{0,0,0,0,100});
         speed_commands_.push_back(std::vector<float>{-50,0});
         position_commands_.push_back(std::vector<float>{0,0,0,0,0});
-        speed_commands_.push_back(std::vector<float>{0,100});
+        speed_commands_.push_back(std::vector<float>{0,500});
         position_commands_.push_back(std::vector<float>{0,0,0,0,100});
-        speed_commands_.push_back(std::vector<float>{0,-100});
+        speed_commands_.push_back(std::vector<float>{0,-500});
         position_commands_.push_back(std::vector<float>{0,0,0,0,0});
         speed_commands_.push_back(std::vector<float>{0, 0});
         position_commands_.push_back(std::vector<float>{100,100,0,0,0});
