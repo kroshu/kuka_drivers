@@ -46,12 +46,12 @@ class RobotManagerClient(Node):
         self.create_movements()
 
     def create_movements(self):
-        home_pos_1 = 0.0299
-        home_pos_2 = -2.38422
-        home_pos_3 = 2.3471
-        home_pos_4 = 0.0
-        home_pos_5 = 1.5943
-        home_pos_6 = -2.83578
+        home_pos_1 = 0.005
+        home_pos_2 = -2.1900
+        home_pos_3 = 2.1823
+        home_pos_4 = -0.0298
+        home_pos_5 = 0.002
+        home_pos_6 = -0.034
         home_pos = [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
         # moving around joint_!
         self.moves = []
