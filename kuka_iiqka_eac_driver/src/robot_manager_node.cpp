@@ -18,6 +18,7 @@
 #include "communication_helpers/service_tools.hpp"
 
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
+#include "iiqka/proto-api/motion-external/external_control_mode.pb.h"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT

@@ -27,13 +27,11 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
-#include "nanopb/kuka/core/motion/joint.pb.hh"
-#include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
-#include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
+#include "rclcpp_lifecycle/state.hpp"
 #include "os-core-udp-communication/replier.h"
+#include "kuka/external-control-sdk/iiqka/robot.h"
+#include "kuka/external-control-sdk/iiqka/message_builder.h"
 
 #include "kuka_iiqka_eac_driver/visibility_control.h"
 
@@ -73,38 +71,26 @@ public:
   write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
   KUKA_IIQKA_EAC_DRIVER_LOCAL void ObserveControl();
 
-  bool is_active_ = false;
-  bool msg_received_ = false;
+  std::unique_ptr<kuka::external::control::iiqka::Robot> robot_ptr_;
+  kuka::external::control::BaseControlSignal* hw_control_signal_ = nullptr;
 
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
-
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
 
-  double hw_control_mode_command_;
-
-#ifdef NON_MOCK_SETUP
   kuka::ecs::v1::CommandState command_state_;
-  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
-  std::unique_ptr<grpc::ClientContext> context_;
-#endif
+  bool msg_received_;
+  
 
-  std::thread observe_thread_;
+  std::chrono::milliseconds receive_timeout_{1000};
 
-  std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
-  std::chrono::milliseconds receive_timeout_{100};
-
-  uint8_t out_buff_arr_[1500];
-
-  nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
-    nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
-  nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
-    nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
 };
 }  // namespace kuka_eac
 

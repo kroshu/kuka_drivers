@@ -30,8 +30,6 @@
 #include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
-#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
-
 namespace kuka_eac
 {
 class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
