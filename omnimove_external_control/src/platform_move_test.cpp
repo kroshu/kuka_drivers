@@ -87,9 +87,6 @@ void PlatformMoveTest::sendSpeedCommand(){
     double epsilon = 0.00001;
     if (position_commands_.size() > current_command_index_){
         auto pos = speed_commands_[current_command_index_];
-        if (std::accumulate(pos.begin(), pos.end(),0)==0){
-            epsilon = 0;
-        }
     }
     if (current_command_counter > 100){
         current_command_counter = 0;
