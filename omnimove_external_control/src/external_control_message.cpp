@@ -186,13 +186,13 @@ namespace omnimove{
 
     }
 
-    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int shield_pos):
-        ExternalControlCommand(getMessageData(speed_x, speed_w, shield_pos).get()){
+    ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(int speed_x, int speed_w, int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos):
+        ExternalControlCommand(getMessageData(speed_x, speed_w, pillar1_pos, pillar2_pos, pillar3_pos, pillar4_pos, shield_pos).get()){
 
     }
 
 
-    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, int shield_pos)
+    std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(int speed_x, int speed_w, int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos)
     {
         auto msg_data = getMessageBuffer();
         msg_data.get()[0] = 0;
@@ -200,23 +200,6 @@ namespace omnimove{
 
         *((int32_t *)(msg_data.get() + 2)) = speed_x;
         *((int32_t *)(msg_data.get() + 10)) = speed_w;
-        *((msg_data.get() + 63)) = shield_pos;
-
-        return msg_data;
-    }
-
-    ExternalControlCaterpillarLiftCommand::ExternalControlCaterpillarLiftCommand(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos):
-        ExternalControlCommand(getMessageData(pillar1_pos, pillar2_pos, pillar3_pos, pillar4_pos, shield_pos).get()){
-
-    }
-
-
-    std::unique_ptr<char[]> ExternalControlCaterpillarLiftCommand::getMessageData(int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos, int shield_pos)
-    {
-        auto msg_data = getMessageBuffer();
-        msg_data.get()[0] = 0;
-        msg_data.get()[1] = 2; //set mode to AutoDrive
-
         *((msg_data.get() + 55)) = pillar1_pos;
         *((msg_data.get() + 57)) = pillar2_pos;
         *((msg_data.get() + 59)) = pillar3_pos;

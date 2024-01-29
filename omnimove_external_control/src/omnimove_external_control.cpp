@@ -143,7 +143,6 @@ namespace  omnimove{
             command_interface.emplace_back("pillar3", "position", &position_commands_[2]);
             command_interface.emplace_back("pillar4", "position", &position_commands_[3]);
             command_interface.emplace_back("shield", "position", &position_commands_[4]);
-
         }else{
             command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
             command_interface.emplace_back("move_y", "velocity", &velocity_commands_[1]);
@@ -245,30 +244,22 @@ namespace  omnimove{
         //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
 
         if(agv_type_=="caterpillar"){
-            if (velocity_commands_[0] == 0.0 && velocity_commands_[1] == 0.0)
-            {
-                client_socket_->send(ExternalControlCaterpillarLiftCommand(position_commands_[0],
-                                                                           position_commands_[1],
-                                                                           position_commands_[2],
-                                                                           position_commands_[3],
-                                                                           position_commands_[4]).getSerialisedData());
-
-            } else
-            {
-                if (velocity_commands_ != last_sent_velocity_commands_){
-                    last_sent_velocity_commands_ = velocity_commands_;
-                    last_sent_velocity_time_ = boost::chrono::system_clock::now();
-                    client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
-                                                                            velocity_commands_[1],
-                                                                            position_commands_[4]).getSerialisedData());
-                }  else {
-                    if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
-                        client_socket_->send(ExternalControlStopCommand().getSerialisedData());
-                    }
+            if (velocity_commands_ != last_sent_velocity_commands_){
+                last_sent_velocity_commands_ = velocity_commands_;
+                last_sent_velocity_time_ = boost::chrono::system_clock::now();
+                client_socket_->send(ExternalControlCaterpillarDriveCommand(velocity_commands_[0],
+                                     velocity_commands_[1],
+                        position_commands_[0],
+                        position_commands_[1],
+                        position_commands_[2],
+                        position_commands_[3],
+                        position_commands_[4]
+                        ).getSerialisedData());
+            }  else {
+                if ((boost::chrono::system_clock::now() - last_sent_velocity_time_) > boost::chrono::milliseconds(vel_cmd_timeout_ms_)){
+                    client_socket_->send(ExternalControlStopCommand().getSerialisedData());
                 }
-
             }
-
 
         } else
         {
@@ -277,8 +268,8 @@ namespace  omnimove{
                 last_sent_velocity_time_ = boost::chrono::system_clock::now();
 
                 client_socket_->send(ExternalControlOmnimoveDriveCommand(velocity_commands_[0],
-                                                                     velocity_commands_[1],
-                                                                     velocity_commands_[2]).getSerialisedData());
+                                     velocity_commands_[1],
+                        velocity_commands_[2]).getSerialisedData());
 
             }  else {
 
