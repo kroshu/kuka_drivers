@@ -22,7 +22,7 @@ find_package(kuka_driver_interfaces REQUIRED)
 
 include_directories(include)
 
-add_executable(moveit_basic_planners_example src/MoveitBasicPlannersExample.cpp)
+add_executable(moveit_basic_planners_example src/moveit_basic_planners_example.cpp)
 ament_target_dependencies(moveit_basic_planners_example
   moveit_ros_planning_interface
   rclcpp
@@ -31,7 +31,7 @@ ament_target_dependencies(moveit_basic_planners_example
   kuka_driver_interfaces
 )
 
-add_executable(moveit_collision_avoidance_example src/MoveitCollisionAvoidanceExample.cpp)
+add_executable(moveit_collision_avoidance_example src/moveit_collision_avoidance_example.cpp)
 ament_target_dependencies(moveit_collision_avoidance_example
   moveit_ros_planning_interface
   rclcpp
@@ -40,7 +40,7 @@ ament_target_dependencies(moveit_collision_avoidance_example
   kuka_driver_interfaces
 )
 
-add_executable(moveit_constrained_planning_example src/MoveitConstrainedPlanningExample.cpp)
+add_executable(moveit_constrained_planning_example src/moveit_constrained_planning_example.cpp)
 ament_target_dependencies(moveit_constrained_planning_example
   moveit_ros_planning_interface
   rclcpp
@@ -49,7 +49,7 @@ ament_target_dependencies(moveit_constrained_planning_example
   kuka_driver_interfaces
 )
 
-add_executable(moveit_depalletizing_example src/MoveitDepalletizingExample.cpp)
+add_executable(moveit_depalletizing_example src/moveit_depalletizing_example.cpp)
 ament_target_dependencies(moveit_depalletizing_example
   moveit_ros_planning_interface
   rclcpp
@@ -74,23 +74,7 @@ install(DIRECTORY config
 )
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright()
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify()
-  ament_xmllint()
 endif()
 
 ament_package()

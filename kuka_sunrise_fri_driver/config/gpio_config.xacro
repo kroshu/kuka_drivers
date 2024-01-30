@@ -36,13 +36,13 @@
       <state_interface name="Output1" data_type="boolean"/>
       <state_interface name="Output2" data_type="boolean"/>
       <state_interface name="Output3" data_type="boolean"/>
-      <state_interface name="Output4" data_type="boolean"/>  
+      <state_interface name="Output4" data_type="boolean"/>
       <state_interface name="Output5" data_type="boolean"/>
       <state_interface name="Output6" data_type="boolean"/>
-      <state_interface name="Output7" data_type="boolean"/>  
+      <state_interface name="Output7" data_type="boolean"/>
       <state_interface name="Output8" data_type="boolean"/>
       <state_interface name="Output9" data_type="boolean"/>
-      <state_interface name="Output10" data_type="boolean"/>          
+      <state_interface name="Output10" data_type="boolean"/>
     </gpio>
   </xacro:macro>
 </robot>

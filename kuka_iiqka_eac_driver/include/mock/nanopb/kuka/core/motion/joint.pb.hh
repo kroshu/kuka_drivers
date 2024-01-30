@@ -14,4 +14,3 @@ constexpr JointPositions JointPositions_init_default kuka_core_motion_JointPosit
 } // namespace nanopb::kuka::core::motion
 
 #endif //  PB_KUKA_CORE_MOTION_JOINT_PB_HH_INCLUDED
-

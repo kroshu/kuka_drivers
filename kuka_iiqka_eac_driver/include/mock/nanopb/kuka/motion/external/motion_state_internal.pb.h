@@ -8,19 +8,19 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-typedef struct _kuka_motion_external_MotionStateInternal { 
-    bool ipo_stopped; 
+typedef struct _kuka_motion_external_MotionStateInternal {
+    bool ipo_stopped;
 
-    kuka_motion_external_ExternalControlMode control_mode; 
+    kuka_motion_external_ExternalControlMode control_mode;
 
     bool has_measured_positions;
-    kuka_core_motion_JointPositions measured_positions; 
+    kuka_core_motion_JointPositions measured_positions;
 
     bool has_measured_velocities;
-    kuka_core_motion_JointPositions measured_velocities; 
+    kuka_core_motion_JointPositions measured_velocities;
 
     bool has_measured_torques;
-    kuka_core_motion_JointPositions measured_torques; 
+    kuka_core_motion_JointPositions measured_torques;
 } kuka_motion_external_MotionStateInternal;
 
 

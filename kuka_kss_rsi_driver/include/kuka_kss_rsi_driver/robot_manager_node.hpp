@@ -15,21 +15,18 @@
 #ifndef KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
 #define KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
 
-#include <string>
-#include <memory>
-#include <vector>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/client.hpp"
-#include "lifecycle_msgs/srv/change_state.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "rclcpp/client.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-#include "communication_helpers/service_tools.hpp"
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -63,7 +60,6 @@ private:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 };
-}   // namespace kuka_rsi
-
+}  // namespace kuka_rsi
 
 #endif  // KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_

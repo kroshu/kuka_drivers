@@ -17,23 +17,21 @@
 
 #include <condition_variable>
 #include <memory>
-#include <vector>
 #include <string>
 #include <unordered_map>
-
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include <hardware_interface/system_interface.hpp>
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
-
-#include "kuka_driver_interfaces/srv/set_int.hpp"
-#include "fri_client_sdk/friLBRClient.h"
-#include "fri_client_sdk/HWIFClientApplication.hpp"
-#include "fri_client_sdk/friUdpConnection.h"
-#include "fri_client_sdk/friClientIf.h"
-
+#include <vector>
 
 #include "pluginlib/class_list_macros.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "hardware_interface/system_interface.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
+
+#include "fri_client_sdk/HWIFClientApplication.hpp"
+#include "fri_client_sdk/friClientIf.h"
+#include "fri_client_sdk/friLBRClient.h"
+#include "fri_client_sdk/friUdpConnection.h"
+#include "kuka_sunrise_fri_driver/visibility_control.h"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -47,43 +45,50 @@ enum class IOTypes
   BOOLEAN = 2,
 };
 
-static std::unordered_map<std::string,
-  IOTypes> const types =
-{{"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
+static std::unordered_map<std::string, IOTypes> const types = {
+  {"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
 
-class KUKAFRIHardwareInterface : public hardware_interface::SystemInterface,
-  public KUKA::FRI::LBRClient
+class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
+                                 public KUKA::FRI::LBRClient
 {
 public:
-  KUKAFRIHardwareInterface()
-  : client_application_(udp_connection_, *this) {}
-  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
-  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaFRIHardwareInterface)
 
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
+  : client_application_(udp_connection_, *this)
+  {
+  }
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_init(const hardware_interface::HardwareInfo & info) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
-  hardware_interface::return_type read(
-    const rclcpp::Time & time,
-    const rclcpp::Duration & period) override;
-  hardware_interface::return_type write(
-    const rclcpp::Time & time,
-    const rclcpp::Duration & period) override;
-  void updateCommand(const rclcpp::Time & stamp);
-  bool setReceiveMultiplier(int receive_multiplier);
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
+  export_state_interfaces() override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
+  export_command_interfaces() override;
 
-  void waitForCommand() final;
-  void command() final;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC hardware_interface::return_type read(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC hardware_interface::return_type write(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void updateCommand(const rclcpp::Time & stamp);
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC bool setReceiveMultiplier(int receive_multiplier);
+
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void waitForCommand() final;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC void command() final;
 
   class InvalidGPIOTypeException : public std::runtime_error
   {
-public:
+  public:
     explicit InvalidGPIOTypeException(const std::string & gpio_type)
     : std::runtime_error(
         "GPIO type '" + gpio_type +
         "' is not supported, possible ones are 'analog', 'digital' or 'boolean'")
-    {}
+    {
+    }
   };
 
 private:
@@ -124,24 +129,32 @@ private:
 
   RobotState robot_state_;
 
-  IOTypes getType(const std::string & type_string) const
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {
     auto it = types.find(type_string);
-    if (it != types.end()) {
+    if (it != types.end())
+    {
       return it->second;
-    } else {throw InvalidGPIOTypeException(type_string);}
+    }
+    else
+    {
+      throw InvalidGPIOTypeException(type_string);
+    }
   }
 
   class GPIOReader
   {
-public:
-    double & getData() {return data_;}
-    const std::string & getName() const {return name_;}
+  public:
+    double & getData() { return data_; }
+    const std::string & getName() const { return name_; }
     GPIOReader(const std::string & name, IOTypes type, const KUKA::FRI::LBRState & state)
-    : name_(name), type_(type), state_(state) {}
+    : name_(name), type_(type), state_(state)
+    {
+    }
     void getValue()
     {
-      switch (type_) {
+      switch (type_)
+      {
         case IOTypes::ANALOG:
           data_ = state_.getAnalogIOValue(name_.c_str());
           break;
@@ -154,7 +167,7 @@ public:
       }
     }
 
-private:
+  private:
     const std::string name_;
     IOTypes type_;
     const KUKA::FRI::LBRState & state_;
@@ -163,16 +176,18 @@ private:
 
   class GPIOWriter
   {
-public:
-    double & getData() {return data_;}
-    const std::string & getName() const {return name_;}
+  public:
+    double & getData() { return data_; }
+    const std::string & getName() const { return name_; }
     GPIOWriter(
-      const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command,
-      double initial_value)
-    : name_(name), type_(type), command_(command), data_(initial_value) {}
+      const std::string & name, IOTypes type, KUKA::FRI::LBRCommand & command, double initial_value)
+    : name_(name), type_(type), command_(command), data_(initial_value)
+    {
+    }
     void setValue()
     {
-      switch (type_) {
+      switch (type_)
+      {
         case IOTypes::ANALOG:
           command_.setAnalogIOValue(name_.c_str(), data_);
           break;
@@ -185,7 +200,7 @@ public:
       }
     }
 
-private:
+  private:
     const std::string name_;
     IOTypes type_;
     KUKA::FRI::LBRCommand & command_;

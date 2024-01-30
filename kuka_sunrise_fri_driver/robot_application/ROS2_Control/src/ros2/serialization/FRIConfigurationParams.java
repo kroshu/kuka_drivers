@@ -10,13 +10,13 @@ import com.kuka.roboticsAPI.deviceModel.Device;
 public class FRIConfigurationParams implements Externalizable {
 
 	public static final int length = 12; //remoteIP not included
-	
-	
+
+
 	private String _remoteIP = "192.168.37.70";
 	private int _remotePort;
 	private int _sendPeriodMilliSec;
 	private int _receiveMultiplier;
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		//out.writeBytes(_remoteIP);
@@ -33,20 +33,20 @@ public class FRIConfigurationParams implements Externalizable {
 		_sendPeriodMilliSec = in.readInt();
 		_receiveMultiplier = in.readInt();
 	}
-	
+
 	public FRIConfigurationParams() {
 		_remotePort = 30200;
 		_sendPeriodMilliSec = 10;
 		_receiveMultiplier = 1;
 	}
-	
+
 	public FRIConfigurationParams(FRIConfiguration friConfiguration){
 		//_remoteIP = friConfiguration.getHostName();
 		_remotePort = friConfiguration.getPortOnRemote();
 		_sendPeriodMilliSec = friConfiguration.getSendPeriodMilliSec();
 		_receiveMultiplier = friConfiguration.getReceiveMultiplier();
 	}
-	
+
 	public FRIConfiguration toFRIConfiguration(Device device){
 		FRIConfiguration friConfiguration = FRIConfiguration.createRemoteConfiguration(device, _remoteIP);
 		friConfiguration.setPortOnRemote(_remotePort);
