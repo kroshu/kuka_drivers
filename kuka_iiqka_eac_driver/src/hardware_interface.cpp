@@ -141,13 +141,13 @@ CallbackReturn KukaRoXHardwareInterface::on_configure(const rclcpp_lifecycle::St
  #ifdef NON_MOCK_SETUP
 
   grpc::ClientContext context;
-  // Get Configured Signals Request
-  GetConfiguredSignalsRequest signal_configuration_request;
-  GetConfiguredSignalsResponse signal_configuration_response;
+  // Get Signal Configuration Request
+  GetSignalConfigurationRequest signal_configuration_request;
+  GetSignalConfigurationResponse signal_configuration_response;
 
-  if (stub_->GetConfiguredSignals(
+  if (stub_->GetSignalConfiguration(
       &context, signal_configuration_request,
-      &signal_configuration_response).error_code != grpc::StatusCode::OK)
+      &signal_configuration_response).ok())
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "GetSignalConfiguration failed");
     return CallbackReturn::FAILURE;
@@ -212,38 +212,29 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   if (observe_thread_.joinable()) {
     observe_thread_.join();
   }
-
 #ifdef NON_MOCK_SETUP
   observe_thread_ = std::thread(&KukaRoXHardwareInterface::ObserveControl, this);
 
   grpc::ClientContext context;
-  EnableSignalsRequest enable_signals_request;
-  EnableSignalsResponse enable_signals_response;
-  enable_signals_request.add_enable_signal();
-  enable_signals_request.mutable_enable_signal()->at(0).set_is_enabled(true);
-  enable_signals_request.mutable_enable_signal()->at(0).set_signal_id(1);
-
-  if (stub_->EnableSignals(&context, enable_signals_request, &enable_signals_response).ok()) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "Enable Signals failed");
-    return CallbackReturn::FAILURE;
-  }
 
   // Open Control Chanel Request
-  OpenControlChannelRequest opc_request;
-  OpenControlChannelResponse opc_response;
+  OpenControlChannelRequest request;
+  OpenControlChannelResponse response;
 
 
-  opc_request.set_ip_address(info_.hardware_parameters.at("client_ip"));
-  opc_request.set_timeout(5000);
-  opc_request.set_cycle_time(4);
-  opc_request.set_external_control_mode(
+  request.set_ip_address(info_.hardware_parameters.at("client_ip"));
+  request.set_timeout(5000);
+  request.set_cycle_time(4);
+  request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(hw_control_mode_command_));
+  request.mutable_open_signal_control()->at(0).set_is_open_control(true);
+  request.mutable_open_signal_control()->at(0).set_signal_id(1);
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRoXHardwareInterface"), "Starting control in %s",
     kuka::motion::external::ExternalControlMode_Name(
       static_cast<int>(hw_control_mode_command_)).c_str());
 
-  auto ret = stub_->OpenControlChannel(&context, opc_request, &opc_response);
+  auto ret = stub_->OpenControlChannel(&context, request, &response);
   if (ret.error_code() != grpc::StatusCode::OK) {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "%s", ret.error_message().c_str());
     return CallbackReturn::FAILURE;
