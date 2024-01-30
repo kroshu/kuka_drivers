@@ -14,7 +14,8 @@ setup(
     zip_safe=True,
     maintainer="KUKA Deutschland GmbH",
     maintainer_email="ravi.rathnam@kuka.com",
-    description="This package contains test nodes which connect to a kuka rsi robot and runs some basic movements",
+    description="This package contains test nodes which connect to a "
+    "kuka rsi robot and runs some basic movements",
     license="Apache License 2.0",
     tests_require=["pytest"],
     entry_points={
