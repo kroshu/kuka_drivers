@@ -13,20 +13,20 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMo
 public class JointImpedanceControlModeExternalizable extends JointImpedanceControlMode implements Externalizable{
 
 	public final static int length = 112;
-	
+
 	public JointImpedanceControlModeExternalizable(){
 		super(1000, 1000, 1000, 1000, 1000, 1000, 1000);
 	}
-	
+
 	public JointImpedanceControlModeExternalizable(JointImpedanceControlMode other){
 		super(other);
 	}
-	
+
 	public IMotionControlMode toControlMode(){
 		JointImpedanceControlMode controlMode = new JointImpedanceControlMode((JointImpedanceControlMode)this);
 		return (IMotionControlMode)controlMode;
 	}
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		for(double jointStiffness : getStiffness()){
@@ -40,18 +40,18 @@ public class JointImpedanceControlModeExternalizable extends JointImpedanceContr
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		double[] jointStiffness = new double[getStiffness().length]; 
+		double[] jointStiffness = new double[getStiffness().length];
 		for(int i = 0; i < getStiffness().length; i++){
 			jointStiffness[i] = in.readDouble();
 		}
 		setStiffness(jointStiffness);
-		
-		double[] jointDamping = new double[getDamping().length]; 
+
+		double[] jointDamping = new double[getDamping().length];
 		for(int i = 0; i < getDamping().length; i++){
 			jointDamping[i] = in.readDouble();
 		}
 		setDamping(jointDamping);
-		
+
 	}
 
 

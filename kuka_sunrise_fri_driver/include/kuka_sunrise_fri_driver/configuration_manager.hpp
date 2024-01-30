@@ -16,20 +16,20 @@
 #define KUKA_SUNRISE_FRI_DRIVER__CONFIGURATION_MANAGER_HPP_
 
 #include <map>
-#include <vector>
 #include <memory>
 #include <string>
+#include <vector>
 
+#include "controller_manager_msgs/srv/list_controllers.hpp"
+#include "kuka_driver_interfaces/srv/set_int.hpp"
+#include "kuka_sunrise_fri_driver/fri_connection.hpp"
+#include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
-#include "kuka_driver_interfaces/srv/set_int.hpp"
-#include "controller_manager_msgs/srv/list_controllers.hpp"
-#include "kuka_sunrise_fri_driver/fri_connection.hpp"
 
-#include "kuka_drivers_core/ROS2BaseLCNode.hpp"
+#include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 namespace kuka_sunrise_fri_driver
 {

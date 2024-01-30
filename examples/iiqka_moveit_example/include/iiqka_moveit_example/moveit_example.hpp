@@ -21,37 +21,33 @@
 #include <string>
 #include <vector>
 
-#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
 #include "moveit/move_group_interface/move_group_interface.h"
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
-#include "geometry_msgs/msg/vector3.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 class MoveitExample : public rclcpp::Node
 {
 public:
-  MoveitExample()
-  : rclcpp::Node("moveit_example")
-  {
-  }
+  MoveitExample() : rclcpp::Node("moveit_example") {}
 
   void initialize()
   {
     move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
-      shared_from_this(),
-      PLANNING_GROUP);
+      shared_from_this(), PLANNING_GROUP);
 
     moveit_visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
-      shared_from_this(), "base_link", rviz_visual_tools::RVIZ_MARKER_TOPIC,
+      shared_from_this(), "world", rviz_visual_tools::RVIZ_MARKER_TOPIC,
       move_group_interface_->getRobotModel());
 
     moveit_visual_tools_->deleteAllMarkers();
     moveit_visual_tools_->loadRemoteControl();
     moveit_visual_tools_->trigger();
 
-    planning_scene_diff_publisher_ = this->create_publisher<moveit_msgs::msg::PlanningScene>(
-      "planning_scene", 10);
+    planning_scene_diff_publisher_ =
+      this->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 10);
 
     move_group_interface_->setMaxVelocityScalingFactor(0.1);
     move_group_interface_->setMaxAccelerationScalingFactor(0.1);
@@ -70,7 +66,8 @@ public:
     msg.orientation.w = sqrt(2) / 2;
     msg.position.x = 0.4;
     // Define waypoints in a circle
-    for (int i = 0; i < 63; i++) {
+    for (int i = 0; i < 63; i++)
+    {
       msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
       msg.position.z = 0.4 + cos(0.1 * i) * 0.15;
       waypoints.push_back(msg);
@@ -81,10 +78,13 @@ public:
       move_group_interface_->computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
     RCLCPP_INFO(LOGGER, "Planning done!");
 
-    if (fraction < 1) {
+    if (fraction < 1)
+    {
       RCLCPP_ERROR(LOGGER, "Could not compute trajectory through all waypoints!");
       return nullptr;
-    } else {
+    }
+    else
+    {
       return std::make_shared<moveit_msgs::msg::RobotTrajectory>(trajectory);
     }
   }
@@ -101,26 +101,31 @@ public:
 
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     RCLCPP_INFO(LOGGER, "Sending planning request");
-    if (!move_group_interface_->plan(plan)) {
+    if (!move_group_interface_->plan(plan))
+    {
       RCLCPP_INFO(LOGGER, "Planning failed");
       return nullptr;
-    } else {
+    }
+    else
+    {
       RCLCPP_INFO(LOGGER, "Planning successful");
       return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
     }
   }
 
-  moveit_msgs::msg::RobotTrajectory::SharedPtr planToPosition(
-    const std::vector<double> & joint_pos)
+  moveit_msgs::msg::RobotTrajectory::SharedPtr planToPosition(const std::vector<double> & joint_pos)
   {
     move_group_interface_->setJointValueTarget(joint_pos);
 
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     RCLCPP_INFO(LOGGER, "Sending planning request");
-    if (!move_group_interface_->plan(plan)) {
+    if (!move_group_interface_->plan(plan))
+    {
       RCLCPP_INFO(LOGGER, "Planning failed");
       return nullptr;
-    } else {
+    }
+    else
+    {
       RCLCPP_INFO(LOGGER, "Planning successful");
       return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
     }
@@ -140,7 +145,8 @@ public:
     RCLCPP_INFO(LOGGER, "Sending planning request");
     moveit::core::MoveItErrorCode err_code;
     auto start = std::chrono::high_resolution_clock::now();
-    do{
+    do
+    {
       RCLCPP_INFO(LOGGER, "Planning ...");
       err_code = move_group_interface_->plan(plan);
     } while (err_code != moveit::core::MoveItErrorCode::SUCCESS);
@@ -186,8 +192,7 @@ public:
   }
 
   void addCollisionBox(
-    const geometry_msgs::msg::Vector3 & position,
-    const geometry_msgs::msg::Vector3 & size)
+    const geometry_msgs::msg::Vector3 & position, const geometry_msgs::msg::Vector3 & size)
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
@@ -215,9 +220,12 @@ public:
 
   void addPalletObjects()
   {
-    for (int k = 0; k < 3; k++) {
-      for (int j = 0; j < 3; j++) {
-        for (int i = 0; i < 3; i++) {
+    for (int k = 0; k < 3; k++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+        for (int i = 0; i < 3; i++)
+        {
           moveit_msgs::msg::CollisionObject pallet_object;
           pallet_object.header.frame_id = move_group_interface_->getPlanningFrame();
 
@@ -299,30 +307,25 @@ public:
     move_group_interface_->setPathConstraints(constraints);
   }
 
-  void clearConstraints()
-  {
-    move_group_interface_->clearPathConstraints();
-  }
+  void clearConstraints() { move_group_interface_->clearPathConstraints(); }
 
   void drawTrajectory(const moveit_msgs::msg::RobotTrajectory & trajectory)
   {
     moveit_visual_tools_->deleteAllMarkers();
     moveit_visual_tools_->publishTrajectoryLine(
-      trajectory,
-      moveit_visual_tools_->getRobotModel()->getJointModelGroup(PLANNING_GROUP));
+      trajectory, moveit_visual_tools_->getRobotModel()->getJointModelGroup(PLANNING_GROUP));
   }
 
   void drawTitle(const std::string & text)
   {
     auto const text_pose = []
-      {
-        auto msg = Eigen::Isometry3d::Identity();
-        msg.translation().z() = 1.0;
-        return msg;
-      } ();
+    {
+      auto msg = Eigen::Isometry3d::Identity();
+      msg.translation().z() = 1.0;
+      return msg;
+    }();
     moveit_visual_tools_->publishText(
-      text_pose, text, rviz_visual_tools::RED,
-      rviz_visual_tools::XXLARGE);
+      text_pose, text, rviz_visual_tools::RED, rviz_visual_tools::XXLARGE);
   }
 
   void addBreakPoint()

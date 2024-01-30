@@ -8,7 +8,7 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-typedef struct _kuka_ecs_v1_ControlSignalExternal { 
+typedef struct _kuka_ecs_v1_ControlSignalExternal {
     bool has_header;
     kuka_ecs_v1_ExternalHeader header;
 

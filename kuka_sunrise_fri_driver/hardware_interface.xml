@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<library path="kuka_fri_hw_interface">
-    <class type="kuka_sunrise_fri_driver::KUKAFRIHardwareInterface"
+<library path="kuka_sunrise_fri_driver">
+    <class type="kuka_sunrise_fri_driver::KukaFRIHardwareInterface"
            base_class_type="hardware_interface::SystemInterface"/>
     <description>
         ROS2 control hardware interface for KUKA LBR robots using the Fast Robot Interface (FRI).

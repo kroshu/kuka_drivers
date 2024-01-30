@@ -2,18 +2,12 @@ controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
-    forward_command_controller:
-      type: forward_command_controller/ForwardCommandController
-
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-      
-    effort_controller:
-      type: effort_controllers/JointEffortController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-      
+
     fri_configuration_controller:
       type: kuka_controllers/FRIConfigurationController
 

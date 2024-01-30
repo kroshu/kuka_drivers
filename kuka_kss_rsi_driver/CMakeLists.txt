@@ -35,7 +35,7 @@ add_library(${PROJECT_NAME} SHARED
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUILDING_DLL")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KSS_RSI_DRIVER_BUILDING_LIBRARY")
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
@@ -55,22 +55,10 @@ install(TARGETS ${PROJECT_NAME} robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_copyright REQUIRED)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_pep257 REQUIRED)
-  find_package(ament_cmake_flake8 REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  find_package(ament_cmake_xmllint REQUIRED)
-
-  ament_cppcheck(--language=c++)
-  ament_pep257()
-  ament_flake8()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify(--language=C++)
-  ament_xmllint(--exclude ros_rsi.rsi.xml)
+  find_package(launch_testing_ament_cmake)
+  add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_driver_activation.py)
+  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ## EXPORTS
@@ -87,7 +75,7 @@ ament_export_dependencies(
   rclcpp_lifecycle
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
 ament_package()
