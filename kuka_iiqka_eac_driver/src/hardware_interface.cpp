@@ -197,51 +197,55 @@ KukaEACHardwareInterface::export_command_interfaces()
 CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
  #ifdef NON_MOCK_SETUP
-
-  grpc::ClientContext context;
+  grpc::ClientContext signal_configuration_context;
   // Get Signal Configuration Request
   GetSignalConfigurationRequest signal_configuration_request;
   GetSignalConfigurationResponse signal_configuration_response;
 
   if (stub_->GetSignalConfiguration(
-      &context, signal_configuration_request,
-      &signal_configuration_response).ok())
+      &signal_configuration_context, signal_configuration_request,
+      &signal_configuration_response).error_code() != grpc::StatusCode::OK)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "GetSignalConfiguration failed");
     return CallbackReturn::FAILURE;
-  } else {
-    // TODO (Komaromi): Save signal configuration
-    for (auto && signal : signal_configuration_response.signal_config_external()) {
-      RCLCPP_INFO(
-        rclcpp::get_logger(
-          "KukaRoXHardwareInterface"), "ID: %d, Name: %s, Direction: %d, Type %d",
-        signal.signal_id(), signal.signal_config().direction(), signal.signal_config().data_type());
-    }
   }
-
+    // TODO (Komaromi): Save signal configuration
+    if(signal_configuration_response.signal_config_external_size() > 0)
+    {
+      for (auto && signal : signal_configuration_response.signal_config_external()) {
+        RCLCPP_INFO(
+          rclcpp::get_logger(
+            "KukaRoXHardwareInterface"), "ID: %d, Name: %s, Direction: %d, Type %d",
+          signal.signal_id(), signal.signal_config().name().c_str() ,signal.signal_config().direction(), signal.signal_config().data_type());
+      }
+    }
+    else
+    {    RCLCPP_INFO(rclcpp::get_logger(
+          "KukaRoXHardwareInterface"),"Signal config empty");
+    }
   // Set QOS Profile Request
   SetQoSProfileRequest set_qos_request;
   SetQoSProfileResponse set_qos_response;
 
+  grpc::ClientContext set_qos_context;
   set_qos_request.add_qos_profiles();
 
-  set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
-  set_consequent_lost_packets(std::stoi(info_.hardware_parameters.at("consequent_lost_packets")));
-  set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->
-  set_lost_packets_in_timeframe(
-    std::stoi(
-      info_.hardware_parameters.at(
-        "lost_packets_in_timeframe")));
+  set_qos_request.mutable_qos_profiles()
+    ->at(0)
+    .mutable_rt_packet_loss_profile()
+    ->set_consequent_lost_packets(
+      std::stoi(info_.hardware_parameters.at("consequent_lost_packets")));
+  set_qos_request.mutable_qos_profiles()
+    ->at(0)
+    .mutable_rt_packet_loss_profile()
+    ->set_lost_packets_in_timeframe(
+      std::stoi(info_.hardware_parameters.at("lost_packets_in_timeframe")));
   set_qos_request.mutable_qos_profiles()->at(0).mutable_rt_packet_loss_profile()->set_timeframe_ms(
-    std::stoi(
-      info_.hardware_parameters.at(
-        "timeframe_ms")));
+    std::stoi(info_.hardware_parameters.at("timeframe_ms")));
 
-  if (stub_->SetQoSProfile(
-      &context, set_qos_request,
-      &set_qos_response).ok())
+  if (stub_->SetQoSProfile(&set_qos_context, set_qos_request, &set_qos_response).error_code() != grpc::StatusCode::OK)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRoXHardwareInterface"), "SetQoSProfile failed");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "SetQoSProfile failed");
     return CallbackReturn::FAILURE;
   }
 
@@ -286,6 +290,7 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   request.set_cycle_time(4);
   request.set_external_control_mode(
     kuka::motion::external::ExternalControlMode(hw_control_mode_command_));
+  request.add_open_signal_control();
   request.mutable_open_signal_control()->at(0).set_is_open_control(true);
   request.mutable_open_signal_control()->at(0).set_signal_id(1);
   RCLCPP_INFO(

@@ -19,7 +19,7 @@ endif()
 # TODO: find better solution
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
-set(MOCK_KUKA_LIBS TRUE)
+set(MOCK_KUKA_LIBS FALSE)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
