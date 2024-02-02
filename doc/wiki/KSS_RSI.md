@@ -88,7 +88,7 @@ The IP address of the client machine must be provided as a launch argument. For 
     ```
     ros2 launch kuka_kss_rsi_driver startup.launch.py client_ip:=0.0.0.0
     ```
-     - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
+     - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
        - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
        - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
 
