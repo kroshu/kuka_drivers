@@ -22,7 +22,6 @@
 
 namespace kuka_drivers_core
 {
-
 template <typename FutureT, typename WaitTimeT>
 std::future_status wait_for_result(FutureT & future, WaitTimeT time_to_wait)
 {
