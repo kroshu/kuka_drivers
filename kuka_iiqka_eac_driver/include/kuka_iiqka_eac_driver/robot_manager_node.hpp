@@ -26,7 +26,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int32.hpp"
-#include "std_msgs/msg/int64.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 
 #include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
@@ -51,7 +51,7 @@ public:
     const rclcpp_lifecycle::State &) override;
 
 private:
-  void EventSubscriptionCallback(const std_msgs::msg::Int64::SharedPtr msg);
+  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
 
@@ -75,7 +75,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-  rclcpp::Subscription<std_msgs::msg::Int64>::SharedPtr event_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 
 
   // There are two kinds of control modes with different number of necessary interfaces to be set:

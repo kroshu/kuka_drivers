@@ -55,8 +55,8 @@ RobotManagerNode::RobotManagerNode()
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
-  event_subscriber_ = this->create_subscription<std_msgs::msg::Int64>(
-    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::Int64::SharedPtr msg)
+  event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::UInt8::SharedPtr msg)
     {this->EventSubscriptionCallback(msg);});
 
   // Register parameters
@@ -160,7 +160,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::Int64::SharedPtr msg)
+void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {  
   switch (msg->data)
   {
