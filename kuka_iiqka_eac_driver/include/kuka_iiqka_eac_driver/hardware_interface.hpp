@@ -28,10 +28,9 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "rclcpp_lifecycle/state.hpp"
-#include "os-core-udp-communication/replier.h"
-#include "kuka/external-control-sdk/iiqka/robot.h"
 #include "kuka/external-control-sdk/iiqka/message_builder.h"
+#include "kuka/external-control-sdk/iiqka/robot.h"
+#include "rclcpp_lifecycle/state.hpp"
 
 #include "kuka_iiqka_eac_driver/visibility_control.h"
 
@@ -76,7 +75,7 @@ private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL void ObserveControl();
 
   std::unique_ptr<kuka::external::control::iiqka::Robot> robot_ptr_;
-  kuka::external::control::BaseControlSignal* hw_control_signal_ = nullptr;
+  kuka::external::control::BaseControlSignal * hw_control_signal_ = nullptr;
 
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;
@@ -85,12 +84,17 @@ private:
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
 
+  double hw_control_mode_command_;
+  double server_state_ = 0;
+
+  int prev_control_mode_;
+
   kuka::ecs::v1::CommandState command_state_;
   bool msg_received_;
-  
+
+  bool stop_requested_ = false;
 
   std::chrono::milliseconds receive_timeout_{1000};
-
 };
 }  // namespace kuka_eac
 

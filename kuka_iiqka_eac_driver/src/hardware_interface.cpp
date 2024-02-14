@@ -13,17 +13,17 @@
 // limitations under the License.
 
 #include <grpcpp/create_channel.h>
+#include <chrono>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <chrono>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
-#include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 #include "kuka/external-control-sdk/iiqka/configuration.h"
 #include "kuka_iiqka_eac_driver/event_observer.hpp"
+#include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
 using namespace kuka::ecs::v1;  // NOLINT
 using namespace std::chrono_literals;
@@ -40,7 +40,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   }
 
   // Initialize control mode with 'undefined', which should be changed by the appropriate controller
-  // during configuration 
+  // during configuration
   // TODO: rethink control mode changes
   hw_position_states_.resize(info_.joints.size(), 0.0);
   hw_torque_states_.resize(info_.joints.size(), 0.0);
@@ -48,7 +48,6 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
-
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
@@ -115,6 +114,12 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     }
   }
 
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"),
+    "Init successful with controller ip: %s and client ip: %s",
+    info_.hardware_parameters.at("controller_ip").c_str(),
+    info_.hardware_parameters.at("client_ip").c_str());
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -130,6 +135,10 @@ std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
   }
+
+  state_interfaces.emplace_back(
+    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+
   return state_interfaces;
 }
 
@@ -154,16 +163,21 @@ KukaEACHardwareInterface::export_command_interfaces()
       info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
   }
 
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
+
   return command_interfaces;
 }
 
 CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  if (!SetupRobot()) 
+  if (!SetupRobot())
   {
-      return CallbackReturn::FAILURE;
+    return CallbackReturn::FAILURE;
   }
-  
+  // Initialize previous control mode with first
+  prev_control_mode_ = static_cast<int>(hw_control_mode_command_);
+
   if (!SetupQoS())
   {
     return CallbackReturn::FAILURE;
@@ -171,36 +185,39 @@ CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
-    "Configure successful with controller ip: %s and client ip: %s",
-    info_.hardware_parameters.at("controller_ip").c_str(),
-    info_.hardware_parameters.at("client_ip").c_str());
-
-  RCLCPP_INFO(
-    rclcpp::get_logger("KukaEACHardwareInterface"),
     "Set QoS profile with %s consequent and %s packet losses allowed in %s milliseconds",
     info_.hardware_parameters.at("consequent_lost_packets").c_str(),
     info_.hardware_parameters.at("lost_packets_in_timeframe").c_str(),
     info_.hardware_parameters.at("timeframe_ms").c_str());
-  
+
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  kuka::external::control::OperationStatus create_event_observer = robot_ptr_->RegisterEventHandler(std::make_unique<KukaEACEventObserver>(this));
-  if (create_event_observer.return_code == kuka::external::control::ReturnCode::ERROR) {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "Creating event observer failed, error message: %s", create_event_observer.message);
+  kuka::external::control::OperationStatus create_event_observer =
+    robot_ptr_->RegisterEventHandler(std::make_unique<KukaEACEventObserver>(this));
+  if (create_event_observer.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "Creating event observer failed, error message: %s", create_event_observer.message);
   }
 
   kuka::external::control::OperationStatus start_control = robot_ptr_->StartControlling();
   if (start_control.return_code == kuka::external::control::ReturnCode::ERROR)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "Starting external control failed, error message: %s", start_control.message);
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "Starting external control failed, error message: %s", start_control.message);
     return CallbackReturn::FAILURE;
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "External control session started successfully");
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"),
+    "External control session started successfully");
 
+  stop_requested_ = false;
   return CallbackReturn::SUCCESS;
 }
 
@@ -208,7 +225,7 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Deactivating");
 
-  //set stop flag or something
+  stop_requested_ = true;
 
   return CallbackReturn::SUCCESS;
 }
@@ -219,50 +236,70 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
-    auto& req_message = robot_ptr_->GetLastMotionState();
+    auto & req_message = robot_ptr_->GetLastMotionState();
 
-    std::copy(req_message.GetMeasuredPositions()->begin(), req_message.GetMeasuredPositions()->end(), hw_position_states_.begin());
-    std::copy(req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(), hw_torque_states_.begin());
-    std::copy(hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+    std::copy(
+      req_message.GetMeasuredPositions()->begin(), req_message.GetMeasuredPositions()->end(),
+      hw_position_states_.begin());
+    std::copy(
+      req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
+      hw_torque_states_.begin());
+    std::copy(
+      hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
   }
-  
+
   return return_type::OK;
 }
 
 return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // If control is not started or a request is missed, do not send back anything
-  
   if (!msg_received_)
   {
     return return_type::OK;
   }
-  
-  // TODO(Svastits): should we separate control modes somehow?
 
   hw_control_signal_->AddJointPositionValues(hw_position_commands_);
   hw_control_signal_->AddTorqueValues(hw_torque_commands_);
   hw_control_signal_->AddStiffnessAndDampingValues(hw_stiffness_commands_, hw_damping_commands_);
 
-  kuka::external::control::OperationStatus send_reply = robot_ptr_->SendControlSignal();
-
+  kuka::external::control::OperationStatus send_reply;
+  if (stop_requested_)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Sending stop signal");
+    send_reply = robot_ptr_->StopControlling();
+  }
+  else if (static_cast<int>(hw_control_mode_command_) != prev_control_mode_)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Requesting control mode switch");
+    send_reply = robot_ptr_->SwitchControlMode(
+      static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
+  }
+  else
+  {
+    send_reply = robot_ptr_->SendControlSignal();
+  }
   if (send_reply.return_code != kuka::external::control::ReturnCode::OK)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "Send reply failed, error message: %s", send_reply.message);
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "Send reply failed, error message: %s",
+      send_reply.message);
     throw std::runtime_error("Error sending reply");
   }
   return return_type::OK;
 }
 
-bool KukaEACHardwareInterface::SetupRobot() {
+bool KukaEACHardwareInterface::SetupRobot()
+{
   kuka::external::control::iiqka::Configuration config;
-  
+
   config.client_ip_address = info_.hardware_parameters.at("client_ip");
-  config.koni_ip_address =  info_.hardware_parameters.at("controller_ip");
-  
+  config.koni_ip_address = info_.hardware_parameters.at("controller_ip");
+
   config.is_secure = false;
   config.dof = info_.joints.size();
-  config.initial_control_mode = kuka::external::control::ControlMode::JOINT_POSITION_CONTROL;
+  config.initial_control_mode =
+    static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
 
   robot_ptr_ = std::make_unique<kuka::external::control::iiqka::Robot>(config);
 
@@ -276,33 +313,36 @@ bool KukaEACHardwareInterface::SetupRobot() {
 
   if (setup.return_code != kuka::external::control::ReturnCode::OK)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "Setup failed, error message: %s", setup.message);
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "Setup failed, error message: %s",
+      setup.message);
     return false;
   }
 
   return true;
-
 }
 
-bool KukaEACHardwareInterface::SetupQoS() {
-
+bool KukaEACHardwareInterface::SetupQoS()
+{
   kuka::external::control::iiqka::QoS_Configuration qos_config;
-  qos_config.packet_loss_in_timeframe_limit = std::stoi(info_.hardware_parameters.at("lost_packets_in_timeframe"));
-  qos_config.consecutive_packet_loss_limit  = std::stoi(info_.hardware_parameters.at("consequent_lost_packets"));
-  qos_config.timeframe_ms                   = std::stoi(info_.hardware_parameters.at("timeframe_ms"));
+  qos_config.packet_loss_in_timeframe_limit =
+    std::stoi(info_.hardware_parameters.at("lost_packets_in_timeframe"));
+  qos_config.consecutive_packet_loss_limit =
+    std::stoi(info_.hardware_parameters.at("consequent_lost_packets"));
+  qos_config.timeframe_ms = std::stoi(info_.hardware_parameters.at("timeframe_ms"));
 
   kuka::external::control::OperationStatus set_qos_status = robot_ptr_->SetQoSProfile(qos_config);
-  
+
   if (set_qos_status.return_code != kuka::external::control::ReturnCode::OK)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), "QoS configuration failed, error message: %s", set_qos_status.message);
-    return false;  
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "QoS configuration failed, error message: %s",
+      set_qos_status.message);
+    return false;
   }
 
   return true;
-
 }
-
 }  // namespace kuka_eac
 
 PLUGINLIB_EXPORT_CLASS(kuka_eac::KukaEACHardwareInterface, hardware_interface::SystemInterface)

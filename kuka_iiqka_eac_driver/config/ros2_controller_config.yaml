@@ -12,5 +12,7 @@ controller_manager:
       type: effort_controllers/JointGroupPositionController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
+    event_broadcaster:
+      type: kuka_controllers/EventBroadcaster
 
     configure_components_on_start: [""]

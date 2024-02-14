@@ -49,7 +49,8 @@ target_link_libraries(${PROJECT_NAME} kuka-external-control-sdk yaml-cpp)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers kuka-external-control-sdk kuka-external-control-sdk-protobuf)
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers kuka-external-control-sdk
+  kuka-external-control-sdk-protobuf)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 

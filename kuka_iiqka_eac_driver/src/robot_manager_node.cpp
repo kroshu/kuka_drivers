@@ -17,8 +17,8 @@
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 
-#include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 #include "iiqka/proto-api/motion-external/external_control_mode.pb.h"
+#include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
@@ -82,9 +82,12 @@ RobotManagerNode::RobotManagerNode()
       return this->controller_handler_.UpdateControllerName(
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
+
+  // TODO(Svastits): enable control mode change in inactive, after client lib was fixed
+  // Currently initial control mode must be specified at setup (configuring transition)
   this->registerParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
-    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false, true, false, false},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
   this->registerStaticParameter<std::string>(
     "controller_ip", "",
@@ -142,7 +145,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Activate control mode handler
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"control_mode_handler"}, {}))
+        change_controller_state_client_, {"control_mode_handler", "event_broadcaster"}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate control mode handler");
     // TODO(Svastits): this can be removed if rollback is implemented properly
@@ -160,7 +163,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Deactivate control mode handler
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, {"control_mode_handler"}))
+        change_controller_state_client_, {}, {"control_mode_handler", "event_broadcaster"}))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler");
   }
