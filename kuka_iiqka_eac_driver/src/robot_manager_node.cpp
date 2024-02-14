@@ -24,7 +24,6 @@
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
-using namespace kuka::motion::external;        // NOLINT
 
 namespace kuka_eac
 {
@@ -87,7 +86,7 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
 
-  // TODO(Svastits): enable control mode change in inactive, after client lib was fixed
+  // TODO(Svastits): enable control mode change in inactive state, after client lib was fixed
   // Currently initial control mode must be specified at setup (configuring transition)
   this->registerParameter<int>(
     "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),

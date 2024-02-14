@@ -72,6 +72,11 @@ public:
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
 
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_timeout(int timeout_ms)
+  {
+    receive_timeout_ = std::chrono::milliseconds(timeout_ms);
+  }
+
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
@@ -93,12 +98,10 @@ private:
   int prev_control_mode_;
   kuka_drivers_core::HardwareEvent last_event_ = kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
-  kuka::ecs::v1::CommandState command_state_;
   bool msg_received_;
-
   bool stop_requested_ = false;
 
-  std::chrono::milliseconds receive_timeout_{1000};
+  std::chrono::milliseconds receive_timeout_{6};
 };
 }  // namespace kuka_eac
 

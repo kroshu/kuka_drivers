@@ -25,11 +25,6 @@
 #include "kuka_iiqka_eac_driver/event_observer.hpp"
 #include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
-using namespace kuka::ecs::v1;  // NOLINT
-using namespace std::chrono_literals;
-
-using os::core::udp::communication::Socket;
-
 namespace kuka_eac
 {
 CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
@@ -41,7 +36,6 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
 
   // Initialize control mode with 'undefined', which should be changed by the appropriate controller
   // during configuration
-  // TODO: rethink control mode changes
   hw_position_states_.resize(info_.joints.size(), 0.0);
   hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
@@ -232,10 +226,11 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  kuka::external::control::OperationStatus receive_state = robot_ptr_->ReceiveMotionState(20ms);
+  kuka::external::control::OperationStatus receive_state = robot_ptr_->ReceiveMotionState(receive_timeout_);
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
+    receive_timeout_ = std::chrono::milliseconds(6);
     auto & req_message = robot_ptr_->GetLastMotionState();
 
     std::copy(
@@ -308,10 +303,6 @@ bool KukaEACHardwareInterface::SetupRobot()
   robot_ptr_ = std::make_unique<kuka::external::control::iiqka::Robot>(config);
 
   hw_control_signal_ = &(robot_ptr_->GetControlSignal());
-
-  hw_control_signal_->AddJointPositionValues(hw_position_commands_);
-  hw_control_signal_->AddTorqueValues(hw_torque_commands_);
-  hw_control_signal_->AddStiffnessAndDampingValues(hw_stiffness_commands_, hw_damping_commands_);
 
   kuka::external::control::OperationStatus setup = robot_ptr_->Setup();
 
