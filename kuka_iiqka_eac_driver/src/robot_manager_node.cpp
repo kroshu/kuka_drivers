@@ -20,6 +20,8 @@
 #include "iiqka/proto-api/motion-external/external_control_mode.pb.h"
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 
+#include "kuka_drivers_core/hardware_event.hpp"
+
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
 using namespace kuka::motion::external;        // NOLINT
@@ -161,9 +163,9 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 
 void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {
-  switch (msg->data)
+  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
   {
-    case 5:
+    case kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH:
     {
       std::lock_guard<std::mutex> lk(control_mode_cv_m_);
       control_mode_change_finished_ = true;
@@ -171,8 +173,8 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
       RCLCPP_INFO(get_logger(), "Control mode change has finished, restarting with new mode");
       control_mode_cv_.notify_all();
       break;
-    case 4:
-    case 6:
+    case kuka_drivers_core::HardwareEvent::CONTROL_STOPPED:
+    case kuka_drivers_core::HardwareEvent::ERROR:
       RCLCPP_INFO(get_logger(), "External control stopped");
       terminate_ = true;
       if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
