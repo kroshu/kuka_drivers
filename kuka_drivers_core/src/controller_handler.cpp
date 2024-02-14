@@ -76,9 +76,9 @@ ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
     throw std::out_of_range("Attribute new_control_mode is out of range");
   }
 
-  if (new_control_mode == ControlMode::UNSPECIFIED_CONTROL_MODE)
+  if (new_control_mode == ControlMode::CONTROL_MODE_UNSPECIFIED)
   {
-    throw std::logic_error("UNSPECIFIED_CONTROL_MODE is not valid control mode");
+    throw std::logic_error("CONTROL_MODE_UNSPECIFIED is not valid control mode");
   }
 
   // Set controllers which should be activated and deactivated
