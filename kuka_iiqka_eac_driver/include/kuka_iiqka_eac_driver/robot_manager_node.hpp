@@ -77,7 +77,6 @@ private:
 
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 
-
   // There are two kinds of control modes with different number of necessary interfaces to be set:
   //  - in standard modes (position, torque), only the control signal to the used interface (1)
   //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)

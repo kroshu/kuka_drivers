@@ -56,8 +56,8 @@ RobotManagerNode::RobotManagerNode()
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
-    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::UInt8::SharedPtr msg)
-    {this->EventSubscriptionCallback(msg);});
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
+    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); });
 
   // Register parameters
   this->registerParameter<std::string>(
@@ -100,7 +100,6 @@ RobotManagerNode::RobotManagerNode()
     kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
-
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -161,7 +160,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 }
 
 void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
-{  
+{
   switch (msg->data)
   {
     case 5:
@@ -189,7 +188,6 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
     default:
       break;
   }
-  
 }
 
 // TODO(Svastits): rollback in case of failures
