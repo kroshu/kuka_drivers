@@ -39,7 +39,6 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 
 namespace kuka_eac
 {
-
 class KukaEACHardwareInterface : public hardware_interface::SystemInterface
 {
 public:

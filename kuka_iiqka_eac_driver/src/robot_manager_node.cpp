@@ -32,11 +32,9 @@ RobotManagerNode::RobotManagerNode()
 : kuka_drivers_core::ROS2BaseLCNode("robot_manager"),
   controller_handler_({
     "joint_state_broadcaster",
-  })
-#ifdef NON_MOCK_SETUP
-  ,
+  }),
   control_mode_change_finished_(false)
-#endif
+
 {
   RCLCPP_DEBUG(get_logger(), "Starting Robot Manager Node init");
 
@@ -56,6 +54,10 @@ RobotManagerNode::RobotManagerNode()
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+
+  event_subscriber_ = this->create_subscription<std_msgs::msg::Int64>(
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::Int64::SharedPtr msg)
+    {this->EventSubscriptionCallback(msg);});
 
   // Register parameters
   this->registerParameter<std::string>(
@@ -99,28 +101,6 @@ RobotManagerNode::RobotManagerNode()
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 
-#ifdef NON_MOCK_SETUP
-  RCLCPP_INFO(
-    get_logger(), "IP address of controller: %s",
-    this->get_parameter("controller_ip").as_string().c_str());
-
-  stub_ = kuka::ecs::v1::ExternalControlService::NewStub(grpc::CreateChannel(
-    this->get_parameter("controller_ip").as_string() + ":49335",
-    grpc::InsecureChannelCredentials()));
-#endif
-}
-RobotManagerNode::~RobotManagerNode()
-{
-#ifdef NON_MOCK_SETUP
-  if (context_ != nullptr)
-  {
-    context_->TryCancel();
-  }
-#endif
-  if (observe_thread_.joinable())
-  {
-    observe_thread_.join();
-  }
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -139,7 +119,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
 
@@ -176,78 +155,49 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (is_configured_pub_->is_activated())
-  {
-    is_configured_msg_.data = false;
-    is_configured_pub_->publish(is_configured_msg_);
-    is_configured_pub_->on_deactivate();
-  }
-  // TODO(Svastits): add else branch, and throw exception(?)
+  is_configured_msg_.data = false;
+  is_configured_pub_->publish(is_configured_msg_);
   return SUCCESS;
 }
 
-void RobotManagerNode::ObserveControl()
-{
-#ifdef NON_MOCK_SETUP
-  context_ = std::make_unique<::grpc::ClientContext>();
-  kuka::ecs::v1::ObserveControlStateRequest observe_request;
-  std::unique_ptr<grpc::ClientReader<kuka::ecs::v1::CommandState>> reader(
-    stub_->ObserveControlState(context_.get(), observe_request));
-
-  kuka::ecs::v1::CommandState response;
-
-  while (reader->Read(&response))
+void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::Int64::SharedPtr msg)
+{  
+  switch (msg->data)
   {
-    switch (static_cast<int>(response.event()))
+    case 5:
     {
-      case kuka::ecs::v1::CommandEvent::CONTROL_MODE_SWITCH:
-      {
-        std::lock_guard<std::mutex> lk(control_mode_cv_m_);
-        control_mode_change_finished_ = true;
-      }
-        RCLCPP_INFO(get_logger(), "Command mode switched in the robot controller");
-        control_mode_cv_.notify_all();
-        break;
-      case kuka::ecs::v1::CommandEvent::STOPPED:
-      case kuka::ecs::v1::CommandEvent::ERROR:
-        RCLCPP_INFO(get_logger(), "External control stopped");
-        terminate_ = true;
-        if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
-        {
-          this->deactivate();
-        }
-        else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
-        {
-          // TODO(Svastits): this can be removed if rollback is implemented properly
-          this->on_deactivate(get_current_state());
-        }
-        break;
-      default:
-        break;
+      std::lock_guard<std::mutex> lk(control_mode_cv_m_);
+      control_mode_change_finished_ = true;
     }
+      RCLCPP_INFO(get_logger(), "Control mode change has finished, restarting with new mode");
+      control_mode_cv_.notify_all();
+      break;
+    case 4:
+    case 6:
+      RCLCPP_INFO(get_logger(), "External control stopped");
+      terminate_ = true;
+      if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+      {
+        this->deactivate();
+      }
+      else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
+      {
+        // TODO(Svastits): this can be removed if rollback is implemented properly
+        this->on_deactivate(get_current_state());
+      }
+      break;
+    default:
+      break;
   }
-#endif
+  
 }
 
 // TODO(Svastits): rollback in case of failures
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-#ifdef NON_MOCK_SETUP
-  if (context_ != nullptr)
-  {
-    context_->TryCancel();
-  }
-#endif
   // Join observe thread, necessary if previous activation failed
-  if (observe_thread_.joinable())
-  {
-    observe_thread_.join();
-  }
   terminate_ = false;
-  // Subscribe to stream of state changes
-  observe_thread_ = std::thread(&RobotManagerNode::ObserveControl, this);
-
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_ACTIVE, 5000))
@@ -405,15 +355,13 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   {
     // The driver is in active state
 
-#ifdef NON_MOCK_SETUP
-    // Wait for ObserveControl to approve that the robot succefully changed control mode
+    // Wait for approval that the robot succefully changed control mode
     std::unique_lock<std::mutex> control_mode_lk(this->control_mode_cv_m_);
 
     if (!this->control_mode_cv_.wait_for(
-          control_mode_lk, std::chrono::milliseconds(2000),
+          control_mode_lk, std::chrono::milliseconds(3000),
           [this]() { return this->control_mode_change_finished_; }))
     {
-      // Control Mode change timeout reached
       RCLCPP_ERROR(get_logger(), "Timeout reached while waiting for robot to change control mode.");
       this->on_deactivate(get_current_state());
       return false;
@@ -421,7 +369,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     control_mode_change_finished_ = false;
     control_mode_lk.unlock();
     RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
-#endif
 
     // Deactivate unnecessary controllers
     if (
