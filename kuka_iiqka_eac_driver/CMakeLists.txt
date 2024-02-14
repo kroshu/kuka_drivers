@@ -48,8 +48,7 @@ target_link_libraries(${PROJECT_NAME} kuka-external-control-sdk)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers kuka-external-control-sdk
-  kuka-external-control-sdk-protobuf)
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers kuka-external-control-sdk)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
@@ -71,6 +70,7 @@ ament_export_libraries(
 )
 
 # Hack to extend $LD_LIBRARY_PATH with /usr/local/lib when sourcing
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/ament_cmake_environment_hooks/library_path.dsv "prepend-non-duplicate;LD_LIBRARY_PATH;/usr/local/lib")
+file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/ament_cmake_environment_hooks/library_path.dsv
+  "prepend-non-duplicate;LD_LIBRARY_PATH;/usr/local/lib")
 
 ament_package()

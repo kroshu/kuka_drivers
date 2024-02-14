@@ -96,7 +96,8 @@ private:
   double server_state_ = 0;
 
   int prev_control_mode_;
-  kuka_drivers_core::HardwareEvent last_event_ = kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
   bool msg_received_;
   bool stop_requested_ = false;

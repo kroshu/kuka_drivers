@@ -226,7 +226,8 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  kuka::external::control::OperationStatus receive_state = robot_ptr_->ReceiveMotionState(receive_timeout_);
+  kuka::external::control::OperationStatus receive_state =
+    robot_ptr_->ReceiveMotionState(receive_timeout_);
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
@@ -339,7 +340,10 @@ bool KukaEACHardwareInterface::SetupQoS()
   return true;
 }
 
-void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event) { last_event_ = event; }
+void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
+{
+  last_event_ = event;
+}
 }  // namespace kuka_eac
 
 PLUGINLIB_EXPORT_CLASS(kuka_eac::KukaEACHardwareInterface, hardware_interface::SystemInterface)

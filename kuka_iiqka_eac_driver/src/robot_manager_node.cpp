@@ -17,9 +17,9 @@
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 
-#include "iiqka/proto-api/motion-external/external_control_mode.pb.h"
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 
+#include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -89,7 +89,7 @@ RobotManagerNode::RobotManagerNode()
   // TODO(Svastits): enable control mode change in inactive state, after client lib was fixed
   // Currently initial control mode must be specified at setup (configuring transition)
   this->registerParameter<int>(
-    "control_mode", static_cast<int>(ExternalControlMode::JOINT_POSITION_CONTROL),
+    "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
     kuka_drivers_core::ParameterSetAccessRights{true, false, true, false, false},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
   this->registerStaticParameter<std::string>(
@@ -389,9 +389,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     }
   }
 
-  RCLCPP_INFO(
-    get_logger(), "Successfully changed control mode to %s",
-    ExternalControlMode_Name(control_mode).c_str());
+  RCLCPP_INFO(get_logger(), "Successfully changed control mode");
   param_declared_ = true;
   return true;
 }
