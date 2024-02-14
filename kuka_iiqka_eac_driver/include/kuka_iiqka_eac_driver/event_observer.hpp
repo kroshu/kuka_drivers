@@ -18,6 +18,7 @@
 #include "rclcpp/macros.hpp"
 
 #include "kuka/external-control-sdk/common/irobot.h"
+#include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
 namespace kuka_eac
@@ -28,22 +29,26 @@ public:
   KukaEACEventObserver(KukaEACHardwareInterface * hw_interface) : hw_interface_(hw_interface) {}
   void OnSampling() override
   {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "External control is active");
   }
   void OnControlModeSwitch(const std::string & reason) override
   {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH);
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Control mode switch is in progress");
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), reason.c_str());
   }
   void OnStopped(const std::string & reason) override
   {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED);
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "External control finished");
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), reason.c_str());
     hw_interface_->on_deactivate(hw_interface_->get_state());
   }
   void OnError(const std::string & reason) override
   {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
     RCLCPP_ERROR(
       rclcpp::get_logger("KukaEACHardwareInterface"), "External control stopped by an error");
     RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), reason.c_str());

@@ -248,6 +248,10 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
       hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
   }
 
+  // Modify state interface only in read
+  // TODO(Svasits): guard last_event_ with mutex
+  server_state_ = static_cast<double>(last_event_);
+
   return return_type::OK;
 }
 
@@ -343,6 +347,8 @@ bool KukaEACHardwareInterface::SetupQoS()
 
   return true;
 }
+
+void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event) { last_event_ = event; }
 }  // namespace kuka_eac
 
 PLUGINLIB_EXPORT_CLASS(kuka_eac::KukaEACHardwareInterface, hardware_interface::SystemInterface)

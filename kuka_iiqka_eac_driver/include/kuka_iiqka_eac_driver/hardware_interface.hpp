@@ -32,6 +32,8 @@
 #include "kuka/external-control-sdk/iiqka/robot.h"
 #include "rclcpp_lifecycle/state.hpp"
 
+#include "kuka_drivers_core/hardware_event.hpp"
+
 #include "kuka_iiqka_eac_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -68,6 +70,8 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
   write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
+
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
@@ -87,6 +91,7 @@ private:
   double server_state_ = 0;
 
   int prev_control_mode_;
+  kuka_drivers_core::HardwareEvent last_event_ = kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
   kuka::ecs::v1::CommandState command_state_;
   bool msg_received_;

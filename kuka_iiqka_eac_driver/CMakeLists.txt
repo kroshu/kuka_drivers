@@ -28,7 +28,6 @@ find_package(kuka_drivers_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
-find_package(yaml-cpp REQUIRED)
 
 include_directories(include)
 
@@ -43,7 +42,7 @@ add_library(${PROJECT_NAME} SHARED
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core)
-target_link_libraries(${PROJECT_NAME} kuka-external-control-sdk yaml-cpp)
+target_link_libraries(${PROJECT_NAME} kuka-external-control-sdk)
 
 
 add_executable(robot_manager_node

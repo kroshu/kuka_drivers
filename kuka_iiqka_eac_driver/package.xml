@@ -20,7 +20,6 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
 
-  <depend>yaml-cpp</depend>
   <depend>protobuf-dev</depend>
   <depend>libnanopb-dev</depend>
   <depend>libgrpc</depend>
