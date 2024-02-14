@@ -40,7 +40,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "use_fake_hardware": "true",
+                }.items(),
             ),
             launch.actions.TimerAction(
                 period=2.0,
