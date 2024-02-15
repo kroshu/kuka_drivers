@@ -196,7 +196,7 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       "Creating event observer failed, error message: %s", create_event_observer.message);
   }
 
-  kuka::external::control::OperationStatus start_control = robot_ptr_->StartControlling();
+  kuka::external::control::OperationStatus start_control = robot_ptr_->StartControlling(static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
   if (start_control.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_ERROR(
@@ -204,6 +204,8 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       "Starting external control failed, error message: %s", start_control.message);
     return CallbackReturn::FAILURE;
   }
+
+  prev_control_mode_ = static_cast<int>(hw_control_mode_command_);
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
@@ -297,11 +299,6 @@ bool KukaEACHardwareInterface::SetupRobot()
 
   config.is_secure = false;
   config.dof = info_.joints.size();
-  config.initial_control_mode = static_cast<kuka::external::control::ControlMode>(
-    std::stoi(info_.hardware_parameters.at("initial_control_mode")));
-
-  // Initialize previous control mode
-  prev_control_mode_ = static_cast<int>(config.initial_control_mode);
 
   robot_ptr_ = std::make_unique<kuka::external::control::iiqka::Robot>(config);
 

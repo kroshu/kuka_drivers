@@ -90,12 +90,9 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
 
-  // Currently initial control mode must be specified at the setup of the sdk, which is in the
-  // configuration transition. Therefore it is not possible to change the control mode after
-  // startup, only in active state, when the control_mode_handler is active.
   this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
-    kuka_drivers_core::ParameterSetAccessRights{true, false, true, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false, false},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
   this->registerStaticParameter<std::string>(
     "controller_ip", "",
@@ -327,12 +324,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   bool is_active_state =
     get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
 
-  if (!is_active_state && control_mode_init_)
-  {
-    RCLCPP_ERROR(get_logger(), "Control mode parameter can be only changed in active state");
-    return false;
-  }
-
   // Determine which controllers to activate and deactivate
   try
   {
@@ -408,7 +399,6 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
   RCLCPP_INFO(get_logger(), "Successfully changed control mode");
   param_declared_ = true;
-  control_mode_init_ = true;
   return true;
 }
 
