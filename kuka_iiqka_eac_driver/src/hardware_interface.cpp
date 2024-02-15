@@ -215,7 +215,7 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Deactivating");
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Deactivating hardware interface");
 
   stop_requested_ = true;
 
