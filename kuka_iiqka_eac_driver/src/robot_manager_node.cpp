@@ -167,15 +167,16 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 
 void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {
+
   switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
   {
     case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
     {
+      // Nofify lock after control mode change
       {
         std::lock_guard<std::mutex> lk(control_mode_cv_m_);
         control_mode_change_finished_ = true;
       }
-      RCLCPP_INFO(get_logger(), "Control mode change has finished, restarting with new mode");
       control_mode_cv_.notify_all();
       break;
     }
