@@ -27,6 +27,7 @@ def launch_setup(context, *args, **kwargs):
     client_ip = LaunchConfiguration("client_ip")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     ns = LaunchConfiguration("namespace")
+    control_mode = LaunchConfiguration("control_mode")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -67,6 +68,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "prefix:=",
             tf_prefix,
+            " ",
+            "initial_control_mode:=",
+            control_mode,
             " ",
             "x:=",
             x,
@@ -118,6 +122,7 @@ def launch_setup(context, *args, **kwargs):
             {
                 "robot_model": robot_model,
                 "controller_ip": controller_ip,
+                "control_mode": control_mode
             },
         ],
     )
@@ -169,6 +174,8 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument(
+        "control_mode", default_value="1"))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))

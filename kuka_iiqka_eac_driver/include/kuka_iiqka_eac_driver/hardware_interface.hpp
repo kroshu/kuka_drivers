@@ -92,7 +92,7 @@ private:
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
 
-  double hw_control_mode_command_;
+  double hw_control_mode_command_ = 0;
   double server_state_ = 0;
 
   int prev_control_mode_;

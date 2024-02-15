@@ -169,8 +169,6 @@ CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::St
   {
     return CallbackReturn::FAILURE;
   }
-  // Initialize previous control mode with first
-  prev_control_mode_ = static_cast<int>(hw_control_mode_command_);
 
   if (!SetupQoS())
   {
@@ -274,6 +272,7 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Requesting control mode switch");
     send_reply = robot_ptr_->SwitchControlMode(
       static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
+    prev_control_mode_ = static_cast<int>(hw_control_mode_command_);
   }
   else
   {
@@ -298,8 +297,11 @@ bool KukaEACHardwareInterface::SetupRobot()
 
   config.is_secure = false;
   config.dof = info_.joints.size();
-  config.initial_control_mode =
-    static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
+  config.initial_control_mode = static_cast<kuka::external::control::ControlMode>(
+    std::stoi(info_.hardware_parameters.at("initial_control_mode")));
+
+  // Initialize previous control mode
+  prev_control_mode_ = static_cast<int>(config.initial_control_mode);
 
   robot_ptr_ = std::make_unique<kuka::external::control::iiqka::Robot>(config);
 

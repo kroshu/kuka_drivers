@@ -60,6 +60,7 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  rclcpp::CallbackGroup::SharedPtr event_cbg_;
   std::string robot_model_;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
@@ -70,6 +71,7 @@ private:
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_;
+  bool control_mode_init_ = false;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
 
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;

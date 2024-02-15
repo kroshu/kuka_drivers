@@ -42,6 +42,7 @@ RobotManagerNode::RobotManagerNode()
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  event_cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ = this->create_client<SwitchController>(
@@ -56,9 +57,12 @@ RobotManagerNode::RobotManagerNode()
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
+  rclcpp::SubscriptionOptions sub_options;
+  sub_options.callback_group = event_cbg_;
+
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); });
+    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); }, sub_options);
 
   // Register parameters
   this->registerParameter<std::string>(
@@ -86,8 +90,9 @@ RobotManagerNode::RobotManagerNode()
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
 
-  // TODO(Svastits): enable control mode change in inactive state, after client lib was fixed
-  // Currently initial control mode must be specified at setup (configuring transition)
+  // Currently initial control mode must be specified at the setup of the sdk, which is in the
+  // configuration transition. Therefore it is not possible to change the control mode after
+  // startup, only in active state, when the control_mode_handler is active.
   this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
     kuka_drivers_core::ParameterSetAccessRights{true, false, true, false, false},
@@ -164,14 +169,16 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
 {
   switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
   {
-    case kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH:
+    case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
     {
-      std::lock_guard<std::mutex> lk(control_mode_cv_m_);
-      control_mode_change_finished_ = true;
-    }
+      {
+        std::lock_guard<std::mutex> lk(control_mode_cv_m_);
+        control_mode_change_finished_ = true;
+      }
       RCLCPP_INFO(get_logger(), "Control mode change has finished, restarting with new mode");
       control_mode_cv_.notify_all();
       break;
+    }
     case kuka_drivers_core::HardwareEvent::CONTROL_STOPPED:
     case kuka_drivers_core::HardwareEvent::ERROR:
       RCLCPP_INFO(get_logger(), "External control stopped");
@@ -228,6 +235,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
       "Controller handler state is improper, active controller list not empty before activation");
     return FAILURE;
   }
+
+  // Workaround until controller_manager/jtc bug is fixed:
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
   if (!kuka_drivers_core::changeControllerState(
@@ -316,6 +326,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   bool is_active_state =
     get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
 
+  if (!is_active_state && control_mode_init_)
+  {
+    RCLCPP_ERROR(get_logger(), "Control mode parameter can be only changed in active state");
+    return false;
+  }
+
   // Determine which controllers to activate and deactivate
   try
   {
@@ -391,6 +407,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
   RCLCPP_INFO(get_logger(), "Successfully changed control mode");
   param_declared_ = true;
+  control_mode_init_ = true;
   return true;
 }
 
