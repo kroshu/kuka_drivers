@@ -196,7 +196,8 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       "Creating event observer failed, error message: %s", create_event_observer.message);
   }
 
-  kuka::external::control::OperationStatus start_control = robot_ptr_->StartControlling(static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
+  kuka::external::control::OperationStatus start_control = robot_ptr_->StartControlling(
+    static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
   if (start_control.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_ERROR(

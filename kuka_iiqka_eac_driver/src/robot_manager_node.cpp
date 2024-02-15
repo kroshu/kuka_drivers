@@ -62,7 +62,8 @@ RobotManagerNode::RobotManagerNode()
 
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); }, sub_options);
+    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
+    sub_options);
 
   // Register parameters
   this->registerParameter<std::string>(
@@ -164,7 +165,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 
 void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {
-
   switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
   {
     case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
