@@ -68,9 +68,11 @@ jobs:
       - name: Clone sdk lib
         run: git clone https://github.com/kroshu/kuka-external-control-sdk.git
         working-directory: /home/runner/work/kuka-external-control-sdk
+      - name: Create build dir
+        run: mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
       - name: Build and install sdk
         run: cmake .. && sudo make install
-        working-directory: /home/runner/work/kuka-external-control-sdk/build
+        working-directory: /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
 
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
