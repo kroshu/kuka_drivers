@@ -63,12 +63,10 @@ jobs:
       # Install and build kuka-external-control-sdk
       - name: Install dependencies
         run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
-      - name: Create work dir for lib
-        run: mkdir -p /home/runner/work/kuka-external-control-sdk/build
       - name: Clone sdk lib
         run: git clone https://github.com/kroshu/kuka-external-control-sdk.git
-        working-directory: /home/runner/work/kuka-external-control-sdk
-      - name: Create build dir
+        working-directory: /home/runner/work
+      - name: Create build directory
         run: mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
       - name: Build and install sdk
         run: cmake .. && sudo make install
