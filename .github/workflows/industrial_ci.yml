@@ -43,7 +43,6 @@ jobs:
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
-      BEFORE_INIT: 'apt update && apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev git && mkdir -p ~/kuka-external-control-sdk/build && cd ~/kuka-external-control-sdk && git clone https://github.com/kroshu/eci_client_sdk.git && cd build && cmake .. && make install'
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
       PR_BASE: ${{ github.event.pull_request.base.ref }}
@@ -60,6 +59,19 @@ jobs:
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
+
+      # Install and build kuka-external-control-sdk
+      - name: Install dependencies
+        run: apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
+      - name: Create work dir for lib
+        run: mkdir -p ~/kuka-external-control-sdk/build
+      - name: Clone sdk lib
+        run: git clone https://github.com/kroshu/eci_client_sdk.git
+        working-directory: ~/kuka-external-control-sdk
+      - name: Build and install sdk
+        run: cmake .. && make install
+        working-directory: ~/kuka-external-control-sdk/build
+
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
