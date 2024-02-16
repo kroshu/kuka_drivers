@@ -228,10 +228,9 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // If motion is stopped by user/error, an event is received, therefore it does not make sense to
-  // reduce the receive timeout to 4 ms
+  // Bigger timeout blocks controller configuration
   kuka::external::control::OperationStatus receive_state =
-    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(1000));
+    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(10));
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
