@@ -67,10 +67,10 @@ jobs:
         run: mkdir -p ~/kuka-external-control-sdk/build
       - name: Clone sdk lib
         run: git clone https://github.com/kroshu/eci_client_sdk.git
-        working-directory: ~/kuka-external-control-sdk
+        working-directory: $HOME/kuka-external-control-sdk
       - name: Build and install sdk
         run: cmake .. && sudo make install
-        working-directory: ~/kuka-external-control-sdk/build
+        working-directory: $HOME/kuka-external-control-sdk/build
 
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
