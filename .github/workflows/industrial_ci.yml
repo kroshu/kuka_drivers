@@ -43,7 +43,7 @@ jobs:
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
-      BEFORE_INIT: 'apt update && apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev && sudo mkdir -p kuka-external-control-sdk/build && cd kuka-external-control-sdk && git clone https://github.com/kroshu/eci_client_sdk.git && cd build && cmake .. && sudo make install'
+      BEFORE_INIT: 'apt update && apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev && mkdir -p ~/kuka-external-control-sdk/build && cd ~/kuka-external-control-sdk && git clone https://github.com/kroshu/eci_client_sdk.git && cd build && cmake .. && make install'
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
       PR_BASE: ${{ github.event.pull_request.base.ref }}
