@@ -42,7 +42,7 @@ public:
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED);
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "External control finished");
-    hw_interface_->on_deactivate(hw_interface_->get_state());
+    hw_interface_->deactivate(hw_interface_->get_state());
   }
   void OnError(const std::string & reason) override
   {
@@ -50,7 +50,7 @@ public:
     RCLCPP_ERROR(
       rclcpp::get_logger("KukaEACHardwareInterface"), "External control stopped by an error");
     RCLCPP_ERROR(rclcpp::get_logger("KukaEACHardwareInterface"), reason.c_str());
-    hw_interface_->on_deactivate(hw_interface_->get_state());
+    hw_interface_->deactivate(hw_interface_->get_state());
   }
 
 private:
