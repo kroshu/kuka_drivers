@@ -64,13 +64,13 @@ jobs:
       - name: Install dependencies
         run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
       - name: Create work dir for lib
-        run: mkdir -p ~/kuka-external-control-sdk/build
+        run: mkdir -p /home/runner/work/kuka-external-control-sdk/build
       - name: Clone sdk lib
         run: git clone https://github.com/kroshu/eci_client_sdk.git
-        working-directory: $HOME/kuka-external-control-sdk
+        working-directory: /home/runner/work/kuka-external-control-sdk
       - name: Build and install sdk
         run: cmake .. && sudo make install
-        working-directory: $HOME/kuka-external-control-sdk/build
+        working-directory: /home/runner/work/kuka-external-control-sdk/build
 
       # Run industrial_ci
       - uses: 'kroshu/industrial_ci@master'
