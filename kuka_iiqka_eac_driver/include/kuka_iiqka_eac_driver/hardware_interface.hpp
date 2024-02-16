@@ -72,6 +72,8 @@ public:
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
 
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; };
+
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();

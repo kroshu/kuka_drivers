@@ -73,8 +73,10 @@ jobs:
         working-directory: /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
 
       # Run industrial_ci
+      - name: Extend LD_LIBRARY_PATH
+        run: echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib" >> $GITHUB_ENV
       - name: Debug
-        run: ls -l /usr/local/lib && ls -l /usr/include/kuka/external-control-sdk/iiqka/
+        run: ls -l /usr/local/lib && ls -l /usr/include/kuka/external-control-sdk/iiqka/ && echo $LD_LIBRARY_PATH
 
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
