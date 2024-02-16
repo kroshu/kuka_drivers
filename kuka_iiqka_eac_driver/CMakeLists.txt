@@ -31,7 +31,7 @@ find_package(controller_manager_msgs REQUIRED)
 
 include_directories(include)
 
-find_library(NAMES kuka-external-control-sdk REQUIRED)
+find_library(NAMES libkuka-external-control-sdk.so PATHS "/usr/local/lib" REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/hardware_interface.cpp
