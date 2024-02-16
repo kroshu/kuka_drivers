@@ -36,7 +36,6 @@ public:
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH);
     // Increase receive timeout after control mode switch
-    hw_interface_->set_timeout(3000);
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Control mode switch is in progress");
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), reason.c_str());

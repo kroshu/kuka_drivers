@@ -20,6 +20,7 @@
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/control_mode.hpp"
 
 #include "kuka/external-control-sdk/iiqka/configuration.h"
 #include "kuka_iiqka_eac_driver/event_observer.hpp"
