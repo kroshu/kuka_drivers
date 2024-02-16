@@ -77,12 +77,6 @@ private:
   std_msgs::msg::Bool is_configured_msg_;
 
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
-
-  // There are two kinds of control modes with different number of necessary interfaces to be set:
-  //  - in standard modes (position, torque), only the control signal to the used interface (1)
-  //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)
-  static constexpr int STANDARD_MODE_IF_SIZE = 1;
-  static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
 };
 
 }  // namespace kuka_eac
