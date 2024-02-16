@@ -62,14 +62,14 @@ jobs:
 
       # Install and build kuka-external-control-sdk
       - name: Install dependencies
-        run: apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
+        run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
       - name: Create work dir for lib
         run: mkdir -p ~/kuka-external-control-sdk/build
       - name: Clone sdk lib
         run: git clone https://github.com/kroshu/eci_client_sdk.git
         working-directory: ~/kuka-external-control-sdk
       - name: Build and install sdk
-        run: cmake .. && make install
+        run: cmake .. && sudo make install
         working-directory: ~/kuka-external-control-sdk/build
 
       # Run industrial_ci
