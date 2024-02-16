@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "kuka/external-control-sdk/iiqka/configuration.h"
 #include "kuka_iiqka_eac_driver/event_observer.hpp"
@@ -248,7 +248,7 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   }
 
   // Modify state interface only in read
-  // TODO(Svasits): guard last_event_ with mutex
+  std::lock_guard<std::mutex> lk(event_mutex_);
   server_state_ = static_cast<double>(last_event_);
 
   return return_type::OK;
@@ -345,6 +345,7 @@ bool KukaEACHardwareInterface::SetupQoS()
 
 void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
 {
+  std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
 }
 }  // namespace kuka_eac

@@ -90,6 +90,8 @@ private:
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;
 
+  std::mutex event_mutex_;
+
   kuka_drivers_core::ControlMode prev_control_mode_ =
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
   kuka_drivers_core::HardwareEvent last_event_ =
