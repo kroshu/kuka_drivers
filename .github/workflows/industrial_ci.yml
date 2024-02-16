@@ -73,5 +73,8 @@ jobs:
         working-directory: /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
 
       # Run industrial_ci
+      - name: Extend CMAKE_PREFIX_PATH
+        run: echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/local/lib" >> $GITHUB_ENV
+
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
