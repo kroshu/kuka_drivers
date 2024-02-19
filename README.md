@@ -45,6 +45,7 @@ Clone and build kuka-external-control-sdk in a different workspace.
  - The library is not a ROS2 package, therefore a different workspace is necessary, otherwise colcon will fail to build it
 ```bash
 mkdir -p ~/sdk_ws/src
+cd ~/sdk_ws/src
 git clone https://github.com/kroshu/kuka-external-control-sdk.git
 mkdir -p ~/sdk_ws/src/kuka-external-control-sdk/kuka-external-control-sdk/build
 cd ~/sdk_ws/src/kuka-external-control-sdk/kuka-external-control-sdk/build
