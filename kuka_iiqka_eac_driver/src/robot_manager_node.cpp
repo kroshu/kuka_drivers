@@ -167,6 +167,7 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
   {
     case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
     {
+      RCLCPP_INFO(get_logger(), "External control started");
       // Nofify lock after control mode change
       {
         std::lock_guard<std::mutex> lk(control_mode_cv_m_);
@@ -188,6 +189,9 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
         // TODO(Svastits): this can be removed if rollback is implemented properly
         this->on_deactivate(get_current_state());
       }
+      break;
+    case kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH:
+      control_mode_change_finished_ = false;
       break;
     default:
       break;
@@ -327,6 +331,11 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   {
     switch_controllers =
       controller_handler_.GetControllersForSwitch(kuka_drivers_core::ControlMode(control_mode));
+    
+    if (param_declared_ && control_mode == 1) {
+      switch_controllers.first.push_back("joint_trajectory_controller");
+      switch_controllers.second.push_back("joint_trajectory_controller");
+    }
   }
   catch (const std::exception & e)
   {
@@ -334,27 +343,31 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     return false;
   }
 
-  // Activate controllers needed for the new control mode
-  if (is_active_state)
-  {
-    if (
-      !switch_controllers.first.empty() &&
-      !kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, switch_controllers.first, {}))
-    {
-      RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
-      this->on_deactivate(get_current_state());
-      return false;
-    }
-    controller_handler_.ApproveControllerActivation();
-  }
 
   // Publish the control mode to controller handler
   auto message = std_msgs::msg::UInt32();
   message.data = control_mode;
   control_mode_pub_->publish(message);
   RCLCPP_INFO(get_logger(), "Control mode change process has started");
+
+      // Deactivate unnecessary controllers
+    if (
+      !switch_controllers.second.empty() &&
+      !kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, {}, switch_controllers.second))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
+      // TODO(Svastits): this can be removed if rollback is implemented properly
+      this->on_deactivate(get_current_state());
+      return false;
+    }
+    if (!controller_handler_.ApproveControllerDeactivation())
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Controller handler state is improper, active controller list was modified"
+        "before approval");
+    }
 
   if (is_active_state)
   {
@@ -375,23 +388,24 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     control_mode_lk.unlock();
     RCLCPP_INFO(get_logger(), "Robot Controller finished control mode change");
 
-    // Deactivate unnecessary controllers
-    if (
-      !switch_controllers.second.empty() &&
-      !kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, switch_controllers.second))
+
+
+    // Activate controllers needed for the new control mode
+    if (is_active_state)
     {
-      RCLCPP_ERROR(get_logger(), "Could not deactivate controllers for new control mode");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
-      this->on_deactivate(get_current_state());
-      return false;
-    }
-    if (!controller_handler_.ApproveControllerDeactivation())
-    {
-      RCLCPP_ERROR(
-        get_logger(),
-        "Controller handler state is improper, active controller list was modified"
-        "before approval");
+    // Workaround until controller_manager/jtc bug is fixed:
+    std::this_thread::sleep_for(std::chrono::milliseconds(550));
+      if (
+        !switch_controllers.first.empty() &&
+        !kuka_drivers_core::changeControllerState(
+          change_controller_state_client_, switch_controllers.first, {}))
+      {
+        RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
+        // TODO(Svastits): this can be removed if rollback is implemented properly
+        this->on_deactivate(get_current_state());
+        return false;
+      }
+      controller_handler_.ApproveControllerActivation();
     }
   }
 

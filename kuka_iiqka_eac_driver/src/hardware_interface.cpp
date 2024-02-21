@@ -242,14 +242,18 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     std::copy(
       req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
       hw_torque_states_.begin());
-    std::copy(
-      hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+
+    if (cycle_count_ == 0) {
+      std::copy(
+        hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+    }
+
+    cycle_count_++;
   }
 
   // Modify state interface only in read
   std::lock_guard<std::mutex> lk(event_mutex_);
   server_state_ = static_cast<double>(last_event_);
-
   return return_type::OK;
 }
 

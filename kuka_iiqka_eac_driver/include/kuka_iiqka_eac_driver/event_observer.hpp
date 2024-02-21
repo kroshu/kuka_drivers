@@ -37,6 +37,8 @@ public:
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH);
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Control mode switch is in progress");
+    hw_interface_->reset_cycle_count();
+
   }
   void OnStopped(const std::string &) override
   {
