@@ -38,7 +38,7 @@ jobs:
           TEST_COVERAGE: true
           # Hacky solution needed to be able to build upstream WS:
           #  kuka_driver_interfaces and kuka_drivers_core must be also added to upstream
-          UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master github:kroshu/kuka_drivers#master -kuka_drivers/examples -kuka_drivers/kuka_drivers -kuka_drivers/kuka_iiqka_eac_driver -kuka_drivers/kuka_kss_rsi_driver -kuka_drivers/kuka_sunrise_fri_driver'
+          UPSTREAM_WORKSPACE: 'github:kroshu/kuka-external-control-sdk#master github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master github:kroshu/kuka_drivers#master -kuka_drivers/examples -kuka_drivers/kuka_drivers -kuka_drivers/kuka_iiqka_eac_driver -kuka_drivers/kuka_kss_rsi_driver -kuka_drivers/kuka_sunrise_fri_driver'
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
@@ -61,22 +61,22 @@ jobs:
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
 
       # Install and build kuka-external-control-sdk
-      - name: Install dependencies
-        run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
-      - name: Clone sdk lib
-        run: git clone https://github.com/kroshu/kuka-external-control-sdk.git
-        working-directory: /home/runner/work
-      - name: Create build directory
-        run: mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
-      - name: Build and install sdk
-        run: cmake .. && sudo make install
-        working-directory: /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
+      # - name: Install dependencies
+      #   run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
+      # - name: Clone sdk lib
+      #   run: git clone https://github.com/kroshu/kuka-external-control-sdk.git
+      #   working-directory: /home/runner/work
+      # - name: Create build directory
+      #   run: mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
+      # - name: Build and install sdk
+      #   run: cmake .. && sudo make install
+      #   working-directory: /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build
 
-      # Run industrial_ci
-      - name: Extend LD_LIBRARY_PATH
-        run: echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib" >> $GITHUB_ENV
-      - name: Debug
-        run: ls -l /usr/local/lib && ls -l /usr/include/kuka/external-control-sdk/iiqka/ && echo $LD_LIBRARY_PATH
+      # # Run industrial_ci
+      # - name: Extend LD_LIBRARY_PATH
+      #   run: echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib" >> $GITHUB_ENV
+      # - name: Debug
+      #   run: ls -l /usr/local/lib && ls -l /usr/include/kuka/external-control-sdk/iiqka/ && echo $LD_LIBRARY_PATH
 
       - uses: 'kroshu/industrial_ci@master'
         env: ${{ matrix.env }}
