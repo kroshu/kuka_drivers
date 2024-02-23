@@ -269,8 +269,8 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
   RCLCPP_INFO(get_logger(), "Control mode change requested");
   if (
-    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL) ||
-    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL) ||
+    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL) &&
+    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL) &&
     control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
