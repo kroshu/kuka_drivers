@@ -30,8 +30,7 @@ namespace kuka_eac
 // TODO(Komaromi): Re-add "control_mode_handler" controller to controller_handlers constructor
 // after controller handler properly implemented with working initial control mode change
 RobotManagerNode::RobotManagerNode()
-: kuka_drivers_core::ROS2BaseLCNode("robot_manager"),
-  control_mode_change_finished_(false)
+: kuka_drivers_core::ROS2BaseLCNode("robot_manager"), control_mode_change_finished_(false)
 
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
