@@ -75,8 +75,8 @@ ament_export_libraries(
   ${PROJECT_NAME}
 )
 
-# Hack to extend $LD_LIBRARY_PATH with /usr/local/lib when sourcing
+# Hack to extend $LD_LIBRARY_PATH with ~/.local/include when sourcing
 file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/ament_cmake_environment_hooks/library_path.dsv
-  "prepend-non-duplicate;LD_LIBRARY_PATH;/usr/local/lib")
+  "prepend-non-duplicate;LD_LIBRARY_PATH;~/.local/include")
 
 ament_package()
