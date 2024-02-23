@@ -64,9 +64,10 @@ private:
   std::string robot_model_;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
+  kuka_drivers_core::ControlMode control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
 
   std::atomic<bool> terminate_{false};
-  bool param_declared_ = false;
 
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;

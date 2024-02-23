@@ -72,7 +72,7 @@ ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
 {
   if (control_mode_map_.find(new_control_mode) == control_mode_map_.end())
   {
-    // Not valid control mode, through error
+    // Not valid control mode, throw exception
     throw std::out_of_range("Attribute new_control_mode is out of range");
   }
 
@@ -148,4 +148,17 @@ bool ControllerHandler::ApproveControllerDeactivation()
 
   return true;
 }
+
+std::vector<std::string> ControllerHandler::GetControllersForMode(ControlMode control_mode)
+{
+  std::vector<std::string> controllers;
+
+  auto controller_types = control_mode_map_.at(control_mode);
+  controllers.push_back(controller_types.standard_controller);
+  if (!controller_types.impedance_controller.empty())
+  {
+    controllers.push_back(controller_types.impedance_controller);
+  }
+}
+
 }  // namespace kuka_drivers_core

@@ -76,7 +76,7 @@ public:
    *
    * @param fixed_controllers: Controllers that have to be active in all control modes
    */
-  explicit ControllerHandler(std::vector<std::string> fixed_controllers);
+  explicit ControllerHandler(std::vector<std::string> fixed_controllers = {});
 
   /**
    * @brief Destroy the control mode handler object
@@ -126,6 +126,8 @@ public:
    *
    */
   bool ApproveControllerDeactivation();
+
+  std::vector<std::string> GetControllersForMode(ControlMode control_mode);
 };
 }  // namespace kuka_drivers_core
 
