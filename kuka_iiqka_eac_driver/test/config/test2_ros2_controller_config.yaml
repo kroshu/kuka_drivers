@@ -13,4 +13,6 @@ test2/controller_manager:
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
 
-    configure_components_on_start: [""]
+    hardware_components_initial_state:
+      unconfigured:
+        - "test2_lbr_iisy3_r760"

@@ -15,4 +15,8 @@ controller_manager:
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
 
-    configure_components_on_start: [""]
+    hardware_components_initial_state:
+      unconfigured:
+        - "lbr_iisy3_r760"
+        - "lbr_iisy11_r1300"
+        - "lbr_iisy15_r930"
