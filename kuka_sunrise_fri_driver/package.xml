@@ -21,6 +21,7 @@
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>controller_manager_msgs</depend>
+  <depend>protobuf-dev</depend>
 
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>

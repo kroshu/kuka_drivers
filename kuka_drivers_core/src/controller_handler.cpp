@@ -159,6 +159,7 @@ std::vector<std::string> ControllerHandler::GetControllersForMode(ControlMode co
   {
     controllers.push_back(controller_types.impedance_controller);
   }
+  return controllers;
 }
 
 }  // namespace kuka_drivers_core
