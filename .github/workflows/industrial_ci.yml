@@ -61,8 +61,8 @@ jobs:
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
 
       # Install and build kuka-external-control-sdk
-      # - name: Install dependencies
-      #   run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
+      - name: Install dependencies
+        run: sudo apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev
       # - name: Clone sdk lib
       #   run: git clone https://github.com/kroshu/kuka-external-control-sdk.git
       #   working-directory: /home/runner/work
