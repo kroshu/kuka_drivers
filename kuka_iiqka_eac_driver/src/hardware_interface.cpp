@@ -243,7 +243,8 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
       req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
       hw_torque_states_.begin());
 
-    if (cycle_count_ == 0) {
+    if (cycle_count_ == 0)
+    {
       std::copy(
         hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
     }

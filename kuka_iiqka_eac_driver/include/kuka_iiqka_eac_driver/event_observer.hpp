@@ -15,6 +15,7 @@
 #ifndef KUKA_IIQKA_EAC_DRIVER__EVENT_OBSERVER_HPP_
 #define KUKA_IIQKA_EAC_DRIVER__EVENT_OBSERVER_HPP_
 
+#include <string>
 #include "rclcpp/macros.hpp"
 
 #include "kuka/external-control-sdk/common/irobot.h"
@@ -26,7 +27,10 @@ namespace kuka_eac
 class KukaEACEventObserver : public kuka::external::control::EventHandler
 {
 public:
-  KukaEACEventObserver(KukaEACHardwareInterface * hw_interface) : hw_interface_(hw_interface) {}
+  explicit KukaEACEventObserver(KukaEACHardwareInterface * hw_interface)
+  : hw_interface_(hw_interface)
+  {
+  }
   void OnSampling() override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
@@ -38,7 +42,6 @@ public:
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Control mode switch is in progress");
     hw_interface_->reset_cycle_count();
-
   }
   void OnStopped(const std::string &) override
   {

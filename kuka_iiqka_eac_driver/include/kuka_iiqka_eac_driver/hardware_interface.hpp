@@ -72,9 +72,9 @@ public:
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; };
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC void reset_cycle_count() { cycle_count_ = 0; };
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void reset_cycle_count() { cycle_count_ = 0; }
 
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
@@ -92,7 +92,6 @@ private:
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;
   int cycle_count_ = 0;
-
 
   std::mutex event_mutex_;
 
