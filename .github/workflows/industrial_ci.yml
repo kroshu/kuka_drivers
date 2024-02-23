@@ -38,10 +38,11 @@ jobs:
           TEST_COVERAGE: true
           # Hacky solution needed to be able to build upstream WS:
           #  kuka_driver_interfaces and kuka_drivers_core must be also added to upstream
-          UPSTREAM_WORKSPACE: 'github:kroshu/kuka-external-control-sdk#master -kuka-external-control-sdk/kuka-external-control-sdk-examples github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master github:kroshu/kuka_drivers#master -kuka_drivers/examples -kuka_drivers/kuka_drivers -kuka_drivers/kuka_iiqka_eac_driver -kuka_drivers/kuka_kss_rsi_driver -kuka_drivers/kuka_sunrise_fri_driver'
+          UPSTREAM_WORKSPACE: github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka_controllers#master github:kroshu/kuka_drivers#master -kuka_drivers/examples -kuka_drivers/kuka_drivers -kuka_drivers/kuka_iiqka_eac_driver -kuka_drivers/kuka_kss_rsi_driver -kuka_drivers/kuka_sunrise_fri_driver'
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      BEFORE_BUILD_TARGET_WORKSPACE: .github/workflows/install_sdk.sh
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
