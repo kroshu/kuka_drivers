@@ -31,7 +31,8 @@ find_package(controller_manager_msgs REQUIRED)
 
 include_directories(include)
 
-find_library(NAMES kuka-external-control-sdk PATHS "/usr/local/lib" REQUIRED)
+find_library(EXTERNAL_CONTROL_SDK kuka-external-control-sdk PATHS "~/.local/lib" REQUIRED)
+find_library(EXTERNAL_CONTROL_SDK_PROTOBUF kuka-external-control-sdk-protobuf PATHS "~/.local/lib" REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/hardware_interface.cpp
@@ -42,13 +43,13 @@ add_library(${PROJECT_NAME} SHARED
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core)
-target_link_libraries(${PROJECT_NAME} kuka-external-control-sdk)
+target_link_libraries(${PROJECT_NAME} ${EXTERNAL_CONTROL_SDK})
 
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers kuka-external-control-sdk)
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers ${EXTERNAL_CONTROL_SDK})
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
