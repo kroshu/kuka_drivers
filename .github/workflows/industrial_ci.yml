@@ -42,7 +42,7 @@ jobs:
           ROS_DISTRO: humble
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
-      BEFORE_BUILD_TARGET_WORKSPACE: './.github/workflows/install_sdk.sh'
+      BEFORE_INIT: 'cd /home/runner/work && git clone https://github.com/kroshu/kuka-external-control-sdk.git && mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build && cd /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build && cmake .. && make install'
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
