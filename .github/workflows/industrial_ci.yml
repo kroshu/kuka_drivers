@@ -43,7 +43,7 @@ jobs:
     env:
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       BEFORE_BUILD_TARGET_WORKSPACE: 'apt update && apt install -y cmake build-essential pkg-config libssl-dev protobuf-compiler-grpc libgrpc++-dev && cd /home/runner/work && git clone https://github.com/kroshu/kuka-external-control-sdk.git && mkdir -p /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build && cd /home/runner/work/kuka-external-control-sdk/kuka-external-control-sdk/build && cmake .. && make install'
-      #AFTER_BUILD_TARGET_WORKSPACE: 'export LD_LIBRARY_PATH="~/.local/lib:$LD_LIBRARY_PATH"'
+      AFTER_INIT: 'echo $LD_LIBRARY_PATH'
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
