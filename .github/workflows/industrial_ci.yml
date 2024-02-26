@@ -50,7 +50,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
       DEBUG_BASH: true
-      DOCKER_RUN_OPTS: '-e LD_LIBRARY_PATH=~/.local/lib'
+      DOCKER_RUN_OPTS: '-e LD_LIBRARY_PATH=/root/.local/lib'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
