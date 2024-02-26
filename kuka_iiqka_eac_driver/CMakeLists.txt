@@ -64,8 +64,6 @@ install(TARGETS ${PROJECT_NAME} robot_manager_node
 install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
-message("The value of the environment variable LD_LIBRARY_PATH: $ENV{LD_LIBRARY_PATH}")
-
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)

@@ -50,7 +50,7 @@ git clone https://github.com/kroshu/kuka-external-control-sdk.git
 mkdir -p ~/sdk_ws/src/kuka-external-control-sdk/kuka-external-control-sdk/build
 cd ~/sdk_ws/src/kuka-external-control-sdk/kuka-external-control-sdk/build
 cmake ..
-sudo make install
+make install
 ```
 
 Build KUKA packages.
