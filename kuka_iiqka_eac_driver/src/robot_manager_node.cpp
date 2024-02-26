@@ -27,11 +27,7 @@ using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_eac
 {
-// TODO(Komaromi): Re-add "control_mode_handler" controller to controller_handlers constructor
-// after controller handler properly implemented with working initial control mode change
-RobotManagerNode::RobotManagerNode()
-: kuka_drivers_core::ROS2BaseLCNode("robot_manager"), control_mode_change_finished_(false)
-
+RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -84,7 +80,6 @@ RobotManagerNode::RobotManagerNode()
       return this->controller_handler_.UpdateControllerName(
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
-
   this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
     kuka_drivers_core::ParameterSetAccessRights{true, true, true, false, false},
@@ -116,20 +111,23 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  // Publish message about HWIF configuration
+  // TODO(Svastits): this can be removed in the future, if all drivers do simple blocking waits in
+  // read with msg_received_ flag
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
 
-  // Activate control mode handler
+  // Activate control mode handler and event broadcaster
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {"control_mode_handler", "event_broadcaster"}, {}))
   {
-    RCLCPP_ERROR(get_logger(), "Could not activate control mode handler");
-    // TODO(Svastits): this can be removed if rollback is implemented properly
+    RCLCPP_ERROR(get_logger(), "Could not activate control mode handler or event broadcaster");
+    // Rollback
     this->on_cleanup(get_current_state());
     return FAILURE;
   }
 
-  RCLCPP_INFO(get_logger(), "Activated control mode handler");
+  RCLCPP_INFO(get_logger(), "Activated control mode handler and event broadcaster");
 
   return SUCCESS;
 }
@@ -137,11 +135,11 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  // Deactivate control mode handler
+  // Deactivate control mode handler and event broadcaster
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {}, {"control_mode_handler", "event_broadcaster"}))
   {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler and event broadcaster");
   }
 
   // Clean up hardware interface
@@ -182,7 +180,7 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
       }
       else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
       {
-        // TODO(Svastits): this can be removed if rollback is implemented properly
+        // Handle case, when error is received while still activating
         this->on_deactivate(get_current_state());
       }
       break;
@@ -277,16 +275,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     return false;
   }
 
-  bool is_active_state =
-    get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE;
-
   // Publish the control mode to controller handler
   auto message = std_msgs::msg::UInt32();
   message.data = control_mode;
   control_mode_pub_->publish(message);
-  RCLCPP_INFO(get_logger(), "Control mode change process has started");
 
-  if (is_active_state)
+  if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
     // Deactivate controllers of previous control mode
     if (!kuka_drivers_core::changeControllerState(
@@ -294,7 +288,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
           controller_handler_.GetControllersForMode(control_mode_)))
     {
       RCLCPP_ERROR(get_logger(), "Could not deactivate controllers of previous control mode");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
+      // Deactivate in case of an error
       this->on_deactivate(get_current_state());
       return false;
     }
@@ -325,14 +319,15 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
           {}))
     {
       RCLCPP_ERROR(get_logger(), "Could not activate controllers for new control mode");
-      // TODO(Svastits): this can be removed if rollback is implemented properly
+      // Deactivate in case of an error
       this->on_deactivate(get_current_state());
       return false;
     }
   }
 
-  RCLCPP_INFO(get_logger(), "Successfully changed control mode");
   control_mode_ = static_cast<kuka_drivers_core::ControlMode>(control_mode);
+  RCLCPP_INFO(get_logger(), "Successfully changed control mode to %i", control_mode);
+
   return true;
 }
 
