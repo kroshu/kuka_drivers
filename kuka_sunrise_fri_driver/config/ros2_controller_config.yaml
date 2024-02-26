@@ -13,7 +13,3 @@ controller_manager:
 
     fri_state_broadcaster:
       type: kuka_controllers/FRIStateBroadcaster
-
-    hardware_components_initial_state:
-      unconfigured:
-        - "lbr_iiwa14_r820"

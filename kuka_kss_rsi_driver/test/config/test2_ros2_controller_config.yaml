@@ -12,7 +12,3 @@ test2/controller_manager:
       type: effort_controllers/JointGroupPositionController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
-
-    hardware_components_initial_state:
-      unconfigured:
-        - "test2_kr6_r700_sixx"

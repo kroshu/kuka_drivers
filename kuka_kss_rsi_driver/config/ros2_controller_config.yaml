@@ -7,13 +7,3 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-
-    hardware_components_initial_state:
-      unconfigured:
-        - "kr6_r700_sixx"
-        - "kr6_r900_sixx"
-        - "kr10_r1100_2"
-        - "kr16_r2010_2"
-        - "kr210-r2700_2"
-        - "kr210-r3100_2"
-        - "kr560_r3100_2"

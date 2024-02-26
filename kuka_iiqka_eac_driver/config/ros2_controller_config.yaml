@@ -14,9 +14,3 @@ controller_manager:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
-
-    hardware_components_initial_state:
-      unconfigured:
-        - "lbr_iisy3_r760"
-        - "lbr_iisy11_r1300"
-        - "lbr_iisy15_r930"
