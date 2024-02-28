@@ -4,8 +4,6 @@
 
 #### Client side
 - It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/Realtime)).
-- The driver depends on some KUKA-specific packages, which are only available with the real robot, therefore a mock mode is provided to enable trying out solutions with the same components running.
-  - By default, the mock libraries are used, this can be changed in the `CmakeLists.txt` file by setting `MOCK_KUKA_LIBS` to `FALSE` before building.
 - Set a fixed IP in the subnet of the KONI interface for the real-time machine.
 
 #### Controller side
@@ -22,7 +20,7 @@
 The following configuration files are available in the `config` directory of the package:
 - `driver_config.yaml`: contains runtime parameters of the `robot_manager` node
 - `qos_config.yaml`: contains the configuration options for the QoS profile defining the connection quality (description later)
-- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
+- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers (for further information, see the documentation of the given controller)
 
 ##### QoS profile configuration
@@ -64,6 +62,8 @@ After successful startup, the `robot_manager` node has to be activated to start 
   ```
 
 On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the *Additional packages* section of the [project overview](Project%20overview.md)).
+
+It is important to note, that the commanded and measures torques have a different meaning: the `effort` command interface accepts values that should be superimposed on internal gravity compensation, while the state interface provides the actually measured torques (sum on internal and external effects).
 
 
 ##### Launch arguments

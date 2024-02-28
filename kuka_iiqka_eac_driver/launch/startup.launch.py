@@ -106,7 +106,18 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config, jtc_config, jic_config, ec_config],
+        parameters=[
+            robot_description,
+            controller_config,
+            jtc_config,
+            jic_config,
+            ec_config,
+            {
+                "hardware_components_initial_state": {
+                    "unconfigured": [tf_prefix + robot_model.perform(context)]
+                },
+            },
+        ],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -148,6 +159,7 @@ def launch_setup(context, *args, **kwargs):
         "joint_group_impedance_controller",
         "effort_controller",
         "control_mode_handler",
+        "event_broadcaster",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]

@@ -40,7 +40,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "use_fake_hardware": "true",
+                }.items(),
             ),
             launch.actions.TimerAction(
                 period=2.0,
@@ -73,7 +76,9 @@ class TestDriverActivation(unittest.TestCase):
             "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
+        proc_output.assertWaitFor(
+            "Setting component 'lbr_iisy3_r760' to 'unconfigured' state.", timeout=5
+        )
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
             "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=10
