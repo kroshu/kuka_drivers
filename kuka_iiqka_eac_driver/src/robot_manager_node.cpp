@@ -162,7 +162,7 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
     case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
     {
       RCLCPP_INFO(get_logger(), "External control started");
-      // Nofify lock after control mode change
+      // Notify lock after control mode change
       {
         std::lock_guard<std::mutex> lk(control_mode_cv_m_);
         control_mode_change_finished_ = true;
