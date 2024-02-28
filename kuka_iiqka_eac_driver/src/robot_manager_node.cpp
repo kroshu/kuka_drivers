@@ -224,7 +224,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Return failure if control is stopped while in state activating
   if (terminate_)
   {
-    RCLCPP_ERROR(get_logger(), "UDP communication could not be set up");
+    RCLCPP_ERROR(get_logger(), "Error occured during driver activation");
     return FAILURE;
   }
 
