@@ -61,7 +61,7 @@ On successful activation the brakes of the robot will be released and external c
 Both launch files support the following argument:
 - `controller_ip`: IP address of the robot controller
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
