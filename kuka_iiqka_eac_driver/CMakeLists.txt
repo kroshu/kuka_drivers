@@ -67,8 +67,7 @@ install(DIRECTORY config launch test
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)
-  # TODO: re-add activation test, if KUKA mock hardware is finished
-  # add_launch_test(test/test_driver_activation.py)
+  add_launch_test(test/test_driver_activation.py)
   add_launch_test(test/test_multi_robot_startup.py)
 endif()
 

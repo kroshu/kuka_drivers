@@ -72,7 +72,7 @@ Both launch files support the following arguments:
 - `client_ip`: IP address of the client machine
 - `controller_ip`: KONI IP of the controller
 - `robot_model`: defines which LBR iisy robot to use. Available options: `lbr_iisy3_r760` (default), `lbr_iisy11_r1300`, `lbr_iisy15_r930`
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaEACHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaEACHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
