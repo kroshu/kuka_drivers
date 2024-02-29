@@ -72,13 +72,13 @@ ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
 {
   if (control_mode_map_.find(new_control_mode) == control_mode_map_.end())
   {
-    // Not valid control mode, through error
+    // Not valid control mode, throw exception
     throw std::out_of_range("Attribute new_control_mode is out of range");
   }
 
-  if (new_control_mode == ControlMode::UNSPECIFIED_CONTROL_MODE)
+  if (new_control_mode == ControlMode::CONTROL_MODE_UNSPECIFIED)
   {
-    throw std::logic_error("UNSPECIFIED_CONTROL_MODE is not valid control mode");
+    throw std::logic_error("CONTROL_MODE_UNSPECIFIED is not valid control mode");
   }
 
   // Set controllers which should be activated and deactivated
@@ -148,4 +148,18 @@ bool ControllerHandler::ApproveControllerDeactivation()
 
   return true;
 }
+
+std::vector<std::string> ControllerHandler::GetControllersForMode(ControlMode control_mode)
+{
+  std::vector<std::string> controllers;
+
+  auto controller_types = control_mode_map_.at(control_mode);
+  controllers.push_back(controller_types.standard_controller);
+  if (!controller_types.impedance_controller.empty())
+  {
+    controllers.push_back(controller_types.impedance_controller);
+  }
+  return controllers;
+}
+
 }  // namespace kuka_drivers_core

@@ -26,11 +26,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 
 #include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
-
-#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
 
 namespace kuka_eac
 {
@@ -38,7 +37,6 @@ class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
   RobotManagerNode();
-  ~RobotManagerNode();
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State &) override;
@@ -53,7 +51,7 @@ public:
     const rclcpp_lifecycle::State &) override;
 
 private:
-  void ObserveControl();
+  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
 
@@ -62,32 +60,24 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  rclcpp::CallbackGroup::SharedPtr event_cbg_;
   std::string robot_model_;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
+  kuka_drivers_core::ControlMode control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
 
-  std::thread observe_thread_;
   std::atomic<bool> terminate_{false};
-  bool param_declared_ = false;
-#ifdef NON_MOCK_SETUP
-  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
-  std::unique_ptr<grpc::ClientContext> context_;
 
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
-  bool control_mode_change_finished_;
-#endif
-
+  bool control_mode_change_finished_ = false;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
 
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-  // There are two kinds of control modes with different number of necessary interfaces to be set:
-  //  - in standard modes (position, torque), only the control signal to the used interface (1)
-  //  - in impedance modes, the setpoint and the parameters describing the behaviour (2)
-  static constexpr int STANDARD_MODE_IF_SIZE = 1;
-  static constexpr int IMPEDANCE_MODE_IF_SIZE = 2;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 };
 
 }  // namespace kuka_eac
