@@ -510,7 +510,7 @@ bool KukaFRIHardwareInterface::deactivateControl()
   return true;
 }
 
-// Friction compensation is activated only if the commanded and measured joint positons differ
+// Friction compensation is activated only if the commanded and measured joint positions differ
 void KukaFRIHardwareInterface::activateFrictionCompensation(double * values)
 {
   for (int i = 0; i < DOF; i++)

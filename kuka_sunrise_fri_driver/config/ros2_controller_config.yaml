@@ -18,4 +18,3 @@ controller_manager:
       type: kuka_controllers/FRIConfigurationController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
-
