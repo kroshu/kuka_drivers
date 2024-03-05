@@ -18,6 +18,7 @@
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
+  <depend>kuka-external-control-sdk</depend>
 
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
   <exec_depend>ros2_control</exec_depend>

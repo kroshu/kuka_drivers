@@ -18,7 +18,7 @@
 #include <string>
 #include "rclcpp/macros.hpp"
 
-#include "kuka/external-control-sdk/common/irobot.h"
+#include "kuka/external-control-sdk/iiqka/sdk.h"
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_iiqka_eac_driver/hardware_interface.hpp"
 
