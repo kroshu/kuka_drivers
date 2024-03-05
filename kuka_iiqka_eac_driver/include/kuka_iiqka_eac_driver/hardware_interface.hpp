@@ -28,8 +28,7 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "kuka/external-control-sdk/iiqka/message_builder.h"
-#include "kuka/external-control-sdk/iiqka/robot.h"
+#include "kuka/external-control-sdk/iiqka/sdk.h"
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "kuka_drivers_core/hardware_event.hpp"

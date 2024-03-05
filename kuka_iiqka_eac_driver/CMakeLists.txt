@@ -14,11 +14,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# A few (transitive) dependencies are available only in one of the dependencies
-# Set flag to suppress linker error
-# TODO: find better solution
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
-
+list(APPEND CMAKE_PREFIX_PATH "~/.local/lib/cmake")
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -28,33 +24,26 @@ find_package(kuka_drivers_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
-
+find_package(kuka-external-control-sdk CONFIG REQUIRED)
 include_directories(include)
 
-find_library(EXTERNAL_CONTROL_SDK kuka-external-control-sdk PATHS "~/.local/lib" REQUIRED)
-find_library(EXTERNAL_CONTROL_SDK_PROTOBUF kuka-external-control-sdk-protobuf PATHS "~/.local/lib" REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/hardware_interface.cpp
-)
-
-target_include_directories(${PROJECT_NAME}
-    PUBLIC
-      "~/.local/include"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core)
-target_link_libraries(${PROJECT_NAME} ${EXTERNAL_CONTROL_SDK})
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core kuka-external-control-sdk)
+target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers ${EXTERNAL_CONTROL_SDK})
+ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs kuka-external-control-sdk)
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 
@@ -74,9 +63,4 @@ endif()
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-
-# Hack to extend $LD_LIBRARY_PATH with ~/.local/lib when sourcing
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/ament_cmake_environment_hooks/library_path.dsv
-  "prepend-non-duplicate;LD_LIBRARY_PATH;$ENV{HOME}/.local/lib")
-
 ament_package()
