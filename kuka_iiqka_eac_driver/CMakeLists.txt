@@ -14,9 +14,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# A few (transitive) dependencies are available only in one of the dependencies
-# Set flag to suppress linker error
-# TODO: find better solution
 list(APPEND CMAKE_PREFIX_PATH "~/.local/lib/cmake")
 
 find_package(ament_cmake REQUIRED)
