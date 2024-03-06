@@ -1,6 +1,0 @@
-# Attempt to set an integer value and indicate and explain if RPC failed
-# 32 bit int is used, because that is the default size for most compilers
-int32 data
----
-bool success
-string reason

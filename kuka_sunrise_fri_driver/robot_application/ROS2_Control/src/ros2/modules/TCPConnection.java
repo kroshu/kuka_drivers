@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.io.*;
 
 import javax.xml.bind.DatatypeConverter;
-//import org.apache.xerces.jaxp.datatype.DatatypeFactoryImpl;
 
 public class TCPConnection{
 	private int _tcpServerPort;

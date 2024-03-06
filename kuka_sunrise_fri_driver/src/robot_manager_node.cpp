@@ -44,27 +44,81 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ = this->create_client<SwitchController>(
     "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
-  command_state_changed_publisher_ =
-    this->create_publisher<std_msgs::msg::Bool>("robot_manager/commanding_state_changed", qos);
-  set_parameter_client_ = this->create_client<std_srvs::srv::Trigger>(
-    "configuration_manager/set_params", ::rmw_qos_profile_default, cbg_);
 
   auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
   is_configured_qos.best_effort();
-
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
-  this->registerStaticParameter<std::string>(
+  fri_config_client_ = this->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
+    "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
+
+  control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
+    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+
+  joint_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+    "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
+
+  registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
+
+  registerStaticParameter<std::string>(
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
+
+  registerParameter<int>(
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
+
+  registerParameter<int>(
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    [this](const int & receive_multiplier)
+    { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
+
+  registerParameter<int>(
+    "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
+    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
+
+  registerParameter<std::string>(
+    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE);
+    });
+
+  registerParameter<std::string>(
+    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
+    });
+
+  registerParameter<std::vector<double>>(
+    "joint_stiffness", joint_stiffness_,
+    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::vector<double> & joint_stiffness)
+    { return this->onJointStiffnessChangeRequest(joint_stiffness); });
+
+  registerParameter<std::vector<double>>(
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    [this](const std::vector<double> & joint_damping)
+    { return this->onJointDampingChangeRequest(joint_damping); });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Set FRI configuration of hardware interface through controller manager service
+  if (!setFriConfiguration(send_period_ms_, receive_multiplier_))
+  {
+    return FAILURE;
+  }
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -74,83 +128,30 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  auto result = SUCCESS;
-
-  // If this fails, the node should be restarted, with different parameter values
-  // Therefore exceptions are not caught
-  if (!configuration_manager_)
-  {
-    configuration_manager_ = std::make_unique<ConfigurationManager>(
-      std::dynamic_pointer_cast<kuka_drivers_core::ROS2BaseLCNode>(this->shared_from_this()),
-      fri_connection_);
-  }
-  RCLCPP_INFO(get_logger(), "Successfully set 'controller_ip' parameter");
-
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"fri_configuration_controller", "fri_state_broadcaster"},
-        {}))
+        change_controller_state_client_,
+        {"fri_configuration_controller", "joint_group_impedance_controller"}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
-    result = FAILURE;
+    return FAILURE;
   }
 
-  const char * controller_ip = this->get_parameter("controller_ip").as_string().c_str();
-  if (!fri_connection_->isConnected())
-  {
-    if (!fri_connection_->connect(controller_ip, 30000))
-    {
-      RCLCPP_ERROR(get_logger(), "could not connect");
-      result = FAILURE;
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(get_logger(), "Robot manager is connected in inactive state");
-    return ERROR;
-  }
-  RCLCPP_INFO(get_logger(), "Successfully connected to FRI");
+  is_configured_pub_->on_activate();
+  is_configured_msg_.data = true;
+  is_configured_pub_->publish(is_configured_msg_);
 
-  if (result == SUCCESS)
-  {
-    auto trigger_request = std::make_shared<std_srvs::srv::Trigger::Request>();
-    auto response = kuka_drivers_core::sendRequest<std_srvs::srv::Trigger::Response>(
-      set_parameter_client_, trigger_request, 0, 1000);
-
-    if (!response || !response->success)
-    {
-      RCLCPP_ERROR(get_logger(), "Could not set parameters");
-      result = FAILURE;
-    }
-  }
-  if (result != SUCCESS)
-  {
-    this->on_cleanup(get_current_state());
-  }
-  else
-  {
-    is_configured_pub_->on_activate();
-    is_configured_msg_.data = true;
-    is_configured_pub_->publish(is_configured_msg_);
-  }
-
-  return result;
+  return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  if (fri_connection_->isConnected() && !fri_connection_->disconnect())
-  {
-    RCLCPP_ERROR(get_logger(), "could not disconnect");
-    return ERROR;
-  }
-
   // Stop non-RT controllers
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "fri_state_broadcaster"},
+        {"fri_configuration_controller", "joint_group_impedance_controller"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -182,20 +183,20 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
+  // Publish the values of the joint impedance parameters to the controller
+  std_msgs::msg::Float64MultiArray joint_imp_msg;
+  for (int i = 0; i < 7; i++)
+  {
+    joint_imp_msg.data.push_back(joint_stiffness_[i]);
+    joint_imp_msg.data.push_back(joint_damping_[i]);
+  }
+  joint_imp_pub_->publish(joint_imp_msg);
+
   if (!fri_connection_->isConnected())
   {
     RCLCPP_ERROR(get_logger(), "not connected");
     return ERROR;
   }
-
-  auto send_period_ms = static_cast<int>(this->get_parameter("send_period_ms").as_int());
-  auto receive_multiplier = static_cast<int>(this->get_parameter("receive_multiplier").as_int());
-  if (!fri_connection_->setFRIConfig(30200, send_period_ms, receive_multiplier))
-  {
-    RCLCPP_ERROR(get_logger(), "could not set FRI config");
-    return FAILURE;
-  }
-  RCLCPP_INFO(get_logger(), "Successfully set FRI config");
 
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -203,76 +204,25 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    // 'unset config' does not exist, safe to return
     return FAILURE;
   }
 
-  // Start FRI (in monitoring mode)
-  if (!fri_connection_->startFRI())
-  {
-    RCLCPP_ERROR(get_logger(), "Could not start FRI");
-    this->on_deactivate(get_current_state());
-    return FAILURE;
-  }
-  RCLCPP_INFO(get_logger(), "Started FRI");
-
-  // Activate joint state broadcaster
-  // The other controller must be started later so that it can initialize internal state
-  //   with broadcaster information -> TODO(Svastits): validate whether this is true
+  // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_state_broadcaster"}, {}))
+        change_controller_state_client_,
+        {"joint_state_broadcaster", "fri_state_broadcaster", GetControllerName()},
+        {"joint_group_impedance_controller"}))
   {
-    RCLCPP_ERROR(get_logger(), "Could not activate joint state broadcaster");
+    RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
-
-  auto position_controller_name = this->get_parameter("position_controller_name").as_string();
-  auto torque_controller_name = this->get_parameter("torque_controller_name").as_string();
-  controller_name_ = (this->get_parameter("command_mode").as_string() == "position")
-                       ? position_controller_name
-                       : torque_controller_name;
-  // Activate RT commander
-  if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {controller_name_}, {}))
-  {
-    RCLCPP_ERROR(get_logger(), "Could not activate RT controller");
-    this->on_deactivate(get_current_state());
-    return FAILURE;
-  }
-  command_state_changed_publisher_->on_activate();
-
-  // Start commanding mode
-  if (!activateControl())
-  {
-    this->on_deactivate(get_current_state());
-    return FAILURE;
-  }
-
   return SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  if (!fri_connection_->isConnected())
-  {
-    RCLCPP_ERROR(get_logger(), "Not connected");
-    return ERROR;
-  }
-
-  if (!this->deactivateControl())
-  {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate control");
-    return ERROR;
-  }
-
-  if (!fri_connection_->endFRI())
-  {
-    RCLCPP_ERROR(get_logger(), "Could not end FRI");
-    return ERROR;
-  }
-
   // Deactivate hardware interface
   // If it is inactive, deactivation will also succeed
   if (!kuka_drivers_core::changeHardwareState(
@@ -286,60 +236,17 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, {controller_name_, "joint_state_broadcaster"},
+        change_controller_state_client_, {"joint_group_impedance_controller"},
+        {GetControllerName(), "joint_state_broadcaster", "fri_state_broadcaster"},
         SwitchController::Request::BEST_EFFORT))
   {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate controllers");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
     return ERROR;
-  }
-
-  if (command_state_changed_publisher_->is_activated())
-  {
-    command_state_changed_publisher_->on_deactivate();
   }
 
   RCLCPP_INFO(
     get_logger(), "Successfully deactivated driver, reactivation is possible after 5 seconds");
   return SUCCESS;
-}
-
-bool RobotManagerNode::activateControl()
-{
-  if (!fri_connection_->isConnected())
-  {
-    RCLCPP_ERROR(get_logger(), "Not connected");
-    return false;
-  }
-
-  if (!fri_connection_->activateControl())
-  {
-    RCLCPP_ERROR(get_logger(), "Could not activate control");
-    return false;
-  }
-  std_msgs::msg::Bool command_state;
-  command_state.data = true;
-  command_state_changed_publisher_->publish(command_state);
-  return true;
-}
-
-bool RobotManagerNode::deactivateControl()
-{
-  if (!fri_connection_->isConnected())
-  {
-    RCLCPP_ERROR(get_logger(), "Not connected");
-    return false;
-  }
-
-  if (!fri_connection_->deactivateControl())
-  {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate control");
-    return false;
-  }
-
-  std_msgs::msg::Bool command_state;
-  command_state.data = false;
-  command_state_changed_publisher_->publish(command_state);
-  return true;
 }
 
 void RobotManagerNode::handleControlEndedError()
@@ -356,7 +263,7 @@ void RobotManagerNode::handleFRIEndedError()
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
 {
-  auto ns = std::string(this->get_namespace());
+  auto ns = std::string(get_namespace());
   // Remove '/' from namespace (even empty namespace contains one '/')
   ns.erase(ns.begin());
 
@@ -369,6 +276,184 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   return true;
 }
 
+bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
+{
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode))
+  {
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      break;
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+      // TODO(Svastits): check whether this is necessary for impedance mode too
+      [[fallthrough]];
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+      if (send_period_ms_ > 5)
+      {
+        RCLCPP_ERROR(
+          get_logger(),
+          "Unable to set non-position control mode, if send period is bigger than 5 [ms]");
+        return false;
+      }
+      break;
+    default:
+      RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
+      return false;
+  }
+
+  // Publish the control mode to controller handler
+  control_mode_msg_.data = control_mode;
+  control_mode_pub_->publish(control_mode_msg_);
+  RCLCPP_INFO(get_logger(), "Control mode change successful");
+
+  return true;
+}
+
+bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
+{
+  if (send_period < 1 || send_period > 100)
+  {
+    RCLCPP_ERROR(get_logger(), "Send period milliseconds must be >=1 && <=100");
+    return false;
+  }
+
+  send_period_ms_ = send_period;
+  return true;
+}
+
+bool RobotManagerNode::onReceiveMultiplierChangeRequest(const int & receive_multiplier)
+{
+  if (receive_multiplier < 1)
+  {
+    RCLCPP_ERROR(get_logger(), "Receive multiplier must be >=1");
+    return false;
+  }
+
+  receive_multiplier_ = receive_multiplier;
+  return true;
+}
+
+bool RobotManagerNode::ValidateIPAdress(const std::string & controller_ip) const
+{
+  // Check IP validity
+  size_t i = 0;
+  std::vector<std::string> split_ip;
+  auto pos = controller_ip.find('.');
+  while (pos != std::string::npos)
+  {
+    split_ip.push_back(controller_ip.substr(i, pos - i));
+    i = ++pos;
+    pos = controller_ip.find('.', pos);
+  }
+  split_ip.push_back(controller_ip.substr(i, controller_ip.length()));
+
+  if (split_ip.size() != 4)
+  {
+    RCLCPP_ERROR(get_logger(), "Valid IP must have 3 '.' delimiters");
+    return false;
+  }
+
+  for (const auto & ip : split_ip)
+  {
+    if (
+      ip.empty() || (ip.find_first_not_of("[0123456789]") != std::string::npos) || stoi(ip) > 255 ||
+      stoi(ip) < 0)
+    {
+      RCLCPP_ERROR(get_logger(), "Valid IP must contain only numbers between 0 and 255");
+      return false;
+    }
+  }
+  return true;
+}
+
+bool RobotManagerNode::onControllerNameChangeRequest(
+  const std::string & controller_name, kuka_drivers_core::ControllerType controller_type)
+{
+  switch (controller_type)
+  {
+    case kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE:
+      joint_pos_controller_name_ = controller_name;
+      break;
+    case kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE:
+      joint_torque_controller_name_ = controller_name;
+      break;
+    default:
+      // This should actually never happen
+      RCLCPP_ERROR(get_logger(), "Invalid controller type");
+      return false;
+  }
+  return true;
+}
+
+// the joint impedannce attributes cannot be modified in FRI after activation, therefore only one
+// controller controls in each control mode
+std::string RobotManagerNode::GetControllerName()
+{
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_msg_.data))
+  {
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      return joint_pos_controller_name_;
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+      return joint_pos_controller_name_;
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+      return joint_torque_controller_name_;
+    default:
+      throw std::runtime_error("Stored control mode is not allowed");
+  }
+}
+
+bool RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier)
+{
+  auto request = std::make_shared<kuka_driver_interfaces::srv::SetFriConfiguration::Request>();
+  request->receive_multiplier = receive_multiplier;
+  request->send_period_ms = send_period_ms;
+  auto response =
+    kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetFriConfiguration::Response>(
+      fri_config_client_, request, 0, 1000);
+
+  if (!response || !response->success)
+  {
+    RCLCPP_ERROR(get_logger(), "Could not set FRI configuration");
+    return false;
+  }
+  return true;
+}
+
+bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)
+{
+  if (joint_stiffness.size() != 7)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter joint stiffness");
+    return false;
+  }
+  for (double js : joint_stiffness)
+  {
+    if (js < 0)
+    {
+      RCLCPP_ERROR(get_logger(), "Joint stiffness values must be >=0");
+      return false;
+    }
+  }
+  joint_stiffness_ = joint_stiffness;
+  return true;
+}
+
+bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & joint_damping)
+{
+  if (joint_damping.size() != 7)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter joint damping");
+    return false;
+  }
+  for (double jd : joint_damping)
+  {
+    if (jd < 0 || jd > 1)
+    {
+      RCLCPP_ERROR(get_logger(), "Joint damping values must be >=0 && <=1");
+      return false;
+    }
+  }
+  joint_damping_ = joint_damping;
+  return true;
+}
 }  // namespace kuka_sunrise_fri_driver
 
 int main(int argc, char * argv[])

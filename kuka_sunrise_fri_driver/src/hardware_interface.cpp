@@ -28,11 +28,15 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   {
     return CallbackReturn::ERROR;
   }
-  hw_states_.resize(info_.joints.size());
-  hw_commands_.resize(info_.joints.size());
-  hw_torques_.resize(info_.joints.size());
-  hw_torques_ext_.resize(info_.joints.size());
-  hw_effort_command_.resize(info_.joints.size());
+  controller_ip_ = info_.hardware_parameters.at("controller_ip");
+  client_ip_ = info_.hardware_parameters.at("client_ip");
+  client_port_ = std::stoi(info_.hardware_parameters.at("client_port"));
+
+  hw_position_states_.resize(info_.joints.size());
+  hw_position_commands_.resize(info_.joints.size());
+  hw_torque_states_.resize(info_.joints.size());
+  hw_ext_torque_states_.resize(info_.joints.size());
+  hw_torque_commands_.resize(info_.joints.size());
 
   if (info_.gpios.size() != 1)
   {
@@ -62,10 +66,10 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
-    if (joint.command_interfaces.size() != 2)
+    if (joint.command_interfaces.size() != 4)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 2 command interface");
+        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 4 command interface");
       return CallbackReturn::ERROR;
     }
 
@@ -73,15 +77,28 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting POSITION command interface as first");
+        "expecting 'POSITION' command interface as first");
       return CallbackReturn::ERROR;
     }
-
-    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_EFFORT)
+    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_STIFFNESS)
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting EFFORT command interface as second");
+        "expecting 'STIFFNESS' command interface as second");
+      return CallbackReturn::ERROR;
+    }
+    if (joint.command_interfaces[2].name != hardware_interface::HW_IF_DAMPING)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "expecting 'DAMPING' command interface as third");
+      return CallbackReturn::ERROR;
+    }
+    if (joint.command_interfaces[3].name != hardware_interface::HW_IF_EFFORT)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "expecting 'EFFORT' command interface as fourth");
       return CallbackReturn::ERROR;
     }
 
@@ -96,7 +113,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting POSITION state interface as first");
+        "expecting 'POSITION' state interface as first");
       return CallbackReturn::ERROR;
     }
 
@@ -104,7 +121,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "expecting EFFORT state interface as second");
+        "expecting 'EFFORT' state interface as second");
       return CallbackReturn::ERROR;
     }
 
@@ -117,14 +134,76 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
     }
   }
 
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaFRIHardwareInterface"),
+    "Init successful with controller ip: %s and client ip: %s:%i", controller_ip_.c_str(),
+    client_ip_.c_str(), client_port_);
+
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+{
+  if (!fri_connection_->isConnected())
+  {
+    if (!fri_connection_->connect(controller_ip_.c_str(), TCP_SERVER_PORT))
+    {
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Could not initialize TCP connection to controller");
+      return CallbackReturn::FAILURE;
+    }
+    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI");
+  }
+  else
+  {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaFRIHardwareInterface"),
+      "FRI connection was already up before configuration");
+    return CallbackReturn::ERROR;
+  }
+
+  if (!fri_connection_->setFRIConfig(
+        client_ip_, client_port_, send_period_ms_, receive_multiplier_))
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn KukaFRIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+{
+  if (!fri_connection_->disconnect())
+  {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaFRIHardwareInterface"),
+      "Could not close TCP connection to controller");
+    return CallbackReturn::ERROR;
+  }
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  if (!client_application_.connect(30200, nullptr))
+  if (!client_application_.connect(30200, controller_ip_.c_str()))
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect");
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect to controller");
+    return CallbackReturn::FAILURE;
+  }
+
+  // Start FRI (in monitoring mode)
+  if (!fri_connection_->startFRI())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
+
+  // Start commanding mode
+  if (!activateControl())
+  {
     return CallbackReturn::FAILURE;
   }
   is_active_ = true;
@@ -133,6 +212,18 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
+  if (!this->deactivateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
+    return CallbackReturn::ERROR;
+  }
+
+  if (!fri_connection_->endFRI())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not end FRI");
+    return CallbackReturn::ERROR;
+  }
+
   client_application_.disconnect();
   is_active_ = false;
   return CallbackReturn::SUCCESS;
@@ -140,15 +231,10 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 void KukaFRIHardwareInterface::waitForCommand()
 {
-  hw_commands_ = hw_states_;
-  hw_effort_command_ = hw_torques_;
-  // TODO(Svastits): is this really the purpose of waitForCommand?
+  // Update first commmmand based on the actual state
+  hw_position_commands_ = hw_position_states_;
   rclcpp::Time stamp = ros_clock_.now();
-  if (++receive_counter_ == receive_multiplier_)
-  {
-    updateCommand(stamp);
-    receive_counter_ = 0;
-  }
+  updateCommand(stamp);
 }
 
 void KukaFRIHardwareInterface::command()
@@ -167,6 +253,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
   // Read is called in inactive state, check is necessary
   if (!is_active_)
   {
+    if (prev_control_mode_ != control_mode_)
+    {
+      control_mode_change_ = true;
+      prev_control_mode_ = control_mode_;
+    }
     active_read_ = false;
     RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -183,11 +274,12 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
 
   // get the position and efforts and share them with exposed state interfaces
   const double * position = robotState().getMeasuredJointPosition();
-  hw_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_position_states_.assign(position, position + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * torque = robotState().getMeasuredTorque();
-  hw_torques_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_torque_states_.assign(torque, torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
   const double * external_torque = robotState().getExternalTorque();
-  hw_torques_ext_.assign(external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+  hw_ext_torque_states_.assign(
+    external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
   robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
   robot_state_.session_state_ = robotState().getSessionState();
@@ -210,9 +302,34 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
 hardware_interface::return_type KukaFRIHardwareInterface::write(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // Client app update and read must be called if read has been called in current cycle
+  // Client app update and read must be called only if read has been called in current cycle
   if (!active_read_)
   {
+    if (control_mode_change_)
+    {
+      switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
+      {
+        case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+          fri_connection_->setPositionControlMode();
+          fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
+          break;
+        case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+          fri_connection_->setJointImpedanceControlMode(
+            hw_stiffness_commands_, hw_damping_commands_);
+          fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
+          break;
+        case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+          fri_connection_->setJointImpedanceControlMode(
+            std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
+          fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
+          break;
+
+        default:
+          RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported control mode");
+          return hardware_interface::return_type::ERROR;
+      }
+      control_mode_change_ = false;
+    }
     RCLCPP_DEBUG(rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware interface not active");
     return hardware_interface::return_type::OK;
   }
@@ -239,21 +356,35 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       rclcpp::get_logger("KukaFRIHardwareInterface"), "Hardware inactive, exiting updateCommand");
     return;
   }
-  if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::TORQUE)
+
+  switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
   {
-    const double * joint_torques_ = hw_effort_command_.data();
-    robotCommand().setJointPosition(robotState().getIpoJointPosition());
-    robotCommand().setTorque(joint_torques_);
+    case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
+      [[fallthrough]];
+    case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
+    {
+      const double * joint_positions_ = hw_position_commands_.data();
+      robotCommand().setJointPosition(joint_positions_);
+      break;
+    }
+    case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
+    {
+      const double * joint_torques_ = hw_torque_commands_.data();
+      const double * joint_pos = robotState().getMeasuredJointPosition();
+      double joint_pos_corr[DOF];
+      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr);
+      activateFrictionCompensation(joint_pos_corr);
+      robotCommand().setJointPosition(joint_pos_corr);
+      robotCommand().setTorque(joint_torques_);
+      break;
+    }
+    default:
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Unsupported control mode, exiting updateCommand");
+      return;
   }
-  else if (robot_state_.command_mode_ == KUKA::FRI::EClientCommandMode::POSITION)
-  {
-    const double * joint_positions_ = hw_commands_.data();
-    robotCommand().setJointPosition(joint_positions_);
-  }
-  else
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported command mode");
-  }
+
   for (auto & input : gpio_inputs_)
   {
     input.setValue();
@@ -302,13 +433,13 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torques_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_torques_ext_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
   }
   return state_interfaces;
 }
@@ -319,8 +450,12 @@ KukaFRIHardwareInterface::export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &control_mode_);
+  command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD, &send_period_ms_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_)
@@ -332,12 +467,58 @@ KukaFRIHardwareInterface::export_command_interfaces()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_effort_command_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
   return command_interfaces;
 }
+
+bool KukaFRIHardwareInterface::activateControl()
+{
+  if (!fri_connection_->isConnected())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
+    return false;
+  }
+
+  if (!fri_connection_->activateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
+    return false;
+  }
+  return true;
+}
+
+bool KukaFRIHardwareInterface::deactivateControl()
+{
+  if (!fri_connection_->isConnected())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Not connected");
+    return false;
+  }
+
+  if (!fri_connection_->deactivateControl())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
+    return false;
+  }
+  return true;
+}
+
+// Friction compensation is activated only if the commanded and measured joint positions differ
+void KukaFRIHardwareInterface::activateFrictionCompensation(double * values)
+{
+  for (int i = 0; i < DOF; i++)
+  {
+    values[i] -= (values[i] / fabs(values[i]) * 0.1);
+  }
+}
+
 }  // namespace kuka_sunrise_fri_driver
 
 PLUGINLIB_EXPORT_CLASS(

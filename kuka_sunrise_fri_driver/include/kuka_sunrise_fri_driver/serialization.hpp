@@ -15,11 +15,13 @@
 #ifndef KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 #define KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 
+#include <string.h>
 #include <algorithm>
 #include <cstdint>
+#include <string>
 #include <vector>
 
-namespace kuka_drivers_core
+namespace kuka_sunrise_fri_driver
 {
 
 int serializeNext(int integer_in, std::vector<std::uint8_t> & serialized_out)
@@ -71,6 +73,34 @@ int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & do
   return sizeof(int);
 }
 
-}  // namespace kuka_drivers_core
+int serializeNext(const std::string & str_in, std::vector<std::uint8_t> & serialized_out)
+{
+  const std::uint8_t * bytes = reinterpret_cast<const std::uint8_t *>(str_in.data());
+  auto it = serialized_out.end();
+  serialized_out.insert(it, bytes, bytes + str_in.size());
+
+  // Redefine iterator because of possible invalidation
+  auto from_it = std::prev(serialized_out.end(), str_in.size());
+  std::reverse(from_it, serialized_out.end());
+
+  return str_in.size();
+}
+
+int deserializeNext(const std::vector<std::uint8_t> & serialized_in, std::string & str_out)
+{
+  if (serialized_in.empty())
+  {
+    // TODO(Svastits): error
+    return 0;
+  }
+
+  std::vector<std::uint8_t> serialized_copy = serialized_in;
+  std::reverse(serialized_copy.begin(), serialized_copy.end());
+  str_out = std::string(reinterpret_cast<char *>(serialized_copy.data()), serialized_copy.size());
+
+  return serialized_copy.size();
+}
+
+}  // namespace kuka_sunrise_fri_driver
 
 #endif  // KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
