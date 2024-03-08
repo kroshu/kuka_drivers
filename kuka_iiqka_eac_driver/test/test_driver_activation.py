@@ -46,33 +46,19 @@ def generate_test_description():
                 }.items(),
             ),
             launch.actions.TimerAction(
-                period=2.0,
+                period=5.0,
                 actions=[
                     launch.actions.ExecuteProcess(
-                        cmd=[
-                            "ros2",
-                            "lifecycle",
-                            "set",
-                            "robot_manager",
-                            "configure",
-                            "--no-daemon",
-                        ],
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
                         output="screen",
                     ),
                 ],
             ),
             launch.actions.TimerAction(
-                period=4.0,
+                period=5.0,
                 actions=[
                     launch.actions.ExecuteProcess(
-                        cmd=[
-                            "ros2",
-                            "lifecycle",
-                            "set",
-                            "robot_manager",
-                            "activate",
-                            "--no-daemon",
-                        ],
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
                         output="screen",
                     ),
                 ],
