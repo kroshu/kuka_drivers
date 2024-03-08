@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #ifndef KUKA_DRIVERS_CORE__CONTROLLER_NAMES_HPP_
 #define KUKA_DRIVERS_CORE__CONTROLLER_NAMES_HPP_
 
