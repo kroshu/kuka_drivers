@@ -210,9 +210,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
-  if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, controller_handler_.GetControllersForMode(control_mode_),
-        {}))
+  auto controllers = controller_handler_.GetControllersForMode(control_mode_);
+  controllers.push_back("joint_state_broadcaster");
+  if (!kuka_drivers_core::changeControllerState(change_controller_state_client_, controllers, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -244,10 +244,10 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   }
 
   // Stop RT controllers
+  auto controllers = controller_handler_.GetControllersForMode(control_mode_);
+  controllers.push_back("joint_state_broadcaster");
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {},
-        controller_handler_.GetControllersForMode(control_mode_),
-        SwitchController::Request::BEST_EFFORT))
+        change_controller_state_client_, {}, controllers, SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop RT controllers");
     return ERROR;
