@@ -52,7 +52,7 @@ def generate_test_description():
                 )
             ),
             launch.actions.TimerAction(
-                period=2.0,
+                period=5.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
@@ -61,7 +61,7 @@ def generate_test_description():
                 ],
             ),
             launch.actions.TimerAction(
-                period=4.0,
+                period=10.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
