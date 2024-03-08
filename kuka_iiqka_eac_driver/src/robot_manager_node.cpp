@@ -58,7 +58,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   // Register parameters
   this->registerParameter<std::string>(
-    "position_controller_name", "joint_trajectory_controller",
+    "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
     kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
     [this](const std::string & controller_name)
     {
