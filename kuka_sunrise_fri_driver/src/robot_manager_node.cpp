@@ -16,6 +16,7 @@
 
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
+#include "kuka_drivers_core/controller_names.hpp"
 
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
@@ -88,7 +89,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"fri_configuration_controller", "fri_state_broadcaster"},
+        change_controller_state_client_,
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::FRI_STATE_BROADCASTER},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
@@ -150,7 +152,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "fri_state_broadcaster"},
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::FRI_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -220,7 +222,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // The other controller must be started later so that it can initialize internal state
   //   with broadcaster information -> TODO(Svastits): validate whether this is true
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_state_broadcaster"}, {}))
+        change_controller_state_client_, {kuka_drivers_core::JOINT_STATE_BROADCASTER}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate joint state broadcaster");
     this->on_deactivate(get_current_state());
@@ -286,7 +288,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, {controller_name_, "joint_state_broadcaster"},
+        change_controller_state_client_, {},
+        {controller_name_, kuka_drivers_core::JOINT_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate controllers");

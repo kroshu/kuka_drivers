@@ -20,6 +20,7 @@
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -119,7 +120,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Activate control mode handler and event broadcaster
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"control_mode_handler", "event_broadcaster"}, {}))
+        change_controller_state_client_,
+        {kuka_drivers_core::CONTROL_MODE_HANDLER, kuka_drivers_core::EVENT_BROADCASTER}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate control mode handler or event broadcaster");
     // Rollback
@@ -137,7 +139,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Deactivate control mode handler and event broadcaster
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {}, {"control_mode_handler", "event_broadcaster"}))
+        change_controller_state_client_, {},
+        {kuka_drivers_core::CONTROL_MODE_HANDLER, kuka_drivers_core::EVENT_BROADCASTER}))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler and event broadcaster");
   }
@@ -211,7 +214,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   // Activate RT controller(s)
   auto controllers = controller_handler_.GetControllersForMode(control_mode_);
-  controllers.push_back("joint_state_broadcaster");
+  controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
   if (!kuka_drivers_core::changeControllerState(change_controller_state_client_, controllers, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
@@ -245,7 +248,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 
   // Stop RT controllers
   auto controllers = controller_handler_.GetControllersForMode(control_mode_);
-  controllers.push_back("joint_state_broadcaster");
+  controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {}, controllers, SwitchController::Request::BEST_EFFORT))
   {
