@@ -55,7 +55,14 @@ def generate_test_description():
                 period=2.0,
                 actions=[
                     launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
+                        cmd=[
+                            "ros2",
+                            "lifecycle",
+                            "set",
+                            "robot_manager",
+                            "configure",
+                            "--no-daemon",
+                        ],
                         output="screen",
                     ),
                 ],
@@ -64,7 +71,14 @@ def generate_test_description():
                 period=4.0,
                 actions=[
                     launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
+                        cmd=[
+                            "ros2",
+                            "lifecycle",
+                            "set",
+                            "robot_manager",
+                            "activate",
+                            "--no-daemon",
+                        ],
                         output="screen",
                     ),
                 ],
