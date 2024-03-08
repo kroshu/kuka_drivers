@@ -213,6 +213,7 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     "External control session started successfully");
 
   stop_requested_ = false;
+  cycle_count_ = 0;
   return CallbackReturn::SUCCESS;
 }
 
