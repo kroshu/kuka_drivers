@@ -43,7 +43,7 @@ rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
 Clone and build kuka-external-control-sdk in a different workspace.
  - This library is necessary for the iiQKA ExternalAPI.Control driver
  - The library is not a ROS2 package, therefore a different workspace is necessary, otherwise colcon will fail to build it
- - To install depencencies for your platform, check out the [Requirements](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka-external-control-sdk/doc/SDK_howto.md#requirements) section of the kuka-external-control-sdk documentation.
+ - To install dependencies for your platform, check out the [Requirements](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka-external-control-sdk/doc/SDK_howto.md#requirements) section of the kuka-external-control-sdk documentation.
 ```bash
 mkdir -p ~/sdk_ws/src
 cd ~/sdk_ws/src
