@@ -31,6 +31,8 @@ find_package(pluginlib REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(gazebo_plugins REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
 include_directories(include)
 
 if(NOT MOCK_KUKA_LIBS)
@@ -74,14 +76,14 @@ endif()
 add_library(kuka_rox_hw_interface SHARED
   src/rox_hardware_interface.cpp
 )
-ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface)
+ament_target_dependencies(kuka_rox_hw_interface rclcpp sensor_msgs hardware_interface tf2_ros tf2 nav_msgs)
 target_link_libraries(kuka_rox_hw_interface motion-external-proto-api-nanopb motion-services-ecs-proto-api-cpp
   motion-services-ecs-proto-api-nanopb yaml-cpp kuka::os-core-udp-communication kuka::nanopb-helpers)
 
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager_msgs)
+ament_target_dependencies(robot_manager_node rclcpp kroshu_ros2_core sensor_msgs controller_manager_msgs tf2_ros tf2 nav_msgs)
 target_link_libraries(robot_manager_node kroshu_ros2_core::communication_helpers motion-services-ecs-proto-api-cpp)
 
 pluginlib_export_plugin_description_file(hardware_interface kuka_rox_hw_interface.xml)

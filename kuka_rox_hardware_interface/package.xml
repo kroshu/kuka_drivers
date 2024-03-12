@@ -25,6 +25,8 @@
   <depend>protobuf-dev</depend>
   <depend>libnanopb-dev</depend>
   <depend>libgrpc</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
 
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
 

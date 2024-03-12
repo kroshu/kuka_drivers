@@ -33,6 +33,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include <tf2/LinearMath/Matrix3x3.h>
 
 #include "pluginlib/class_list_macros.hpp"
 
@@ -85,8 +88,9 @@ private:
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_velocity_states_;
-  geometry_msgs::msg::Twist hw_twist_states_;
-
+  geometry_msgs::msg::Twist hw_twist_state_;
+  geometry_msgs::msg::Pose hw_pose_state_;
+  geometry_msgs::msg::Pose2D hw_pose2d_state_;
   double hw_control_mode_command_;
 
 #ifdef NON_MOCK_SETUP
@@ -114,6 +118,7 @@ private:
   static constexpr char CONTROL_MODE[] = "control_mode";
   static constexpr char TWIST_PREFIX_L[] = "twist/linear";
   static constexpr char TWIST_PREFIX_A[] = "twist/angular";
+  static constexpr char POSE_2D_PREFIX[] = "pose_2d";
 };
 }  // namespace kuka_rox
 

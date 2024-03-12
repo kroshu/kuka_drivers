@@ -232,7 +232,7 @@ void RobotManagerNode::ObserveControl()
 
   while (reader->Read(&response)) {
     switch (static_cast<int>(response.event())) {
-      case kuka::ecs::v1::CommandEvent::COMMAND_MODE_SWITCH:
+      case kuka::ecs::v1::CommandEvent::CONTROL_MODE_SWITCH:
         {
           std::lock_guard<std::mutex> lk(control_mode_cv_m_);
           control_mode_change_finished_ = true;

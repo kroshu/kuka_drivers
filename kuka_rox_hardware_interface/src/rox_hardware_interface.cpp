@@ -110,27 +110,68 @@ KukaRoXHardwareInterface::export_state_interfaces()
   state_interfaces.emplace_back(
       TWIST_PREFIX_L,
       "x",
-      &hw_twist_states_.linear.x);
+      &hw_twist_state_.linear.x);
   state_interfaces.emplace_back(
       TWIST_PREFIX_L,
       "y",
-      &hw_twist_states_.linear.y);
+      &hw_twist_state_.linear.y);
   state_interfaces.emplace_back(
       TWIST_PREFIX_L,
       "z",
-      &hw_twist_states_.linear.z);
+      &hw_twist_state_.linear.z);
   state_interfaces.emplace_back(
       TWIST_PREFIX_A,
       "x",
-      &hw_twist_states_.angular.x);
+      &hw_twist_state_.angular.x);
   state_interfaces.emplace_back(
       TWIST_PREFIX_A,
       "y",
-      &hw_twist_states_.angular.y);
+      &hw_twist_state_.angular.y);
   state_interfaces.emplace_back(
       TWIST_PREFIX_A,
       "z",
-      &hw_twist_states_.angular.z);
+      &hw_twist_state_.angular.z);
+
+  state_interfaces.emplace_back(
+      "pose_2d",
+      "x",
+      &hw_pose2d_state_.x);
+  state_interfaces.emplace_back(
+      POSE_2D_PREFIX,
+      "y",
+      &hw_pose2d_state_.y);
+  state_interfaces.emplace_back(
+      POSE_2D_PREFIX,
+      "theta",
+      &hw_pose2d_state_.theta);
+  state_interfaces.emplace_back(
+      "Pose/position",
+      "x",
+      &hw_pose_state_.position.x);
+  state_interfaces.emplace_back(
+      "Pose/position",
+      "y",
+      &hw_pose_state_.position.y);
+  state_interfaces.emplace_back(
+      "Pose/position",
+      "z",
+      &hw_pose_state_.position.z);
+  state_interfaces.emplace_back(
+      "Pose/orientation",
+      "x",
+      &hw_pose_state_.orientation.x);
+  state_interfaces.emplace_back(
+      "Pose/orientation",
+      "y",
+      &hw_pose_state_.orientation.y);
+  state_interfaces.emplace_back(
+      "Pose/orientation",
+      "z",
+      &hw_pose_state_.orientation.z);
+  state_interfaces.emplace_back(
+      "Pose/orientation",
+      "w",
+      &hw_pose_state_.orientation.w);
   return state_interfaces;
 }
 
@@ -320,7 +361,7 @@ return_type KukaRoXHardwareInterface::read(
   RCLCPP_INFO(
     rclcpp::get_logger(
       "KukaRoXHardwareInterface"), "velocity x: %f z: %f ",
-    hw_twist_states_.linear.x, hw_twist_states_.angular.z);
+    hw_twist_state_.linear.x, hw_twist_state_.angular.z);
 
   return return_type::OK;
 #endif
@@ -364,21 +405,50 @@ return_type KukaRoXHardwareInterface::read(
     hw_velocity_states_[4]=motion_state_external_.motion_state.measured_twist.angular.y;
     hw_velocity_states_[5]=motion_state_external_.motion_state.measured_twist.angular.z;*/
 
-    hw_twist_states_.linear.x=motion_state_external_.motion_state.measured_twist.linear.x;
-    hw_twist_states_.linear.y=motion_state_external_.motion_state.measured_twist.linear.y;
-    hw_twist_states_.linear.z=motion_state_external_.motion_state.measured_twist.linear.z;
-    hw_twist_states_.angular.x=motion_state_external_.motion_state.measured_twist.angular.x;
-    hw_twist_states_.angular.y=motion_state_external_.motion_state.measured_twist.angular.y;
-    hw_twist_states_.angular.z=motion_state_external_.motion_state.measured_twist.angular.z;
+    hw_twist_state_.linear.x=motion_state_external_.motion_state.measured_twist.linear.x;
+    hw_twist_state_.linear.y=motion_state_external_.motion_state.measured_twist.linear.y;
+    hw_twist_state_.linear.z=motion_state_external_.motion_state.measured_twist.linear.z;
+    hw_twist_state_.angular.x=motion_state_external_.motion_state.measured_twist.angular.x;
+    hw_twist_state_.angular.y=motion_state_external_.motion_state.measured_twist.angular.y;
+    hw_twist_state_.angular.z=motion_state_external_.motion_state.measured_twist.angular.z;
+
+    hw_pose2d_state_.x=motion_state_external_.motion_state.measured_cartesian_position.translation.x;
+    hw_pose2d_state_.y=motion_state_external_.motion_state.measured_cartesian_position.translation.y;
+
+    tf2::Quaternion q(
+      motion_state_external_.motion_state.measured_cartesian_position.rotation.qx,
+      motion_state_external_.motion_state.measured_cartesian_position.rotation.qy,
+      motion_state_external_.motion_state.measured_cartesian_position.rotation.qz,
+      motion_state_external_.motion_state.measured_cartesian_position.rotation.qw);
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll,pitch,yaw);
+    hw_pose2d_state_.theta=yaw;
+    
+    hw_pose_state_.position.x=motion_state_external_.motion_state.measured_cartesian_position.translation.x;
+    hw_pose_state_.position.y=motion_state_external_.motion_state.measured_cartesian_position.translation.y;
+    hw_pose_state_.position.z=motion_state_external_.motion_state.measured_cartesian_position.translation.z;
+    hw_pose_state_.orientation.x=motion_state_external_.motion_state.measured_cartesian_position.rotation.qx;
+    hw_pose_state_.orientation.y=motion_state_external_.motion_state.measured_cartesian_position.rotation.qy;
+    hw_pose_state_.orientation.z=motion_state_external_.motion_state.measured_cartesian_position.rotation.qz;
+    hw_pose_state_.orientation.w=motion_state_external_.motion_state.measured_cartesian_position.rotation.qw;
+
     /*RCLCPP_INFO( rclcpp::get_logger(
           "KukaRoXHardwareInterface"), "STATE position: %f, %f --- velocity: %f , %f ",
               hw_position_states_[0],hw_position_states_[1],
               hw_velocity_states_[0],hw_velocity_states_[5]);*/
+    RCLCPP_INFO( rclcpp::get_logger(
+          "KukaRoXHardwareInterface"), "STATE position: %f, %f, %f--- velocity: %f , %f ",
+              hw_pose2d_state_.x,
+              hw_pose2d_state_.y,
+              yaw,
+              hw_velocity_states_[0],hw_velocity_states_[5]);
+
     if (motion_state_external_.motion_state.ipo_stopped) {
       RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Motion stopped");
     }
     msg_received_ = true;
-    receive_timeout_ = std::chrono::milliseconds(6);
+    receive_timeout_ = std::chrono::milliseconds(10);
   } else {
     RCLCPP_WARN(rclcpp::get_logger("KukaRoXHardwareInterface"), "Request was missed");
     RCLCPP_WARN(
@@ -426,9 +496,9 @@ return_type KukaRoXHardwareInterface::write(
   control_signal_ext_.control_signal.twist_command.linear.x=hw_twist_commands_.linear.x;
   control_signal_ext_.control_signal.twist_command.linear.y=hw_twist_commands_.linear.y;
   control_signal_ext_.control_signal.twist_command.linear.z=hw_twist_commands_.linear.z;
-  control_signal_ext_.control_signal.twist_command.angular.x=hw_twist_commands_.linear.x;
-  control_signal_ext_.control_signal.twist_command.angular.y=hw_twist_commands_.linear.y;
-  control_signal_ext_.control_signal.twist_command.angular.z=hw_twist_commands_.linear.z;
+  control_signal_ext_.control_signal.twist_command.angular.x=hw_twist_commands_.angular.x;
+  control_signal_ext_.control_signal.twist_command.angular.y=hw_twist_commands_.angular.y;
+  control_signal_ext_.control_signal.twist_command.angular.z=hw_twist_commands_.angular.z;
 
 
   RCLCPP_INFO( rclcpp::get_logger(
@@ -486,7 +556,7 @@ void KukaRoXHardwareInterface::ObserveControl()
         RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "External control is active");
         is_active_ = true;
         break;
-      case CommandEvent::COMMAND_MODE_SWITCH:
+      case CommandEvent::CONTROL_MODE_SWITCH:
         RCLCPP_INFO(
           rclcpp::get_logger(
             "KukaRoXHardwareInterface"), "Control mode switch is in progress");
