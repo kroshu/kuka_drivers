@@ -102,7 +102,7 @@ The package contains a [launch file](https://github.com/kroshu/kuka_drivers/blob
 
 After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
 
-The package also contains examples of sending planning requests from C++ code, in which case the `rviz` plugin is not necessary. The `MoveitExample` class implements a wrapper around the `MoveGroupInterface`, the example executables in the package use this class to interact with Moveit. Four examples are provided:
+The package also contains examples of sending planning requests from C++ code, in which case the `rviz` plugin is not necessary. The `MoveitExample` class implements a wrapper around the `MoveGroupInterface`, the example executables in the package use this class to interact with `Moveit`. Four examples are provided:
 - `moveit_basic_planners_example`: the example uses the `PILZ` motion planner to plan a `PTP` and a `LIN` trajectory. It also demonstrates that planning with collision avoidance is not possible with the `PILZ` planner by adding a collision box that invalidates the planned trajectory.
 - `moveit_collision_avoidance_example`: the example adds a collision box to the scene and demonstrates, that path planning with collision avoidance is possible using the `OMPL` planning pipeline.
 - `moveit_constrained_planning_example`: this example demonstrates constrained planning capabilities, as the planner can find a valid path around the obstacle with the end effector orientation remaining constant (with small tolerance).
@@ -111,6 +111,27 @@ The package also contains examples of sending planning requests from C++ code, i
 Note: the first three examples should be executed consequently (without restarting the launch file) to ensure that the collision objects are indeed in the way of the trivial path. The 4. example should be executed independently, so that the collision box added in the other examples are not there (launch file should be restarted after the other examples).
 
 Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it.
+
+
+### Planning in impedance mode
+
+Planning with `Moveit`, or simply moving the robot in impedance mode is quite tricky, as often there is a mismatch between the actual and commanded positions. 
+Both `Moveit` and the `joint_trajectory_controller` start planning/execution from the actually measured values, creating a jump in the commands (from the previous command to the measured state), which can trigger a joint limit violation. To solve this issue, the planning request must be modified to start from the commanded position instead of the measured one.
+For example in the `moveit_basic_planners_example` the following lines must be added before each planning request:
+```C++
+  moveit_msgs::msg::RobotState start_state;
+  std::vector<double> commanded_pos;  // TODO: fill this vector with the actually commanded positions
+  start_state.joint_state.name = example_node->moveGroupInterface()->getJointNames();
+  start_state.joint_state.position = commanded_pos;
+  example_node->moveGroupInterface()->setStartState(start_state);
+```
+Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
+ 
+If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
+```yaml
+open_loop_control: true
+```
+
 
 ## Multi-robot scenario
 

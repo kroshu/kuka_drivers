@@ -9,6 +9,7 @@
 #### Controller side
 
 - Install ExternalAPI.Control toolbox (requires iiQKA 1.2)
+  - The toolbox is not available by default and should be requested from KUKA Customer Support
 - Set KONI IP (System Settings -> Network -> KONI) + restart
 - Connect external client to KONI port (XF7)
 - Release SPOC on the Teach Pendant
