@@ -21,12 +21,26 @@
 #include <string>
 #include <vector>
 
+#include "communication_helpers/service_tools.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "moveit/move_group_interface/move_group_interface.h"
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit_msgs/msg/collision_object.hpp"
+#include "moveit_msgs/msg/motion_sequence_item.hpp"
+#include "moveit_msgs/srv/get_motion_sequence.hpp"
 #include "moveit_visual_tools/moveit_visual_tools.h"
 #include "rclcpp/rclcpp.hpp"
+
+struct MotionSegment
+{
+  MotionSegment(const Eigen::Isometry3d & pose, const std::string & planner_id, double blend_radius)
+  : pose(pose), planner_id(planner_id), blend_radius(blend_radius)
+  {
+  }
+  Eigen::Isometry3d pose;
+  std::string planner_id;  // One of the supported planners of the pilz pipeline
+  double blend_radius;
+};
 
 class MoveitExample : public rclcpp::Node
 {
@@ -51,6 +65,10 @@ public:
 
     move_group_interface_->setMaxVelocityScalingFactor(0.1);
     move_group_interface_->setMaxAccelerationScalingFactor(0.1);
+
+    motion_sequence_client_ =
+      this->create_client<moveit_msgs::srv::GetMotionSequence>("plan_sequence_path");
+    motion_sequence_request_ = std::make_shared<moveit_msgs::srv::GetMotionSequence::Request>();
   }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
@@ -339,12 +357,46 @@ public:
     return move_group_interface_;
   }
 
+  moveit_msgs::msg::RobotTrajectory::SharedPtr blend(
+    const std::vector<MotionSegment> & motion_sequence)
+  {
+    motion_sequence_request_->request.items.clear();
+    for (size_t i = 0; i < motion_sequence.size(); ++i)
+    {
+      moveit_msgs::msg::MotionPlanRequest blending_request;
+      move_group_interface_->setPlanningPipelineId("pilz_industrial_motion_planner");
+      move_group_interface_->setPlannerId(motion_sequence[i].planner_id);
+      move_group_interface_->setPoseTarget(motion_sequence[i].pose);
+
+      move_group_interface_->constructMotionPlanRequest(blending_request);
+      moveit_msgs::msg::MotionSequenceItem motion_segment;
+      motion_segment.req = blending_request;
+      // Disable blend radius for last segment
+      motion_segment.blend_radius =
+        (i == motion_sequence.size() - 1) ? 0 : motion_sequence[i].blend_radius;
+      motion_sequence_request_->request.items.push_back(motion_segment);
+    }
+
+    auto response = kuka_drivers_core::sendRequest<moveit_msgs::srv::GetMotionSequence::Response>(
+      motion_sequence_client_, motion_sequence_request_, 0, 3000);
+    if (!response || response->response.planned_trajectories.size() == 0)
+    {
+      RCLCPP_ERROR(LOGGER, "Planning of blended trajectory failed");
+      return nullptr;
+    }
+    return std::make_shared<moveit_msgs::msg::RobotTrajectory>(
+      response->response.planned_trajectories[0]);
+  }
+
 protected:
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_interface_;
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr planning_scene_diff_publisher_;
   std::shared_ptr<moveit_visual_tools::MoveItVisualTools> moveit_visual_tools_;
   const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_basic_plan");
   const std::string PLANNING_GROUP = "manipulator";
+
+  rclcpp::Client<moveit_msgs::srv::GetMotionSequence>::SharedPtr motion_sequence_client_;
+  moveit_msgs::srv::GetMotionSequence::Request::SharedPtr motion_sequence_request_;
 };
 
 #endif  // IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
