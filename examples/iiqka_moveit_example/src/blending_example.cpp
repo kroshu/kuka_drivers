@@ -58,11 +58,14 @@ int main(int argc, char * argv[])
   auto standing_pose =
     Eigen::Isometry3d(Eigen::Translation3d(0.1, 0, 0.8) * Eigen::Quaterniond::Identity());
   auto cart_goal =
+    Eigen::Isometry3d(Eigen::Translation3d(0.2, -0.15, 0.6) * Eigen::Quaterniond::Identity());
+  auto cart_goal2 =
     Eigen::Isometry3d(Eigen::Translation3d(0.4, -0.15, 0.55) * Eigen::Quaterniond::Identity());
 
   std::vector<MotionSegment> motion_sequence;
   motion_sequence.emplace_back(standing_pose, "PTP", 0.01);
-  motion_sequence.emplace_back(cart_goal, "LIN", 0.0);
+  motion_sequence.emplace_back(cart_goal, "LIN", 0.05);
+  motion_sequence.emplace_back(cart_goal2, "LIN", 0.0);
 
   auto planned_trajectory = example_node->blend(motion_sequence);
 
