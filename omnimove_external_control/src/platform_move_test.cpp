@@ -6,8 +6,8 @@
 using namespace rclcpp;
 using namespace std::chrono_literals;
 
-PlatformMoveTest::PlatformMoveTest()
-    : Node("PlatformMoveTest") {
+PlatformMoveTest::PlatformMoveTest() : Node("PlatformMoveTest")
+{
   this->declare_parameter("agv_type", "omnimove");
   this->declare_parameter("start_service", false);
 
@@ -20,19 +20,22 @@ PlatformMoveTest::PlatformMoveTest()
     "/platform/position_command_controller/commands", 10);
   timer_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-  if (start_service) {
+  if (start_service)
+  {
     platformTestService_ = this->create_service<std_srvs::srv::Empty>(
       "start_platform_test",
       std::bind(
         &PlatformMoveTest::startPlatformTest, this, std::placeholders::_1, std::placeholders::_2));
   }
-  else {
+  else
+  {
     timer_ = this->create_wall_timer(
       100ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this), timer_group_);
     command_change_timeout_ = 5;
     current_command_index_ = 0;
   }
-  if (this->get_parameter("agv_type").as_string() == "caterpillar") {
+  if (this->get_parameter("agv_type").as_string() == "caterpillar")
+  {
     speed_commands_.push_back(std::vector<float>{50, 0});
     position_commands_.push_back(std::vector<float>{0, 0, 0, 0, 100});
     speed_commands_.push_back(std::vector<float>{-50, 0});
@@ -50,7 +53,8 @@ PlatformMoveTest::PlatformMoveTest()
     speed_commands_.push_back(std::vector<float>{0, 0});
     position_commands_.push_back(std::vector<float>{0, 0, 0, 0, 0});
   }
-  else {
+  else
+  {
     speed_commands_.push_back(std::vector<float>{50, 0, 0});
     speed_commands_.push_back(std::vector<float>{-50, 0, 0});
     speed_commands_.push_back(std::vector<float>{0, 50, 0});
@@ -67,7 +71,8 @@ PlatformMoveTest::PlatformMoveTest()
 
 void PlatformMoveTest::startPlatformTest(
   const std::shared_ptr<std_srvs::srv::Empty::Request>,
-  const std::shared_ptr<std_srvs::srv::Empty::Response>) {
+  const std::shared_ptr<std_srvs::srv::Empty::Response>)
+{
   move_result_ = std::make_shared<std::promise<bool> >();
   timer_ = this->create_wall_timer(
     100ms, std::bind(&PlatformMoveTest::sendSpeedCommand, this), timer_group_);
@@ -76,13 +81,17 @@ void PlatformMoveTest::startPlatformTest(
   move_result_->get_future().wait();
 }
 
-void PlatformMoveTest::sendSpeedCommand() {
-  if (current_command_index_ >= speed_commands_.size()) {
+void PlatformMoveTest::sendSpeedCommand()
+{
+  if (current_command_index_ >= speed_commands_.size())
+  {
     timer_->cancel();
-    if (move_result_.get() != NULL) {
+    if (move_result_.get() != NULL)
+    {
       move_result_->set_value(true);
     }
-    else {
+    else
+    {
       exit(0);
     }
   }
@@ -92,21 +101,26 @@ void PlatformMoveTest::sendSpeedCommand() {
   size_t command_index = current_command_index_;
   static int current_command_counter = 0;
   double epsilon = 0.00001;
-  if (position_commands_.size() > current_command_index_) {
+  if (position_commands_.size() > current_command_index_)
+  {
     auto pos = speed_commands_[current_command_index_];
   }
-  if (current_command_counter > 100) {
+  if (current_command_counter > 100)
+  {
     current_command_counter = 0;
     current_command_index_++;
   }
 
   auto cur_speed = speed_commands_[command_index];
-  for (size_t i = 0; i < cur_speed.size(); ++i) {
+  for (size_t i = 0; i < cur_speed.size(); ++i)
+  {
     velocity.data.push_back(cur_speed[i] + current_command_counter * epsilon);
   }
-  if (position_commands_.size() > command_index) {
+  if (position_commands_.size() > command_index)
+  {
     auto cur_pos = position_commands_[command_index];
-    for (size_t i = 0; i < cur_pos.size(); ++i) {
+    for (size_t i = 0; i < cur_pos.size(); ++i)
+    {
       position.data.push_back(cur_pos[i]);
     }
   }
@@ -116,7 +130,8 @@ void PlatformMoveTest::sendSpeedCommand() {
   position_publisher_->publish(position);
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char ** argv)
+{
   rclcpp::init(argc, argv);
   auto node =
     std::make_shared<PlatformMoveTest>();  // rclcpp::spin(std::make_shared<PlatformMoveTest>());
