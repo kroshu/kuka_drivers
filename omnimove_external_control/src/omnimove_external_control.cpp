@@ -13,43 +13,35 @@ namespace omnimove
 {
 
 OmnimoveExternalControl::OmnimoveExternalControl()
-: hardware_interface::SystemInterface(), read_buffer_(4096)
-{
+: hardware_interface::SystemInterface(), read_buffer_(4096) {
   rclcpp::get_logger("OmnimoveExternalControl") = rclcpp::get_logger("OmnimoveExternalControl");
 }
 
-OmnimoveExternalControl::~OmnimoveExternalControl()
-{
-  if (acceptor_->is_open())
-  {
+OmnimoveExternalControl::~OmnimoveExternalControl() {
+  if (acceptor_->is_open()) {
     acceptor_->close();
   }
 
-  if (client_socket_->is_open())
-  {
+  if (client_socket_->is_open()) {
     client_socket_->close();
   }
 }
 
 LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(
-  const hardware_interface::HardwareInfo & info)
-{
-  if (SystemInterface::on_init(info) != LifecycleNodeInterface::CallbackReturn::SUCCESS)
-  {
+  const hardware_interface::HardwareInfo & info) {
+  if (SystemInterface::on_init(info) != LifecycleNodeInterface::CallbackReturn::SUCCESS) {
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   }
 
   agv_type_ = info.hardware_parameters.at("agv_type");
-  ;
-  if (agv_type_ == "caterpillar")
-  {
+
+  if (agv_type_ == "caterpillar") {
     position_state_.resize(5, 0);
     velocity_state_.resize(7, 0);
     position_commands_.resize(5, 0);
     velocity_commands_.resize(7, 0);
   }
-  else
-  {
+  else {
     velocity_state_.resize(3, 0);
     velocity_commands_.resize(3, 0);
   }
@@ -57,12 +49,10 @@ LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(
   protocol_version_ = info_.hardware_parameters["protocol_version"];  // should be 1.6
   external_control_port_ = std::stoi(info_.hardware_parameters["port"]);
   if (
-    info.hardware_parameters.find("velocity_command_timeout_ms") != info.hardware_parameters.end())
-  {
+    info.hardware_parameters.find("velocity_command_timeout_ms") != info.hardware_parameters.end()){
     vel_cmd_timeout_ms_ = std::stoi(info_.hardware_parameters["velocity_command_timeout_ms"]);
   }
-  else
-  {
+  else {
     RCLCPP_INFO(
       rclcpp::get_logger("OmnimoveExternalControl"), "velocity timeout not set. Using 500 ms");
 
@@ -75,20 +65,17 @@ LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(
 }
 
 hardware_interface::CallbackReturn OmnimoveExternalControl::on_configure(
-  const rclcpp_lifecycle::State & previous_state)
-{
+  const rclcpp_lifecycle::State & previous_state) {
   return SystemInterface::on_configure(previous_state);
 }
 
 hardware_interface::CallbackReturn OmnimoveExternalControl::on_cleanup(
-  const rclcpp_lifecycle::State & previous_state)
-{
+  const rclcpp_lifecycle::State & previous_state) {
   return SystemInterface::on_cleanup(previous_state);
 }
 
 hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
-  const rclcpp_lifecycle::State & previous_state)
-{
+  const rclcpp_lifecycle::State & previous_state) {
   // TODO: need to stop listening here
   // client_socket_->shutdown ();
   client_socket_->shutdown(client_socket_->shutdown_both);
@@ -96,8 +83,7 @@ hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
   return SystemInterface::on_shutdown(previous_state);
 }
 
-CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::State & previous_state)
-{
+CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::State & previous_state) {
   //        client_socket_ = std::make_shared<tcp::socket>(io_service_);
   //      client_socket_->connect(tcp::endpoint(address::from_string(external_control_host_),
   //      external_control_port_));
@@ -144,16 +130,13 @@ CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::Stat
   return SystemInterface::on_activate(previous_state);
 }
 hardware_interface::CallbackReturn OmnimoveExternalControl::on_error(
-  const rclcpp_lifecycle::State & previous_state)
-{
+  const rclcpp_lifecycle::State & previous_state) {
   return SystemInterface::on_error(previous_state);
 }
 
-std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces()
-{
+std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces() {
   std::vector<hardware_interface::StateInterface> state_interface;
-  if (agv_type_ == "caterpillar")
-  {
+  if (agv_type_ == "caterpillar") {
     state_interface.emplace_back("move_x", "velocity", &velocity_state_[0]);
     state_interface.emplace_back("move_theta", "velocity", &velocity_state_[1]);
     state_interface.emplace_back("pillar1", "velocity", &velocity_state_[2]);
@@ -167,8 +150,7 @@ std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces()
     state_interface.emplace_back("pillar4", "position", &position_state_[3]);
     state_interface.emplace_back("shield", "position", &position_state_[4]);
   }
-  else
-  {
+  else {
     state_interface.emplace_back("move_x", "velocity", &velocity_state_[0]);
     state_interface.emplace_back("move_y", "velocity", &velocity_state_[1]);
     state_interface.emplace_back("move_theta", "velocity", &velocity_state_[2]);
@@ -176,11 +158,9 @@ std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces()
   return state_interface;
 }
 
-std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces()
-{
+std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces() {
   std::vector<hardware_interface::CommandInterface> command_interface;
-  if (agv_type_ == "caterpillar")
-  {
+  if (agv_type_ == "caterpillar") {
     command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
     command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[1]);
     command_interface.emplace_back("pillar1", "position", &position_commands_[0]);
@@ -189,8 +169,7 @@ std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces
     command_interface.emplace_back("pillar4", "position", &position_commands_[3]);
     command_interface.emplace_back("shield", "position", &position_commands_[4]);
   }
-  else
-  {
+  else {
     command_interface.emplace_back("move_x", "velocity", &velocity_commands_[0]);
     command_interface.emplace_back("move_y", "velocity", &velocity_commands_[1]);
     command_interface.emplace_back("move_theta", "velocity", &velocity_commands_[2]);
@@ -199,14 +178,12 @@ std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces
   return command_interface;
 }
 
-ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
-{
+ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer() {
   // assume that sequence will start from the beginning
   const int expected_data_size = ExternalControlData::totalMessageLength();
 
   size_t last_message_start = (read_buffer_.size() / expected_data_size - 1) * expected_data_size;
-  if (last_message_start > read_buffer_.size())
-  {
+  if (last_message_start > read_buffer_.size()) {
     RCLCPP_ERROR(
       rclcpp::get_logger("OmnimoveExternalControl"),
       "Message too small last_message_start %lu, read_buffer_size %lu", last_message_start,
@@ -217,18 +194,15 @@ ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
   //                     "last_message_start %lu, read_buffer_size %lu", last_message_start,
   //                     read_buffer_.size ());
 
-  for (size_t i = 0; i < last_message_start; ++i)
-  {
+  for (size_t i = 0; i < last_message_start; ++i) {
     read_buffer_.pop_front();
   }
   // now let's check the header.
   std::unique_ptr<char[]> msg_data = std::make_unique<char[]>(read_buffer_.size());
-  for (size_t i = 0; i < read_buffer_.size(); ++i)
-  {
+  for (size_t i = 0; i < read_buffer_.size(); ++i) {
     msg_data.get()[i] = read_buffer_[i];
   }
-  if (!ExternalControlData::isMessageValid(msg_data.get(), read_buffer_.size()))
-  {
+  if (!ExternalControlData::isMessageValid(msg_data.get(), read_buffer_.size())) {
     const char * EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
 
     for (size_t i = 0; i < strlen(EXTERNAL_CONTROL_DATA_HEADER); ++i)
@@ -271,10 +245,8 @@ hardware_interface::return_type OmnimoveExternalControl::read(
   ExternalControlData readData = parseLastMessageFromBuffer();
   //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
 
-  if (readData.isDataValid())
-  {
-    if (agv_type_ == "caterpillar")
-    {
+  if (readData.isDataValid()) {
+    if (agv_type_ == "caterpillar") {
       velocity_state_[0] = (double)readData.speedX();
       velocity_state_[1] = (double)readData.speedW();
       position_state_[0] = (double)readData.posPillar1();
@@ -288,8 +260,7 @@ hardware_interface::return_type OmnimoveExternalControl::read(
       position_state_[4] = (double)readData.posShield();
       velocity_state_[6] = (double)readData.speedShield();
     }
-    else
-    {
+    else {
       velocity_state_[0] = (double)readData.speedX();
       velocity_state_[1] = (double)readData.speedY();
       velocity_state_[2] = (double)readData.speedW();
@@ -299,16 +270,13 @@ hardware_interface::return_type OmnimoveExternalControl::read(
 }
 
 hardware_interface::return_type OmnimoveExternalControl::write(
-  const rclcpp::Time &, const rclcpp::Duration &)
-{
+  const rclcpp::Time &, const rclcpp::Duration &) {
   //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<<
   //  velocity_commands_[0]
   //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
 
-  if (agv_type_ == "caterpillar")
-  {
-    if (velocity_commands_ != last_sent_velocity_commands_)
-    {
+  if (agv_type_ == "caterpillar") {
+    if (velocity_commands_ != last_sent_velocity_commands_) {
       last_sent_velocity_commands_ = velocity_commands_;
       last_sent_velocity_time_ = boost::chrono::system_clock::now();
       client_socket_->send(ExternalControlCaterpillarDriveCommand(
@@ -317,20 +285,16 @@ hardware_interface::return_type OmnimoveExternalControl::write(
                              position_commands_[4])
                              .getSerialisedData());
     }
-    else
-    {
+    else {
       if (
         (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
-        boost::chrono::milliseconds(vel_cmd_timeout_ms_))
-      {
+        boost::chrono::milliseconds(vel_cmd_timeout_ms_)) {
         client_socket_->send(ExternalControlStopCommand().getSerialisedData());
       }
     }
   }
-  else
-  {
-    if (velocity_commands_ != last_sent_velocity_commands_)
-    {
+  else {
+    if (velocity_commands_ != last_sent_velocity_commands_) {
       last_sent_velocity_commands_ = velocity_commands_;
       last_sent_velocity_time_ = boost::chrono::system_clock::now();
 
@@ -338,12 +302,10 @@ hardware_interface::return_type OmnimoveExternalControl::write(
                              velocity_commands_[0], velocity_commands_[1], velocity_commands_[2])
                              .getSerialisedData());
     }
-    else
-    {
+    else {
       if (
         (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
-        boost::chrono::milliseconds(vel_cmd_timeout_ms_))
-      {
+        boost::chrono::milliseconds(vel_cmd_timeout_ms_)) {
         client_socket_->send(ExternalControlStopCommand().getSerialisedData());
       }
     }
