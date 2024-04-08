@@ -47,8 +47,7 @@ boost::asio::const_buffer ExternalControlMessage::getSerialisedData()
   return boost::asio::buffer(msg_buffer_.get(), msg_length_);
 }
 
-ExternalControlData::ExternalControlData()
-    : ExternalControlMessage("", "", 0), is_valid_(false) {}
+ExternalControlData::ExternalControlData() : ExternalControlMessage("", "", 0), is_valid_(false) {}
 
 ExternalControlData::ExternalControlData(const char * msg_data)
 : ExternalControlMessage(
@@ -73,17 +72,19 @@ void ExternalControlData::copyPillarData(PillarData & pillar_data, const char * 
   memcpy(&pillar_data.actual_speed_, msg_data + 3, 1);
 }
 
-bool ExternalControlData::isDataValid() const {
-    return is_valid_;
-}
+bool ExternalControlData::isDataValid() const { return is_valid_; }
 
-bool ExternalControlData::isMessageValid(const char * msg_data, size_t length){
-  if (length < totalMessageLength()) {
+bool ExternalControlData::isMessageValid(const char * msg_data, size_t length)
+{
+  if (length < totalMessageLength())
+  {
     return false;
   }
 
-  for (size_t i = 0; i < strlen(EXTERNAL_CONTROL_DATA_HEADER); ++i) {
-    if (msg_data[i] != EXTERNAL_CONTROL_DATA_HEADER[i])  {
+  for (size_t i = 0; i < strlen(EXTERNAL_CONTROL_DATA_HEADER); ++i)
+  {
+    if (msg_data[i] != EXTERNAL_CONTROL_DATA_HEADER[i])
+    {
       return false;
     }
   }
@@ -91,69 +92,46 @@ bool ExternalControlData::isMessageValid(const char * msg_data, size_t length){
   return true;
 }
 
-size_t ExternalControlData::totalMessageLength(){
+size_t ExternalControlData::totalMessageLength()
+{
   return EXTERNAL_CONTROL_DATA_LENGTH + strlen(EXTERNAL_CONTROL_DATA_HEADER) + 2;
 }
 
-int ExternalControlData::speedX() const {
-    return actual_speed_x_;
-}
+int ExternalControlData::speedX() const { return actual_speed_x_; }
 
-int ExternalControlData::speedY() const {
-    return actual_speed_y_;
-}
+int ExternalControlData::speedY() const { return actual_speed_y_; }
 
-int ExternalControlData::speedW() const {
-    return actual_speed_w_;
-}
+int ExternalControlData::speedW() const { return actual_speed_w_; }
 
-int ExternalControlData::speedPillar1() const {
-    return pillar1_.actual_speed_;
-}
+int ExternalControlData::speedPillar1() const { return pillar1_.actual_speed_; }
 
-int ExternalControlData::posPillar1() const {
-    return pillar1_.actual_pos_;
-}
+int ExternalControlData::posPillar1() const { return pillar1_.actual_pos_; }
 
-int ExternalControlData::speedPillar2() const {
-    return pillar2_.actual_speed_;
-}
+int ExternalControlData::speedPillar2() const { return pillar2_.actual_speed_; }
 
-int ExternalControlData::posPillar2() const {
-    return pillar2_.actual_pos_;
-}
+int ExternalControlData::posPillar2() const { return pillar2_.actual_pos_; }
 
-int ExternalControlData::speedPillar3() const {
-    return pillar3_.actual_speed_;
-}
+int ExternalControlData::speedPillar3() const { return pillar3_.actual_speed_; }
 
-int ExternalControlData::posPillar3() const {
-    return pillar3_.actual_pos_;
-}
+int ExternalControlData::posPillar3() const { return pillar3_.actual_pos_; }
 
-int ExternalControlData::speedPillar4() const {
-    return pillar4_.actual_speed_;
-}
+int ExternalControlData::speedPillar4() const { return pillar4_.actual_speed_; }
 
-int ExternalControlData::posPillar4() const {
-    return pillar4_.actual_pos_;
-}
+int ExternalControlData::posPillar4() const { return pillar4_.actual_pos_; }
 
-int ExternalControlData::speedShield() const {
-    return schild_.actual_speed_;
-}
+int ExternalControlData::speedShield() const { return schild_.actual_speed_; }
 
-int ExternalControlData::posShield() const {
-    return schild_.actual_pos_;
-}
+int ExternalControlData::posShield() const { return schild_.actual_pos_; }
 
 uint32_t ExternalControlCommand::alive_counter_ = 0;
 
 ExternalControlCommand::ExternalControlCommand(const char * message)
-: ExternalControlMessage(EXTERNAL_CONTROL_COMMAND_HEADER, message, EXTERNAL_CONTROL_COMMAND_LENGTH){
+: ExternalControlMessage(EXTERNAL_CONTROL_COMMAND_HEADER, message, EXTERNAL_CONTROL_COMMAND_LENGTH)
+{
 }
 
-std::unique_ptr<char[]> ExternalControlCommand::getMessageBuffer() {
+std::unique_ptr<char[]> ExternalControlCommand::getMessageBuffer()
+{
   auto msg_data = std::make_unique<char[]>(ExternalControlCommand::EXTERNAL_CONTROL_COMMAND_LENGTH);
   memset(msg_data.get(), 0, ExternalControlCommand::EXTERNAL_CONTROL_COMMAND_LENGTH);
   uint32_t counter = ++alive_counter_;
@@ -163,11 +141,13 @@ std::unique_ptr<char[]> ExternalControlCommand::getMessageBuffer() {
 
 ExternalControlOmnimoveDriveCommand::ExternalControlOmnimoveDriveCommand(
   int speed_x, int speed_y, int speed_w)
-: ExternalControlCommand(getMessageData(speed_x, speed_y, speed_w).get()){
+: ExternalControlCommand(getMessageData(speed_x, speed_y, speed_w).get())
+{
 }
 
 std::unique_ptr<char[]> ExternalControlOmnimoveDriveCommand::getMessageData(
-  int speed_x, int speed_y, int speed_w){
+  int speed_x, int speed_y, int speed_w)
+{
   auto msg_data = getMessageBuffer();
   msg_data.get()[0] = 0;
   msg_data.get()[1] = 2;  // set mode to AutoDrive
@@ -179,7 +159,8 @@ std::unique_ptr<char[]> ExternalControlOmnimoveDriveCommand::getMessageData(
 }
 
 ExternalControlStopCommand::ExternalControlStopCommand()
-: ExternalControlCommand(getMessageBuffer().get()){
+: ExternalControlCommand(getMessageBuffer().get())
+{
 }
 
 ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(
@@ -187,12 +168,14 @@ ExternalControlCaterpillarDriveCommand::ExternalControlCaterpillarDriveCommand(
   int shield_pos)
 : ExternalControlCommand(
     getMessageData(speed_x, speed_w, pillar1_pos, pillar2_pos, pillar3_pos, pillar4_pos, shield_pos)
-      .get()) {
+      .get())
+{
 }
 
 std::unique_ptr<char[]> ExternalControlCaterpillarDriveCommand::getMessageData(
   int speed_x, int speed_w, int pillar1_pos, int pillar2_pos, int pillar3_pos, int pillar4_pos,
-  int shield_pos) {
+  int shield_pos)
+{
   auto msg_data = getMessageBuffer();
   msg_data.get()[0] = 0;
   msg_data.get()[1] = 2;  // set mode to AutoDrive
