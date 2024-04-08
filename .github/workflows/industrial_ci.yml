@@ -53,6 +53,11 @@ jobs:
       DOCKER_RUN_OPTS: '-e LD_LIBRARY_PATH=/root/.local/lib'
     runs-on: ubuntu-latest
     steps:
+      - name: Reset ANALYZER for scheduled and push runs
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "ANALYZER=" >> $GITHUB_ENV
+          fi
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
