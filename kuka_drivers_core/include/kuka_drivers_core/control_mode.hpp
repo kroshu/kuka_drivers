@@ -22,7 +22,7 @@ namespace kuka_drivers_core
  */
 enum class ControlMode : std::uint8_t
 {
-  UNSPECIFIED_CONTROL_MODE = 0,
+  CONTROL_MODE_UNSPECIFIED = 0,
   JOINT_POSITION_CONTROL = 1,
   JOINT_IMPEDANCE_CONTROL = 2,
   JOINT_VELOCITY_CONTROL = 3,

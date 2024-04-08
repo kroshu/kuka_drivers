@@ -12,5 +12,3 @@ test1/controller_manager:
       type: effort_controllers/JointGroupPositionController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
-
-    configure_components_on_start: [""]

@@ -65,7 +65,7 @@ Method 2:
 
 The following configuration files are available in the `config` directory of the package:
 - `driver_config.yaml`: contains the IP address of the client machine
-- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
+- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
 ##### IP configuration
@@ -88,9 +88,9 @@ The IP address of the client machine must be provided as a launch argument. For 
     ```
     ros2 launch kuka_kss_rsi_driver startup.launch.py client_ip:=0.0.0.0
     ```
-     - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
+     - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
        - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-       - `joint_trajectory_controller` ([configuration file](../../kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
+       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
 
      -  After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
@@ -112,7 +112,7 @@ Both launch files support the following arguments:
 - `client_ip`: IP address of the client machine
 - `client_port`: port of the client machine (default: 59152)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])

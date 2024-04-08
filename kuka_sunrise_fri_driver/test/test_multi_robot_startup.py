@@ -80,4 +80,9 @@ class TestMultiStartup(unittest.TestCase):
             "Successful initialization of hardware 'test2_lbr_iiwa14_r820'", timeout=20
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=20)
+        proc_output.assertWaitFor(
+            "Setting component 'test1_lbr_iiwa14_r820' to 'unconfigured' state.", timeout=20
+        )
+        proc_output.assertWaitFor(
+            "Setting component 'test2_lbr_iiwa14_r820' to 'unconfigured' state.", timeout=20
+        )
