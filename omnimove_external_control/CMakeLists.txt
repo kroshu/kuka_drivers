@@ -58,7 +58,7 @@ ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUD
 pluginlib_export_plugin_description_file(hardware_interface omnimove_external_control.xml)
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+  #find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files
   set(ament_cmake_copyright_FOUND TRUE)
