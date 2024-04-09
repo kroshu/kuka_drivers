@@ -13,5 +13,3 @@ controller_manager:
 
     fri_state_broadcaster:
       type: kuka_controllers/FRIStateBroadcaster
-
-    configure_components_on_start: [""]

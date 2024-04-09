@@ -15,6 +15,7 @@
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 
+#include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_kss_rsi_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -97,7 +98,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   // Activate RT controller(s)
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"},
+        change_controller_state_client_,
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER,
+         kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
@@ -125,7 +128,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"joint_state_broadcaster", "joint_trajectory_controller"},
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER,
+         kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");

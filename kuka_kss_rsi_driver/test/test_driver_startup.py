@@ -55,4 +55,6 @@ class TestDriverStartup(unittest.TestCase):
             "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
+        proc_output.assertWaitFor(
+            "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
+        )

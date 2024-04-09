@@ -17,7 +17,7 @@
 
 The following configuration files are available in the `config` directory of the package:
 - `driver_config.yaml`: : contains runtime parameters of the `robot_manager` node
-- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used. The `configure_components_on_start` parameter should never be modified, which ensures that the hardware interface is not activated at startup.
+- `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
@@ -42,9 +42,9 @@ The parameters in the driver configuration file can be also changed during runti
     ```
     ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0
     ```
-    - This starts the 3 core components of every driver (described in the *Non-real-time interface* section of the [project overview](Project%20overview.md)) and the following controllers:
+    - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-      - `joint_trajectory_controller` ([configuration file](../../kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+      - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
       - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
       - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 
@@ -61,7 +61,7 @@ On successful activation the brakes of the robot will be released and external c
 Both launch files support the following argument:
 - `controller_ip`: IP address of the robot controller
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
-- `use_fake_hardware`: if true, the `mock_components/GenericSystem` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
