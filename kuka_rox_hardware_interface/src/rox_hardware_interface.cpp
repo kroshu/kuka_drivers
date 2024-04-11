@@ -281,7 +281,7 @@ CallbackReturn KukaRoXHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Connecting to robot . . .");
   // Reset timeout to catch first tick message
-  receive_timeout_ = std::chrono::milliseconds(100);
+  receive_timeout_ = std::chrono::milliseconds(1000);
   control_signal_ext_.control_signal.stop_ipo = false;
 #ifdef NON_MOCK_SETUP
   if (context_ != nullptr) {
@@ -397,14 +397,7 @@ return_type KukaRoXHardwareInterface::read(
       
       
     }
-
-    /*hw_velocity_states_[0]=motion_state_external_.motion_state.measured_twist.linear.x;
-    hw_velocity_states_[1]=motion_state_external_.motion_state.measured_twist.linear.y;
-    hw_velocity_states_[2]=motion_state_external_.motion_state.measured_twist.linear.z;
-    hw_velocity_states_[3]=motion_state_external_.motion_state.measured_twist.angular.x;
-    hw_velocity_states_[4]=motion_state_external_.motion_state.measured_twist.angular.y;
-    hw_velocity_states_[5]=motion_state_external_.motion_state.measured_twist.angular.z;*/
-
+// Copy motion state to state interfaces
     hw_twist_state_.linear.x=motion_state_external_.motion_state.measured_twist.linear.x;
     hw_twist_state_.linear.y=motion_state_external_.motion_state.measured_twist.linear.y;
     hw_twist_state_.linear.z=motion_state_external_.motion_state.measured_twist.linear.z;
@@ -485,13 +478,6 @@ return_type KukaRoXHardwareInterface::write(
     hw_velocity_commands_.begin(),
     hw_velocity_commands_.end(), control_signal_ext_.control_signal.joint_velocity_command.values);
   
-  /*control_signal_ext_.control_signal.twist_command.linear.x=hw_velocity_commands_.at(0);
-  control_signal_ext_.control_signal.twist_command.linear.y=hw_velocity_commands_.at(1);
-  control_signal_ext_.control_signal.twist_command.linear.z=hw_velocity_commands_.at(2);
-
-  control_signal_ext_.control_signal.twist_command.angular.x=hw_velocity_commands_.at(3);
-  control_signal_ext_.control_signal.twist_command.angular.y=hw_velocity_commands_.at(4);
-  control_signal_ext_.control_signal.twist_command.angular.z=hw_velocity_commands_.at(5);*/
   
   control_signal_ext_.control_signal.twist_command.linear.x=hw_twist_commands_.linear.x;
   control_signal_ext_.control_signal.twist_command.linear.y=hw_twist_commands_.linear.y;
@@ -537,8 +523,8 @@ void KukaRoXHardwareInterface::ObserveControl()
     stub_->ObserveControlState(context_.get(), obs_control));
 
   CommandState response;
-  //RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe control reader response %i", reader->Read(&response));
-  is_active_ = true;
+  RCLCPP_INFO(rclcpp::get_logger("KukaRoXHardwareInterface"), "Observe control reader response %i", reader->Read(&response));
+  //is_active_ = true;
 
   while (reader->Read(&response)) {
     command_state_ = response;

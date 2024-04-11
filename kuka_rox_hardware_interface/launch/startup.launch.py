@@ -79,7 +79,12 @@ def launch_setup(context, *args, **kwargs):
     control_node = Node(
         package='kroshu_ros2_core',
         executable='control_node',
-        parameters=[robot_description, controller_config]
+        parameters=[robot_description, controller_config,
+        {
+                "hardware_components_initial_state": {
+                    "unconfigured": [robot_model.perform(context)]
+                },
+            },]
     )
     robot_manager_node = LifecycleNode(
         name=['robot_manager'],
