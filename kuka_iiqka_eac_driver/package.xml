@@ -2,29 +2,27 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_iiqka_eac_driver</name>
-  <version>0.0.0</version>
+  <version>0.9.0</version>
   <description>A ROS2 hardware interface for use with KUKA iiQKA OS</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
-  <license>Apache 2.0</license>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
-  <depend>std_msgs</depend>
-  <depend>std_srvs</depend>
-  <depend>sensor_msgs</depend>
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
+  <depend>kuka_external_control_sdk</depend>
+  <depend>std_msgs</depend>
+  <depend>controller_manager_msgs</depend>
 
   <exec_depend>kuka_lbr_iisy_support</exec_depend>
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
-  <exec_depend>joint_group_impedance_controller</exec_depend>
+  <exec_depend>kuka_controllers</exec_depend>
   <exec_depend>effort_controllers</exec_depend>
-  <exec_depend>control_mode_handler</exec_depend>
 
   <test_depend>ros2lifecycle</test_depend>
 
