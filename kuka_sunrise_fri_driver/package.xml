@@ -10,24 +10,20 @@
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
-  <depend>sensor_msgs</depend>
   <depend>kuka_driver_interfaces</depend>
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>controller_manager_msgs</depend>
+
   <depend>libnanopb-dev</depend>
 
   <exec_depend>ros2_control</exec_depend>
   <exec_depend>ros2_controllers</exec_depend>
-  <exec_depend>fri_state_broadcaster</exec_depend>
-  <exec_depend>fri_configuration_controller</exec_depend>
+  <exec_depend>kuka_controllers</exec_depend>
+  <exec_depend>kuka_lbr_iiwa_support</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
