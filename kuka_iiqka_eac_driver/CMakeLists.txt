@@ -40,7 +40,7 @@ target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs kuka-external-control-sdk)
+ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
 target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
