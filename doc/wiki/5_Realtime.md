@@ -126,3 +126,23 @@ After installing the real-time kernel, the setting of scheduling priorities must
 username	 -	 rtprio		 98
 ```
 - Restart the system
+
+## Possible issues of building the kernel
+### SSL error at signing
+**Error**:
+`SSL error:FFFFFFFF80000002:system library::No such file or directory`
+
+**Solution**: disable ZSTD module compression and rebuild
+   ```
+   scripts/config --disable CONFIG_MODULE_COMPRESS_ZSTD
+   scripts/config --enable CONFIG_MODULE_COMPRESS_NONE
+   ```
+
+### Segmentation fault while building a specific driver
+
+**Error example**
+```
+CC [M]  drivers/net/wireless/mediatek/mt76/mt7921/mac.occ1: 
+internal compiler error: Segmentation fault
+```
+**Solution**: remove the problematic driver (mt7921 in example) from the kernel configuration file
