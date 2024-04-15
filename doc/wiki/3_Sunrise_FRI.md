@@ -53,7 +53,7 @@ The parameters in the driver configuration file can be also changed during runti
     ros2 lifecycle set robot_manager configure
     ros2 lifecycle set robot_manager activate
     ```
-On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the *Additional packages* section of the [project overview](Project%20overview.md)).
+On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
 
 
 ##### Launch arguments
