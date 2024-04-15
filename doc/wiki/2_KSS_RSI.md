@@ -3,7 +3,7 @@
 ### Setup
 
 #### Client side
-It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/Realtime)).
+It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime)).
 
 To set up the controller with WorkVisual (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
