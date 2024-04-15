@@ -139,4 +139,4 @@ As the robot controllers manage the timing of the drivers, it does not make sens
 
 ## Detailed setup and startup instructions
 
-For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/iiQKA_EAC) robots.
+For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) robots.

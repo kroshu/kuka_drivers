@@ -35,6 +35,7 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
+    roundtrip_time = LaunchConfiguration("roundtrip_time")
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
@@ -85,6 +86,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "yaw:=",
             yaw,
+            " ",
+            "roundtrip_time:=",
+            roundtrip_time,
         ],
         on_stderr="capture",
     )
@@ -166,6 +170,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",
