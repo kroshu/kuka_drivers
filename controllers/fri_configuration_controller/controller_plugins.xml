@@ -1,0 +1,7 @@
+<library path="fri_configuration_controller">
+  <class name="kuka_controllers/FRIConfigurationController" type="kuka_controllers::FRIConfigurationController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller sets the receive multiplier of the hardware interface
+    </description>
+  </class>
+</library>

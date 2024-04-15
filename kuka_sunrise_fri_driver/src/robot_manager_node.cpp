@@ -16,6 +16,7 @@
 
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
+#include "kuka_drivers_core/controller_names.hpp"
 
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
@@ -132,6 +133,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
         {"fri_configuration_controller", "joint_group_impedance_controller"}, {}))
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::FRI_STATE_BROADCASTER},
+        {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
@@ -151,7 +154,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"fri_configuration_controller", "joint_group_impedance_controller"},
+        // TODO(Svastits): const char for impedance
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::FRI_STATE_BROADCASTER, "joint_group_impedance_controller"},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -210,7 +214,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {"joint_state_broadcaster", "fri_state_broadcaster", GetControllerName()},
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER, GetControllerName()},
         {"joint_group_impedance_controller"}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
@@ -237,7 +241,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {"joint_group_impedance_controller"},
-        {GetControllerName(), "joint_state_broadcaster", "fri_state_broadcaster"},
+        {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER},
+        change_controller_state_client_, {},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");

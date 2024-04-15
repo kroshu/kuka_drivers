@@ -2,15 +2,13 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_driver_interfaces</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="resizoltan@gmail.com">rosdeveloper</maintainer>
-  <license>Apache 2.0</license>
+  <version>0.9.0</version>
+  <description>Message definitions necessary for using KUKA drivers</description>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
-
-  <depend>geometry_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 
