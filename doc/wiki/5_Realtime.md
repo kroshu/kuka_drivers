@@ -34,7 +34,7 @@
 
 7. Install dependencies needed for building the kernel
    ```
-   sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot
+   sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot debhelper
    ```
 
 ### Kernel configuration
@@ -97,8 +97,13 @@ Save (without modifying the name) and exit menuconfig.
 ### Build and install kernel
 
 1. Build the kernel (which will take quite some time):
+   - Below kernel version 6.3:
    ```
    make -j `getconf _NPROCESSORS_ONLN` deb-pkg
+   ```
+   - From kernel version 6.3:
+   ```
+   make -j `getconf _NPROCESSORS_ONLN` bindeb-pkg
    ```
    After successful completion, there should be 4 debian packages in the `~/kernel` directory
 
