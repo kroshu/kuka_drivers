@@ -20,6 +20,8 @@
   <exec_depend>kuka_kss_rsi_driver</exec_depend>
   <exec_depend>kuka_rsi_simulator</exec_depend>
   <exec_depend>kuka_sunrise_fri_driver</exec_depend>
+  <!-- Controllers metapackage -->
+  <exec_depend>kuka_controllers</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

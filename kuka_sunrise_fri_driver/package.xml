@@ -21,8 +21,10 @@
   <depend>libnanopb-dev</depend>
 
   <exec_depend>ros2_control</exec_depend>
-  <exec_depend>ros2_controllers</exec_depend>
-  <exec_depend>kuka_controllers</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>fri_configuration_controller</exec_depend>
+  <exec_depend>fri_state_broadcaster</exec_depend>
   <exec_depend>kuka_lbr_iiwa_support</exec_depend>
 
   <export>

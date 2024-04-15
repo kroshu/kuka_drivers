@@ -21,8 +21,10 @@
   <depend>tinyxml_vendor</depend>
 
   <exec_depend>ros2_control</exec_depend>
-  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>kuka_robot_descriptions</exec_depend>
+
   <test_depend>kuka_rsi_simulator</test_depend>
   <test_depend>ros2lifecycle</test_depend>
 
