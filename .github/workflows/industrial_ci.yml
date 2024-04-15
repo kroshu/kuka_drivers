@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: Reset ANALYZER for scheduled and push runs
         run: |
-          if { [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "push" ]]; } && [[ "${{ github.ref }}" != "refs/heads/master" ]]; then
+          if [[ "${{ github.event_name }}" == "schedule" ]] || { [[ "${{ github.event_name }}" == "push" ]] && [[ "${{ github.ref }}" != "refs/heads/master" ]]; }; then
             echo "ANALYZER=" >> $GITHUB_ENV
           fi
       - uses: actions/checkout@v2
