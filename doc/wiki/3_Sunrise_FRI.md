@@ -45,8 +45,8 @@ The parameters in the driver configuration file can be also changed during runti
     - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
-      - [`fri_configuration_controller`](https://github.com/kroshu/kuka_drivers/wiki/Controllers#fri_configuration_controller) (no configuration file)
-      - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_drivers/wiki/Controllers#fri_state_broadcaster) (no configuration file)
+      - [`fri_configuration_controller`](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#fri_configuration_controller) (no configuration file)
+      - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#fri_state_broadcaster) (no configuration file)
 
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
