@@ -11,7 +11,7 @@
 
 2. Find and download the real-time patch with matching major and minor versions from [here](https://cdn.kernel.org/pub/linux/kernel/projects/rt/) (*patch-\<version\>-rt\<nr\>.patch.gz*)
 
-3. Download the kernel with identical version from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (*linux-\<version\>.tar.gz*)
+3. Download the kernel with identical version as the real-time patch from [here](https://mirrors.edge.kernel.org/pub/linux/kernel/) (*linux-\<version\>.tar.gz*)
 
 4. Create directory to build kernel
    ```
