@@ -142,7 +142,7 @@ username	 -	 rtprio		 98
 
 **Error example**
 ```
-CC [M]  drivers/net/wireless/mediatek/mt76/mt7921/mac.occ1: 
+CC [M]  drivers/net/wireless/mediatek/mt76/mt7921/mac.occ1:
 internal compiler error: Segmentation fault
 ```
 **Solution**: remove the problematic driver (mt7921 in example) from the kernel configuration file
