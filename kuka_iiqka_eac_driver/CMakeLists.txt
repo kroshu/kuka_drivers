@@ -17,12 +17,10 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH "~/.local/lib/cmake")
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(kuka-external-control-sdk CONFIG REQUIRED)
 include_directories(include)
@@ -36,13 +34,13 @@ add_library(${PROJECT_NAME} SHARED
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface kuka_drivers_core kuka-external-control-sdk)
+ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
 target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs kuka-external-control-sdk)
+ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
 target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
