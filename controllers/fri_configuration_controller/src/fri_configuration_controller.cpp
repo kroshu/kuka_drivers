@@ -26,11 +26,12 @@ controller_interface::CallbackReturn FRIConfigurationController::on_init()
   {
     update_config_ = true;
     receive_multiplier_ = request->receive_multiplier;
-    send_period_ms_= request->send_period_ms;
+    send_period_ms_ = request->send_period_ms;
     response->success = true;
   };
-  receive_multiplier_service_ = get_node()->create_service<kuka_driver_interfaces::srv::SetFriConfiguration>(
-    "~/set_fri_config", callback);
+  receive_multiplier_service_ =
+    get_node()->create_service<kuka_driver_interfaces::srv::SetFriConfiguration>(
+      "~/set_fri_config", callback);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -78,11 +79,13 @@ controller_interface::return_type FRIConfigurationController::update(
   if (update_config_)
   {
     RCLCPP_INFO(
-      get_node()->get_logger(), "Updating FRI configuration of hardware interface: receive multiplier is %i, send period is %i [ms]",
+      get_node()->get_logger(),
+      "Updating FRI configuration of hardware interface: receive multiplier is %i, send period is "
+      "%i [ms]",
       receive_multiplier_, send_period_ms_);
-      command_interfaces_[0].set_value(receive_multiplier_);
-      command_interfaces_[1].set_value(send_period_ms_);
-      update_config_ = false;
+    command_interfaces_[0].set_value(receive_multiplier_);
+    command_interfaces_[1].set_value(send_period_ms_);
+    update_config_ = false;
   }
   return controller_interface::return_type::OK;
 }

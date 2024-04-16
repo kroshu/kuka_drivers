@@ -27,6 +27,7 @@
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
@@ -62,11 +63,13 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
+  rclcpp::CallbackGroup::SharedPtr event_cbg_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
   rclcpp::Client<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr fri_config_client_;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_imp_pub_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
   std_msgs::msg::UInt32 control_mode_msg_;
 
   int receive_multiplier_;
@@ -90,8 +93,7 @@ private:
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
   bool setFriConfiguration(int send_period_ms, int receive_multiplier);
 
-  void handleControlEndedError();
-  void handleFRIEndedError();
+  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
 };
 
 }  // namespace kuka_sunrise_fri_driver

@@ -17,6 +17,7 @@
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 #include "kuka_drivers_core/controller_names.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
 
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
@@ -36,11 +37,10 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   // RT controllers are started after interface activation
   // non-RT controllers are started after interface configuration
 
-  fri_connection_ = std::make_shared<FRIConnection>(
-    [this] { this->handleControlEndedError(); }, [this] { this->handleFRIEndedError(); });
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  event_cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ = this->create_client<SwitchController>(
@@ -59,6 +59,13 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   joint_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
     "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
+
+  rclcpp::SubscriptionOptions sub_options;
+  sub_options.callback_group = event_cbg_;
+  event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
+    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
+    sub_options);
 
   registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820",
@@ -132,7 +139,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Start non-RT controllers
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, "joint_group_impedance_controller"}, {}))
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER,
+         kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
+        {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
@@ -152,8 +161,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        // TODO(Svastits): const char for impedance
-        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, "joint_group_impedance_controller"},
+        {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER,
+         kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -194,12 +203,6 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
   joint_imp_pub_->publish(joint_imp_msg);
 
-  if (!fri_connection_->isConnected())
-  {
-    RCLCPP_ERROR(get_logger(), "not connected");
-    return ERROR;
-  }
-
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -214,7 +217,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         change_controller_state_client_,
         {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER,
          GetControllerName()},
-        {"joint_group_impedance_controller"}))
+        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -239,9 +242,10 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_group_impedance_controller"},
+        change_controller_state_client_, {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
-         kuka_drivers_core::FRI_STATE_BROADCASTER}, SwitchController::Request::BEST_EFFORT))
+         kuka_drivers_core::FRI_STATE_BROADCASTER},
+        SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
     return ERROR;
@@ -250,18 +254,6 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(
     get_logger(), "Successfully deactivated driver, reactivation is possible after 5 seconds");
   return SUCCESS;
-}
-
-void RobotManagerNode::handleControlEndedError()
-{
-  RCLCPP_INFO(get_logger(), "Control ended");
-  this->LifecycleNode::deactivate();
-}
-
-void RobotManagerNode::handleFRIEndedError()
-{
-  RCLCPP_INFO(get_logger(), "FRI ended");
-  this->LifecycleNode::deactivate();
 }
 
 bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
@@ -457,6 +449,29 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
   joint_damping_ = joint_damping;
   return true;
 }
+
+void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+{
+  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
+  {
+    case kuka_drivers_core::HardwareEvent::ERROR:
+      RCLCPP_INFO(get_logger(), "External control stopped");
+      if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+      {
+        this->deactivate();
+      }
+      else if (
+        this->get_current_state().id() == lifecycle_msgs::msg::State::TRANSITION_STATE_ACTIVATING)
+      {
+        // Handle case, when error is received while still activating
+        this->on_deactivate(get_current_state());
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 }  // namespace kuka_sunrise_fri_driver
 
 int main(int argc, char * argv[])

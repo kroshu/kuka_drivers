@@ -27,6 +27,7 @@
 #include "hardware_interface/system_interface.hpp"
 #include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
 
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friClientIf.h"
@@ -129,6 +130,13 @@ private:
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_ext_torque_states_;
 
+  double server_state_ = 0;
+
+  std::mutex event_mutex_;
+
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+
   static const int TCP_SERVER_PORT = 30000;
   static const int DOF = 7;
 
@@ -151,6 +159,7 @@ private:
   bool activateControl();
   bool deactivateControl();
   void activateFrictionCompensation(double * values);
+  void onError();
 
   KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {

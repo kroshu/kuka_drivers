@@ -53,9 +53,10 @@ public:
   FRI_CONFIGURATION_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
-  rclcpp::Service<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr receive_multiplier_service_;
+  rclcpp::Service<kuka_driver_interfaces::srv::SetFriConfiguration>::SharedPtr
+    receive_multiplier_service_;
   int receive_multiplier_ = 1;
-  int send_period_ms_= 10;
+  int send_period_ms_ = 10;
   bool update_config_ = false;
 };
 }  // namespace kuka_controllers

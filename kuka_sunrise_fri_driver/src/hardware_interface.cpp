@@ -24,6 +24,9 @@ namespace kuka_sunrise_fri_driver
 CallbackReturn KukaFRIHardwareInterface::on_init(
   const hardware_interface::HardwareInfo & system_info)
 {
+  fri_connection_ =
+    std::make_shared<FRIConnection>([this] { this->onError(); }, [this] { this->onError(); });
+
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
@@ -296,6 +299,9 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
     output.getValue();
   }
 
+  // Modify state interface only in read
+  std::lock_guard<std::mutex> lk(event_mutex_);
+  server_state_ = static_cast<double>(last_event_);
   return hardware_interface::return_type::OK;
 }
 
@@ -441,6 +447,9 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
   }
+
+  state_interfaces.emplace_back(
+    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
   return state_interfaces;
 }
 
@@ -517,6 +526,14 @@ void KukaFRIHardwareInterface::activateFrictionCompensation(double * values)
   {
     values[i] -= (values[i] / fabs(values[i]) * 0.1);
   }
+}
+
+void KukaFRIHardwareInterface::onError()
+{
+  std::lock_guard<std::mutex> lk(event_mutex_);
+  last_event_ = kuka_drivers_core::HardwareEvent::ERROR;
+  RCLCPP_ERROR(
+    rclcpp::get_logger("KukaFRIHardwareInterface"), "External control stopped by an error");
 }
 
 }  // namespace kuka_sunrise_fri_driver
