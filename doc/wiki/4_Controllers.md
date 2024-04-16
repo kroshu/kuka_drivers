@@ -53,6 +53,6 @@ __Required parameters__: None
 
 #### `fri_configuration_controller`
 
-The `receive_multiplier` parameter of FRI defines the answer rate factor (ratio of receiving states and sending commands). This is a parameter of the hardware interface, which can be modified in connected state, when control is not active. To support changing this parameter after startup, the `FRIConfigurationController` implements a service named `~/set_receive_multiplier`. Sending a request containing the desired integer value of the `receive_multiplier` updates the parameter of the hardware interface.
+The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` implements a service named `~/set_fri_config`. Sending a request containing the desired integer values of `send_period_ms` and `receive_multiplier` updates the parameters of the hardware interface.
 
 __Required parameters__: None

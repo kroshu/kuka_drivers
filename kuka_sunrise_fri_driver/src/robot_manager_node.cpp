@@ -241,8 +241,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {"joint_group_impedance_controller"},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
-         kuka_drivers_core::FRI_STATE_BROADCASTER},
-        change_controller_state_client_, {}, SwitchController::Request::BEST_EFFORT))
+         kuka_drivers_core::FRI_STATE_BROADCASTER}, SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
     return ERROR;
