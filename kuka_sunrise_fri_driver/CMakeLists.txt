@@ -77,13 +77,12 @@ add_library(${PROJECT_NAME} SHARED
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_SUNRISE_FRI_DRIVER_BUILDING_LIBRARY")
 
 ament_target_dependencies(${PROJECT_NAME} kuka_driver_interfaces hardware_interface kuka_drivers_core)
-target_link_libraries(${PROJECT_NAME} fri_client_sdk)
+target_link_libraries(${PROJECT_NAME} fri_client_sdk fri_connection)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node kuka_driver_interfaces kuka_drivers_core std_msgs std_srvs
   controller_manager_msgs)
-target_link_libraries(robot_manager_node fri_connection)
 
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
