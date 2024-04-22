@@ -12,38 +12,38 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-#ifndef EVENT_BROADCASTER__VISIBILITY_CONTROL_H_
-#define EVENT_BROADCASTER__VISIBILITY_CONTROL_H_
+#ifndef KUKA_EVENT_BROADCASTER__VISIBILITY_CONTROL_H_
+#define KUKA_EVENT_BROADCASTER__VISIBILITY_CONTROL_H_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifdef __GNUC__
-#define EVENT_BROADCASTER_EXPORT __attribute__((dllexport))
-#define EVENT_BROADCASTER_IMPORT __attribute__((dllimport))
+#define KUKA_EVENT_BROADCASTER_EXPORT __attribute__((dllexport))
+#define KUKA_EVENT_BROADCASTER_IMPORT __attribute__((dllimport))
 #else
-#define EVENT_BROADCASTER_EXPORT __declspec(dllexport)
-#define EVENT_BROADCASTER_IMPORT __declspec(dllimport)
+#define KUKA_EVENT_BROADCASTER_EXPORT __declspec(dllexport)
+#define KUKA_EVENT_BROADCASTER_IMPORT __declspec(dllimport)
 #endif
-#ifdef EVENT_BROADCASTER_BUILDING_LIBRARY
-#define EVENT_BROADCASTER_PUBLIC EVENT_BROADCASTER_EXPORT
+#ifdef KUKA_EVENT_BROADCASTER_BUILDING_LIBRARY
+#define KUKA_EVENT_BROADCASTER_PUBLIC KUKA_EVENT_BROADCASTER_EXPORT
 #else
-#define EVENT_BROADCASTER_PUBLIC EVENT_BROADCASTER_IMPORT
+#define KUKA_EVENT_BROADCASTER_PUBLIC KUKA_EVENT_BROADCASTER_IMPORT
 #endif
-#define EVENT_BROADCASTER_PUBLIC_TYPE EVENT_BROADCASTER_PUBLIC
-#define EVENT_BROADCASTER_LOCAL
+#define KUKA_EVENT_BROADCASTER_PUBLIC_TYPE KUKA_EVENT_BROADCASTER_PUBLIC
+#define KUKA_EVENT_BROADCASTER_LOCAL
 #else
-#define EVENT_BROADCASTER_EXPORT __attribute__((visibility("default")))
-#define EVENT_BROADCASTER_IMPORT
+#define KUKA_EVENT_BROADCASTER_EXPORT __attribute__((visibility("default")))
+#define KUKA_EVENT_BROADCASTER_IMPORT
 #if __GNUC__ >= 4
-#define EVENT_BROADCASTER_PUBLIC __attribute__((visibility("default")))
-#define EVENT_BROADCASTER_LOCAL __attribute__((visibility("hidden")))
+#define KUKA_EVENT_BROADCASTER_PUBLIC __attribute__((visibility("default")))
+#define KUKA_EVENT_BROADCASTER_LOCAL __attribute__((visibility("hidden")))
 #else
-#define EVENT_BROADCASTER_PUBLIC
-#define EVENT_BROADCASTER_LOCAL
+#define KUKA_EVENT_BROADCASTER_PUBLIC
+#define KUKA_EVENT_BROADCASTER_LOCAL
 #endif
-#define EVENT_BROADCASTER_PUBLIC_TYPE
+#define KUKA_EVENT_BROADCASTER_PUBLIC_TYPE
 #endif
 
-#endif  // EVENT_BROADCASTER__VISIBILITY_CONTROL_H_
+#endif  // KUKA_EVENT_BROADCASTER__VISIBILITY_CONTROL_H_

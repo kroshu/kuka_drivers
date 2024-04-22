@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>event_broadcaster</name>
+  <name>kuka_event_broadcaster</name>
   <version>0.9.0</version>
   <description>Broadcaster of hardware events of KUKA robots</description>
 
