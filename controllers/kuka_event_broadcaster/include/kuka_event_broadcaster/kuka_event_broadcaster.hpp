@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef EVENT_BROADCASTER__EVENT_BROADCASTER_HPP_
-#define EVENT_BROADCASTER__EVENT_BROADCASTER_HPP_
+#ifndef KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_
+#define KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_
 
 #include <memory>
 #include <string>
@@ -25,32 +25,32 @@
 #include "rclcpp/time.hpp"
 #include "std_msgs/msg/u_int8.hpp"
 
-#include "event_broadcaster/visibility_control.h"
+#include "kuka_event_broadcaster/visibility_control.h"
 
 namespace kuka_controllers
 {
 class EventBroadcaster : public controller_interface::ControllerInterface
 {
 public:
-  EVENT_BROADCASTER_PUBLIC controller_interface::InterfaceConfiguration
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::InterfaceConfiguration
   command_interface_configuration() const override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::InterfaceConfiguration
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::InterfaceConfiguration
   state_interface_configuration() const override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::return_type update(
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::return_type update(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_configure(
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_activate(
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_deactivate(
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_init() override;
+  KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr event_publisher_;
@@ -58,4 +58,4 @@ private:
   int last_event_ = 0;
 };
 }  // namespace kuka_controllers
-#endif  // EVENT_BROADCASTER__EVENT_BROADCASTER_HPP_
+#endif  // KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_

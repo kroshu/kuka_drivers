@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(event_broadcaster)
+project(kuka_control_mode_handler)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
@@ -13,18 +13,18 @@ find_package(kuka_drivers_core REQUIRED)
 include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
-  src/event_broadcaster.cpp)
+  src/kuka_control_mode_handler.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core
+ament_target_dependencies(${PROJECT_NAME} controller_interface std_msgs kuka_drivers_core
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "EVENT_BROADCASTER_BUILDING_LIBRARY")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_CONTROL_MODE_HANDLER_BUILDING_LIBRARY")
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
