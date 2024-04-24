@@ -9,7 +9,7 @@ import com.kuka.roboticsAPI.deviceModel.Device;
 
 public class FRIConfigurationParams implements Externalizable {
 
-	public static final int length = 12; //remoteIP not included
+	public static final int length = 16; // 4 integers
 
 
 	private String _remoteIP;
@@ -28,14 +28,19 @@ public class FRIConfigurationParams implements Externalizable {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		_remoteIP = in.readUTF();
 		_remotePort = in.readInt();
 		_sendPeriodMilliSec = in.readInt();
 		_receiveMultiplier = in.readInt();
+		_remoteIP = "192.168.38.6";
+		
+		int ip = in.readInt();
+		_remoteIP = String.format("%d.%d.%d.%d", (ip & 0xff),(ip >> 8 & 0xff), (ip >> 16 & 0xff), (ip >> 24 & 0xff));
+
+		System.out.println("Configured client IP: " + _remoteIP + ":" + _remotePort);
 	}
 
 	public FRIConfigurationParams() {
-		_remoteIP = "0.0.0.0"
+		_remoteIP = "0.0.0.0";
 		_remotePort = 30200;
 		_sendPeriodMilliSec = 10;
 		_receiveMultiplier = 1;
