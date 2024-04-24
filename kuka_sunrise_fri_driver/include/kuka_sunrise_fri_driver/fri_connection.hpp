@@ -69,7 +69,7 @@ enum ClientCommandModeID : std::uint8_t
   TORQUE_COMMAND_MODE = 3
 };
 
-static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
+static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x10};
 static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
 
 class FRIConnection
