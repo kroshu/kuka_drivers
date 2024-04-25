@@ -195,6 +195,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect to controller");
     return CallbackReturn::FAILURE;
   }
+  // Communication is necessary for starting FRI, so active flag must be set here
+  is_active_ = true;
 
   // Start FRI (in monitoring mode)
   if (!fri_connection_->startFRI())
@@ -209,7 +211,6 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   {
     return CallbackReturn::FAILURE;
   }
-  is_active_ = true;
   return CallbackReturn::SUCCESS;
 }
 
