@@ -22,7 +22,7 @@ public class MessageEncoding {
 		}
 		return serialDataOut;
 	}
-	
+
 	public static void Decode(byte[] serialDataIn, Externalizable objectOut) throws RuntimeException{
 		try{
 			ByteArrayInputStream serialDataStream = new ByteArrayInputStream(serialDataIn);
@@ -31,7 +31,7 @@ public class MessageEncoding {
 			objectStream.close();
 		} catch(IOException e){
 			e.printStackTrace();
-			throw new RuntimeException("IO Exception occured");
+			throw new RuntimeException("IO Exception occurred");
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("Message could not be decoded");
 		}

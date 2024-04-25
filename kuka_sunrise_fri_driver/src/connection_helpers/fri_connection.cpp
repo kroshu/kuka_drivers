@@ -20,7 +20,6 @@
 #include "rclcpp/logging.hpp"
 
 #include <iostream>
-#include <bitset>
 
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/serialization.hpp"

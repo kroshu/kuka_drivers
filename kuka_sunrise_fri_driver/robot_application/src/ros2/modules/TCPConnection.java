@@ -14,7 +14,7 @@ public class TCPConnection{
 	private boolean _closeRequested;
 	private byte[] _incomingData;
 	private ROS2Connection _ROS2Connection;
-	
+
 	public TCPConnection(int tcpServerPort){
 		_tcpServerPort = tcpServerPort;
 		_tcpServer = null;
@@ -23,11 +23,11 @@ public class TCPConnection{
 		_closeRequested = false;
 		_incomingData = null;
 	}
-	
+
 	public void registerROS2ConnectionModule(ROS2Connection ros2ConnectionModule){
 		_ROS2Connection = ros2ConnectionModule;
 	}
-	
+
 	public void waitUntilDisconnected(){
 		try {
 			_tcpConnectionThread.join();
@@ -36,7 +36,7 @@ public class TCPConnection{
 			e.printStackTrace();
 		}
 	}
-	
+
 	private class ConnectionHandler implements Runnable{
 		public void run(){
 			try{
@@ -68,7 +68,7 @@ public class TCPConnection{
 			_closeRequested = false;
 		}
 	}
-	
+
 	public void openConnection() {
 		try {
 			_tcpServer = new ServerSocket(_tcpServerPort);
@@ -78,7 +78,7 @@ public class TCPConnection{
 		}
 		_tcpConnectionThread.start();
 	}
-	
+
 	public void sendString(String s){
 		if(_tcpClient != null && _tcpClient.isConnected() && !_tcpClient.isClosed()){
 			try{
@@ -93,7 +93,7 @@ public class TCPConnection{
 			System.out.println("TCP client not connected.");
 		}
 	}
-	
+
 	public void sendBytes(byte[] message){
 		if(_tcpClient != null && _tcpClient.isConnected() && !_tcpClient.isClosed()){
 			try{
@@ -107,13 +107,13 @@ public class TCPConnection{
 			System.out.println("TCP client not connected.");
 		}
 	}
-	
+
 	public byte[] getReceivedData(){
 		byte[] dataCopy = _incomingData;
 		_incomingData = null;
 		return dataCopy;
 	}
-	
+
 	public void closeConnection(){
 		_closeRequested = true;
 		try{
@@ -129,7 +129,7 @@ public class TCPConnection{
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void waitForConnection() throws Exception {
 		System.out.println("Waiting for connection...");
 		try {
@@ -142,10 +142,10 @@ public class TCPConnection{
 				throw e;
 			}
 
-		} 
+		}
 		System.out.println("Connection established.");
 	}
-	
+
 	private void handleIncomingData() throws IOException{
 		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(_tcpClient.getInputStream()));
 		while(_tcpClient.isClosed() == false){
@@ -168,7 +168,7 @@ public class TCPConnection{
 
 			byte[] byteArray = Arrays.copyOf(new String(charArray).getBytes(), dataLength);
 			String byteHexString = DatatypeConverter.printHexBinary(byteArray);
-			
+
 			if(_incomingData != null){
 				System.out.println("ERROR: Previous data not yet processed! Skipping data: " + byteHexString);
 			}
@@ -180,8 +180,7 @@ public class TCPConnection{
 			}
 		}
 	}
-	
-	
-	
-}
 
+
+
+}

@@ -83,4 +83,6 @@ class TestDriverActivation(unittest.TestCase):
         proc_output.assertWaitFor(
             "Successful 'configure' of hardware 'lbr_iiwa14_r820'", timeout=15
         )
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iiwa14_r820'", timeout=20)
+        proc_output.assertWaitFor(
+            "Successful 'activate' of hardware 'lbr_iiwa14_r820'", timeout=20
+        )
