@@ -168,13 +168,6 @@ CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
     return CallbackReturn::ERROR;
   }
 
-  if (!fri_connection_->setFRIConfig(
-        client_ip_, client_port_, send_period_ms_, receive_multiplier_))
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
-    return CallbackReturn::FAILURE;
-  }
-  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
   return CallbackReturn::SUCCESS;
 }
 
@@ -192,6 +185,16 @@ CallbackReturn KukaFRIHardwareInterface::on_cleanup(const rclcpp_lifecycle::Stat
 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  // TODO(Svastits): consider moving this to write, only in the first tick after configuration
+  // (cannot be set at configuration, as the controller cannot modify the interface before that)
+  if (!fri_connection_->setFRIConfig(
+        client_ip_, client_port_, send_period_ms_, receive_multiplier_))
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
+
   if (!client_application_.connect(30200, controller_ip_.c_str()))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not connect to controller");
