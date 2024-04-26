@@ -14,7 +14,7 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
-#include "event_broadcaster/event_broadcaster.hpp"
+#include "kuka_event_broadcaster/kuka_event_broadcaster.hpp"
 
 namespace kuka_controllers
 {
