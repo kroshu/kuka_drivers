@@ -217,6 +217,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  // Workaround until controller_manager/jtc bug is fixed:
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
