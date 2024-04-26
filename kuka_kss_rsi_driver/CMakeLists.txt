@@ -16,10 +16,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -39,14 +37,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KSS_RSI_DRIVER_BUILDING
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} hardware_interface)
 target_link_libraries(${PROJECT_NAME} tinyxml)
-
-
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node rclcpp kuka_drivers_core sensor_msgs controller_manager_msgs)
+ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
 target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)

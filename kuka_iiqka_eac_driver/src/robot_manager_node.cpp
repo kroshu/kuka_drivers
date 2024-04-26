@@ -46,13 +46,13 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
-    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+    "kuka_control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
 
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
-    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
+    "kuka_event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
     sub_options);
 
@@ -99,7 +99,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
-  // Publish control mode parameter to notify control_mode_handler of initial control mode
+  // Publish control mode parameter to notify kuka_control_mode_handler of initial control mode
   auto message = std_msgs::msg::UInt32();
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);

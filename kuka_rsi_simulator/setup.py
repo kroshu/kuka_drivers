@@ -35,7 +35,7 @@ setup(
     maintainer="Marton Antal",
     maintainer_email="antal.marci@gmail.com",
     description="Simple package for simulating the KUKA RSI interface.",
-    license="BSD",
+    license="Apache-2.0",
     entry_points={
         "console_scripts": ["rsi_simulator = kuka_rsi_simulator.rsi_simulator:main"],
     },

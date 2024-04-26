@@ -1,0 +1,11 @@
+joint_group_impedance_controller:
+  joints: {
+    type: string_array,
+    default_value: [],
+    description: "Name of the joints to control",
+  }
+  interface_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of the interfaces to command",
+  }
