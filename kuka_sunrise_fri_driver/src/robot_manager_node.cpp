@@ -143,8 +143,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
         {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::CONTROL_MODE_HANDLER,
-         kuka_drivers_core::EVENT_BROADCASTER
-         /*kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER*/},
+         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
@@ -166,8 +165,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
         {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::CONTROL_MODE_HANDLER,
-         kuka_drivers_core::EVENT_BROADCASTER
-         /*kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER*/},
+         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -225,7 +223,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         change_controller_state_client_,
         {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER,
          GetControllerName()},
-        {/*kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER*/}))
+        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -250,7 +248,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {/*kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER*/},
+        change_controller_state_client_, {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
          kuka_drivers_core::FRI_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))

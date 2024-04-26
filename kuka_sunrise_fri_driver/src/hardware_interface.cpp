@@ -37,6 +37,8 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 
   hw_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());
+  hw_stiffness_commands_.resize(info_.joints.size());
+  hw_damping_commands_.resize(info_.joints.size());
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
@@ -314,6 +316,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   {
     if (control_mode_change_)
     {
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Joint cmd: %lf, %lf, %lf, %lf, %lf, %lf, %lf", hw_stiffness_commands_[0],
+        hw_stiffness_commands_[1], hw_stiffness_commands_[2], hw_stiffness_commands_[3],
+        hw_stiffness_commands_[4], hw_stiffness_commands_[5], hw_stiffness_commands_[6]);
       switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
       {
         case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
@@ -372,6 +379,11 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     {
       const double * joint_positions_ = hw_position_commands_.data();
       robotCommand().setJointPosition(joint_positions_);
+      RCLCPP_ERROR(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "Joint cmd: %lf, %lf, %lf, %lf, %lf, %lf, %lf", joint_positions_[0], joint_positions_[1],
+        joint_positions_[2], joint_positions_[3], joint_positions_[4], joint_positions_[5],
+        joint_positions_[6]);
       break;
     }
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
