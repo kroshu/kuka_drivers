@@ -36,7 +36,7 @@ public class FRIConfigurationParams implements Externalizable {
 		int ip = in.readInt();
 		_remoteIP = String.format("%d.%d.%d.%d", (ip & 0xff),(ip >> 8 & 0xff), (ip >> 16 & 0xff), (ip >> 24 & 0xff));
 
-		System.out.println("Configured client IP: " + _remoteIP + ":" + _remotePort);
+		System.out.println("FRI configuration: client IP: " + _remoteIP + ":" + _remotePort + ", send_period [ms]: " + _sendPeriodMilliSec + ", receive multiplier: " +  _receiveMultiplier);
 	}
 
 	public FRIConfigurationParams() {
