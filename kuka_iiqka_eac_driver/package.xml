@@ -23,8 +23,8 @@
   <exec_depend>joint_trajectory_controller</exec_depend>
   <exec_depend>effort_controllers</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
-  <exec_depend>control_mode_handler</exec_depend>
-  <exec_depend>event_broadcaster</exec_depend>
+  <exec_depend>kuka_control_mode_handler</exec_depend>
+  <exec_depend>kuka_event_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>
 
   <test_depend>ros2lifecycle</test_depend>

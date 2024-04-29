@@ -14,7 +14,7 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
-#include "control_mode_handler/control_mode_handler.hpp"
+#include "kuka_control_mode_handler/kuka_control_mode_handler.hpp"
 
 namespace kuka_controllers
 {
