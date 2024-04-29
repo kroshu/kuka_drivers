@@ -51,8 +51,8 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
-  fri_config_client_ = this->create_client<kuka_driver_interfaces::srv::SetFriConfiguration>(
-    "fri_configuration_controller/set_fri_config", qos.get_rmw_qos_profile(), cbg_);
+  fri_config_pub_ = this->create_publisher<kuka_driver_interfaces::msg::FriConfiguration>(
+    "fri_configuration_controller/set_fri_config", rclcpp::SystemDefaultsQoS());
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
@@ -78,11 +78,11 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
   registerParameter<int>(
-    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
     [this](const int & receive_multiplier)
     { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
@@ -125,11 +125,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Publish control mode parameter to notify control_mode_handler of initial control mode
   control_mode_pub_->publish(control_mode_msg_);
 
-  // Set FRI configuration of hardware interface through controller manager service
-  if (!setFriConfiguration(send_period_ms_, receive_multiplier_))
-  {
-    return FAILURE;
-  }
+  // Publish FRI configuration to notify fri_configuration_controller of initial values
+  setFriConfiguration(send_period_ms_, receive_multiplier_);
+
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -316,7 +314,14 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
     return false;
   }
 
+  if (send_period * receive_multiplier_ > 10)
+  {
+    RCLCPP_ERROR(get_logger(), "Control signal send period must be bigger than 10 ms");
+    return false;
+  }
+
   send_period_ms_ = send_period;
+  setFriConfiguration(send_period_ms_, receive_multiplier_);
   return true;
 }
 
@@ -328,7 +333,14 @@ bool RobotManagerNode::onReceiveMultiplierChangeRequest(const int & receive_mult
     return false;
   }
 
+  if (receive_multiplier * send_period_ms_ > 10)
+  {
+    RCLCPP_ERROR(get_logger(), "Control signal send period must be bigger than 10 ms");
+    return false;
+  }
+
   receive_multiplier_ = receive_multiplier;
+  setFriConfiguration(send_period_ms_, receive_multiplier_);
   return true;
 }
 
@@ -401,21 +413,12 @@ std::string RobotManagerNode::GetControllerName()
   }
 }
 
-bool RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier)
+void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier)
 {
-  auto request = std::make_shared<kuka_driver_interfaces::srv::SetFriConfiguration::Request>();
-  request->receive_multiplier = receive_multiplier;
-  request->send_period_ms = send_period_ms;
-  auto response =
-    kuka_drivers_core::sendRequest<kuka_driver_interfaces::srv::SetFriConfiguration::Response>(
-      fri_config_client_, request, 0, 1000);
-
-  if (!response || !response->success)
-  {
-    RCLCPP_ERROR(get_logger(), "Could not set FRI configuration");
-    return false;
-  }
-  return true;
+  kuka_driver_interfaces::msg::FriConfiguration msg;
+  msg.receive_multiplier = receive_multiplier;
+  msg.send_period_ms = send_period_ms;
+  fri_config_pub_->publish(msg);
 }
 
 bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)

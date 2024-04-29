@@ -58,7 +58,7 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaFRIHardwareInterface)
 
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
-  : client_application_(udp_connection_, *this)
+  : udp_connection_(10), client_application_(udp_connection_, *this)
   {
   }
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
@@ -99,7 +99,8 @@ public:
   };
 
 private:
-  bool is_active_ = false;
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL bool FRIConfigChanged();
+
   bool active_read_ = false;
   std::string controller_ip_;
   KUKA::FRI::UdpConnection udp_connection_;
@@ -117,8 +118,8 @@ private:
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 
-  double prev_control_mode_ = 0;
-  bool control_mode_change_ = false;
+  double prev_period_ = 0;
+  double prev_multiplier_ = 0;
 
   // State and command interfaces
   std::vector<double> hw_position_commands_;
@@ -156,8 +157,6 @@ private:
 
   RobotState robot_state_;
 
-  bool activateControl();
-  bool deactivateControl();
   void activateFrictionCompensation(double * values);
   void onError();
 

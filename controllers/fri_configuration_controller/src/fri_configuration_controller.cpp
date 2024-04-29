@@ -20,18 +20,13 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn FRIConfigurationController::on_init()
 {
-  auto callback = [this](
-                    kuka_driver_interfaces::srv::SetFriConfiguration::Request::SharedPtr request,
-                    kuka_driver_interfaces::srv::SetFriConfiguration::Response::SharedPtr response)
+  auto callback = [this](const kuka_driver_interfaces::msg::FriConfiguration::SharedPtr msg)
   {
-    update_config_ = true;
-    receive_multiplier_ = request->receive_multiplier;
-    send_period_ms_ = request->send_period_ms;
-    response->success = true;
+    receive_multiplier_ = msg->receive_multiplier;
+    send_period_ms_ = msg->send_period_ms;
   };
-  receive_multiplier_service_ =
-    get_node()->create_service<kuka_driver_interfaces::srv::SetFriConfiguration>(
-      "~/set_fri_config", callback);
+  fri_config_sub_ = get_node()->create_subscription<kuka_driver_interfaces::msg::FriConfiguration>(
+    "~/set_fri_config", rclcpp::SystemDefaultsQoS(), callback);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -76,17 +71,9 @@ controller_interface::return_type FRIConfigurationController::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   // TODO(Svastits): disable changes if HWIF is active
-  if (update_config_)
-  {
-    RCLCPP_INFO(
-      get_node()->get_logger(),
-      "Updating FRI configuration of hardware interface: receive multiplier is %i, send period is "
-      "%i [ms]",
-      receive_multiplier_, send_period_ms_);
-    command_interfaces_[0].set_value(receive_multiplier_);
-    command_interfaces_[1].set_value(send_period_ms_);
-    update_config_ = false;
-  }
+  command_interfaces_[0].set_value(receive_multiplier_);
+  command_interfaces_[1].set_value(send_period_ms_);
+
   return controller_interface::return_type::OK;
 }
 
