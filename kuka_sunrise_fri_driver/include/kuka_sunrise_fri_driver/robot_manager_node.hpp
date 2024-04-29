@@ -17,7 +17,7 @@
 
 #include <atomic>
 #include <memory>
-#include <string>
+#include <string_view>
 #include <vector>
 
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
@@ -86,7 +86,7 @@ private:
   bool onSendPeriodChangeRequest(int send_period);
   bool setReceiveMultiplier(int receive_multiplier);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
-  bool ValidateIPAdress(const std::string & controller_ip) const;
+  bool ValidateIPAdress(std::string_view controller_ip) const;
   bool onControllerNameChangeRequest(
     const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);

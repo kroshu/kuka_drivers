@@ -343,19 +343,19 @@ bool RobotManagerNode::onReceiveMultiplierChangeRequest(const int & receive_mult
   return true;
 }
 
-bool RobotManagerNode::ValidateIPAdress(const std::string & controller_ip) const
+bool RobotManagerNode::ValidateIPAdress(std::string_view controller_ip) const
 {
   // Check IP validity
   size_t i = 0;
   std::vector<std::string> split_ip;
   auto pos = controller_ip.find('.');
-  while (pos != std::string::npos)
+  while (pos != std::string_view::npos)
   {
-    split_ip.push_back(controller_ip.substr(i, pos - i));
+    split_ip.push_back(std::string(controller_ip.substr(i, pos - i)));
     i = ++pos;
     pos = controller_ip.find('.', pos);
   }
-  split_ip.push_back(controller_ip.substr(i, controller_ip.length()));
+  split_ip.push_back(std::string(controller_ip.substr(i, controller_ip.length())));
 
   if (split_ip.size() != 4)
   {
@@ -375,6 +375,7 @@ bool RobotManagerNode::ValidateIPAdress(const std::string & controller_ip) const
   }
   return true;
 }
+
 
 bool RobotManagerNode::onControllerNameChangeRequest(
   const std::string & controller_name, kuka_drivers_core::ControllerType controller_type)
