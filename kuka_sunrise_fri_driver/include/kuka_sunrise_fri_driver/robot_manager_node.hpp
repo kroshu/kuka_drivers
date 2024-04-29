@@ -88,7 +88,7 @@ private:
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
   bool ValidateIPAdress(std::string_view controller_ip) const;
   bool onControllerNameChangeRequest(
-    const std::string & controller_name, kuka_drivers_core::ControllerType controller_type);
+    std::string_view controller_name, kuka_drivers_core::ControllerType controller_type);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
   void setFriConfiguration(int send_period_ms, int receive_multiplier);

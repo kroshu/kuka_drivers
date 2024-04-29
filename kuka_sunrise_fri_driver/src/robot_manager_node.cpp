@@ -378,7 +378,7 @@ bool RobotManagerNode::ValidateIPAdress(std::string_view controller_ip) const
 
 
 bool RobotManagerNode::onControllerNameChangeRequest(
-  const std::string & controller_name, kuka_drivers_core::ControllerType controller_type)
+  std::string_view controller_name, kuka_drivers_core::ControllerType controller_type)
 {
   switch (controller_type)
   {
