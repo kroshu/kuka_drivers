@@ -481,7 +481,7 @@ void KukaFRIHardwareInterface::onError()
 
 bool KukaFRIHardwareInterface::FRIConfigChanged()
 {
-  // FRI config values are integers and only stored as doubles due to hwif contraints
+  // FRI config values are integers and only stored as doubles due to hwif constraints
   if (
     prev_period_ == static_cast<int>(send_period_ms_) &&
     prev_multiplier_ == static_cast<int>(receive_multiplier_))
