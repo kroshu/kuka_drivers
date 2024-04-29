@@ -42,16 +42,12 @@ const
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  // config.names.emplace_back("twist commands");
   config.names.emplace_back("twist/linear/x");
   config.names.emplace_back("twist/linear/y");
   config.names.emplace_back("twist/linear/z");
   config.names.emplace_back("twist/angular/x");
   config.names.emplace_back("twist/angular/y");
   config.names.emplace_back("twist/angular/z");
-  config.names.emplace_back("pose_2d/x");
-  config.names.emplace_back("pose_2d/y");
-  config.names.emplace_back("pose_2d/theta");
   config.names.emplace_back("Pose/position/x");
   config.names.emplace_back("Pose/position/y");
   config.names.emplace_back("Pose/position/z");
@@ -59,8 +55,6 @@ const
   config.names.emplace_back("Pose/orientation/y");
   config.names.emplace_back("Pose/orientation/z");
   config.names.emplace_back("Pose/orientation/w");
-
-  //config.names.emplace_back("twist");
 
   return config;
 }
@@ -113,14 +107,14 @@ controller_interface::return_type TwistController::update(
     //transformStamped.header.stamp=Time::now();
     transformStamped.header.frame_id="odom";
     transformStamped.child_frame_id="generic_mr_body_dummy";
-    transformStamped.transform.translation.x=state_interfaces_[9].get_value();
-    transformStamped.transform.translation.y=state_interfaces_[10].get_value();
-    transformStamped.transform.translation.z=0.0;
+    transformStamped.transform.translation.x=state_interfaces_[6].get_value();
+    transformStamped.transform.translation.y=state_interfaces_[7].get_value();
+    transformStamped.transform.translation.y=state_interfaces_[8].get_value();
    
-    transformStamped.transform.rotation.x=state_interfaces_[12].get_value();
-    transformStamped.transform.rotation.y=state_interfaces_[13].get_value();
-    transformStamped.transform.rotation.z=state_interfaces_[14].get_value();
-    transformStamped.transform.rotation.w=state_interfaces_[15].get_value(); 
+    transformStamped.transform.rotation.x=state_interfaces_[9].get_value();
+    transformStamped.transform.rotation.y=state_interfaces_[10].get_value();
+    transformStamped.transform.rotation.z=state_interfaces_[11].get_value();
+    transformStamped.transform.rotation.w=state_interfaces_[12].get_value(); 
     
     tf2::Quaternion q;
     q.setRPY(0,0,state_interfaces_[8].get_value());

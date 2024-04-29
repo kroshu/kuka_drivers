@@ -1,4 +1,4 @@
-// Copyright 2022 Aron Svastits
+// Copyright 2022 Áron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,70 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
+  hw_twist_commands_vector_.resize(6, 0.0);
+   
+if (info_.name=="KUKA_MR" ){
+  for (const hardware_interface::ComponentInfo & joint : info_.joints)
+  {
+    if (joint.command_interfaces.size() != 3)
+        {
+          RCLCPP_FATAL(
+            rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 3 command interface");
+          return CallbackReturn::ERROR;
+        }
 
+    if (joint.command_interfaces[0].name != hardware_interface::HW_IF_X)
+        {
+          RCLCPP_FATAL(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "expecting 'X' command interface as first");
+          return CallbackReturn::ERROR;
+        }
+    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_Y)
+        {
+          RCLCPP_FATAL(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "expecting 'Y' command interface as second");
+          return CallbackReturn::ERROR;
+        }
+    if (joint.command_interfaces[2].name != hardware_interface::HW_IF_Z)
+        {
+          RCLCPP_FATAL(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "expecting 'Z' command interface as third");
+          return CallbackReturn::ERROR;
+        }
+    if (joint.state_interfaces.size() != 3)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 3 state interface");
+      return CallbackReturn::ERROR;
+    }
+
+    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_X)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'X' state interface as first");
+      return CallbackReturn::ERROR;
+    }
+    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_Y)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'Y' state interface as second");
+      return CallbackReturn::ERROR;
+    }
+    if (joint.state_interfaces[2].name != hardware_interface::HW_IF_Z)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "expecting 'Z' state interface as third");
+      return CallbackReturn::ERROR;
+    }
+  }
+}
+else {
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
     if (joint.command_interfaces.size() != 4)
@@ -107,7 +170,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
       return CallbackReturn::ERROR;
     }
   }
-
+}
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
     "Init successful with controller ip: %s and client ip: %s",
@@ -132,7 +195,33 @@ std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export
 
   state_interfaces.emplace_back(
     hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+  state_interfaces.emplace_back(
+      info_.joints[0].name, "x", &hw_twist_state_.linear.x);
+  state_interfaces.emplace_back(
+      info_.joints[0].name, "y",  &hw_twist_state_.linear.y);
+  state_interfaces.emplace_back(
+      info_.joints[0].name, "z", &hw_twist_state_.linear.z);
+  state_interfaces.emplace_back(
+      info_.joints[1].name, "x", &hw_twist_state_.angular.x);
+  state_interfaces.emplace_back(
+      info_.joints[1].name, "y", &hw_twist_state_.angular.y);
+  state_interfaces.emplace_back(
+      info_.joints[1].name, "z", &hw_twist_state_.angular.z);
 
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_P,  "x", &hw_pose_state_.position.x);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_P,  "y", &hw_pose_state_.position.y);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_P,  "z", &hw_pose_state_.position.z);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_O,  "x", &hw_pose_state_.orientation.x);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_O,  "y", &hw_pose_state_.orientation.y);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_O,  "z", &hw_pose_state_.orientation.z);
+  state_interfaces.emplace_back(
+      hardware_interface::POSE_PREFIX_O,  "w", &hw_pose_state_.orientation.w);
   return state_interfaces;
 }
 
@@ -160,6 +249,18 @@ KukaEACHardwareInterface::export_command_interfaces()
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
 
+  command_interfaces.emplace_back(
+      info_.joints[0].name, hardware_interface::HW_IF_X, &hw_twist_commands_.linear.x);
+  command_interfaces.emplace_back(
+      info_.joints[0].name, hardware_interface::HW_IF_Y, &hw_twist_commands_.linear.y);
+  command_interfaces.emplace_back(
+      info_.joints[0].name, hardware_interface::HW_IF_Z, &hw_twist_commands_.linear.z);
+  command_interfaces.emplace_back(
+      info_.joints[1].name, hardware_interface::HW_IF_X, &hw_twist_commands_.angular.x);
+  command_interfaces.emplace_back(
+      info_.joints[1].name, hardware_interface::HW_IF_Y, &hw_twist_commands_.angular.y);  
+  command_interfaces.emplace_back(
+      info_.joints[1].name, hardware_interface::HW_IF_Z, &hw_twist_commands_.angular.z);
   return command_interfaces;
 }
 
@@ -235,26 +336,66 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
     auto & req_message = robot_ptr_->GetLastMotionState();
-
-    std::copy(
-      req_message.GetMeasuredPositions()->begin(), req_message.GetMeasuredPositions()->end(),
-      hw_position_states_.begin());
-    std::copy(
-      req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
-      hw_torque_states_.begin());
-
-    if (cycle_count_ == 0)
-    {
+    if (req_message.GetMeasuredPositions()!=nullptr){
       std::copy(
-        hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+        req_message.GetMeasuredPositions()->begin(), req_message.GetMeasuredPositions()->end(),
+        hw_position_states_.begin());
+      }
+    if (req_message.GetMeasuredTorques()!=nullptr){
+      std::copy(
+        req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
+        hw_torque_states_.begin());
+      }
+    if (req_message.GetMeasuredTorques()!=nullptr){
+        hw_twist_state_.linear.x=req_message.GetMeasuredTwist()->begin().operator[](0);
+        hw_twist_state_.linear.y=req_message.GetMeasuredTwist()->begin().operator[](1);
+        hw_twist_state_.linear.y=req_message.GetMeasuredTwist()->begin().operator[](2);
+        hw_twist_state_.angular.x=req_message.GetMeasuredTwist()->begin().operator[](3);
+        hw_twist_state_.angular.y=req_message.GetMeasuredTwist()->begin().operator[](4);
+        hw_twist_state_.angular.z=req_message.GetMeasuredTwist()->begin().operator[](5);
+      } 
+    if (req_message.GetMeasuredCartesianPositions()!=nullptr){
+      hw_pose_state_.position.x=req_message.GetMeasuredCartesianPositions()->begin().operator[](0);
+      hw_pose_state_.position.y=req_message.GetMeasuredCartesianPositions()->begin().operator[](1);
+      hw_pose_state_.position.z=req_message.GetMeasuredCartesianPositions()->begin().operator[](2);
+      hw_pose_state_.orientation.x=req_message.GetMeasuredCartesianPositions()->begin().operator[](3);
+      hw_pose_state_.orientation.y=req_message.GetMeasuredCartesianPositions()->begin().operator[](4);
+      hw_pose_state_.orientation.z=req_message.GetMeasuredCartesianPositions()->begin().operator[](5);
+      hw_pose_state_.orientation.w=req_message.GetMeasuredCartesianPositions()->begin().operator[](6);
+    }
+    if (cycle_count_ == 0)
+      {
+        std::copy(
+          hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+      }
+
+      cycle_count_++;
     }
 
-    cycle_count_++;
-  }
+      // Modify state interface only in read
+      std::lock_guard<std::mutex> lk(event_mutex_);
+      server_state_ = static_cast<double>(last_event_);
 
-  // Modify state interface only in read
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  server_state_ = static_cast<double>(last_event_);
+      tf2::Quaternion q(
+        hw_pose_state_.orientation.x,
+        hw_pose_state_.orientation.y,
+        hw_pose_state_.orientation.z,
+        hw_pose_state_.orientation.w);
+      tf2::Matrix3x3 m(q);
+      double roll, pitch, yaw;
+      m.getRPY(roll,pitch,yaw);
+      
+      RCLCPP_DEBUG( rclcpp::get_logger(
+            "KukaRoXHardwareInterface"), "STATE position: %f, %f, %f",
+                hw_pose_state_.position.x,
+                hw_pose_state_.position.y,
+                yaw);
+      RCLCPP_DEBUG( rclcpp::get_logger(
+            "KukaRoXHardwareInterface"), "STATE velocity: %f, %f, %f",
+                hw_twist_state_.linear.x,
+                hw_twist_state_.linear.y,
+                hw_twist_state_.angular.z);
+  
   return return_type::OK;
 }
 
@@ -270,6 +411,19 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   robot_ptr_->GetControlSignal().AddTorqueValues(hw_torque_commands_);
   robot_ptr_->GetControlSignal().AddStiffnessAndDampingValues(
     hw_stiffness_commands_, hw_damping_commands_);
+    
+    hw_twist_commands_vector_[0]=hw_twist_commands_.linear.x;
+    hw_twist_commands_vector_[1]=hw_twist_commands_.linear.y;
+    hw_twist_commands_vector_[2]=hw_twist_commands_.linear.z;
+    hw_twist_commands_vector_[3]=hw_twist_commands_.angular.x;
+    hw_twist_commands_vector_[4]=hw_twist_commands_.angular.y;
+    hw_twist_commands_vector_[5]=hw_twist_commands_.angular.z;
+  robot_ptr_->GetControlSignal().AddTwistValues(hw_twist_commands_vector_);
+
+
+  RCLCPP_DEBUG(rclcpp::get_logger(
+      "KukaRoXHardwareInterface"), "COMMAND velocity: x:%f, theta:%f ",
+          hw_twist_commands_.linear.x, hw_twist_commands_.angular.z);
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
