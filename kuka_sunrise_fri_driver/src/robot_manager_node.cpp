@@ -316,7 +316,7 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
 
   if (send_period * receive_multiplier_ > 10)
   {
-    RCLCPP_ERROR(get_logger(), "Control signal send period must be bigger than 10 ms");
+    RCLCPP_ERROR(get_logger(), "Control signal send period must not be bigger than 10 ms");
     return false;
   }
 

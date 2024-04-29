@@ -118,8 +118,8 @@ private:
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 
-  double prev_period_ = 0;
-  double prev_multiplier_ = 0;
+  int prev_period_ = 0;
+  int prev_multiplier_ = 0;
 
   // State and command interfaces
   std::vector<double> hw_position_commands_;

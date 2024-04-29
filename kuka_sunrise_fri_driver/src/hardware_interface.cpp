@@ -488,14 +488,17 @@ void KukaFRIHardwareInterface::onError()
 
 bool KukaFRIHardwareInterface::FRIConfigChanged()
 {
-  if (prev_period_ == send_period_ms_ && prev_multiplier_ == receive_multiplier_)
+  // FRI config values are integers and only stored as doubles due to hwif contraints
+  if (
+    prev_period_ == static_cast<int>(send_period_ms_) &&
+    prev_multiplier_ == static_cast<int>(receive_multiplier_))
   {
     return false;
   }
   else
   {
-    prev_period_ = send_period_ms_;
-    prev_multiplier_ = receive_multiplier_;
+    prev_period_ = static_cast<int>(send_period_ms_);
+    prev_multiplier_ = static_cast<int>(receive_multiplier_);
     return true;
   }
 }
