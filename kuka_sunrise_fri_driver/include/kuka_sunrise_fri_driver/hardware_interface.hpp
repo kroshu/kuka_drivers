@@ -57,6 +57,7 @@ class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaFRIHardwareInterface)
 
+  // Set UDP timeout to 10 ms to enable checking return value of client_app_read()
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
   : udp_connection_(10), client_application_(udp_connection_, *this)
   {
