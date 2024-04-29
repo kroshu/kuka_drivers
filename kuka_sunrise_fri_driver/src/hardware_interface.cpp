@@ -157,25 +157,15 @@ CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   }
 
   // Set up TCP connection necessary for configuration
-  if (!fri_connection_->isConnected())
-  {
-    if (!fri_connection_->connect(controller_ip_.c_str(), TCP_SERVER_PORT))
-    {
-      RCLCPP_ERROR(
-        rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "Could not initialize TCP connection to controller");
-      return CallbackReturn::FAILURE;
-    }
-    RCLCPP_INFO(
-      rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI application");
-  }
-  else
+  if (!fri_connection_->connect(controller_ip_.c_str(), TCP_SERVER_PORT))
   {
     RCLCPP_ERROR(
       rclcpp::get_logger("KukaFRIHardwareInterface"),
-      "FRI connection was already up before configuration");
-    return CallbackReturn::ERROR;
+      "Could not initialize TCP connection to controller");
+    return CallbackReturn::FAILURE;
   }
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully connected to FRI application");
 
   return CallbackReturn::SUCCESS;
 }
@@ -255,7 +245,9 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
 void KukaFRIHardwareInterface::waitForCommand()
 {
-  // Update first commmmand based on the actual state
+  // In COMMANDING_WAIT state, the controller and client sync commanded positions
+  // Therefore the control signal should not be modified in this callback
+  // TODO(Svastits): check for torque/impedance mode, where state can change
   hw_position_commands_ = hw_position_states_;
   rclcpp::Time stamp = ros_clock_.now();
   updateCommand(stamp);
@@ -311,6 +303,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   // Client app update and read must be called only if read has been called in current cycle
+  // FRI configuration can be modified only before cyclic communication is started
   if (!active_read_)
   {
     if (FRIConfigChanged())
@@ -330,7 +323,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   }
 
   // Call the appropriate callback for the actual state (e.g. updateCommand)
-  //  this updates the command to be sent based on the output of the controller update
+  //  in active state this updates the command to be sent based on the command interfaces
   client_application_.client_app_update();
 
   if (!client_application_.client_app_write())

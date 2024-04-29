@@ -191,7 +191,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 }
 
 // TODO(Svastits): can we check if necessary 5s has passed after deactivation?
-// TODO(Svastits): check if we have to send unconfigured msg to control node
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
