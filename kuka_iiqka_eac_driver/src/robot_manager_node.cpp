@@ -81,6 +81,14 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return this->controller_handler_.UpdateControllerName(
         kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE, controller_name);
     });
+    this->registerParameter<std::string>(
+    "cartesian_velocity_controller_name", "twist_controller", 
+    kuka_drivers_core::ParameterSetAccessRights {true, true, false, false, false}, 
+    [this](const std::string & controller_name) {
+      return this->controller_handler_.UpdateControllerName(
+        kuka_drivers_core::ControllerType::TWIST_CONTROLLER_TYPE,
+        controller_name);
+    });
   this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
     kuka_drivers_core::ParameterSetAccessRights{true, true, true, false, false},
@@ -272,7 +280,8 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   if (
     control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL) &&
     control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL) &&
-    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL))
+    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL) &&
+    control_mode != static_cast<int>(kuka_drivers_core::ControlMode::CARTESIAN_VELOCITY_CONTROL))
   {
     RCLCPP_ERROR(get_logger(), "Tried to change to a not implemented control mode");
     return false;
