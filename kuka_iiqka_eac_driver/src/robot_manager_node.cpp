@@ -46,7 +46,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
-    "kuka_control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
