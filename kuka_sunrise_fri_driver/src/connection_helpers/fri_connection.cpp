@@ -101,23 +101,20 @@ bool FRIConnection::setPositionControlMode()
 bool FRIConnection::setJointImpedanceControlMode(
   const std::vector<double> & joint_stiffness, const std::vector<double> & joint_damping)
 {
-  int msg_size = 0;
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 7 * sizeof(double));
   serialized.emplace_back(JOINT_IMPEDANCE_CONTROL_MODE);
-  msg_size++;
   for (std::uint8_t byte : CONTROL_MODE_HEADER)
   {
     serialized.emplace_back(byte);
-    msg_size++;
   }
   for (double js : joint_stiffness)
   {
-    msg_size += serializeNext(js, serialized);
+    serializeNext(js, serialized);
   }
   for (double jd : joint_damping)
   {
-    msg_size += serializeNext(jd, serialized);
+    serializeNext(jd, serialized);
   }
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
@@ -133,18 +130,16 @@ bool FRIConnection::setFRIConfig(
 {
   std::vector<std::uint8_t> serialized;
   serialized.reserve(FRI_CONFIG_HEADER.size() + 4 * sizeof(int));
-  int msg_size = 0;
   for (std::uint8_t byte : FRI_CONFIG_HEADER)
   {
     serialized.emplace_back(byte);
-    msg_size++;
   }
-  msg_size += serializeNext(remote_port, serialized);
-  msg_size += serializeNext(send_period_ms, serialized);
-  msg_size += serializeNext(receive_multiplier, serialized);
+  serializeNext(remote_port, serialized);
+  serializeNext(send_period_ms, serialized);
+  serializeNext(receive_multiplier, serialized);
 
   int ip = inet_addr(client_ip.c_str());
-  msg_size += serializeNext(ip, serialized);
+  serializeNext(ip, serialized);
 
   return sendCommandAndWait(SET_FRI_CONFIG, serialized);
 }

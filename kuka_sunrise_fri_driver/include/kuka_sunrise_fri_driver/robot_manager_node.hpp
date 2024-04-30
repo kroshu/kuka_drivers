@@ -80,7 +80,7 @@ private:
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 100.0);
   std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
 
-  std::string GetControllerName();
+  std::string GetControllerName() const;
   bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
   bool onSendPeriodChangeRequest(int send_period);
@@ -91,7 +91,7 @@ private:
     std::string_view controller_name, kuka_drivers_core::ControllerType controller_type);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
-  void setFriConfiguration(int send_period_ms, int receive_multiplier);
+  void setFriConfiguration(int send_period_ms, int receive_multiplier) const;
 
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
 };

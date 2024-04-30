@@ -349,11 +349,11 @@ bool RobotManagerNode::ValidateIPAdress(std::string_view controller_ip) const
   auto pos = controller_ip.find('.');
   while (pos != std::string_view::npos)
   {
-    split_ip.push_back(std::string(controller_ip.substr(i, pos - i)));
+    split_ip.emplace_back(controller_ip.substr(i, pos - i));
     i = ++pos;
     pos = controller_ip.find('.', pos);
   }
-  split_ip.push_back(std::string(controller_ip.substr(i, controller_ip.length())));
+  split_ip.emplace_back(controller_ip.substr(i, controller_ip.length()));
 
   if (split_ip.size() != 4)
   {
@@ -395,7 +395,7 @@ bool RobotManagerNode::onControllerNameChangeRequest(
 
 // the joint impedannce attributes cannot be modified in FRI after activation, therefore only one
 // controller controls in each control mode
-std::string RobotManagerNode::GetControllerName()
+std::string RobotManagerNode::GetControllerName() const
 {
   switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_msg_.data))
   {
@@ -410,7 +410,7 @@ std::string RobotManagerNode::GetControllerName()
   }
 }
 
-void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier)
+void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier) const
 {
   kuka_driver_interfaces::msg::FriConfiguration msg;
   msg.receive_multiplier = receive_multiplier;

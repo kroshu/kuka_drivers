@@ -58,7 +58,7 @@ public:
 
   // Set UDP timeout to 10 ms to enable checking return value of client_app_read()
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
-  : udp_connection_(10), client_application_(udp_connection_, *this)
+  : client_application_(udp_connection_, *this)
   {
   }
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
@@ -103,7 +103,7 @@ private:
 
   bool active_read_ = false;
   std::string controller_ip_;
-  KUKA::FRI::UdpConnection udp_connection_;
+  KUKA::FRI::UdpConnection udp_connection_ = KUKA::FRI::UdpConnection(10);
   KUKA::FRI::HWIFClientApplication client_application_;
   std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::Clock ros_clock_;
@@ -157,7 +157,7 @@ private:
 
   RobotState robot_state_;
 
-  void activateFrictionCompensation(double * values);
+  void activateFrictionCompensation(double * values) const;
   void onError();
 
   KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const

@@ -311,7 +311,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       // FRI config cannot be set during hardware interface configuration, as the controller cannot
       // modify the cmd interface until the hardware reached the configured state
       if (!fri_connection_->setFRIConfig(
-            client_ip_, client_port_, send_period_ms_, receive_multiplier_))
+            client_ip_, client_port_, static_cast<int>(send_period_ms_),
+            static_cast<int>(receive_multiplier_)))
       {
         RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
         return hardware_interface::return_type::ERROR;
@@ -352,10 +353,10 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     {
       const double * joint_torques_ = hw_torque_commands_.data();
       const double * joint_pos = robotState().getMeasuredJointPosition();
-      double joint_pos_corr[DOF];
-      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr);
-      activateFrictionCompensation(joint_pos_corr);
-      robotCommand().setJointPosition(joint_pos_corr);
+      std::array<double, DOF> joint_pos_corr;
+      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr.begin());
+      activateFrictionCompensation(joint_pos_corr.data());
+      robotCommand().setJointPosition(joint_pos_corr.data());
       robotCommand().setTorque(joint_torques_);
       break;
     }
@@ -463,7 +464,7 @@ KukaFRIHardwareInterface::export_command_interfaces()
 }
 
 // Friction compensation is activated only if the commanded and measured joint positions differ
-void KukaFRIHardwareInterface::activateFrictionCompensation(double * values)
+void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) const
 {
   for (int i = 0; i < DOF; i++)
   {
