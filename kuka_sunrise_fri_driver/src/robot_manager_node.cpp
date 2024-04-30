@@ -68,31 +68,30 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     sub_options);
 
   registerStaticParameter<std::string>(
-    "robot_model", "lbr_iiwa14_r820",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "robot_model", "lbr_iiwa14_r820", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 
   registerStaticParameter<std::string>(
-    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{true, false, false},
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
   registerParameter<int>(
-    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const int & receive_multiplier)
     { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
   registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
 
   registerParameter<std::string>(
-    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "position_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
       return this->onControllerNameChangeRequest(
@@ -100,7 +99,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   registerParameter<std::string>(
-    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "torque_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
       return this->onControllerNameChangeRequest(
@@ -108,13 +107,12 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_,
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::vector<double> & joint_stiffness)
     { return this->onJointStiffnessChangeRequest(joint_stiffness); });
 
   registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, true, false},
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::vector<double> & joint_damping)
     { return this->onJointDampingChangeRequest(joint_damping); });
 }
@@ -375,7 +373,6 @@ bool RobotManagerNode::ValidateIPAdress(std::string_view controller_ip) const
   }
   return true;
 }
-
 
 bool RobotManagerNode::onControllerNameChangeRequest(
   std::string_view controller_name, kuka_drivers_core::ControllerType controller_type)
