@@ -25,7 +25,6 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "hardware_interface/system_interface.hpp"
-#include "kuka_driver_interfaces/srv/set_fri_configuration.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
 
