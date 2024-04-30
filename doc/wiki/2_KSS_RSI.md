@@ -64,7 +64,6 @@ Method 2:
 #### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
-- `driver_config.yaml`: contains the IP address of the client machine
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 

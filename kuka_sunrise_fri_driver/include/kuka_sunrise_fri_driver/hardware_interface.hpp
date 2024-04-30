@@ -25,12 +25,14 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "hardware_interface/system_interface.hpp"
-#include "kuka_driver_interfaces/srv/set_int.hpp"
+#include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
 
 #include "fri_client_sdk/HWIFClientApplication.hpp"
 #include "fri_client_sdk/friClientIf.h"
 #include "fri_client_sdk/friLBRClient.h"
 #include "fri_client_sdk/friUdpConnection.h"
+#include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/visibility_control.h"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -54,12 +56,17 @@ class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaFRIHardwareInterface)
 
+  // Set UDP timeout to 10 ms to enable checking return value of client_app_read()
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC KukaFRIHardwareInterface()
   : client_application_(udp_connection_, *this)
   {
   }
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_init(const hardware_interface::HardwareInfo & info) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
+  on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_activate(const rclcpp_lifecycle::State & previous_state) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
@@ -92,26 +99,47 @@ public:
   };
 
 private:
-  bool is_active_ = false;
-  bool active_read_ = false;
-  KUKA::FRI::UdpConnection udp_connection_;
-  KUKA::FRI::HWIFClientApplication client_application_;
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL bool FRIConfigChanged();
 
-  rclcpp::Service<kuka_driver_interfaces::srv::SetInt>::SharedPtr set_receive_multiplier_service_;
+  bool active_read_ = false;
+  std::string controller_ip_;
+  KUKA::FRI::UdpConnection udp_connection_ = KUKA::FRI::UdpConnection(10);
+  KUKA::FRI::HWIFClientApplication client_application_;
+  std::shared_ptr<FRIConnection> fri_connection_;
   rclcpp::Clock ros_clock_;
 
   // Command interface must be of type double, but controller can set only integers
   // this is a temporary solution, until runtime parameters are supported for hardware interfaces
+  double control_mode_ = 0;  // default to undefined
   double receive_multiplier_ = 1;
+  double send_period_ms_ = 10;
+  int client_port_ = 30200;
+  std::string client_ip_ = "0.0.0.0";
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
 
+  int prev_period_ = 0;
+  int prev_multiplier_ = 0;
+
   // State and command interfaces
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_states_;
-  std::vector<double> hw_torques_ext_;
-  std::vector<double> hw_torques_;
-  std::vector<double> hw_effort_command_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_torque_commands_;
+  std::vector<double> hw_stiffness_commands_;
+  std::vector<double> hw_damping_commands_;
+
+  std::vector<double> hw_position_states_;
+  std::vector<double> hw_torque_states_;
+  std::vector<double> hw_ext_torque_states_;
+
+  double server_state_ = 0;
+
+  std::mutex event_mutex_;
+
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+
+  static const int TCP_SERVER_PORT = 30000;
+  static const int DOF = 7;
 
   struct RobotState
   {
@@ -128,6 +156,9 @@ private:
   };
 
   RobotState robot_state_;
+
+  void activateFrictionCompensation(double * values) const;
+  void onError();
 
   KUKA_SUNRISE_FRI_DRIVER_LOCAL IOTypes getType(const std::string & type_string) const
   {
