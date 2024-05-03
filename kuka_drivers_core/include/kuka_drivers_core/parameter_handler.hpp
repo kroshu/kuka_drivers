@@ -28,25 +28,18 @@ namespace kuka_drivers_core
 {
 struct ParameterSetAccessRights
 {
-  bool unconfigured;
   bool inactive;
   bool active;
-  bool finalized;
-  bool configuring = false;
   bool isSetAllowed(std::uint8_t current_state) const
   {
     switch (current_state)
     {
       case lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED:
-        return unconfigured;
+        return true;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
         return inactive;
       case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
         return active;
-      case lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED:
-        return finalized;
-      case lifecycle_msgs::msg::State::TRANSITION_STATE_CONFIGURING:
-        return configuring;
       default:
         return false;
     }

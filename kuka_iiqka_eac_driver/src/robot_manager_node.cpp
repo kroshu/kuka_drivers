@@ -46,7 +46,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   control_mode_pub_ = this->create_publisher<std_msgs::msg::UInt32>(
-    "kuka_control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
@@ -59,7 +59,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   // Register parameters
   this->registerParameter<std::string>(
     "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
       return this->controller_handler_.UpdateControllerName(
@@ -67,7 +67,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
   this->registerParameter<std::string>(
     "impedance_controller_name", "joint_group_impedance_controllers",
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
       return this->controller_handler_.UpdateControllerName(
@@ -75,7 +75,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
   this->registerParameter<std::string>(
     "torque_controller_name", "effort_controller",
-    kuka_drivers_core::ParameterSetAccessRights{true, true, false, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
       return this->controller_handler_.UpdateControllerName(
@@ -83,15 +83,13 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
   this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
-    kuka_drivers_core::ParameterSetAccessRights{true, true, true, false, false},
+    kuka_drivers_core::ParameterSetAccessRights{true, true},
     [this](int control_mode) { return this->onControlModeChangeRequest(control_mode); });
   this->registerStaticParameter<std::string>(
-    "controller_ip", "",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
+    "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string &) { return true; });
   this->registerStaticParameter<std::string>(
-    "robot_model", "lbr_iisy3_r760",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
+    "robot_model", "lbr_iisy3_r760", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 }

@@ -40,8 +40,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   this->registerStaticParameter<std::string>(
-    "robot_model", "kr6_r700_sixx",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
+    "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 }

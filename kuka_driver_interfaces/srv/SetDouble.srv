@@ -1,5 +1,0 @@
-# Attempt to set a double value and indicate and explain if RPC failed
-float64 data
----
-bool success
-string reason
