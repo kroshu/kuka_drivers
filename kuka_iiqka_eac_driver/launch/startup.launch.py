@@ -43,7 +43,11 @@ def launch_setup(context, *args, **kwargs):
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
-
+    
+    if robot_model.perform(context) == "KUKA_MR":
+        robot_support_package = "kuka_mobile_robot_support"
+    else:
+        robot_support_package = "kuka_lbr_iisy_support"
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -51,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("kuka_lbr_iisy_support"),
+                    FindPackageShare(robot_support_package),
                     "urdf",
                     robot_model.perform(context) + ".urdf.xacro",
                 ]
@@ -164,6 +168,7 @@ def launch_setup(context, *args, **kwargs):
         "effort_controller",
         "control_mode_handler",
         "event_broadcaster",
+        "twist_controller"
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]

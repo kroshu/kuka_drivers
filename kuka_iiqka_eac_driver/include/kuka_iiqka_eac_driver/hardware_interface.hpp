@@ -34,6 +34,9 @@
 #include "kuka_drivers_core/hardware_event.hpp"
 
 #include "kuka_iiqka_eac_driver/visibility_control.h"
+#include <geometry_msgs/msg/twist.hpp>
+#include "geometry_msgs/msg/pose.hpp"
+#include <tf2/LinearMath/Matrix3x3.h>
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -85,8 +88,13 @@ private:
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
+  geometry_msgs::msg::Twist hw_twist_commands_;
+  std::vector<double> hw_twist_commands_vector_;
+  
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
+  geometry_msgs::msg::Twist hw_twist_state_;
+  geometry_msgs::msg::Pose hw_pose_state_;
 
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;

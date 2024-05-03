@@ -23,6 +23,8 @@ find_package(pluginlib REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(kuka-external-control-sdk CONFIG REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
 include_directories(include)
 
 
@@ -34,7 +36,7 @@ add_library(${PROJECT_NAME} SHARED
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
+ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk tf2 tf2_ros std_msgs)
 target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 
