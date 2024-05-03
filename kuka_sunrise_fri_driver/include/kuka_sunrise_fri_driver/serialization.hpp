@@ -15,11 +15,13 @@
 #ifndef KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 #define KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_
 
+#include <string.h>
 #include <algorithm>
 #include <cstdint>
+#include <string>
 #include <vector>
 
-namespace kuka_drivers_core
+namespace kuka_sunrise_fri_driver
 {
 
 int serializeNext(int integer_in, std::vector<std::uint8_t> & serialized_out)
@@ -70,7 +72,6 @@ int deserializeNext(const std::vector<std::uint8_t> & serialized_in, double & do
   double_out = *(reinterpret_cast<int *>(serialized_copy.data()));
   return sizeof(int);
 }
-
-}  // namespace kuka_drivers_core
+}  // namespace kuka_sunrise_fri_driver
 
 #endif  // KUKA_SUNRISE_FRI_DRIVER__SERIALIZATION_HPP_

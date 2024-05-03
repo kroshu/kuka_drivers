@@ -29,7 +29,7 @@ The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state`
 __Required parameters__: None
 
 
-#### `event_broadcaster`
+#### `kuka_event_broadcaster`
 
 The `EventBroadcaster` publishes server state change events as integers (enum values) on the `~/hardware_event` topic. The enum values are equivalent with the following events:
 - 2: Start command was accepted by the robot controller
@@ -44,7 +44,7 @@ __Required parameters__: None
 
 Hardware interfaces do not support parameters that can be changed in runtime. To provide this behaviour, configuration controllers can be used, which update specific command interfaces of a hardware, that are exported as a workaround instead of parameters.
 
-#### `control_mode_handler`
+#### `kuka_control_mode_handler`
 
 The `ControlModeHandler` can update the `control_mode` command interface of a hardware. It listens on the `~/control_mode` topic and makes control mode changes possible without having to reactivate the driver.
 The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
@@ -53,6 +53,6 @@ __Required parameters__: None
 
 #### `fri_configuration_controller`
 
-The `receive_multiplier` parameter of FRI defines the answer rate factor (ratio of receiving states and sending commands). This is a parameter of the hardware interface, which can be modified in connected state, when control is not active. To support changing this parameter after startup, the `FRIConfigurationController` implements a service named `~/set_receive_multiplier`. Sending a request containing the desired integer value of the `receive_multiplier` updates the parameter of the hardware interface.
+The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` advertises the topic `~/set_fri_config`. Sending a message containing the desired integer values of `send_period_ms` and `receive_multiplier` updates the parameters of the hardware interface.
 
 __Required parameters__: None

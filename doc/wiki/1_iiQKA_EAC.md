@@ -54,7 +54,7 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupPositionController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
-- [`control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#control_mode_handler) (no configuration file)
+- [`kuka_control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#kuka_control_mode_handler) (no configuration file)
 
 After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
   ```
@@ -75,8 +75,8 @@ Both launch files support the following arguments:
 - `robot_model`: defines which LBR iisy robot to use. Available options: `lbr_iisy3_r760` (default), `lbr_iisy11_r1300`, `lbr_iisy15_r930`
 - `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaEACHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
-- `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame (default: [0, 0, 0])
-- `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame (default: [0, 0, 0])
+- `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
+- `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
 - `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `use_fake_hardware` is true)
 - `qos_config`: the location of the QoS configuration file (defaults to `kuka_iiqka_eac_driver/config/qos_config.yaml`)
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_iiqka_eac_driver/config/ros2_controller_config.yaml`)

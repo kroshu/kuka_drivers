@@ -20,19 +20,13 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn FRIConfigurationController::on_init()
 {
-  auto callback = [this](
-                    kuka_driver_interfaces::srv::SetInt::Request::SharedPtr request,
-                    kuka_driver_interfaces::srv::SetInt::Response::SharedPtr response)
+  auto callback = [this](const kuka_driver_interfaces::msg::FriConfiguration::SharedPtr msg)
   {
-    resend_multiplier_ = true;
-    receive_multiplier_ = request->data;
-    response->success = true;
+    receive_multiplier_ = msg->receive_multiplier;
+    send_period_ms_ = msg->send_period_ms;
   };
-  receive_multiplier_service_ = get_node()->create_service<kuka_driver_interfaces::srv::SetInt>(
-    "~/set_receive_multiplier", callback);
-  // TODO(Svastits): create service to get multiplier changes (or perpaps
-  // parameter??)
-  //   and set resend_multiplier_ to true in the callback
+  fri_config_sub_ = get_node()->create_subscription<kuka_driver_interfaces::msg::FriConfiguration>(
+    "~/set_fri_config", rclcpp::SystemDefaultsQoS(), callback);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -43,6 +37,8 @@ FRIConfigurationController::command_interface_configuration() const
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names.emplace_back(
     std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::RECEIVE_MULTIPLIER);
+  config.names.emplace_back(
+    std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::SEND_PERIOD);
   return config;
 }
 
@@ -75,14 +71,9 @@ controller_interface::return_type FRIConfigurationController::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   // TODO(Svastits): disable changes if HWIF is active
-  if (resend_multiplier_)
-  {
-    RCLCPP_INFO(
-      get_node()->get_logger(), "Changing receive multiplier of hardware interface to %i",
-      receive_multiplier_);
-    command_interfaces_[0].set_value(receive_multiplier_);
-    resend_multiplier_ = false;
-  }
+  command_interfaces_[0].set_value(receive_multiplier_);
+  command_interfaces_[1].set_value(send_period_ms_);
+
   return controller_interface::return_type::OK;
 }
 

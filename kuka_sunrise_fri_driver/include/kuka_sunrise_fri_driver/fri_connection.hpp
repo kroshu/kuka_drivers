@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace kuka_sunrise_fri_driver
@@ -68,7 +69,7 @@ enum ClientCommandModeID : std::uint8_t
   TORQUE_COMMAND_MODE = 3
 };
 
-static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x0C};
+static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x10};
 static const std::vector<std::uint8_t> CONTROL_MODE_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x70};
 
 class FRIConnection
@@ -89,7 +90,8 @@ public:
     const std::vector<double> & joint_stiffness, const std::vector<double> & joint_damping);
   bool setClientCommandMode(ClientCommandModeID client_command_mode);
   // bool getControlMode();
-  bool setFRIConfig(int remote_port, int send_period_ms, int receive_multiplier);
+  bool setFRIConfig(
+    const std::string & client_ip, int remote_port, int send_period_ms, int receive_multiplier);
   // bool getFRIConfig();
 
   bool isConnected();
