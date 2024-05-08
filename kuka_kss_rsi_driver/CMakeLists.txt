@@ -37,7 +37,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KSS_RSI_DRIVER_BUILDING
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(${PROJECT_NAME} hardware_interface)
+ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core)
 target_link_libraries(${PROJECT_NAME} tinyxml)
 
 add_executable(robot_manager_node

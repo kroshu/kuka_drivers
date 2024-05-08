@@ -25,6 +25,7 @@
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
@@ -48,6 +49,7 @@ public:
 
 private:
   bool onRobotModelChangeRequest(const std::string & robot_model);
+  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -59,6 +61,9 @@ private:
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
+
+  rclcpp::CallbackGroup::SharedPtr event_cbg_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 };
 }  // namespace kuka_rsi
 

@@ -16,6 +16,7 @@
 #include "communication_helpers/service_tools.hpp"
 
 #include "kuka_drivers_core/controller_names.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_kss_rsi_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -28,6 +29,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  event_cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ = this->create_client<SwitchController>(
@@ -38,6 +40,13 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
+
+  rclcpp::SubscriptionOptions sub_options;
+  sub_options.callback_group = event_cbg_;
+  event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
+    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
+    sub_options);
 
   this->registerStaticParameter<std::string>(
     "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
@@ -56,6 +65,14 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
+  // Activate control mode handler and event broadcaster
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, {kuka_drivers_core::EVENT_BROADCASTER}, {}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate event broadcaster");
+    return FAILURE;
+  }
+
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -65,6 +82,13 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
+  // Deactivate event broadcaster
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, {}, {kuka_drivers_core::EVENT_BROADCASTER}))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not deactivate event broadcaster");
+  }
+
   // Clean up hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_UNCONFIGURED))
@@ -152,6 +176,27 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   }
   robot_model_ = ns + robot_model;
   return true;
+}
+
+void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+{
+  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
+  {
+    case kuka_drivers_core::HardwareEvent::ERROR:
+      RCLCPP_INFO(get_logger(), "External control stopped");
+      if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+      {
+        this->deactivate();
+      }
+      else if (this->get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
+      {
+        // Handle case, when error is received while still activating
+        this->on_deactivate(get_current_state());
+      }
+      break;
+    default:
+      break;
+  }
 }
 }  // namespace kuka_rsi
 

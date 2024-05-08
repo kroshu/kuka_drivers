@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "kuka_kss_rsi_driver/hardware_interface.hpp"
 
@@ -91,6 +93,8 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
   }
+  state_interfaces.emplace_back(
+    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
   return state_interfaces;
 }
 
@@ -123,6 +127,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   }
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Got data from robot");
+  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
 
   // Drop empty <rob> frame with RSI <= 2.3
   if (bytes < 100)
@@ -142,7 +147,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);
-  server_->set_timeout(1000);  // Set receive timeout to 1 second
+  server_->set_timeout(100);  // Set receive timeout to 100 milliseconds
 
   RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System Successfully started!");
   is_active_ = true;
@@ -168,8 +173,9 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   if (server_->recv(in_buffer_) == 0)
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "No data received from robot");
-    this->on_deactivate(this->get_state());
-    return return_type::ERROR;
+    server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::ERROR);
+    is_active_ = false;
+    return return_type::OK;  // Deactivation is done by manager
   }
   rsi_state_ = RSIState(in_buffer_);
 

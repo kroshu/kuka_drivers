@@ -79,6 +79,8 @@ private:
   std::vector<double> initial_joint_pos_;
   std::vector<double> joint_pos_correction_deg_;
 
+  double server_state_ = 0;
+
   uint64_t ipoc_ = 0;
   RSIState rsi_state_;
   RSICommand rsi_command_;

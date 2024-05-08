@@ -143,6 +143,7 @@ def launch_setup(context, *args, **kwargs):
     controller_names = [
         "joint_state_broadcaster",
         "joint_trajectory_controller",
+        "event_broadcaster",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
