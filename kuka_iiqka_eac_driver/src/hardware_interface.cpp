@@ -266,10 +266,13 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
-  robot_ptr_->GetControlSignal().AddJointPositionValues(hw_position_commands_.begin(), hw_position_commands_.end());
-  robot_ptr_->GetControlSignal().AddTorqueValues(hw_torque_commands_.begin(), hw_torque_commands_.end());
+  robot_ptr_->GetControlSignal().AddJointPositionValues(
+    hw_position_commands_.begin(), hw_position_commands_.end());
+  robot_ptr_->GetControlSignal().AddTorqueValues(
+    hw_torque_commands_.begin(), hw_torque_commands_.end());
   robot_ptr_->GetControlSignal().AddStiffnessAndDampingValues(
-    hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(), hw_damping_commands_.end());
+    hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
+    hw_damping_commands_.end());
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
