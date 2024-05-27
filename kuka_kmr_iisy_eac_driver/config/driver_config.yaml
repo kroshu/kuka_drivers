@@ -1,0 +1,16 @@
+robot_manager:
+  ros__parameters:
+    control_mode: 7
+    client_ip: "0.0.0.0"
+    controller_ip: "0.0.0.0"
+    position_controller_name: "joint_trajectory_controller"
+    impedance_controller_name: "joint_group_impedance_controller"
+    torque_controller_name: "effort_controller"
+    cartesian_velocity_controller_name: "twist_controller"
+# Control mode enums:
+#  1 - joint position control
+#  2 - joint impedance control
+#  3 - joint velocity control (not supported yet)
+#  4 - joint torque control
+#  7 - cartesian velocity (twist) control (only for mobile robots)
+# ... others are not yet supported

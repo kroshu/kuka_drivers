@@ -1,0 +1,4 @@
+rt_packet_loss_profile:
+  consequent_lost_packets: 2
+  lost_packets_in_timeframe: 1
+  timeframe_ms: 5000

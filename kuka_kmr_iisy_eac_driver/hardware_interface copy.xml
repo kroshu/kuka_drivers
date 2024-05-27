@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<library path="kuka_iiqka_eac_driver">
+  <class type="kuka_eac::KukaEACHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>ROS2 control Kuka driver for RoX</description>
+  </class>
+</library>

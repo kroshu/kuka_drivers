@@ -1,0 +1,16 @@
+test2/controller_manager:
+  ros__parameters:
+    update_rate: 250  # Hz
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    joint_group_impedance_controller:
+      type: kuka_controllers/JointGroupImpedanceController
+    effort_controller:
+      type: effort_controllers/JointGroupPositionController
+    control_mode_handler:
+      type: kuka_controllers/ControlModeHandler
+    event_broadcaster:
+      type: kuka_controllers/EventBroadcaster
