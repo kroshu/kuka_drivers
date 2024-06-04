@@ -275,24 +275,24 @@ hardware_interface::return_type OmnimoveExternalControl::read(
   {
     if (agv_type_ == "caterpillar")
     {
-      velocity_state_[0] = (double)readData.speedX();
-      velocity_state_[1] = (double)readData.speedW();
-      position_state_[0] = (double)readData.posPillar1();
-      velocity_state_[2] = (double)readData.speedPillar1();
-      position_state_[1] = (double)readData.posPillar2();
-      velocity_state_[3] = (double)readData.speedPillar2();
-      position_state_[2] = (double)readData.posPillar3();
-      velocity_state_[4] = (double)readData.speedPillar3();
-      position_state_[3] = (double)readData.posPillar4();
-      velocity_state_[5] = (double)readData.speedPillar4();
-      position_state_[4] = (double)readData.posShield();
-      velocity_state_[6] = (double)readData.speedShield();
+      velocity_state_[0] = static_cast<double>(readData.speedX());
+      velocity_state_[1] = static_cast<double>(readData.speedW());
+      position_state_[0] = static_cast<double>(readData.posPillar1());
+      velocity_state_[2] = static_cast<double>(readData.speedPillar1());
+      position_state_[1] = static_cast<double>(readData.posPillar2());
+      velocity_state_[3] = static_cast<double>(readData.speedPillar2());
+      position_state_[2] = static_cast<double>(readData.posPillar3());
+      velocity_state_[4] = static_cast<double>(readData.speedPillar3());
+      position_state_[3] = static_cast<double>(readData.posPillar4());
+      velocity_state_[5] = static_cast<double>(readData.speedPillar4());
+      position_state_[4] = static_cast<double>(readData.posShield());
+      velocity_state_[6] = static_cast<double>(readData.speedShield());
     }
     else
     {
-      velocity_state_[0] = (double)readData.speedX();
-      velocity_state_[1] = (double)readData.speedY();
-      velocity_state_[2] = (double)readData.speedW();
+      velocity_state_[0] = static_cast<double>(readData.speedX());
+      velocity_state_[1] = static_cast<double>(readData.speedY());
+      velocity_state_[2] = static_cast<double>(readData.speedW());
     }
   }
   return return_type::OK;
