@@ -1,4 +1,4 @@
-// Copyright 2024 Áron Svastits
+// Copyright 2024 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ static constexpr char FRI_STATE_BROADCASTER[] = "fri_state_broadcaster";
 
 // Controller names with default values
 static constexpr char JOINT_TRAJECTORY_CONTROLLER[] = "joint_trajectory_controller";
+static constexpr char JOINT_GROUP_IMPEDANCE_CONTROLLER[] = "joint_group_impedance_controller";
 }  // namespace kuka_drivers_core
 
 #endif  // KUKA_DRIVERS_CORE__CONTROLLER_NAMES_HPP_

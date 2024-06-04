@@ -80,7 +80,7 @@ Improvements:
 - The parameter type is enforced automatically.
 - The registered callback has access over all of the registered parameters, therefore the parameter server and the node is always in sync
 - It is easy to register a callback for additional checks before requested parameter value is accepted.
-- The user can define the lifecycle states, in which parameter changes are allowed.
+- The user can define the lifecycle states, in which parameter changes are allowed using the `ParameterSetAccessRights` structure.
 - There is a different endpoint for static parameters, which cannot be changed after initialization.
 
 The `Parameter<T>` class supports the following parameter types (identical to the types supported by `rclcpp::Parameter`):
@@ -98,7 +98,7 @@ The `Parameter<T>` class supports the following parameter types (identical to th
 The nodes provide the `registerParameter()` and `registerStaticParameter()` endpoints with the following arguments:
  - `name` [std::string]: name of the parameter
  - `value` [T]: default value of the parameter
- - `rights` [ParameterAccessRights]: structure defining in which states is the setting of the parameter allowed (only for ROS2BaseLCNode)
+ - `rights` [ParameterSetAccessRights]: structure defining whether modifying the parameter value is allowed in `inactive` and `active` states (only for `ROS2BaseLCNode`, value changes are always allowed in `unconfigured` state)
  - `on_change_callback` [std::function<bool(const T &)>]: the callback to call when determining the validity of a parameter change request
 
 Both methods register a parameter with the given `name` and `type`, and the `on_change_callback` is called if a parameter change is requested to check validity. In case of the `registerStaticParameter()`, the callback always returns false after initializing the value.
@@ -107,8 +107,8 @@ Example code for registering an integer parameter for both base nodes (`onRateCh
 ```C++
   // For class derived from ROS2BaseLCNode
   registerParameter<int>(
-    "rate", 2, kuka_drivers_core::ParameterSetAccessRights {true, true,
-      false, false}, [this](int rate) {
+    "rate", 2, kuka_drivers_core::ParameterSetAccessRights {true, false},
+      [this](int rate) {
       return this->onRateChangeRequest(rate);
     });
 

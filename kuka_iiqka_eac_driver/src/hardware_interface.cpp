@@ -1,4 +1,4 @@
-// Copyright 2022 Áron Svastits
+// Copyright 2022 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -237,10 +237,10 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     auto & req_message = robot_ptr_->GetLastMotionState();
 
     std::copy(
-      req_message.GetMeasuredPositions()->begin(), req_message.GetMeasuredPositions()->end(),
+      req_message.GetMeasuredPositions().begin(), req_message.GetMeasuredPositions().end(),
       hw_position_states_.begin());
     std::copy(
-      req_message.GetMeasuredTorques()->begin(), req_message.GetMeasuredTorques()->end(),
+      req_message.GetMeasuredTorques().begin(), req_message.GetMeasuredTorques().end(),
       hw_torque_states_.begin());
 
     if (cycle_count_ == 0)
@@ -266,10 +266,13 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
-  robot_ptr_->GetControlSignal().AddJointPositionValues(hw_position_commands_);
-  robot_ptr_->GetControlSignal().AddTorqueValues(hw_torque_commands_);
+  robot_ptr_->GetControlSignal().AddJointPositionValues(
+    hw_position_commands_.begin(), hw_position_commands_.end());
+  robot_ptr_->GetControlSignal().AddTorqueValues(
+    hw_torque_commands_.begin(), hw_torque_commands_.end());
   robot_ptr_->GetControlSignal().AddStiffnessAndDampingValues(
-    hw_stiffness_commands_, hw_damping_commands_);
+    hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
+    hw_damping_commands_.end());
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)

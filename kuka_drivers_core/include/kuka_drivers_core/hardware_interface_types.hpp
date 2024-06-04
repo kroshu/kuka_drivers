@@ -1,4 +1,4 @@
-// Copyright 2023 Áron Svastits
+// Copyright 2023 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ static constexpr char STATE_PREFIX[] = "state";
 static constexpr char CONTROL_MODE[] = "control_mode";
 // Constant defining the receive multiplier interface needed for FRI
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
+static constexpr char SEND_PERIOD[] = "send_period_ms";
 
 /* FRI state interfaces */
 static constexpr char SESSION_STATE[] = "session_state";

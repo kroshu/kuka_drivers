@@ -1,24 +1,27 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>kuka_drivers</name>
-  <version>0.0.1</version>
+  <version>0.9.0</version>
   <description>ROS2 drivers for KUKA robots</description>
-  <author>Aron Svastits</author>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
-  <license>Apache 2.0</license>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <license>Apache-2.0</license>
 
   <url type="bugtracker">https://github.com/kroshu/kuka_drivers/issues</url>
   <url type="repository">https://github.com/kroshu/kuka_drivers</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>kuka_drivers_core</exec_depend>
+  <exec_depend>iiqka_moveit_example</exec_depend>
   <exec_depend>kuka_driver_interfaces</exec_depend>
+  <exec_depend>kuka_drivers_core</exec_depend>
   <exec_depend>kuka_iiqka_eac_driver</exec_depend>
   <exec_depend>kuka_kss_rsi_driver</exec_depend>
-  <exec_depend>kuka_sunrise_fri_driver</exec_depend>
-  <exec_depend>iiqka_moveit_example</exec_depend>
   <exec_depend>kuka_rsi_simulator</exec_depend>
+  <exec_depend>kuka_sunrise_fri_driver</exec_depend>
+  <!-- Controllers metapackage -->
+  <exec_depend>kuka_controllers</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

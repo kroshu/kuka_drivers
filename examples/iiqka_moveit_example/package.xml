@@ -2,22 +2,19 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>iiqka_moveit_example</name>
-  <version>0.0.0</version>
+  <version>0.9.0</version>
   <description>ROS example package using the iiQKA driver and moveit</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
-  <license>Apache 2.0</license>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <build_depend>moveit_common</build_depend>
 
   <depend>moveit_ros_planning_interface</depend>
-  <depend>moveit_msgs</depend>
-  <depend>rclcpp</depend>
   <depend>moveit_visual_tools</depend>
-  <depend>moveit_configs_utils</depend>
-  <depend>kuka_driver_interfaces</depend>
 
-  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>kuka_iiqka_eac_driver</exec_depend>
   <exec_depend>moveit</exec_depend>
   <exec_depend>ros2_controllers_test_nodes</exec_depend>
 
