@@ -32,18 +32,16 @@
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_iiqka_drivers_core/hardware_interface_base.hpp"
 
 #include "kuka_iiqka_eac_driver/visibility_control.h"
-#include <geometry_msgs/msg/twist.hpp>
-#include "geometry_msgs/msg/pose.hpp"
-#include <tf2/LinearMath/Matrix3x3.h>
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_eac
 {
-class KukaEACHardwareInterface : public hardware_interface::SystemInterface
+class KukaEACHardwareInterface : public KukaEACHardwareInterfaceBase
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEACHardwareInterface)
@@ -57,26 +55,11 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
   export_command_interfaces() override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
-  on_configure(const rclcpp_lifecycle::State & previous_state) override;
-
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
-  on_activate(const rclcpp_lifecycle::State & previous_state) override;
-
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
-
   KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
   read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
   write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
-
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
-
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC void reset_cycle_count() { cycle_count_ = 0; }
 
 private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
@@ -88,27 +71,9 @@ private:
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
-  geometry_msgs::msg::Twist hw_twist_commands_;
-  std::vector<double> hw_twist_commands_vector_;
-  
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
-  geometry_msgs::msg::Twist hw_twist_state_;
-  geometry_msgs::msg::Pose hw_pose_state_;
 
-  double hw_control_mode_command_ = 0;
-  double server_state_ = 0;
-  int cycle_count_ = 0;
-
-  std::mutex event_mutex_;
-
-  kuka_drivers_core::ControlMode prev_control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  kuka_drivers_core::HardwareEvent last_event_ =
-    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
-
-  bool msg_received_;
-  std::atomic<bool> stop_requested_{false};
 };
 }  // namespace kuka_eac
 

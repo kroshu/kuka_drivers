@@ -15,34 +15,16 @@
 #ifndef KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
 #define KUKA_IIQKA_EAC_DRIVER__ROBOT_MANAGER_NODE_HPP_
 
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
-#include "controller_manager_msgs/srv/switch_controller.hpp"
-#include "rclcpp/client.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/bool.hpp"
-#include "std_msgs/msg/u_int32.hpp"
-#include "std_msgs/msg/u_int8.hpp"
-
-#include "kuka_drivers_core/controller_handler.hpp"
-#include "kuka_drivers_core/ros2_base_lc_node.hpp"
+#include "kuka_iiqka_drivers_core/robot_manager_node_base.hpp"
 
 namespace kuka_eac
 {
-class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
+class RobotManagerNode : public RobotManagerNodeBase
 {
 public:
   RobotManagerNode();
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
-    const rclcpp_lifecycle::State &) override;
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
-    const rclcpp_lifecycle::State &) override;
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State &) override;
@@ -53,9 +35,8 @@ public:
 private:
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(const std::string & robot_model);
 
-  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
+  /*rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
@@ -77,7 +58,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;*/
 };
 
 }  // namespace kuka_eac

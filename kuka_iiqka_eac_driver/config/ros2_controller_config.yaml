@@ -14,5 +14,3 @@ controller_manager:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
-    twist_controller:
-      type: kuka_controllers/TwistController
