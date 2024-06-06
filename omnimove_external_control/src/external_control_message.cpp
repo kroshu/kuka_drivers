@@ -61,7 +61,7 @@ ExternalControlData::ExternalControlData(const char * msg_data)
   copyPillarData(pillar2_, msg_data + 86);
   copyPillarData(pillar3_, msg_data + 90);
   copyPillarData(pillar4_, msg_data + 94);
-  copyPillarData(schild_, msg_data + 98);
+  copyPillarData(shield_, msg_data + 98);
 }
 
 void ExternalControlData::copyPillarData(PillarData & pillar_data, const char * msg_data)
@@ -119,9 +119,9 @@ int ExternalControlData::speedPillar4() const { return pillar4_.actual_speed_; }
 
 int ExternalControlData::posPillar4() const { return pillar4_.actual_pos_; }
 
-int ExternalControlData::speedShield() const { return schild_.actual_speed_; }
+int ExternalControlData::speedShield() const { return shield_.actual_speed_; }
 
-int ExternalControlData::posShield() const { return schild_.actual_pos_; }
+int ExternalControlData::posShield() const { return shield_.actual_pos_; }
 
 uint32_t ExternalControlCommand::alive_counter_ = 0;
 

@@ -32,36 +32,10 @@ private:
 protected:
   static constexpr const char * EXTERNAL_CONTROL_DATA_HEADER = "KMRUTV03";
   static constexpr int EXTERNAL_CONTROL_DATA_LENGTH = 106;  // without the header and crc bytes
-  uint8_t actual_mode_;
   int32_t actual_speed_x_;
   int32_t actual_speed_y_;
   int32_t actual_speed_w_;
-  uint8_t agv_is_moving_;
-  int32_t max_agv_speed_x_;
-  int32_t max_agv_speed_y_;
-  int32_t max_agv_speed_w_;
-  int32_t deviation_x_;
-  int32_t deviation_y_;
-  int32_t deviation_w_;
-  uint8_t dev_driving_;
-  uint8_t dev_target_reached_;
-  uint8_t scanning_fields_;
-  uint8_t driving_direction_;
-  uint8_t current_state_;
-  uint32_t dataMatrix_FrontCamera;
-  uint32_t dataMatrix_RearCamera_;
-  uint32_t dataMatrix_LeftCamera_;
-  uint32_t dataMatrix_RightCamera;
-  uint32_t status_optical_track_guiding_;
-  uint8_t warning_optical_track_guiding_;
-  uint8_t error_optical_track_guiding_;
-  int32_t track_deviation_x_;
-  int32_t track_deviation_y_;
-  int32_t track_deviation_w_;
-  uint8_t tag_number_front_camera_;
-  uint8_t tag_number_rear_camera_;
-  uint8_t tag_number_left_camera_;
-  uint8_t tag_number_right_camera_;
+
   struct PillarData
   {
     uint8_t manual_active_;
@@ -74,8 +48,8 @@ protected:
   PillarData pillar2_;
   PillarData pillar3_;
   PillarData pillar4_;
-  PillarData schild_;
-  uint32_t alive_signal_;
+  PillarData shield_;
+ // uint32_t alive_signal_;
 
   void copyPillarData(PillarData & pillar_data, const char * msg_data);
 
