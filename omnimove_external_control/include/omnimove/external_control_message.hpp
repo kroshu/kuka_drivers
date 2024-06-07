@@ -40,7 +40,7 @@ protected:
   {
     uint8_t manual_active_;
     uint8_t target_height_reached_;
-    uint8_t actual_speed_;
+    int8_t actual_speed_;
     uint8_t actual_pos_;
   };
   PillarData pillars_[4];
