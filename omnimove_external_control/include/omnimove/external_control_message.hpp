@@ -43,13 +43,8 @@ protected:
     uint8_t actual_speed_;
     uint8_t actual_pos_;
   };
-
-  PillarData pillar1_;
-  PillarData pillar2_;
-  PillarData pillar3_;
-  PillarData pillar4_;
+  PillarData pillars_[4];
   PillarData shield_;
- // uint32_t alive_signal_;
 
   void copyPillarData(PillarData & pillar_data, const char * msg_data);
 

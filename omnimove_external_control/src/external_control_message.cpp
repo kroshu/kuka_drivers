@@ -57,10 +57,10 @@ ExternalControlData::ExternalControlData(const char * msg_data)
   memcpy(&actual_speed_x_, msg_data + 1, 4);
   memcpy(&actual_speed_y_, msg_data + 5, 4);
   memcpy(&actual_speed_w_, msg_data + 9, 4);
-  copyPillarData(pillar1_, msg_data + 82);
-  copyPillarData(pillar2_, msg_data + 86);
-  copyPillarData(pillar3_, msg_data + 90);
-  copyPillarData(pillar4_, msg_data + 94);
+  copyPillarData(pillars_[0], msg_data + 82);
+  copyPillarData(pillars_[1], msg_data + 86);
+  copyPillarData(pillars_[2], msg_data + 90);
+  copyPillarData(pillars_[3], msg_data + 94);
   copyPillarData(shield_, msg_data + 98);
 }
 
@@ -103,21 +103,21 @@ int ExternalControlData::speedY() const { return actual_speed_y_; }
 
 int ExternalControlData::speedW() const { return actual_speed_w_; }
 
-int ExternalControlData::speedPillar1() const { return pillar1_.actual_speed_; }
+int ExternalControlData::speedPillar1() const { return pillars_[0].actual_speed_; }
 
-int ExternalControlData::posPillar1() const { return pillar1_.actual_pos_; }
+int ExternalControlData::posPillar1() const { return pillars_[0].actual_pos_; }
 
-int ExternalControlData::speedPillar2() const { return pillar2_.actual_speed_; }
+int ExternalControlData::speedPillar2() const { return pillars_[1].actual_speed_; }
 
-int ExternalControlData::posPillar2() const { return pillar2_.actual_pos_; }
+int ExternalControlData::posPillar2() const { return pillars_[1].actual_pos_; }
 
-int ExternalControlData::speedPillar3() const { return pillar3_.actual_speed_; }
+int ExternalControlData::speedPillar3() const { return pillars_[2].actual_speed_; }
 
-int ExternalControlData::posPillar3() const { return pillar3_.actual_pos_; }
+int ExternalControlData::posPillar3() const { return pillars_[2].actual_pos_; }
 
-int ExternalControlData::speedPillar4() const { return pillar4_.actual_speed_; }
+int ExternalControlData::speedPillar4() const { return pillars_[3].actual_speed_; }
 
-int ExternalControlData::posPillar4() const { return pillar4_.actual_pos_; }
+int ExternalControlData::posPillar4() const { return pillars_[3].actual_pos_; }
 
 int ExternalControlData::speedShield() const { return shield_.actual_speed_; }
 
