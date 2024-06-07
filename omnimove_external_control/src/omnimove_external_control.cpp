@@ -256,7 +256,8 @@ hardware_interface::return_type OmnimoveExternalControl::read(
   std::array<char, 1024> buffer;
   if (client_socket_.get() == NULL)
   {
-    RCLCPP_WARN(rclcpp::get_logger("OmnimoveExternalControl"), "socket is null !!!");
+    RCLCPP_ERROR(rclcpp::get_logger("OmnimoveExternalControl"), "socket is null !!!");
+    return return_type::ERROR;
   }
   //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if
   //   available");
