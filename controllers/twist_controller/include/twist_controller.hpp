@@ -19,46 +19,38 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "forward_command_controller/multi_interface_forward_command_controller.hpp"
 
-#include "controller_interface/controller_interface.hpp"
-#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
-#include "rclcpp/time.hpp"
-#include "rclcpp/duration.hpp"
-#include "std_msgs/msg/float64_multi_array.hpp"
+#include "visibility_control.h"
+#include "twist_controller_parameters.hpp"
+
+
 #include "geometry_msgs/msg/twist.hpp"
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <geometry_msgs/msg/transform_stamped.h>
-
-#include "pluginlib/class_list_macros.hpp"
 
 namespace kuka_controllers
 {
-class TwistController : public controller_interface::ControllerInterface
+class TwistController : public forward_command_controller::ForwardControllersBase
 {
 public:
-  controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-
-  controller_interface::InterfaceConfiguration state_interface_configuration() const override;
-
-  controller_interface::return_type update(
-    const rclcpp::Time & time,
-    const rclcpp::Duration & period) override;
-
-  controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state)
-  override;
-
-  controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state)
-  override;
-
-  controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state)
-  override;
-
+  TWIST_CONTROLLER_PUBLIC TwistController();
+  TWIST_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_init() override;
 
 private:
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_subscriber_;
+  TWIST_CONTROLLER_LOCAL void declare_parameters() override;
+  TWIST_CONTROLLER_LOCAL controller_interface::CallbackReturn read_parameters()
+    override;
+
+  using Params = twist_controller::Params;
+  using ParamListener = twist_controller::ParamListener;
+
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_command_subscriber_;
   geometry_msgs::msg::Twist last_command_msg_;
+  std_msgs::msg::Float64MultiArray command_;
+  std::shared_ptr<forward_command_controller::CmdType> command_ptr_;
 };
+
 }  // namespace kuka_controllers
 #endif  // KUKA_CONTROLLERS__TWIST_CONTROLLER_HPP_

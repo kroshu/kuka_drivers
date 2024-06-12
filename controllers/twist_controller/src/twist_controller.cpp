@@ -12,114 +12,79 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "twist_controller.hpp"
+#include "pluginlib/class_list_macros.hpp"
 
+#include "kuka_drivers_core/hardware_interface_types.hpp"
+
+#include "twist_controller.hpp"
+using namespace hardware_interface;
 namespace kuka_controllers
 {
+TwistController::TwistController() : ForwardControllersBase(),  twist_command_subscriber_(nullptr)
+ {}
+void TwistController::declare_parameters()
+{
+  param_listener_ = std::make_shared<ParamListener>(get_node());
+}
+
+controller_interface::CallbackReturn TwistController::read_parameters()
+{
+  if (!param_listener_)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Error encountered during init");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  params_ = param_listener_->get_params();
+
+  if (params_.interface_names.empty())
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "'interfaces' parameter is empty");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+
+  for (const auto & interface : params_.interface_names)
+    {
+      command_interface_types_.push_back(interface);
+    }
+  
+  return controller_interface::CallbackReturn::SUCCESS;
+}
 controller_interface::CallbackReturn TwistController::on_init()
-{
+{auto ret = ForwardControllersBase::on_init();
+  if (ret != CallbackReturn::SUCCESS)
+  {
+    return ret;
+  }
+
+  try
+  {
+    // Explicitly set the interfaces parameter declared by the
+    // forward_command_controller
+    get_node()->set_parameter(rclcpp::Parameter(
+      "interface_names",
+      std::vector<std::string>{
+        std::string(TWIST_PREFIX) + "/" + std::string(LINEAR_PREFIX)+ "/" + std::string(HW_IF_X),
+        std::string(TWIST_PREFIX) + "/" + std::string(LINEAR_PREFIX)+ "/" + std::string(HW_IF_Y),
+        std::string(TWIST_PREFIX) + "/" + std::string(LINEAR_PREFIX)+ "/" + std::string(HW_IF_Z),
+        std::string(TWIST_PREFIX) + "/" + std::string(ANGULAR_PREFIX)+ "/" + std::string(HW_IF_X),
+        std::string(TWIST_PREFIX) + "/" + std::string(ANGULAR_PREFIX)+ "/" + std::string(HW_IF_Y),
+        std::string(TWIST_PREFIX) + "/" + std::string(ANGULAR_PREFIX)+ "/" + std::string(HW_IF_Z)
+      }));
+  }
+  catch (const std::exception & e)
+  {
+    fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
+    return CallbackReturn::ERROR;
+  }
+  command_ptr_ = std::make_shared<forward_command_controller::CmdType>();
+  twist_command_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+    "~/twist_commands", rclcpp::SystemDefaultsQoS(),
+    [this](const geometry_msgs::msg::Twist msg) { 
+      command_ptr_->data={msg.linear.x,msg.linear.y,msg.linear.z,msg.angular.x,msg.angular.y,msg.angular.z};
+      rt_command_ptr_.writeFromNonRT(command_ptr_);
+      });
   return controller_interface::CallbackReturn::SUCCESS;
-}
-
-controller_interface::InterfaceConfiguration TwistController::
-command_interface_configuration()
-const
-{
-  controller_interface::InterfaceConfiguration config;
-  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  // config.names.emplace_back("twist commands");
-  config.names.emplace_back("twist/linear/x");
-  config.names.emplace_back("twist/linear/y");
-  config.names.emplace_back("twist/linear/z");
-  config.names.emplace_back("twist/angular/x");
-  config.names.emplace_back("twist/angular/y");
-  config.names.emplace_back("twist/angular/z");
-  return config;
-}
-
-controller_interface::InterfaceConfiguration TwistController::state_interface_configuration()
-const
-{
-  controller_interface::InterfaceConfiguration config;
-  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.emplace_back("twist/linear/x");
-  config.names.emplace_back("twist/linear/y");
-  config.names.emplace_back("twist/linear/z");
-  config.names.emplace_back("twist/angular/x");
-  config.names.emplace_back("twist/angular/y");
-  config.names.emplace_back("twist/angular/z");
-  config.names.emplace_back("Pose/position/x");
-  config.names.emplace_back("Pose/position/y");
-  config.names.emplace_back("Pose/position/z");
-  config.names.emplace_back("Pose/orientation/x");
-  config.names.emplace_back("Pose/orientation/y");
-  config.names.emplace_back("Pose/orientation/z");
-  config.names.emplace_back("Pose/orientation/w");
-
-  return config;
-}
-
-controller_interface::CallbackReturn
-TwistController::on_configure(const rclcpp_lifecycle::State &)
-{
-  twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
-    "twist_controller/twist_cmd", rclcpp::SystemDefaultsQoS(),
-    [this](const geometry_msgs::msg::Twist::SharedPtr msg) {
-        last_command_msg_ .linear.x= msg->linear.x;
-        last_command_msg_ .linear.y= msg->linear.y;
-        last_command_msg_ .linear.z= msg->linear.z;
-        last_command_msg_ .angular.x= msg->angular.x;
-        last_command_msg_ .angular.y= msg->angular.y;
-        last_command_msg_ .angular.z= msg->angular.z;
-    });
-  return controller_interface::CallbackReturn::SUCCESS;
-
-}
-
-controller_interface::CallbackReturn
-TwistController::on_activate(const rclcpp_lifecycle::State &)
-{
-  return controller_interface::CallbackReturn::SUCCESS;
-}
-
-controller_interface::CallbackReturn
-TwistController::on_deactivate(const rclcpp_lifecycle::State &)
-{
-  return controller_interface::CallbackReturn::SUCCESS;
-}
-
-controller_interface::return_type TwistController::update(
-  const rclcpp::Time &,
-  const rclcpp::Duration &)
-{
-
-
-    command_interfaces_[0].set_value(last_command_msg_ .linear.x);
-    command_interfaces_[1].set_value(last_command_msg_ .linear.y);
-    command_interfaces_[2].set_value(last_command_msg_ .linear.z);
-    command_interfaces_[3].set_value(last_command_msg_ .angular.x);
-    command_interfaces_[4].set_value(last_command_msg_ .angular.y);
-    command_interfaces_[5].set_value(last_command_msg_ .angular.z);
-       
-    static tf2_ros::TransformBroadcaster tf_broadcaster(get_node());
-
-    geometry_msgs::msg::TransformStamped transformStamped;
-    //transformStamped.header.stamp=Time::now();
-    transformStamped.header.frame_id="odom";
-    transformStamped.child_frame_id="generic_mr_body_dummy";
-    transformStamped.transform.translation.x=state_interfaces_[6].get_value();
-    transformStamped.transform.translation.y=state_interfaces_[7].get_value();
-    transformStamped.transform.translation.y=state_interfaces_[8].get_value();
-   
-    transformStamped.transform.rotation.x=state_interfaces_[9].get_value();
-    transformStamped.transform.rotation.y=state_interfaces_[10].get_value();
-    transformStamped.transform.rotation.z=state_interfaces_[11].get_value();
-    transformStamped.transform.rotation.w=state_interfaces_[12].get_value(); 
-    
-    tf2::Quaternion q;
-    q.setRPY(0,0,state_interfaces_[8].get_value());
-    tf_broadcaster.sendTransform(transformStamped);
-  return controller_interface::return_type::OK;
 }
 
 }  // namespace kuka_controllers

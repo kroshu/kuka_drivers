@@ -5,20 +5,19 @@
   <version>0.1.0</version>
   <description>Controller for Twist commands</description>
 
-  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <maintainer email="krmihaly42@gmail.com">Mihaly Kristofi</maintainer>
 
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>controller_interface</depend>
-  <depend>pluginlib</depend>
-  <depend>std_msgs</depend>
+  <depend>forward_command_controller</depend>
+  <!--<depend>pluginlib</depend>
+   <depend>std_msgs</depend> -->
+  <depend>generate_parameter_library</depend>
 
-  <depend>kuka_driver_interfaces</depend>
-  <depend>kuka_drivers_core</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
+  <!-- <depend>kuka_driver_interfaces</depend>-->
+  <depend>kuka_drivers_core</depend> 
   <export>
     <build_type>ament_cmake</build_type>
   </export>

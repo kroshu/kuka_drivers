@@ -6,24 +6,31 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(controller_interface REQUIRED)
-find_package(pluginlib REQUIRED)
-find_package(kuka_driver_interfaces REQUIRED)
+##find_package(controller_interface REQUIRED)
+find_package(forward_command_controller)
+
+#find_package(pluginlib REQUIRED)
+#find_package(kuka_driver_interfaces REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2 REQUIRED)
+find_package(generate_parameter_library)
+
 
 include_directories(include)
 
+generate_parameter_library(
+    twist_controller_parameters
+    src/twist_controller_parameters.yaml
+  )
 add_library(${PROJECT_NAME} SHARED
   src/twist_controller.cpp)
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_driver_interfaces kuka_drivers_core  tf2 tf2_ros
-)
+ament_target_dependencies(${PROJECT_NAME}  forward_command_controller  kuka_drivers_core)
+target_link_libraries(${PROJECT_NAME} twist_controller_parameters)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
