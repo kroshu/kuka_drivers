@@ -20,6 +20,10 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(controller_manager REQUIRED)
+find_package(kuka-external-control-sdk CONFIG REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(hardware_interface REQUIRED)
 
 add_library(kuka_drivers_core SHARED
   src/ros2_base_node.cpp
@@ -46,6 +50,21 @@ set_target_properties(communication_helpers PROPERTIES LINKER_LANGUAGE CXX)
 ament_export_targets(communication_helpers HAS_LIBRARY_TARGET)
 ament_export_dependencies(rclcpp)
 
+
+add_library(kuka_iiqka_drivers_core SHARED
+  include/kuka_iiqka_drivers_core/event_observer.hpp
+  include/kuka_iiqka_drivers_core/robot_manager_node_base.hpp
+  src/kuka_iiqka_drivers_core/hardware_interface_base.cpp
+  src/kuka_iiqka_drivers_core/robot_manager_node_base.cpp
+
+)
+ament_target_dependencies(kuka_iiqka_drivers_core rclcpp rclcpp_lifecycle lifecycle_msgs kuka-external-control-sdk controller_manager_msgs std_msgs hardware_interface)
+set_target_properties(kuka_iiqka_drivers_core PROPERTIES LINKER_LANGUAGE CXX)
+ament_export_targets(kuka_iiqka_drivers_core HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp controller_manager_msgs kuka-external-control-sdk)
+
+target_link_libraries(kuka_iiqka_drivers_core Kuka::kuka-external-control-sdk communication_helpers kuka_drivers_core)
+
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}/
 )
@@ -65,6 +84,13 @@ install(
   INCLUDES DESTINATION include
 )
 
+install(DIRECTORY include/kuka_iiqka_drivers_core DESTINATION include)
+install(
+  TARGETS kuka_iiqka_drivers_core
+  EXPORT kuka_iiqka_drivers_core
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include
+)
 install(TARGETS ${PROJECT_NAME} control_node
   DESTINATION lib/${PROJECT_NAME})
 

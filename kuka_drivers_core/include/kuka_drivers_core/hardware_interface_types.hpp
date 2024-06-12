@@ -26,14 +26,18 @@ static constexpr char HW_IF_DAMPING[] = "damping";
 static constexpr char HW_IF_EXTERNAL_TORQUE[] = "external_torque";
 
 /* Mobile robot interface prefixes */
-static constexpr char TWIST_PREFIX_L[] = "twist/linear";
-static constexpr char TWIST_PREFIX_A[] = "twist/angular";
-static constexpr char POSE_PREFIX_P[] = "Pose/position";
-static constexpr char POSE_PREFIX_O[] = "Pose/orientation";
+static constexpr char TWIST_PREFIX[] = "twist";
+static constexpr char LINEAR_PREFIX[] = "linear";
+static constexpr char ANGULAR_PREFIX[] = "angular";
+
+static constexpr char POSE_PREFIX[] = "Pose";
+static constexpr char POSITION_PREFIX[] = "position";
+static constexpr char ORIENTATION_PREFIX[] = "orientation";
 // Constants defining twist interface
 static constexpr char HW_IF_X[] = "x";
 static constexpr char HW_IF_Y[] = "y";
 static constexpr char HW_IF_Z[] = "z";
+static constexpr char HW_IF_W[] = "w";
 
 /* Interface prefixes */
 // Constant defining prefix for I/O interfaces

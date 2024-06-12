@@ -23,6 +23,7 @@ static constexpr char CONTROL_MODE_HANDLER[] = "control_mode_handler";
 static constexpr char EVENT_BROADCASTER[] = "event_broadcaster";
 static constexpr char FRI_CONFIGURATION_CONTROLLER[] = "fri_configuration_controller";
 static constexpr char FRI_STATE_BROADCASTER[] = "fri_state_broadcaster";
+static constexpr char CARTESIAN_POSE_BROADCASTER[] = "cartesian_pose_broadcaster";
 
 // Controller names with default values
 static constexpr char JOINT_TRAJECTORY_CONTROLLER[] = "joint_trajectory_controller";
