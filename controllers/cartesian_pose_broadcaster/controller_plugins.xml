@@ -1,0 +1,7 @@
+<library path="cartesian_pose_broadcaster">
+  <class name="kuka_controllers/CartesianPoseBroadcaster" type="kuka_controllers::CartesianPoseBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the transformation changes of a mobile robot 
+    </description>
+  </class>
+</library>

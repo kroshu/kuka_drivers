@@ -1,0 +1,11 @@
+cartesian_pose_broadcaster:
+  world_frame_name: {
+    type: string,
+    default_value: "",
+    description: "Name of the static world frame",
+  }
+  robot_base_name: {
+    type: string,
+    default_value: "",
+    description: "Name of the interfaces to command",
+  }

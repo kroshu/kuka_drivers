@@ -14,6 +14,7 @@
   <exec_depend>fri_state_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>
   <exec_depend>twist_controller</exec_depend>
+  <exec_depend>cartesian_pose_broadcaster</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
