@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<library path="kuka_iiqka_eac_driver">
-  <class type="kuka_eac::KukaEACHardwareInterface"
+<library path="kuka_kmr_iisy_eac_driver">
+  <class type="kuka_eac::KukaKMRiisyEACHardwareInterface"
          base_class_type="hardware_interface::SystemInterface">
-    <description>ROS2 control Kuka driver for RoX</description>
+    <description>ROS2 control Kuka driver for KMR iisy platform</description>
   </class>
 </library>

@@ -29,31 +29,21 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
-    robot_model_launch_arg = DeclareLaunchArgument(
-        "robot_model",
-        default_value="KUKA_MR"
-    )
-    
-    if LaunchConfigurationEquals('robot_model', 'KUKA_MR'):
-        rviz_view="view_KMR_urdf"
-    else:
-        rviz_view="view_6_axis_urdf"
     rviz_config_launch_arg = DeclareLaunchArgument(
         "rviz_config",
         default_value=os.path.join(
-            get_package_share_directory("kuka_resources"), "config", rviz_view + ".rviz"
+            get_package_share_directory("kuka_resources"), "config", "view_kmr_iisy_urdf.rviz"
         ),
     )
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [get_package_share_directory("kuka_iiqka_eac_driver"), "/launch/startup.launch.py"]
+            [get_package_share_directory("kuka_kmr_iisy_eac_driver"), "/launch/startup.launch.py"]
         )
     )
 
     return LaunchDescription(
         [
-            robot_model_launch_arg,
             rviz_config_launch_arg,
             startup_launch,
             Node(

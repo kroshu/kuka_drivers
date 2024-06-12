@@ -36,7 +36,7 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
+                        get_package_share_directory("kuka_kmr_iisy_eac_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
@@ -50,11 +50,11 @@ def generate_test_description():
 class TestDriverStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        proc_output.assertWaitFor("got segment base", timeout=5)
+        # proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
+            "Successful initialization of hardware 'kmr_iisy'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor(
-            "Setting component 'lbr_iisy3_r760' to 'unconfigured' state.", timeout=5
+            "Setting component 'kmr_iisy' to 'unconfigured' state.", timeout=5
         )

@@ -36,18 +36,13 @@ def launch_setup(context, *args, **kwargs):
     roundtrip_time = LaunchConfiguration("roundtrip_time")
     qos_config = LaunchConfiguration("qos_config")
     controller_config = LaunchConfiguration("controller_config")
-    jtc_config = LaunchConfiguration("jtc_config")
-    jic_config = LaunchConfiguration("jic_config")
-    ec_config = LaunchConfiguration("ec_config")
+    tc_config = LaunchConfiguration("tc_config")
+    cpb_config= LaunchConfiguration("cpb_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
     
-    if robot_model.perform(context) == "KUKA_MR":
-        robot_support_package = "kuka_mobile_robot_support"
-    else:
-        robot_support_package = "kuka_lbr_iisy_support"
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -55,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare(robot_support_package),
+                    FindPackageShare("kuka_kmr_iisy_support"),
                     "urdf",
                     robot_model.perform(context) + ".urdf.xacro",
                 ]
@@ -105,7 +100,7 @@ def launch_setup(context, *args, **kwargs):
 
     # The driver config contains only parameters that can be changed after startup
     driver_config = (
-        get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
+        get_package_share_directory("kuka_kmr_iisy_eac_driver") + "/config/driver_config.yaml"
     )
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
@@ -117,9 +112,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             robot_description,
             controller_config,
-            jtc_config,
-            jic_config,
-            ec_config,
+            tc_config,
+            cpb_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -133,7 +127,7 @@ def launch_setup(context, *args, **kwargs):
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
         namespace=ns,
-        package="kuka_iiqka_eac_driver",
+        package="kuka_kmr_iisy_eac_driver",
         executable="robot_manager_node",
         parameters=[
             driver_config,
@@ -166,12 +160,10 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names = [
         "joint_state_broadcaster",
-        "joint_trajectory_controller",
-        "joint_group_impedance_controller",
-        "effort_controller",
         "control_mode_handler",
         "event_broadcaster",
-        "twist_controller"
+        "twist_controller",
+        "cartesian_pose_broadcaster"
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -187,7 +179,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     launch_arguments = []
-    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="lbr_iisy3_r760"))
+    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kmr_iisy"))
     launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
@@ -202,36 +194,29 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "qos_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
+            default_value=get_package_share_directory("kuka_kmr_iisy_eac_driver")
             + "/config/qos_config.yaml",
         )
     )
     launch_arguments.append(
         DeclareLaunchArgument(
+            "tc_config",
+            default_value=get_package_share_directory("kuka_kmr_iisy_eac_driver")
+            + "/config/twist_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cpb_config",
+            default_value=get_package_share_directory("kuka_kmr_iisy_eac_driver")
+            + "/config/cartesian_pose_broadcaster_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
             "controller_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
+            default_value=get_package_share_directory("kuka_kmr_iisy_eac_driver")
             + "/config/ros2_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "jtc_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/joint_trajectory_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "jic_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/joint_impedance_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "ec_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/effort_controller_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

@@ -3,10 +3,8 @@ robot_manager:
     control_mode: 7
     client_ip: "0.0.0.0"
     controller_ip: "0.0.0.0"
-    position_controller_name: "joint_trajectory_controller"
-    impedance_controller_name: "joint_group_impedance_controller"
-    torque_controller_name: "effort_controller"
     cartesian_velocity_controller_name: "twist_controller"
+    cartesian_pose_broadcaster_name: "cartesian_pose_broadcaster"
 # Control mode enums:
 #  1 - joint position control
 #  2 - joint impedance control

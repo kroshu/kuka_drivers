@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kuka_iiqka_eac_driver</name>
+  <name>kuka_kmr_iisy_eac_driver</name>
   <version>0.9.0</version>
-  <description>A ROS2 hardware interface for use with KUKA iiQKA OS</description>
+  <description>A ROS2 hardware interface for use with KUKA KMR iisy mobile platform</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
   <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
@@ -18,14 +18,12 @@
   <depend>std_msgs</depend>
   <depend>controller_manager_msgs</depend>
 
-  <exec_depend>kuka_lbr_iisy_support</exec_depend>
   <exec_depend>ros2_control</exec_depend>
-  <exec_depend>joint_trajectory_controller</exec_depend>
   <exec_depend>effort_controllers</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>kuka_control_mode_handler</exec_depend>
   <exec_depend>kuka_event_broadcaster</exec_depend>
-  <exec_depend>joint_group_impedance_controller</exec_depend>
+  <exec_depend>cartesian_pose_broadcaster</exec_depend>
 
   <test_depend>ros2lifecycle</test_depend>
 

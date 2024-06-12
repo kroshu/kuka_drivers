@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(kuka_iiqka_eac_driver)
+project(kuka_kmr_iisy_eac_driver)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -20,6 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
+
 find_package(std_msgs REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(kuka-external-control-sdk CONFIG REQUIRED)
@@ -34,16 +35,16 @@ add_library(${PROJECT_NAME} SHARED
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_IIQKA_EAC_DRIVER_BUILDING_LIBRARY")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KMR_IISY_EAC_DRIVER_BUILDING_LIBRARY")
 
-ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk tf2 tf2_ros std_msgs)
-target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
+ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core  kuka-external-control-sdk tf2 tf2_ros std_msgs  )
+target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk )
 
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk)
+ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs )
+target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk kuka_drivers_core::kuka_iiqka_drivers_core )
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
 

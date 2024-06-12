@@ -1,0 +1,4 @@
+cartesian_pose_broadcaster:
+  ros__parameters:
+    world_frame_name: odom
+    robot_base_name: kmr_iisy_body_dummy
