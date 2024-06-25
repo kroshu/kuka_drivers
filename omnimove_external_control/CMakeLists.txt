@@ -25,10 +25,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 
 include_directories(include)
 
-install(DIRECTORY
-  config
-  DESTINATION share/${PROJECT_NAME}/
-)
 
 ## COMPILE
 add_library(
