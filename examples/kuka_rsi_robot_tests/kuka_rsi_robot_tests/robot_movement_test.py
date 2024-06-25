@@ -25,6 +25,25 @@ class RobotManagerClient(Node):
         self.action_client = None
         self.start_movement_service = None
         self.movement_done = Event()
+        self.declare_parameter("robot_type", "")
+        robot_type = self.get_parameter("robot_type").get_parameter_value().string_value
+        if robot_type == "quantec":
+            self.home_pos_1 = 0.0299
+            self.home_pos_2 = -2.38422
+            self.home_pos_3 = 2.3471
+            self.home_pos_4 = 0.0
+            self.home_pos_5 = 1.5943
+            self.home_pos_6 = -2.83578
+        elif robot_type == "iontec":
+            self.home_pos_1 = 0.0
+            self.home_pos_2 = -2.3911
+            self.home_pos_3 = 2.6529
+            self.home_pos_4 = 0.0
+            self.home_pos_5 = 1.308
+            self.home_pos_6 = 0.0
+        else:
+            self.get_logger().error("Unknown robot type. Exiting")
+            rclpy.shutdown()
         if self.start_service is True:
             self.service_group = service_group
             self.start_movement_service = self.create_service(
@@ -59,69 +78,74 @@ class RobotManagerClient(Node):
         self.create_movements()
 
     def create_movements(self):
-        home_pos_1 = 0.0299
-        home_pos_2 = -2.38422
-        home_pos_3 = 2.3471
-        home_pos_4 = 0.0
-        home_pos_5 = 1.5943
-        home_pos_6 = -2.83578
-        home_pos = [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
+        home_pos = [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+                    self.home_pos_4, self.home_pos_5, self.home_pos_6]
         # moving around joint_!
         self.moves = []
         self.times = []
         self.moves.append(
-            [home_pos_1 + 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
+            [self.home_pos_1 + 0.4, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(6)
         self.moves.append(
-            [home_pos_1 - 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
+            [self.home_pos_1 - 0.4, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(12)
         self.moves.append(home_pos)
         self.times.append(6)
         # joint2 only moving in one direction since we are at the limit
         self.moves.append(
-            [home_pos_1, home_pos_2 + 0.4, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
+            [self.home_pos_1, self.home_pos_2 + 0.4, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(10)
         self.moves.append(home_pos)
         self.times.append(10)
         # joint3 only moving in one direction since we are at the limit
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3 - 0.4, home_pos_4, home_pos_5, home_pos_6]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3 - 0.4,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(10)
         self.moves.append(home_pos)
         self.times.append(10)
         # joint4
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4 + 0.4, home_pos_5, home_pos_6]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4 + 0.4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(5)
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4 - 0.4, home_pos_5, home_pos_6]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4 - 0.4, self.home_pos_5, self.home_pos_6]
         )
         self.times.append(5)
         self.moves.append(home_pos)
         self.times.append(5)
         # joint5
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 + 0.4, home_pos_6]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5 + 0.4, self.home_pos_6]
         )
         self.times.append(5)
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 - 0.4, home_pos_6]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5 - 0.4, self.home_pos_6]
         )
         self.times.append(10)
         self.moves.append(home_pos)
         self.times.append(5)
         # joint6
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 + 0.4]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6 + 0.4]
         )
         self.times.append(5)
         self.moves.append(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 - 0.4]
+            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
+             self.home_pos_4, self.home_pos_5, self.home_pos_6 - 0.4]
         )
         self.times.append(10)
         self.moves.append(home_pos)
@@ -218,58 +242,6 @@ class RobotManagerClient(Node):
     def action_done_callback(self, future):
         self.get_logger().info("action finished in callback")
         self.start_next_movement()
-
-    def start_robot_movements(self):
-        self.get_logger().info("Robot movement starting")
-        home_pos_1 = 0.0
-        home_pos_2 = -2.3911
-        home_pos_3 = 2.6529
-        home_pos_4 = 0.0
-        home_pos_5 = 1.308
-        home_pos_6 = 0.0
-        home_pos = [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6]
-        # moving around joint_!
-        self.start_robot_movement(
-            [home_pos_1 + 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 6
-        )
-        self.start_robot_movement(
-            [home_pos_1 - 0.4, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 12
-        )
-        self.start_robot_movement(home_pos, 6)
-        # joint2 only moving in one direction since we are at the limit
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2 + 0.4, home_pos_3, home_pos_4, home_pos_5, home_pos_6], 10
-        )
-        self.start_robot_movement(home_pos, 10)
-        # joint3 only moving in one direction since we are at the limit
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3 - 0.4, home_pos_4, home_pos_5, home_pos_6], 10
-        )
-        self.start_robot_movement(home_pos, 10)
-        # joint4
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4 + 0.4, home_pos_5, home_pos_6], 5
-        )
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4 - 0.4, home_pos_5, home_pos_6], 5
-        )
-        self.start_robot_movement(home_pos, 5)
-        # joint5
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 + 0.4, home_pos_6], 5
-        )
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5 - 0.4, home_pos_6], 10
-        )
-        self.start_robot_movement(home_pos, 5)
-        # joint6
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 + 0.4], 5
-        )
-        self.start_robot_movement(
-            [home_pos_1, home_pos_2, home_pos_3, home_pos_4, home_pos_5, home_pos_6 - 0.4], 10
-        )
-        self.start_robot_movement(home_pos, 5)
 
     def do_robot_movements(self):
         self.activate_robot()

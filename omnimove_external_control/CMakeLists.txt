@@ -14,7 +14,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_srvs REQUIRED)
-include(ConfigExtras.cmake)
+find_package(Boost REQUIRED COMPONENTS chrono)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   hardware_interface
@@ -72,4 +72,3 @@ ament_export_libraries(
   omnimove_external_control
   ${BOOST_LIBRARIES}
 )
-ament_package(CONFIG_EXTRAS ConfigExtras.cmake)

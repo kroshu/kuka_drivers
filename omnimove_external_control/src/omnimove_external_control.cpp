@@ -89,8 +89,6 @@ hardware_interface::CallbackReturn OmnimoveExternalControl::on_cleanup(
 hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
   const rclcpp_lifecycle::State & previous_state)
 {
-  // TODO: need to stop listening here
-  // client_socket_->shutdown ();
   client_socket_->shutdown(client_socket_->shutdown_both);
   acceptor_->close();
   return SystemInterface::on_shutdown(previous_state);
@@ -98,15 +96,10 @@ hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
 
 CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::State & previous_state)
 {
-  //        client_socket_ = std::make_shared<tcp::socket>(io_service_);
-  //      client_socket_->connect(tcp::endpoint(address::from_string(external_control_host_),
-  //      external_control_port_));
   try
   {
     acceptor_.reset(
       new tcp::acceptor(io_context_, tcp::endpoint(tcp::v4(), external_control_port_)));
-    // tcp::acceptor *accepter = new tcp::acceptor(io_context, tcp::endpoint(tcp::v4(),
-    // external_control_port_));
   }
   catch (std::exception & e)
   {
@@ -213,9 +206,6 @@ ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
       read_buffer_.size());
     return ExternalControlData();
   }
-  //        RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"),
-  //                     "last_message_start %lu, read_buffer_size %lu", last_message_start,
-  //                     read_buffer_.size ());
 
   for (size_t i = 0; i < last_message_start; ++i)
   {
@@ -246,10 +236,8 @@ ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
   ExternalControlData parsedData(msg_data.get() + 8);
   read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin() + expected_data_size);
   return parsedData;
-  // now we will connect the latest message
-
-  // ExternalControlData received_data(read_buffer_.);
 }
+
 hardware_interface::return_type OmnimoveExternalControl::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
@@ -259,18 +247,13 @@ hardware_interface::return_type OmnimoveExternalControl::read(
     RCLCPP_ERROR(rclcpp::get_logger("OmnimoveExternalControl"), "socket is null !!!");
     return return_type::ERROR;
   }
-  //   RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Am waiting to read something if
-  //   available");
   size_t bytes_received = client_socket_->read_some(boost::asio::buffer(buffer));
-  // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "received %lu", bytes_received);
 
   read_buffer_.insert(read_buffer_.end(), buffer.begin(), buffer.begin() + bytes_received);
-  // RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Inserted into buffer");
 
   // parse all messages from the buffer.
   // incomplete messages need to be kept for further reading.
   ExternalControlData readData = parseLastMessageFromBuffer();
-  //  RCLCPP_INFO(rclcpp::get_logger("OmnimoveExternalControl"), "Finished parsing into buffer");
 
   if (readData.isDataValid())
   {
@@ -300,56 +283,44 @@ hardware_interface::return_type OmnimoveExternalControl::read(
 }
 
 hardware_interface::return_type OmnimoveExternalControl::write(
-  const rclcpp::Time &, const rclcpp::Duration &)
+        const rclcpp::Time &, const rclcpp::Duration &)
 {
-  //  RCLCPP_INFO_STREAM(rclcpp::get_logger("OmnimoveExternalControl"), "writing "<<
-  //  velocity_commands_[0]
-  //      <<" "<<velocity_commands_[1]<<" "<<velocity_commands_[2]);
-
-  if (agv_type_ == "caterpillar")
-  {
-    if (velocity_commands_ != last_sent_velocity_commands_)
+    if (velocity_commands_ == last_sent_velocity_commands_)
     {
-      last_sent_velocity_commands_ = velocity_commands_;
-      last_sent_velocity_time_ = boost::chrono::system_clock::now();
-      client_socket_->send(ExternalControlCaterpillarDriveCommand(
-                             velocity_commands_[0], velocity_commands_[1], position_commands_[0],
-                             position_commands_[1], position_commands_[2], position_commands_[3],
-                             position_commands_[4])
-                             .getSerialisedData());
+        //velocity_commands need to constantly change. This acts as a virtual dead man's switch.
+        if (
+            (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
+            boost::chrono::milliseconds(vel_cmd_timeout_ms_))
+        {
+            //send a stop command if no new velocity commands are sent.
+            client_socket_->send(ExternalControlStopCommand().getSerialisedData());
+        }
     }
     else
     {
-      if (
-        (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
-        boost::chrono::milliseconds(vel_cmd_timeout_ms_))
-      {
-        client_socket_->send(ExternalControlStopCommand().getSerialisedData());
-      }
-    }
-  }
-  else
-  {
-    if (velocity_commands_ != last_sent_velocity_commands_)
-    {
-      last_sent_velocity_commands_ = velocity_commands_;
-      last_sent_velocity_time_ = boost::chrono::system_clock::now();
 
-      client_socket_->send(ExternalControlOmnimoveDriveCommand(
-                             velocity_commands_[0], velocity_commands_[1], velocity_commands_[2])
-                             .getSerialisedData());
+        last_sent_velocity_commands_ = velocity_commands_;
+        last_sent_velocity_time_ = boost::chrono::system_clock::now();
+
+
+        if (agv_type_ == "caterpillar")
+        {
+            client_socket_->send(ExternalControlCaterpillarDriveCommand(
+                                     velocity_commands_[0], velocity_commands_[1], position_commands_[0],
+                    position_commands_[1], position_commands_[2], position_commands_[3],
+                    position_commands_[4])
+                    .getSerialisedData());
+
+        }
+        else
+        {
+
+            client_socket_->send(ExternalControlOmnimoveDriveCommand(
+                                     velocity_commands_[0], velocity_commands_[1], velocity_commands_[2])
+                    .getSerialisedData());
+        }
     }
-    else
-    {
-      if (
-        (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
-        boost::chrono::milliseconds(vel_cmd_timeout_ms_))
-      {
-        client_socket_->send(ExternalControlStopCommand().getSerialisedData());
-      }
-    }
-  }
-  return return_type::OK;
+    return return_type::OK;
 }
 
 }  // namespace omnimove

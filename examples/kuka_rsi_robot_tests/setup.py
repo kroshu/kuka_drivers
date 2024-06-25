@@ -20,8 +20,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "quantec_test = kuka_rsi_robot_tests.quantec_test:main",
-            "iontec_test = kuka_rsi_robot_tests.iontec_test:main",
+            "robot_movement_test = kuka_rsi_robot_tests.robot_movement_test:main",
         ],
     },
 )
