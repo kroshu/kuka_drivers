@@ -16,7 +16,6 @@ from threading import Event
 class RobotManagerClient(Node):
     def __init__(self, service_group):
         super().__init__("robot_manager_client")
-        self.times = None
         self.moves = None
         self.current_index = None
         self.actionFinished = None
@@ -25,25 +24,12 @@ class RobotManagerClient(Node):
         self.action_client = None
         self.start_movement_service = None
         self.movement_done = Event()
-        self.declare_parameter("robot_type", "")
-        robot_type = self.get_parameter("robot_type").get_parameter_value().string_value
-        if robot_type == "quantec":
-            self.home_pos_1 = 0.0299
-            self.home_pos_2 = -2.38422
-            self.home_pos_3 = 2.3471
-            self.home_pos_4 = 0.0
-            self.home_pos_5 = 1.5943
-            self.home_pos_6 = -2.83578
-        elif robot_type == "iontec":
-            self.home_pos_1 = 0.0
-            self.home_pos_2 = -2.3911
-            self.home_pos_3 = 2.6529
-            self.home_pos_4 = 0.0
-            self.home_pos_5 = 1.308
-            self.home_pos_6 = 0.0
-        else:
-            self.get_logger().error("Unknown robot type. Exiting")
-            rclpy.shutdown()
+        self.declare_parameter("position_names", [''])
+        position_names = self.get_parameter("position_names").get_parameter_value().string_array_value
+        self.declare_parameter("times", [int()])
+        self.times = self.get_parameter("times").get_parameter_value().integer_array_value
+        self.get_logger().info(f'position names is {position_names}')
+        self.get_logger().info(f'times is {self.times}')
         if self.start_service is True:
             self.service_group = service_group
             self.start_movement_service = self.create_service(
@@ -75,81 +61,17 @@ class RobotManagerClient(Node):
             "/joint_trajectory_controller/follow_joint_trajectory",
             callback_group=action_client_group,
         )
-        self.create_movements()
+        self.create_movements(position_names)
 
-    def create_movements(self):
-        home_pos = [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-                    self.home_pos_4, self.home_pos_5, self.home_pos_6]
-        # moving around joint_!
+    def create_movements(self, position_names):
         self.moves = []
-        self.times = []
-        self.moves.append(
-            [self.home_pos_1 + 0.4, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(6)
-        self.moves.append(
-            [self.home_pos_1 - 0.4, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(12)
-        self.moves.append(home_pos)
-        self.times.append(6)
-        # joint2 only moving in one direction since we are at the limit
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2 + 0.4, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(10)
-        # joint3 only moving in one direction since we are at the limit
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3 - 0.4,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(10)
-        # joint4
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4 + 0.4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(5)
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4 - 0.4, self.home_pos_5, self.home_pos_6]
-        )
-        self.times.append(5)
-        self.moves.append(home_pos)
-        self.times.append(5)
-        # joint5
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5 + 0.4, self.home_pos_6]
-        )
-        self.times.append(5)
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5 - 0.4, self.home_pos_6]
-        )
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(5)
-        # joint6
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6 + 0.4]
-        )
-        self.times.append(5)
-        self.moves.append(
-            [self.home_pos_1, self.home_pos_2, self.home_pos_3,
-             self.home_pos_4, self.home_pos_5, self.home_pos_6 - 0.4]
-        )
-        self.times.append(10)
-        self.moves.append(home_pos)
-        self.times.append(5)
+        for position_name in position_names:
+            param_name = "joint_positions."+position_name
+            if not self.has_parameter(param_name):
+                self.declare_parameter(param_name, [float()])
+            self.moves.append(self.get_parameter(param_name).get_parameter_value().double_array_value)
+
+        self.get_logger().info(f'moves are {self.moves}')
 
     def send_configure(self):
         self.req.transition.id = Transition.TRANSITION_CONFIGURE
