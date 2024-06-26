@@ -1,4 +1,4 @@
-#include "omnimove/platform_move_test.h"
+#include "kuka_utv3_ec_driver/platform_move_test.h"
 #include <chrono>
 #include <future>
 #include <std_srvs/srv/empty.hpp>

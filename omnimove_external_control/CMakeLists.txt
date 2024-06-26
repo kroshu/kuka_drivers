@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(omnimove_external_control)
+project(kuka_utv3_ec_driver)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -30,7 +30,7 @@ include_directories(include)
 add_library(
   omnimove_external_control
   SHARED
-  src/omnimove_external_control.cpp
+  src/kuka_utv3_hardware_interface.cpp
   src/external_control_message.cpp
 )
 

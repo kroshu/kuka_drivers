@@ -7,14 +7,14 @@
 #include <boost/circular_buffer.hpp>
 #include <hardware_interface/handle.hpp>
 #include <hardware_interface/system_interface.hpp>
-#include <omnimove/external_control_message.hpp>
+#include <kuka_utv3_ec_driver/external_control_message.hpp>
 namespace omnimove
 {
-class OmnimoveExternalControl : public hardware_interface::SystemInterface
+class KukaUTV3HardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  OmnimoveExternalControl();
-  ~OmnimoveExternalControl();
+  KukaUTV3HardwareInterface();
+  ~KukaUTV3HardwareInterface();
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
   hardware_interface::return_type read(

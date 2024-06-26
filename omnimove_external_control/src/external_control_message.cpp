@@ -2,7 +2,7 @@
 #include <rcl/logging.h>
 #include <boost/asio.hpp>
 #include <cstring>
-#include <omnimove/external_control_message.hpp>
+#include <kuka_utv3_ec_driver/external_control_message.hpp>
 
 namespace omnimove
 {

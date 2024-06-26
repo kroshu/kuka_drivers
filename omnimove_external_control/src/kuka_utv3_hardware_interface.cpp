@@ -1,9 +1,9 @@
-#include "omnimove/omnimove_external_control.hpp"
+#include "kuka_utv3_ec_driver/omnimove_external_control.hpp"
 #include <boost/array.hpp>
 #include <boost/circular_buffer.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
-#include "omnimove/external_control_message.hpp"
+#include "kuka_utv3_ec_driver/external_control_message.hpp"
 
 using namespace hardware_interface;
 using namespace rclcpp_lifecycle::node_interfaces;
@@ -12,13 +12,13 @@ using namespace std;
 namespace omnimove
 {
 
-OmnimoveExternalControl::OmnimoveExternalControl()
+KukaUTV3HardwareInterface::KukaUTV3HardwareInterface()
 : hardware_interface::SystemInterface(), read_buffer_(4096)
 {
   rclcpp::get_logger("OmnimoveExternalControl") = rclcpp::get_logger("OmnimoveExternalControl");
 }
 
-OmnimoveExternalControl::~OmnimoveExternalControl()
+KukaUTV3HardwareInterface::~KukaUTV3HardwareInterface()
 {
   if (acceptor_->is_open())
   {
@@ -31,7 +31,7 @@ OmnimoveExternalControl::~OmnimoveExternalControl()
   }
 }
 
-LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(
+LifecycleNodeInterface::CallbackReturn KukaUTV3HardwareInterface::on_init(
   const hardware_interface::HardwareInfo & info)
 {
   if (SystemInterface::on_init(info) != LifecycleNodeInterface::CallbackReturn::SUCCESS)
@@ -74,19 +74,19 @@ LifecycleNodeInterface::CallbackReturn OmnimoveExternalControl::on_init(
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn OmnimoveExternalControl::on_configure(
+hardware_interface::CallbackReturn KukaUTV3HardwareInterface::on_configure(
   const rclcpp_lifecycle::State & previous_state)
 {
   return SystemInterface::on_configure(previous_state);
 }
 
-hardware_interface::CallbackReturn OmnimoveExternalControl::on_cleanup(
+hardware_interface::CallbackReturn KukaUTV3HardwareInterface::on_cleanup(
   const rclcpp_lifecycle::State & previous_state)
 {
   return SystemInterface::on_cleanup(previous_state);
 }
 
-hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
+hardware_interface::CallbackReturn KukaUTV3HardwareInterface::on_shutdown(
   const rclcpp_lifecycle::State & previous_state)
 {
   client_socket_->shutdown(client_socket_->shutdown_both);
@@ -94,7 +94,7 @@ hardware_interface::CallbackReturn OmnimoveExternalControl::on_shutdown(
   return SystemInterface::on_shutdown(previous_state);
 }
 
-CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn KukaUTV3HardwareInterface::on_activate(const rclcpp_lifecycle::State & previous_state)
 {
   try
   {
@@ -136,13 +136,13 @@ CallbackReturn OmnimoveExternalControl::on_activate(const rclcpp_lifecycle::Stat
 
   return SystemInterface::on_activate(previous_state);
 }
-hardware_interface::CallbackReturn OmnimoveExternalControl::on_error(
+hardware_interface::CallbackReturn KukaUTV3HardwareInterface::on_error(
   const rclcpp_lifecycle::State & previous_state)
 {
   return SystemInterface::on_error(previous_state);
 }
 
-std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces()
+std::vector<StateInterface> KukaUTV3HardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interface;
   if (agv_type_ == "caterpillar")
@@ -169,7 +169,7 @@ std::vector<StateInterface> OmnimoveExternalControl::export_state_interfaces()
   return state_interface;
 }
 
-std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces()
+std::vector<CommandInterface> KukaUTV3HardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interface;
   if (agv_type_ == "caterpillar")
@@ -192,7 +192,7 @@ std::vector<CommandInterface> OmnimoveExternalControl::export_command_interfaces
   return command_interface;
 }
 
-ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
+ExternalControlData KukaUTV3HardwareInterface::parseLastMessageFromBuffer()
 {
   // assume that sequence will start from the beginning
   const int expected_data_size = ExternalControlData::totalMessageLength();
@@ -238,7 +238,7 @@ ExternalControlData OmnimoveExternalControl::parseLastMessageFromBuffer()
   return parsedData;
 }
 
-hardware_interface::return_type OmnimoveExternalControl::read(
+hardware_interface::return_type KukaUTV3HardwareInterface::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   std::array<char, 1024> buffer;
@@ -282,7 +282,7 @@ hardware_interface::return_type OmnimoveExternalControl::read(
   return return_type::OK;
 }
 
-hardware_interface::return_type OmnimoveExternalControl::write(
+hardware_interface::return_type KukaUTV3HardwareInterface::write(
         const rclcpp::Time &, const rclcpp::Duration &)
 {
     if (velocity_commands_ == last_sent_velocity_commands_)
@@ -326,4 +326,4 @@ hardware_interface::return_type OmnimoveExternalControl::write(
 }  // namespace omnimove
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(omnimove::OmnimoveExternalControl, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(omnimove::KukaUTV3HardwareInterface, hardware_interface::SystemInterface)
