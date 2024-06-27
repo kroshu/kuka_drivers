@@ -24,12 +24,14 @@ class RobotManagerClient(Node):
         self.action_client = None
         self.start_movement_service = None
         self.movement_done = Event()
-        self.declare_parameter("position_names", [''])
-        position_names = self.get_parameter("position_names").get_parameter_value().string_array_value
+        self.declare_parameter("position_names", [""])
+        position_names = (
+            self.get_parameter("position_names").get_parameter_value().string_array_value
+        )
         self.declare_parameter("times", [int()])
         self.times = self.get_parameter("times").get_parameter_value().integer_array_value
-        self.get_logger().info(f'position names is {position_names}')
-        self.get_logger().info(f'times is {self.times}')
+        self.get_logger().info(f"position names is {position_names}")
+        self.get_logger().info(f"times is {self.times}")
         if self.start_service is True:
             self.service_group = service_group
             self.start_movement_service = self.create_service(
@@ -66,12 +68,14 @@ class RobotManagerClient(Node):
     def create_movements(self, position_names):
         self.moves = []
         for position_name in position_names:
-            param_name = "joint_positions."+position_name
+            param_name = "joint_positions." + position_name
             if not self.has_parameter(param_name):
                 self.declare_parameter(param_name, [float()])
-            self.moves.append(self.get_parameter(param_name).get_parameter_value().double_array_value)
+            self.moves.append(
+                self.get_parameter(param_name).get_parameter_value().double_array_value
+            )
 
-        self.get_logger().info(f'moves are {self.moves}')
+        self.get_logger().info(f"moves are {self.moves}")
 
     def send_configure(self):
         self.req.transition.id = Transition.TRANSITION_CONFIGURE

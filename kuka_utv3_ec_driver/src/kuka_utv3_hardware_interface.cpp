@@ -95,7 +95,7 @@ hardware_interface::CallbackReturn KukaUTV3HardwareInterface::on_shutdown(
 }
 
 CallbackReturn KukaUTV3HardwareInterface::on_activate(
-        const rclcpp_lifecycle::State & previous_state)
+  const rclcpp_lifecycle::State & previous_state)
 {
   try
   {
@@ -288,37 +288,33 @@ hardware_interface::return_type KukaUTV3HardwareInterface::write(
 {
   if (velocity_commands_ == last_sent_velocity_commands_)
   {
-    //velocity_commands need to constantly change. This acts as a virtual dead man's switch.
+    // velocity_commands need to constantly change. This acts as a virtual dead man's switch.
     if (
-        (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
-        boost::chrono::milliseconds(vel_cmd_timeout_ms_))
+      (boost::chrono::system_clock::now() - last_sent_velocity_time_) >
+      boost::chrono::milliseconds(vel_cmd_timeout_ms_))
     {
-      //send a stop command if no new velocity commands are sent.
+      // send a stop command if no new velocity commands are sent.
       client_socket_->send(ExternalControlStopCommand().getSerialisedData());
     }
   }
   else
   {
-
     last_sent_velocity_commands_ = velocity_commands_;
     last_sent_velocity_time_ = boost::chrono::system_clock::now();
-
 
     if (agv_type_ == "caterpillar")
     {
       client_socket_->send(ExternalControlCaterpillarDriveCommand(
                              velocity_commands_[0], velocity_commands_[1], position_commands_[0],
-          position_commands_[1], position_commands_[2], position_commands_[3],
-          position_commands_[4])
-          .getSerialisedData());
-
+                             position_commands_[1], position_commands_[2], position_commands_[3],
+                             position_commands_[4])
+                             .getSerialisedData());
     }
     else
     {
-
       client_socket_->send(ExternalControlOmnimoveDriveCommand(
                              velocity_commands_[0], velocity_commands_[1], velocity_commands_[2])
-          .getSerialisedData());
+                             .getSerialisedData());
     }
   }
   return return_type::OK;
