@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<library path="omnimove_external_control">
-  <class type="omnimove::OmnimoveExternalControl"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>ros2_control hardware interface for Omnimove platform</description>
-  </class>
-</library>

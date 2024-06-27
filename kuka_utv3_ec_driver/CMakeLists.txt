@@ -28,7 +28,7 @@ include_directories(include)
 
 ## COMPILE
 add_library(
-  omnimove_external_control
+  kuka_utv3_ec_driver
   SHARED
   src/kuka_utv3_hardware_interface.cpp
   src/external_control_message.cpp
@@ -43,15 +43,15 @@ ament_target_dependencies(
     rclcpp std_msgs std_srvs
 )
 
-install(TARGETS omnimove_external_control
+install(TARGETS kuka_utv3_ec_driver
   DESTINATION lib)
 
 install(TARGETS platform_move_test
   DESTINATION lib/${PROJECT_NAME})
 
 
-ament_target_dependencies(omnimove_external_control PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
-pluginlib_export_plugin_description_file(hardware_interface omnimove_external_control.xml)
+ament_target_dependencies(kuka_utv3_ec_driver PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
+pluginlib_export_plugin_description_file(hardware_interface kuka_utv3_ec_driver.xml)
 
 if(BUILD_TESTING)
   #find_package(ament_lint_auto REQUIRED)
@@ -65,6 +65,7 @@ if(BUILD_TESTING)
   #ament_lint_auto_find_test_dependencies()
 endif()
 ament_export_libraries(
-  omnimove_external_control
+  kuka_utv3_ec_driver
   ${BOOST_LIBRARIES}
 )
+ament_package()
