@@ -2,8 +2,8 @@
 Changelog for package kuka_iiqka_eac_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.1 (2024-07-08)
+------------------
 * Add missing test dependency
 * launch_testing_ament_cmake
 * Contributors: Aron Svastits
