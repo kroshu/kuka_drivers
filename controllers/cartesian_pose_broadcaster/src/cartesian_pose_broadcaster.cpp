@@ -64,7 +64,7 @@ controller_interface::CallbackReturn
 CartesianPoseBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
   params_ = param_listener_->get_params();
-  if (params_.world_frame_name.empty() && params_.robot_base_name.empty())
+  if (params_.world_frame_name.empty() || params_.robot_base_name.empty())
   {
     RCLCPP_ERROR(
       get_node()->get_logger(),

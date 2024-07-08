@@ -30,7 +30,7 @@ static constexpr char TWIST_PREFIX[] = "twist";
 static constexpr char LINEAR_PREFIX[] = "linear";
 static constexpr char ANGULAR_PREFIX[] = "angular";
 
-static constexpr char POSE_PREFIX[] = "Pose";
+static constexpr char POSE_PREFIX[] = "pose";
 static constexpr char POSITION_PREFIX[] = "position";
 static constexpr char ORIENTATION_PREFIX[] = "orientation";
 // Constants defining twist interface

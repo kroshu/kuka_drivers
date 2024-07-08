@@ -143,12 +143,12 @@ return_type KukaKMRiisyEACHardwareInterface::read(const rclcpp::Time &, const rc
   m.getRPY(roll,pitch,yaw);
   
   RCLCPP_DEBUG( rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "STATE position: %f, %f, %f",
+        "KukaKMRiisyEACHardwareInterface"), "STATE position: %f, %f, %f",
             hw_pose_state_[0],
             hw_pose_state_[1],
             yaw);
   RCLCPP_DEBUG( rclcpp::get_logger(
-        "KukaRoXHardwareInterface"), "STATE velocity: x:%f, y:%f, theta:%f",
+        "KukaKMRiisyEACHardwareInterface"), "STATE velocity: x:%f, y:%f, theta:%f",
             hw_twist_state_[0],
             hw_twist_state_[1],
             hw_twist_state_[5]);

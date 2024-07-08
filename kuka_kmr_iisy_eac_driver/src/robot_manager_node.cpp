@@ -75,8 +75,6 @@ MobileRobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // Workaround until controller_manager/jtc bug is fixed:
-  std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
   auto controllers = controller_handler_.GetControllersForMode(control_mode_);

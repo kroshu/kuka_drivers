@@ -15,23 +15,8 @@
 #ifndef KUKA_KMR_IISY_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 #define KUKA_KMR_IISY_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 
-#include <chrono>
-#include <cmath>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
 
-#include "hardware_interface/system_interface.hpp"
-#include "pluginlib/class_list_macros.hpp"
-#include "rclcpp/macros.hpp"
-#include "rclcpp/rclcpp.hpp"
-
-#include "kuka/external-control-sdk/iiqka/sdk.h"
-#include "rclcpp_lifecycle/state.hpp"
 #include "kuka_iiqka_drivers_core/hardware_interface_base.hpp"
-#include "kuka_drivers_core/hardware_event.hpp"
 
 #include "kuka_kmr_iisy_eac_driver/visibility_control.h"
 #include <geometry_msgs/msg/twist.hpp>

@@ -27,12 +27,6 @@ def launch_setup(context, *args, **kwargs):
     client_ip = LaunchConfiguration("client_ip")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     ns = LaunchConfiguration("namespace")
-    x = LaunchConfiguration("x")
-    y = LaunchConfiguration("y")
-    z = LaunchConfiguration("z")
-    roll = LaunchConfiguration("roll")
-    pitch = LaunchConfiguration("pitch")
-    yaw = LaunchConfiguration("yaw")
     roundtrip_time = LaunchConfiguration("roundtrip_time")
     qos_config = LaunchConfiguration("qos_config")
     controller_config = LaunchConfiguration("controller_config")
@@ -67,24 +61,6 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "prefix:=",
             tf_prefix,
-            " ",
-            "x:=",
-            x,
-            " ",
-            "y:=",
-            y,
-            " ",
-            "z:=",
-            z,
-            " ",
-            "roll:=",
-            roll,
-            " ",
-            "pitch:=",
-            pitch,
-            " ",
-            "yaw:=",
-            yaw,
             " ",
             "roundtrip_time:=",
             roundtrip_time,
@@ -184,12 +160,6 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
-    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="2500"))
     launch_arguments.append(
         DeclareLaunchArgument(

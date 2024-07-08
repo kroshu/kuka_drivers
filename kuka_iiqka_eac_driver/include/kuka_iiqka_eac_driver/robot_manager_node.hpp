@@ -36,29 +36,6 @@ private:
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
 
-  /*rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
-    change_hardware_state_client_;
-  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
-    change_controller_state_client_;
-  rclcpp::CallbackGroup::SharedPtr cbg_;
-  rclcpp::CallbackGroup::SharedPtr event_cbg_;
-  std::string robot_model_;
-
-  kuka_drivers_core::ControllerHandler controller_handler_;
-  kuka_drivers_core::ControlMode control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-
-  std::atomic<bool> terminate_{false};
-
-  std::condition_variable control_mode_cv_;
-  std::mutex control_mode_cv_m_;
-  bool control_mode_change_finished_ = false;
-  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
-
-  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;
-  std_msgs::msg::Bool is_configured_msg_;
-
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;*/
 };
 
 }  // namespace kuka_eac

@@ -7,5 +7,5 @@ cartesian_pose_broadcaster:
   robot_base_name: {
     type: string,
     default_value: "",
-    description: "Name of the interfaces to command",
+    description: "Name of the base frame of the robot urdf",
   }
