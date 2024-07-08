@@ -13,13 +13,12 @@
 // limitations under the License.
 
 #include <chrono>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
 
 #include "rclcpp/logging.hpp"
-
-#include <iostream>
 
 #include "kuka_sunrise_fri_driver/fri_connection.hpp"
 #include "kuka_sunrise_fri_driver/serialization.hpp"
