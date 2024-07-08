@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_sunrise_fri_driver</name>
-  <version>0.9.0</version>
+  <version>0.9.1</version>
   <description>ROS2 KUKA sunrise interface</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
@@ -29,6 +29,9 @@
   <exec_depend>kuka_event_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>
   <exec_depend>kuka_lbr_iiwa_support</exec_depend>
+
+  <test_depend>ros2lifecycle</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
