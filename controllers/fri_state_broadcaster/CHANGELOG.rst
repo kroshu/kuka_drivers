@@ -2,7 +2,7 @@
 Changelog for package fri_state_broadcaster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.0 (2024-07-08)
+------------------
 * Add controller for broadcasting FRI states
 * Contributors: Aron Svastits
