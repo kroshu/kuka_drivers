@@ -174,7 +174,7 @@ protected:
     if (message != NULL && message->has_monitorData == true) {
       const MessageMonitorData & monData = message->monitorData;
       const bool analogValue = (ioType == FriIOType_ANALOG);
-      const bool digitalValue = (ioType == FriIOType_DIGITAL | ioType == FriIOType_BOOLEAN);
+      const bool digitalValue = (ioType == FriIOType_DIGITAL || ioType == FriIOType_BOOLEAN);
       for (size_t i = 0; i < monData.readIORequest_count; i++) {
         const FriIOValue & ioValue = monData.readIORequest[i];
         if (strcmp(name, ioValue.name) == 0) {
@@ -221,7 +221,7 @@ protected:
       strncpy(ioValue.name, name, sizeof(ioValue.name) - 1);
       ioValue.name[sizeof(ioValue.name) - 1] = 0;       // ensure termination
       ioValue.type = ioType;
-      ioValue.has_digitalValue = (ioType == FriIOType_DIGITAL | ioType == FriIOType_BOOLEAN);
+      ioValue.has_digitalValue = (ioType == FriIOType_DIGITAL || ioType == FriIOType_BOOLEAN);
       ioValue.has_analogValue = (ioType == FriIOType_ANALOG);
       ioValue.direction = FriIODirection_OUTPUT;
 

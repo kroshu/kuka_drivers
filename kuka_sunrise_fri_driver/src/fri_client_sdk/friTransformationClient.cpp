@@ -91,13 +91,13 @@ const std::vector<const char *> & TransformationClient::getRequestedTransformati
 }
 
 //******************************************************************************
-const unsigned int TransformationClient::getTimestampSec() const
+unsigned int TransformationClient::getTimestampSec() const
 {
   return _data->monitoringMsg.monitorData.timestamp.sec;
 }
 
 //******************************************************************************
-const unsigned int TransformationClient::getTimestampNanoSec() const
+unsigned int TransformationClient::getTimestampNanoSec() const
 {
   return _data->monitoringMsg.monitorData.timestamp.nanosec;
 }
