@@ -20,7 +20,7 @@ package_name = "kuka_rsi_simulator"
 
 setup(
     name=package_name,
-    version="0.9.1",
+    version="0.9.2",
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
