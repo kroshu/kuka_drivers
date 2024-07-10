@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_rsi_simulator</name>
-  <version>0.9.1</version>
+  <version>0.9.2</version>
   <description>Simple package for simulating the KUKA RSI interface</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <license>Apache-2.0</license>

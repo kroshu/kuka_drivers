@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>kuka_controllers</name>
-  <version>0.9.1</version>
+  <version>0.9.2</version>
   <description>ROS2 controllers for KUKA robots</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <license>Apache-2.0</license>

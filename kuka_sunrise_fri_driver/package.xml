@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_sunrise_fri_driver</name>
-  <version>0.9.1</version>
+  <version>0.9.2</version>
   <description>ROS2 KUKA sunrise interface</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
