@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 namespace kuka_sunrise_fri_driver
 {

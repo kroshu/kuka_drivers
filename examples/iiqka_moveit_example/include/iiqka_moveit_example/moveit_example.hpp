@@ -109,7 +109,7 @@ public:
     else
     {
       RCLCPP_INFO(LOGGER, "Planning successful");
-      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
+      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory);
     }
   }
 
@@ -127,7 +127,7 @@ public:
     else
     {
       RCLCPP_INFO(LOGGER, "Planning successful");
-      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
+      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory);
     }
   }
 
@@ -153,7 +153,7 @@ public:
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     RCLCPP_INFO(LOGGER, "Planning successful after %li ms", duration.count());
-    return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory_);
+    return std::make_shared<moveit_msgs::msg::RobotTrajectory>(plan.trajectory);
   }
 
   void AddObject(const moveit_msgs::msg::CollisionObject & object)
