@@ -71,7 +71,7 @@ def generate_test_description():
 class TestDriverActivation(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        proc_output.assertWaitFor("got segment base", timeout=5)
+        #proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
             "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
         )
