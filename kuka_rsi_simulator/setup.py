@@ -39,4 +39,6 @@ setup(
     entry_points={
         "console_scripts": ["rsi_simulator = kuka_rsi_simulator.rsi_simulator:main"],
     },
+    tests_require=['pytest'],
+    test_suite='test',
 )
