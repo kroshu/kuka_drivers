@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     jtc_config = LaunchConfiguration("jtc_config")
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
+    etb_config= LaunchConfiguration("etb_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -116,6 +117,7 @@ def launch_setup(context, *args, **kwargs):
             jtc_config,
             jic_config,
             ec_config,
+            etb_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -159,6 +161,7 @@ def launch_setup(context, *args, **kwargs):
 
     controller_names = [
         "joint_state_broadcaster",
+        "external_torque_broadcaster",
         "joint_trajectory_controller",
         "fri_configuration_controller",
         "fri_state_broadcaster",
@@ -220,6 +223,13 @@ def generate_launch_description():
             "ec_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/effort_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "etb_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/external_torque_broadcaster_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
