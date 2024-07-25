@@ -11,6 +11,7 @@ on:
       - master
       - feature/**
       - fix/**
+      - humble
     paths-ignore:
       - doc/**
       - '**.md'
