@@ -71,8 +71,6 @@ def generate_test_description():
 class TestMultiStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        #proc_output.assertWaitFor("got segment test1_base", timeout=20)
-        #proc_output.assertWaitFor("got segment test2_base", timeout=20)
         proc_output.assertWaitFor(
             "Successful initialization of hardware 'test1_kr6_r700_sixx'", timeout=20
         )
