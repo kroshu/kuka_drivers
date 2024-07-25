@@ -9,8 +9,10 @@ on:
   push:
     branches:
       - master
+      - humble
       - feature/**
       - fix/**
+      - humble
     paths-ignore:
       - doc/**
       - '**.md'
