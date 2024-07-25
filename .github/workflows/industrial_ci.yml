@@ -11,7 +11,6 @@ on:
       - master
       - feature/**
       - fix/**
-      - humble
     paths-ignore:
       - doc/**
       - '**.md'
@@ -35,7 +34,7 @@ jobs:
       ANALYZER: sonarqube
       TEST_COVERAGE: true
       UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#master'
-      ROS_DISTRO: humble
+      ROS_DISTRO: jazzy
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
@@ -44,12 +43,12 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
       DEBUG_BASH: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Reset ANALYZER for scheduled and push runs
         run: |
-          if [[ "${{ github.event_name }}" == "schedule" ]] || { [[ "${{ github.event_name }}" == "push" ]] && [[ "${{ github.ref }}" != "refs/heads/master" ]]; }; then
-            echo "ANALYZER=" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "schedule" ]] || { [[ "${{ github.event_name }}" == "push" ]] && { [[ "${{ github.ref }}" != "refs/heads/master" ]] || [[ "${{ github.ref }}" != "refs/heads/humble" ]]; } }; then
+              echo "ANALYZER=" >> $GITHUB_ENV
           fi
       - uses: actions/checkout@v2
         with:
