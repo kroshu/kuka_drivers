@@ -27,7 +27,7 @@ find_package(std_srvs)
 find_package(nanopb REQUIRED)
 
 find_path(NANOPB_INCLUDE_DIR
-  NAMES pb.h 
+  NAMES pb.h
   PATHS /usr/include/nanopb /usr/local/include/nanopb
 )
 
