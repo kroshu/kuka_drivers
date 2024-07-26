@@ -10,7 +10,7 @@ ROS2 Distro | Branch | Github CI | SonarCloud
 # Requirements
 The drivers require a system with ROS installed. It is recommended to use Ubuntu 24.04 with ROS Jazzy.
 
-Additionally, there exists a ROS Humble version of the drivers, and its corresponding configuration can be found under the ‘humble’ branch.
+Additionally, there exists a ROS Humble version of the drivers, and its corresponding configuration can be found under the `humble` branch.
 
 It is also recommended to use a client machine with a real-time kernel, as all three drivers require cyclic, real-time communication. Due to the real-time requirement, Windows systems are not recommended and covered in the documentation.
 
