@@ -71,6 +71,7 @@ def generate_test_description():
 class TestMultiStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
+        proc_output.assertWaitFor("Robot initialized", timeout=20)
         proc_output.assertWaitFor(
             "Successful initialization of hardware 'test1_lbr_iiwa14_r820'", timeout=20
         )
