@@ -2,12 +2,13 @@
 
 This repository contains ROS2 drivers for all KUKA operating systems.
 
-Github CI | SonarCloud
-------------| ---------------
-[![Build Status](https://github.com/kroshu//kuka_drivers/workflows/CI/badge.svg?branch=master)](https://github.com/kroshu/kuka_drivers/actions) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers&metric=alert_status)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers)
+ROS2 Distro | Branch | Github CI | SonarCloud
+------------ | -------------- | -------------- | --------------
+**Jazzy** | [`master`](https://github.com/kroshu/kuka_drivers/tree/master) | [![Build Status](https://github.com/kroshu//kuka_drivers/actions/workflows/industrial_ci.yml/badge.svg?branch=master)](https://github.com/kroshu/kuka_drivers/actions) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers&metric=alert_status)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers)
+**Humble** | [`humble`](https://github.com/kroshu/kuka_drivers/tree/humble) | [![Build Status](https://github.com/kroshu//kuka_drivers/actions/workflows/industrial_ci.yml/badge.svg?branch=humble)](https://github.com/kroshu/kuka_drivers/actions) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers&metric=alert_status&branch=humble)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers)
 
 # Requirements
-The drivers require a system with ROS installed. It is recommended to use Ubuntu 22.04 with ROS humble. Iron Irwini has breaking changes in the moveit API, thus it is not yet supported.
+The drivers require a system with ROS installed. It is recommended to use Ubuntu 22.04 with ROS Humble.
 
 It is also recommended to use a client machine with a real-time kernel, as all three drivers require cyclic, real-time communication. Due to the real-time requirement, Windows systems are not recommended and covered in the documentation.
 
