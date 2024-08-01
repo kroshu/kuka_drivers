@@ -1,10 +1,11 @@
 robot_manager:
   ros__parameters:
-    control_mode: 1
+    control_mode: 8
     position_controller_name: "joint_trajectory_controller"
     torque_controller_name: "effort_controller"
+    wrench_controller_name: "wrench_controller"
     receive_multiplier: 1
-    send_period_ms: 10
+    send_period_ms: 5
     joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     joint_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
     cartesian_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]

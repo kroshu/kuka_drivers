@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100  # Hz
+    update_rate: 200  # Hz
 
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
@@ -12,6 +12,8 @@ controller_manager:
       type: kuka_controllers/FRIStateBroadcaster
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+    wrench_controller:
+      type: kuka_controllers/WrenchController
 
     # Configuration controllers
     joint_group_impedance_controller:

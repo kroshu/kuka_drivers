@@ -42,6 +42,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
+  hw_wrench_commands_.resize(6); // it's always 6 dof: force x,y,z; torque x,y,z
 
   if (info_.gpios.size() != 1)
   {
@@ -203,7 +204,12 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
-
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+      hw_stiffness_commands_.resize(6); // TODO(misi) find a better place for this
+      hw_damping_commands_.resize(6);
+      fri_connection_->setCartesianImpedanceControlMode(hw_stiffness_commands_, hw_damping_commands_); // Misi TODO this method
+      fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
+      break;
     default:
       RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported control mode");
       return CallbackReturn::ERROR;
@@ -360,6 +366,17 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       robotCommand().setTorque(joint_torques_);
       break;
     }
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+    {
+      const double * wrench_efforts = hw_wrench_commands_.data();
+      const double * joint_pos = robotState().getMeasuredJointPosition();
+      std::array<double, DOF> joint_pos_corr;
+      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr.begin());
+      activateFrictionCompensation(joint_pos_corr.data());
+      robotCommand().setJointPosition(joint_pos_corr.data());
+      robotCommand().setWrench(wrench_efforts);
+      break;
+    }
     default:
       RCLCPP_ERROR(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
@@ -461,6 +478,25 @@ KukaFRIHardwareInterface::export_command_interfaces()
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
   command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+      hardware_interface::HW_IF_X, &hw_wrench_commands_[0]);
+  command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+      hardware_interface::HW_IF_Y, &hw_wrench_commands_[1]);
+  command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+      hardware_interface::HW_IF_Z, &hw_wrench_commands_[2]);
+  command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+      hardware_interface::HW_IF_X, &hw_wrench_commands_[3]);
+  command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+      hardware_interface::HW_IF_Y, &hw_wrench_commands_[4]);
+  command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+      hardware_interface::HW_IF_Z, &hw_wrench_commands_[5]);
+
+  command_interfaces.emplace_back(
       std::string("CartDOF") + "." + std::string("X"),
       hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[0]);
   command_interfaces.emplace_back(
@@ -504,7 +540,9 @@ void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) con
 {
   for (int i = 0; i < DOF; i++)
   {
-    values[i] -= (values[i] / fabs(values[i]) * 0.1);
+    if (values[i]!=0.0){ // Check for devision by zero (very unlikely, but can happen after mastering)
+      values[i] -= (values[i] / fabs(values[i]) * 0.1);
+    }
   }
 }
 

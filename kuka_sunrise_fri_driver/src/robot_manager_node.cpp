@@ -108,6 +108,14 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return this->onControllerNameChangeRequest(
         controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
     });
+  
+  registerParameter<std::string>(
+    "wrench_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE);
+    });
 
   registerParameter<std::vector<double>>(
     "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{true, false},
@@ -306,6 +314,8 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
       // TODO(Svastits): check whether this is necessary for impedance mode too
       [[fallthrough]];
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+      [[fallthrough]];
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       if (send_period_ms_ > 5)
       {
@@ -410,6 +420,9 @@ bool RobotManagerNode::onControllerNameChangeRequest(
     case kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE:
       joint_torque_controller_name_ = controller_name;
       break;
+    case kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE:
+      wrench_controller_name_ = controller_name;
+      break;
     default:
       // This should actually never happen
       RCLCPP_ERROR(get_logger(), "Invalid controller type");
@@ -430,6 +443,8 @@ std::string RobotManagerNode::GetControllerName() const
       return joint_pos_controller_name_;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       return joint_torque_controller_name_;
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+      return wrench_controller_name_;
     default:
       throw std::runtime_error("Stored control mode is not allowed");
   }

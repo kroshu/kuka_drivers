@@ -1,0 +1,12 @@
+wrench_controller:
+  ros__parameters:
+    joints:
+    - wrench
+
+    interface_names:
+    - force/x
+    - force/z 
+    - force/y
+    - torque/x
+    - torque/y
+    - torque/z
