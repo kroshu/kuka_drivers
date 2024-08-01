@@ -16,6 +16,8 @@ controller_manager:
     # Configuration controllers
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController
+    cartesian_impedance_controller:
+      type: kuka_controllers/JointGroupImpedanceController
     fri_configuration_controller:
       type: kuka_controllers/FRIConfigurationController
     control_mode_handler:

@@ -70,6 +70,7 @@ private:
   rclcpp::Publisher<kuka_driver_interfaces::msg::FriConfiguration>::SharedPtr fri_config_pub_;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_imp_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr cart_imp_pub_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
   std_msgs::msg::UInt32 control_mode_msg_;
 
@@ -80,7 +81,8 @@ private:
   std::string joint_torque_controller_name_;
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 100.0);
   std::vector<double> joint_damping_ = std::vector<double>(7, 0.7);
-
+  std::vector<double> cartesian_stiffness_ = {2000.0, 2000.0, 2000.0, 200.0, 200.0, 200.0};
+  std::vector<double> cartesian_damping_ = std::vector<double>(6, 0.7);
   std::string GetControllerName() const;
   bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
@@ -92,6 +94,8 @@ private:
     std::string_view controller_name, kuka_drivers_core::ControllerType controller_type);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
+  bool onCartesianStiffnessChangeRequest(const std::vector<double> & cartesian_stiffness);
+  bool onCartesianDampingChangeRequest(const std::vector<double> & cartesian_damping);
   void setFriConfiguration(int send_period_ms, int receive_multiplier) const;
 
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);

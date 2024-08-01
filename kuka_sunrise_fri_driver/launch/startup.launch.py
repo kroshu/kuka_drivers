@@ -39,6 +39,8 @@ def launch_setup(context, *args, **kwargs):
     jtc_config = LaunchConfiguration("jtc_config")
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
+    cic_config = LaunchConfiguration("cic_config")
+
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -116,6 +118,7 @@ def launch_setup(context, *args, **kwargs):
             jtc_config,
             jic_config,
             ec_config,
+            cic_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -166,6 +169,7 @@ def launch_setup(context, *args, **kwargs):
         "effort_controller",
         "control_mode_handler",
         "event_broadcaster",
+        "cartesian_impedance_controller",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -220,6 +224,13 @@ def generate_launch_description():
             "ec_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/effort_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cic_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/cartesian_impedance_controller_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
