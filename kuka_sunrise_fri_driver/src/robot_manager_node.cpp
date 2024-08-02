@@ -167,6 +167,27 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
   }
+ // Publish the values of the joint impedance parameters to the controller
+  std_msgs::msg::Float64MultiArray joint_imp_msg;
+  for (int i = 0; i < 7; i++)
+  {
+    joint_imp_msg.data.push_back(joint_stiffness_[i]);
+    joint_imp_msg.data.push_back(joint_damping_[i]);
+    RCLCPP_ERROR(get_logger(), "joint stiff: %f, joint damp: %f",
+        joint_stiffness_[i], joint_damping_[i]);
+  }
+  joint_imp_pub_->publish(joint_imp_msg);
+  // Publish the values of the cartesian impedance parameters to the controller
+  std_msgs::msg::Float64MultiArray cart_imp_msg;
+  for (int i = 0; i < 6; i++)
+  {
+    cart_imp_msg.data.push_back(cartesian_stiffness_[i]);
+    cart_imp_msg.data.push_back(cartesian_damping_[i]);
+    RCLCPP_ERROR(get_logger(), "cart stiff: %f, cart damp: %f",
+        cartesian_stiffness_[i], cartesian_damping_[i]);
+
+  }
+  cart_imp_pub_->publish(cart_imp_msg);
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -215,24 +236,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  // Publish the values of the joint impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray joint_imp_msg;
-  for (int i = 0; i < 7; i++)
-  {
-    joint_imp_msg.data.push_back(joint_stiffness_[i]);
-    joint_imp_msg.data.push_back(joint_damping_[i]);
-  }
-  joint_imp_pub_->publish(joint_imp_msg);
-
-  // Publish the values of the cartesian impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray cart_imp_msg;
-  for (int i = 0; i < 6; i++)
-  {
-    cart_imp_msg.data.push_back(cartesian_stiffness_[i]);
-    cart_imp_msg.data.push_back(cartesian_damping_[i]);
-  }
-  cart_imp_pub_->publish(cart_imp_msg);
-
+  
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -517,7 +521,7 @@ bool RobotManagerNode::onCartesianStiffnessChangeRequest(const std::vector<doubl
       return false;
     }
   }
-  
+
   cartesian_stiffness_ = cartesian_stiffness;
   return true;
 }
@@ -531,9 +535,9 @@ bool RobotManagerNode::onCartesianDampingChangeRequest(const std::vector<double>
   }
   for (double cd : cartesian_damping)
   {
-    if (cd < 0 || cd > 1)
+    if (cd < 0.1 || cd > 1)
     {
-      RCLCPP_ERROR(get_logger(), "Cartesian damping values must be >=0 && <=1");
+      RCLCPP_ERROR(get_logger(), "Cartesian damping values must be >=0.1 && <=1");
       return false;
     }
   }
