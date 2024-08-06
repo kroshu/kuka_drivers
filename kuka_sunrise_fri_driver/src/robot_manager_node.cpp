@@ -146,6 +146,10 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
   setFriConfiguration(send_period_ms_, receive_multiplier_);
+  // Publish the values of the cartesian impedance parameters to the controller
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
+   // Publish the values of the joint impedance parameters to the controller
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
 
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -167,28 +171,6 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
   }
- // Publish the values of the joint impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray joint_imp_msg;
-  for (int i = 0; i < 7; i++)
-  {
-    joint_imp_msg.data.push_back(joint_stiffness_[i]);
-    joint_imp_msg.data.push_back(joint_damping_[i]);
-    RCLCPP_ERROR(get_logger(), "joint stiff: %f, joint damp: %f",
-        joint_stiffness_[i], joint_damping_[i]);
-  }
-  joint_imp_pub_->publish(joint_imp_msg);
-  // Publish the values of the cartesian impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray cart_imp_msg;
-  for (int i = 0; i < 6; i++)
-  {
-    cart_imp_msg.data.push_back(cartesian_stiffness_[i]);
-    cart_imp_msg.data.push_back(cartesian_damping_[i]);
-    RCLCPP_ERROR(get_logger(), "cart stiff: %f, cart damp: %f",
-        cartesian_stiffness_[i], cartesian_damping_[i]);
-
-  }
-  cart_imp_pub_->publish(cart_imp_msg);
-
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -462,6 +444,18 @@ void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
   fri_config_pub_->publish(msg);
 }
 
+void RobotManagerNode::setImpedanceConfiguration(const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
+ const std::vector<double> & stiffness, const std::vector<double> & damping) const
+{
+  std_msgs::msg::Float64MultiArray msg;
+  for (std::size_t i = 0; i < stiffness.size(); i++)
+  {
+    msg.data.push_back(stiffness[i]);
+    msg.data.push_back(damping[i]);
+  }
+  pub->publish(msg);
+}
+
 bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)
 {
   if (joint_stiffness.size() != 7)
@@ -478,6 +472,7 @@ bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> &
     }
   }
   joint_stiffness_ = joint_stiffness;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   return true;
 }
 
@@ -497,6 +492,7 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
     }
   }
   joint_damping_ = joint_damping;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   return true;
 }
 
@@ -521,8 +517,9 @@ bool RobotManagerNode::onCartesianStiffnessChangeRequest(const std::vector<doubl
       return false;
     }
   }
-
   cartesian_stiffness_ = cartesian_stiffness;
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
+
   return true;
 }
 
@@ -542,6 +539,7 @@ bool RobotManagerNode::onCartesianDampingChangeRequest(const std::vector<double>
     }
   }
   cartesian_damping_ = cartesian_damping;
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
   return true;
 }
 
