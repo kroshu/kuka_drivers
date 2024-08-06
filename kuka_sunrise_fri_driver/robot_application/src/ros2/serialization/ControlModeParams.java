@@ -10,14 +10,16 @@ import java.util.Arrays;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 
 public abstract class ControlModeParams implements Externalizable{
 	public static int length = 0;
 
 	private enum ControlModeID{
 		POSITION(		(byte)1),
-		JOINT_IMPEDANCE((byte)2);
-
+		JOINT_IMPEDANCE((byte)2),
+		CARTESIAN_IMPEDANCE((byte)3);
+		
 		public final byte value;
 
 		ControlModeID(byte value){
@@ -46,6 +48,9 @@ public abstract class ControlModeParams implements Externalizable{
 				break;
 			case JOINT_IMPEDANCE:
 				controlModeParams = new JointImpedanceControlModeParams();
+				break;
+			case CARTESIAN_IMPEDANCE:
+				controlModeParams = new CartesianImpedanceControlModeParams();
 				break;
 		}
 		serialData = Arrays.copyOfRange(serialData, 1, serialData.length);
@@ -93,5 +98,14 @@ class JointImpedanceControlModeParams extends ControlModeParams{
 	}
 	public JointImpedanceControlModeParams(JointImpedanceControlMode controlMode){
 
+	}
+}
+
+class CartesianImpedanceControlModeParams extends ControlModeParams{
+	public CartesianImpedanceControlModeParams(){
+		
+	}
+	public CartesianImpedanceControlModeParams(CartesianImpedanceControlMode controlMode){
+		
 	}
 }
