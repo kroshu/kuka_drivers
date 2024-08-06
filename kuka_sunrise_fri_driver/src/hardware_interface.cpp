@@ -472,6 +472,10 @@ void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) con
     {
       values[i] -= (values[i] / fabs(values[i]) * 0.1);
     }
+    else
+    {
+      values[i] -= 0.1;
+    }
   }
 }
 
