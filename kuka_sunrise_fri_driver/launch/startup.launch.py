@@ -39,7 +39,7 @@ def launch_setup(context, *args, **kwargs):
     jtc_config = LaunchConfiguration("jtc_config")
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
-    etb_config= LaunchConfiguration("etb_config")
+    etb_config = LaunchConfiguration("etb_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:

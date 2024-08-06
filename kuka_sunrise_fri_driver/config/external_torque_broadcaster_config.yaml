@@ -1,6 +1,6 @@
 external_torque_broadcaster:
   ros__parameters:
-    interfaces: 
+    interfaces:
      - external_torque
     joints:
     - joint_1
