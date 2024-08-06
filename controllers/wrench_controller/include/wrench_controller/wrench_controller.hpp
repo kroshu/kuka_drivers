@@ -30,7 +30,6 @@ class WrenchController : public forward_command_controller::ForwardControllersBa
 {
 public:
   WRENCH_CONTROLLER_PUBLIC WrenchController();
-  WRENCH_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
   WRENCH_CONTROLLER_LOCAL void declare_parameters() override;

@@ -9,4 +9,4 @@ robot_manager:
     joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     joint_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
     cartesian_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
-    cartesian_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    cartesian_stiffness: [2000.0, 2000.0, 2000.0, 200.0, 200.0, 200.0]

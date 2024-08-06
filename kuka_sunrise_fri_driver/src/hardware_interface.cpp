@@ -206,7 +206,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
-      fri_connection_->setCartesianImpedanceControlMode(std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.1));
+      fri_connection_->setCartesianImpedanceControlMode(std::vector<double>(6, 0.0), std::vector<double>(6, 0.1));
       fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
       break;
     default:

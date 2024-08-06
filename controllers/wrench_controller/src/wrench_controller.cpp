@@ -60,31 +60,7 @@ controller_interface::CallbackReturn WrenchController::read_parameters()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn WrenchController::on_init()
-{
-  auto ret = ForwardControllersBase::on_init();
-  if (ret != CallbackReturn::SUCCESS)
-  {
-    return ret;
-  }
 
-  try
-  {
-    // Explicitly set the interfaces parameter declared by the
-    // forward_command_controller
-    get_node()->set_parameter(rclcpp::Parameter(
-      "interface_names",
-      std::vector<std::string>{
-        "x", "y", "z"}));
-  }
-  catch (const std::exception & e)
-  {
-    fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
-    return CallbackReturn::ERROR;
-  }
-
-  return CallbackReturn::SUCCESS;
-}
 }  // namespace kuka_controllers
 
 PLUGINLIB_EXPORT_CLASS(
