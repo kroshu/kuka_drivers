@@ -25,12 +25,10 @@ static constexpr char HW_IF_DAMPING[] = "damping";
 // Constant defining external torque interface
 static constexpr char HW_IF_EXTERNAL_TORQUE[] = "external_torque";
 
-
 // Constand defining cartesian coordinate interfaces
 static constexpr char HW_IF_X[] = "x";
 static constexpr char HW_IF_Y[] = "y";
 static constexpr char HW_IF_Z[] = "z";
-
 
 /* Interface prefixes */
 // Constant defining prefix for I/O interfaces

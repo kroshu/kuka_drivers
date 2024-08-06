@@ -172,7 +172,7 @@ def launch_setup(context, *args, **kwargs):
         "control_mode_handler",
         "event_broadcaster",
         "cartesian_impedance_controller",
-        "wrench_controller"
+        "wrench_controller",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]

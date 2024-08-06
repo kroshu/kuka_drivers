@@ -119,7 +119,7 @@ bool FRIConnection::setJointImpedanceControlMode(
 }
 
 bool FRIConnection::setCartesianImpedanceControlMode(
-    const std::vector<double> & cart_stiffness, const std::vector<double> & cart_damping)
+  const std::vector<double> & cart_stiffness, const std::vector<double> & cart_damping)
 {
   std::vector<std::uint8_t> serialized;
   serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 6 * sizeof(double));

@@ -33,8 +33,7 @@ public:
 
 private:
   WRENCH_CONTROLLER_LOCAL void declare_parameters() override;
-  WRENCH_CONTROLLER_LOCAL controller_interface::CallbackReturn read_parameters()
-    override;
+  WRENCH_CONTROLLER_LOCAL controller_interface::CallbackReturn read_parameters() override;
 
   using Params = wrench_controller::Params;
   using ParamListener = wrench_controller::ParamListener;

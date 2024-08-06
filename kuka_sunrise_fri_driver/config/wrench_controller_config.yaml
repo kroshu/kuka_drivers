@@ -5,7 +5,7 @@ wrench_controller:
 
     interface_names:
     - force/x
-    - force/z 
+    - force/z
     - force/y
     - torque/x
     - torque/y

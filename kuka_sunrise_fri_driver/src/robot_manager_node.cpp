@@ -59,7 +59,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   joint_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
     "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
-  
+
   cart_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
     "cartesian_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
 
@@ -108,7 +108,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return this->onControllerNameChangeRequest(
         controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
     });
-  
+
   registerParameter<std::string>(
     "wrench_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
@@ -128,12 +128,14 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     { return this->onJointDampingChangeRequest(joint_damping); });
 
   registerParameter<std::vector<double>>(
-    "cartesian_stiffness", cartesian_stiffness_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "cartesian_stiffness", cartesian_stiffness_,
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::vector<double> & cartesian_stiffness)
     { return this->onCartesianStiffnessChangeRequest(cartesian_stiffness); });
 
   registerParameter<std::vector<double>>(
-    "cartesian_damping", cartesian_damping_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "cartesian_damping", cartesian_damping_,
+    kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::vector<double> & cartesian_damping)
     { return this->onCartesianDampingChangeRequest(cartesian_damping); });
 }
@@ -148,7 +150,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   setFriConfiguration(send_period_ms_, receive_multiplier_);
   // Publish the values of the cartesian impedance parameters to the controller
   setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
-   // Publish the values of the joint impedance parameters to the controller
+  // Publish the values of the joint impedance parameters to the controller
   setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
 
   // Configure hardware interface
@@ -218,7 +220,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -262,7 +263,9 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER, kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER},
+        change_controller_state_client_,
+        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER,
+         kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
          kuka_drivers_core::FRI_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))
@@ -444,8 +447,9 @@ void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
   fri_config_pub_->publish(msg);
 }
 
-void RobotManagerNode::setImpedanceConfiguration(const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
- const std::vector<double> & stiffness, const std::vector<double> & damping) const
+void RobotManagerNode::setImpedanceConfiguration(
+  const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
+  const std::vector<double> & stiffness, const std::vector<double> & damping) const
 {
   std_msgs::msg::Float64MultiArray msg;
   for (std::size_t i = 0; i < stiffness.size(); i++)
@@ -496,24 +500,29 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
   return true;
 }
 
-bool RobotManagerNode::onCartesianStiffnessChangeRequest(const std::vector<double> & cartesian_stiffness)
+bool RobotManagerNode::onCartesianStiffnessChangeRequest(
+  const std::vector<double> & cartesian_stiffness)
 {
   if (cartesian_stiffness.size() != 6)
   {
     RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter cartesian stiffness");
     return false;
   }
-  for (std::size_t i=0; i<3; i++){
+  for (std::size_t i = 0; i < 3; i++)
+  {
     if (cartesian_stiffness[i] < 0 || cartesian_stiffness[i] > 5000)
     {
-      RCLCPP_ERROR(get_logger(), "Translational stiffness values must be between 0.0 and 5000.0 (N/m)");
+      RCLCPP_ERROR(
+        get_logger(), "Translational stiffness values must be between 0.0 and 5000.0 (N/m)");
       return false;
     }
   }
-  for (std::size_t i=3; i<6; i++){
+  for (std::size_t i = 3; i < 6; i++)
+  {
     if (cartesian_stiffness[i] < 0 || cartesian_stiffness[i] > 300)
     {
-      RCLCPP_ERROR(get_logger(), "Rotaional stiffness values must be between 0.0 and 300.0 (N/rad)");
+      RCLCPP_ERROR(
+        get_logger(), "Rotaional stiffness values must be between 0.0 and 300.0 (N/rad)");
       return false;
     }
   }
@@ -523,7 +532,8 @@ bool RobotManagerNode::onCartesianStiffnessChangeRequest(const std::vector<doubl
   return true;
 }
 
-bool RobotManagerNode::onCartesianDampingChangeRequest(const std::vector<double> & cartesian_damping)
+bool RobotManagerNode::onCartesianDampingChangeRequest(
+  const std::vector<double> & cartesian_damping)
 {
   if (cartesian_damping.size() != 6)
   {
@@ -542,7 +552,6 @@ bool RobotManagerNode::onCartesianDampingChangeRequest(const std::vector<double>
   setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
   return true;
 }
-
 
 void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {

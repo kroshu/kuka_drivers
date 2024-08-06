@@ -60,7 +60,6 @@ controller_interface::CallbackReturn WrenchController::read_parameters()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-
 }  // namespace kuka_controllers
 
 PLUGINLIB_EXPORT_CLASS(

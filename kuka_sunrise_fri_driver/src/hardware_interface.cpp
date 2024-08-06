@@ -42,9 +42,9 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
-  hw_wrench_commands_.resize(6); // it's always 6 dof: force x,y,z; torque x,y,z
-  hw_cart_stiffness_commands_.resize(6,150);
-  hw_cart_damping_commands_.resize(6,0.15);
+  hw_wrench_commands_.resize(6);  // it's always 6 dof: force x,y,z; torque x,y,z
+  hw_cart_stiffness_commands_.resize(6, 150);
+  hw_cart_damping_commands_.resize(6, 0.15);
   if (info_.gpios.size() != 1)
   {
     RCLCPP_FATAL(rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 1 GPIO");
@@ -197,7 +197,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
-      fri_connection_->setJointImpedanceControlMode(hw_joint_stiffness_commands_, hw_joint_damping_commands_);
+      fri_connection_->setJointImpedanceControlMode(
+        hw_joint_stiffness_commands_, hw_joint_damping_commands_);
       fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
@@ -206,7 +207,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
-      fri_connection_->setCartesianImpedanceControlMode(std::vector<double>(6, 0.0), std::vector<double>(6, 0.1));
+      fri_connection_->setCartesianImpedanceControlMode(
+        std::vector<double>(6, 0.0), std::vector<double>(6, 0.1));
       fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
       break;
     default:
@@ -477,60 +479,66 @@ KukaFRIHardwareInterface::export_command_interfaces()
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-      hardware_interface::HW_IF_X, &hw_wrench_commands_[0]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+    hardware_interface::HW_IF_X, &hw_wrench_commands_[0]);
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-      hardware_interface::HW_IF_Y, &hw_wrench_commands_[1]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+    hardware_interface::HW_IF_Y, &hw_wrench_commands_[1]);
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-      hardware_interface::HW_IF_Z, &hw_wrench_commands_[2]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
+    hardware_interface::HW_IF_Z, &hw_wrench_commands_[2]);
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-      hardware_interface::HW_IF_X, &hw_wrench_commands_[3]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+    hardware_interface::HW_IF_X, &hw_wrench_commands_[3]);
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-      hardware_interface::HW_IF_Y, &hw_wrench_commands_[4]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+    hardware_interface::HW_IF_Y, &hw_wrench_commands_[4]);
   command_interfaces.emplace_back(
-      std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" + std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-      hardware_interface::HW_IF_Z, &hw_wrench_commands_[5]);
+    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
+    hardware_interface::HW_IF_Z, &hw_wrench_commands_[5]);
 
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("X"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[0]);
+    std::string("CartDOF") + "." + std::string("X"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[0]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("Y"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[1]);
+    std::string("CartDOF") + "." + std::string("Y"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[1]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("Z"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[2]);
+    std::string("CartDOF") + "." + std::string("Z"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[2]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("A"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[3]);
+    std::string("CartDOF") + "." + std::string("A"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[3]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("B"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[4]);
+    std::string("CartDOF") + "." + std::string("B"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[4]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("C"),
-      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[5]);
+    std::string("CartDOF") + "." + std::string("C"), hardware_interface::HW_IF_STIFFNESS,
+    &hw_cart_stiffness_commands_[5]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("X"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[0]);
+    std::string("CartDOF") + "." + std::string("X"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[0]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("Y"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[1]);
+    std::string("CartDOF") + "." + std::string("Y"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[1]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("Z"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[2]);
+    std::string("CartDOF") + "." + std::string("Z"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[2]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("A"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[3]);
+    std::string("CartDOF") + "." + std::string("A"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[3]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("B"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[4]);
+    std::string("CartDOF") + "." + std::string("B"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[4]);
   command_interfaces.emplace_back(
-      std::string("CartDOF") + "." + std::string("C"),
-      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[5]);
+    std::string("CartDOF") + "." + std::string("C"), hardware_interface::HW_IF_DAMPING,
+    &hw_cart_damping_commands_[5]);
   return command_interfaces;
 }
 
@@ -539,7 +547,8 @@ void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) con
 {
   for (int i = 0; i < DOF; i++)
   {
-    if (values[i]!=0.0){ // Check for devision by zero (very unlikely, but can happen after mastering)
+    if (values[i] != 0.0)
+    {  // Check for division by zero (very unlikely, but can happen after mastering)
       values[i] -= (values[i] / fabs(values[i]) * 0.1);
     }
   }

@@ -98,7 +98,8 @@ private:
   bool onCartesianStiffnessChangeRequest(const std::vector<double> & cartesian_stiffness);
   bool onCartesianDampingChangeRequest(const std::vector<double> & cartesian_damping);
   void setFriConfiguration(int send_period_ms, int receive_multiplier) const;
-  void setImpedanceConfiguration(const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
+  void setImpedanceConfiguration(
+    const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
     const std::vector<double> & stiffness, const std::vector<double> & damping) const;
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
 };
