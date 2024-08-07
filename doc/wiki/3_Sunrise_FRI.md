@@ -49,7 +49,7 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
-
+- `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
     ros2 lifecycle set robot_manager configure
@@ -74,6 +74,7 @@ Both launch files support the following argument:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
+- `etb_config`: the location of the configuration file for the `external_torque_broadcaster` (defaults to `kuka_sunrise_fri_driver/config/external_torque_broadcaster._config.yaml`)
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
