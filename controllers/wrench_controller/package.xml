@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>wrench_controller</name>
+  <version>0.9.2</version>
+  <description>Controller for forwarding wrench commands</description>
+
+  <maintainer email="krmihaly42@gmail.com">Mihaly Kristofi</maintainer>
+
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>forward_command_controller</depend>
+  <depend>pluginlib</depend>
+  <depend>kuka_drivers_core</depend>
+  <depend>generate_parameter_library</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
