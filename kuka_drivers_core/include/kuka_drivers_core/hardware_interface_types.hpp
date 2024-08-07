@@ -29,6 +29,10 @@ static constexpr char HW_IF_EXTERNAL_TORQUE[] = "external_torque";
 static constexpr char HW_IF_X[] = "x";
 static constexpr char HW_IF_Y[] = "y";
 static constexpr char HW_IF_Z[] = "z";
+static constexpr char HW_IF_A[] = "a";
+static constexpr char HW_IF_B[] = "b";
+static constexpr char HW_IF_C[] = "c";
+static constexpr char HW_IF_CART_PREFIX[] = "dummy_cart_joint";
 
 /* Interface prefixes */
 // Constant defining prefix for I/O interfaces

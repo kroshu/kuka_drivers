@@ -504,40 +504,52 @@ KukaFRIHardwareInterface::export_command_interfaces()
     hardware_interface::HW_IF_Z, &hw_wrench_commands_[5]);
 
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("X"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_X), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[0]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("Y"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_Y), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[1]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("Z"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_Z), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[2]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("A"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_A), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[3]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("B"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_B), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[4]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("C"), hardware_interface::HW_IF_STIFFNESS,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_C), hardware_interface::HW_IF_STIFFNESS,
     &hw_cart_stiffness_commands_[5]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("X"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_X), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[0]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("Y"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_Y), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[1]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("Z"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_Z), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[2]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("A"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_A), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[3]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("B"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_B), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[4]);
   command_interfaces.emplace_back(
-    std::string("CartDOF") + "." + std::string("C"), hardware_interface::HW_IF_DAMPING,
+    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
+      std::string(hardware_interface::HW_IF_C), hardware_interface::HW_IF_DAMPING,
     &hw_cart_damping_commands_[5]);
   return command_interfaces;
 }

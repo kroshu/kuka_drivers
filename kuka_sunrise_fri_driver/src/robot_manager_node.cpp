@@ -80,11 +80,11 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
   registerParameter<int>(
-    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const int & receive_multiplier)
     { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
@@ -118,24 +118,24 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & joint_stiffness)
     { return this->onJointStiffnessChangeRequest(joint_stiffness); });
 
   registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & joint_damping)
     { return this->onJointDampingChangeRequest(joint_damping); });
 
   registerParameter<std::vector<double>>(
     "cartesian_stiffness", cartesian_stiffness_,
-    kuka_drivers_core::ParameterSetAccessRights{true, false},
+    kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & cartesian_stiffness)
     { return this->onCartesianStiffnessChangeRequest(cartesian_stiffness); });
 
   registerParameter<std::vector<double>>(
     "cartesian_damping", cartesian_damping_,
-    kuka_drivers_core::ParameterSetAccessRights{true, false},
+    kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & cartesian_damping)
     { return this->onCartesianDampingChangeRequest(cartesian_damping); });
 }

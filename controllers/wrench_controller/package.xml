@@ -5,7 +5,7 @@
   <version>0.9.2</version>
   <description>Controller for forwarding wrench commands</description>
 
-  <maintainer email="krmialy42@gmail.com">Mihaly Kristofi</maintainer>
+  <maintainer email="krmihaly42@gmail.com">Mihaly Kristofi</maintainer>
 
   <license>Apache-2.0</license>
 
