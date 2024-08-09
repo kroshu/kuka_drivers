@@ -1,6 +1,6 @@
 robot_manager:
   ros__parameters:
-    control_mode: 8
+    control_mode: 1
     position_controller_name: "joint_trajectory_controller"
     torque_controller_name: "effort_controller"
     wrench_controller_name: "wrench_controller"

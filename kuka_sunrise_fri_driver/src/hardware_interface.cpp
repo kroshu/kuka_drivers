@@ -208,7 +208,9 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       fri_connection_->setCartesianImpedanceControlMode(
-        std::vector<double>(6, 0.0), std::vector<double>(6, 0.1)); // 0.1 is the min accepted value for damping, it probably doesn't matter since sthe stiffness is 0
+        std::vector<double>(6, 0.0),
+        std::vector<double>(6, 0.1));  // 0.1 is the min accepted value for damping, it probably
+                                       // doesn't matter since sthe stiffness is 0
 
       fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
       break;
@@ -479,79 +481,21 @@ KukaFRIHardwareInterface::export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-    hardware_interface::HW_IF_X, &hw_wrench_commands_[0]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-    hardware_interface::HW_IF_Y, &hw_wrench_commands_[1]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_FORCE_PREFIX),
-    hardware_interface::HW_IF_Z, &hw_wrench_commands_[2]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-    hardware_interface::HW_IF_X, &hw_wrench_commands_[3]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-    hardware_interface::HW_IF_Y, &hw_wrench_commands_[4]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_WRENCH_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_TORQUE_PREFIX),
-    hardware_interface::HW_IF_Z, &hw_wrench_commands_[5]);
-
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_X), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[0]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_Y), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[1]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_Z), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[2]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_A), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[3]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_B), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[4]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_C), hardware_interface::HW_IF_STIFFNESS,
-    &hw_cart_stiffness_commands_[5]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_X), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[0]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_Y), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[1]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_Z), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[2]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_A), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[3]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_B), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[4]);
-  command_interfaces.emplace_back(
-    std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" +
-      std::string(hardware_interface::HW_IF_C), hardware_interface::HW_IF_DAMPING,
-    &hw_cart_damping_commands_[5]);
+  std::vector<std::string> cart_joints_list = {
+    hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
+    hardware_interface::HW_IF_A, hardware_interface::HW_IF_B, hardware_interface::HW_IF_C};
+  for (size_t i = 0; i < cart_joints_list.size(); i++)
+  {
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_EFFORT, &hw_wrench_commands_[i]);
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[i]);
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[i]);
+  }
   return command_interfaces;
 }
 
