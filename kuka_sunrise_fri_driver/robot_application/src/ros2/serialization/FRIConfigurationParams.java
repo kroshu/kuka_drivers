@@ -1,11 +1,11 @@
 package ros2.serialization;
 
+import com.kuka.fri.FRIConfiguration;
+import com.kuka.device.RoboticArm;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import com.kuka.connectivity.fastRobotInterface.FRIConfiguration;
-import com.kuka.roboticsAPI.deviceModel.Device;
 
 public class FRIConfigurationParams implements Externalizable {
 
@@ -53,7 +53,7 @@ public class FRIConfigurationParams implements Externalizable {
 		_receiveMultiplier = friConfiguration.getReceiveMultiplier();
 	}
 
-	public FRIConfiguration toFRIConfiguration(Device device){
+	public FRIConfiguration toFRIConfiguration(RoboticArm device){
 		FRIConfiguration friConfiguration = FRIConfiguration.createRemoteConfiguration(device, _remoteIP);
 		friConfiguration.setPortOnRemote(_remotePort);
 		friConfiguration.setSendPeriodMilliSec(_sendPeriodMilliSec);

@@ -8,7 +8,8 @@ import java.io.ObjectOutput;
 import ros2.tools.Conversions;
 
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.AbstractMotionControlMode;
 
 public class JointImpedanceControlModeExternalizable extends JointImpedanceControlMode implements Externalizable{
 

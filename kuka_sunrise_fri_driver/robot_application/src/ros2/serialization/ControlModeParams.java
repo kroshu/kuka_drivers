@@ -1,16 +1,14 @@
 package ros2.serialization;
 
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+import com.kuka.sensitivity.controlmode.CartesianImpedanceControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Arrays;
-
-
-import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 
 public abstract class ControlModeParams implements Externalizable{
 	public static int length = 0;
@@ -19,7 +17,7 @@ public abstract class ControlModeParams implements Externalizable{
 		POSITION(		(byte)1),
 		JOINT_IMPEDANCE((byte)2),
 		CARTESIAN_IMPEDANCE((byte)3);
-
+		
 		public final byte value;
 
 		ControlModeID(byte value){
@@ -103,9 +101,9 @@ class JointImpedanceControlModeParams extends ControlModeParams{
 
 class CartesianImpedanceControlModeParams extends ControlModeParams{
 	public CartesianImpedanceControlModeParams(){
-
+		
 	}
 	public CartesianImpedanceControlModeParams(CartesianImpedanceControlMode controlMode){
-
+		
 	}
 }

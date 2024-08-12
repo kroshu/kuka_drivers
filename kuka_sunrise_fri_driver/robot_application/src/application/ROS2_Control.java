@@ -1,13 +1,15 @@
 package application;
 
+import com.kuka.io.IIoDefinitionProvider;
+import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
+import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
+import com.kuka.sensitivity.LBR;
+import com.kuka.task.RoboticsAPITask;
 import javax.inject.Inject;
-
 import ros2.modules.FRIManager;
 import ros2.modules.ROS2Connection;
 import ros2.modules.TCPConnection;
 
-import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
-import com.kuka.roboticsAPI.deviceModel.LBR;
 
 /**
  * Implementation of a robot application.
@@ -30,18 +32,17 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 public class ROS2_Control extends RoboticsAPIApplication {
 	@Inject
 	private LBR _lbr;
-
+	
 	private TCPConnection _TCPConnection;
 	private ROS2Connection _ROS2Connection;
 	private FRIManager _FRIManager;
-
+	@Inject private IApplicationControl appControl;
 	@Override
 	public void initialize() {
 		// initialize your application here
 		_TCPConnection = new TCPConnection(30000);
 		_ROS2Connection = new ROS2Connection();
-		_FRIManager = new FRIManager(_lbr, getApplicationControl());
-
+		_FRIManager = new FRIManager(_lbr, appControl);
 		_FRIManager.registerROS2ConnectionModule(_ROS2Connection);
 		_TCPConnection.registerROS2ConnectionModule(_ROS2Connection);
 		_ROS2Connection.registerTCPConnectionModule(_TCPConnection);

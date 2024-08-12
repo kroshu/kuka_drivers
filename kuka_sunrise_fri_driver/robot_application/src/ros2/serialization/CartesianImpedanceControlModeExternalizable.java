@@ -1,34 +1,31 @@
 package ros2.serialization;
 
+import com.kuka.roboticsAPI.motionModel.controlModeModel.CartDOF;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.sensitivity.controlmode.CartesianImpedanceControlMode;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import ros2.tools.Conversions;
-
-import com.kuka.roboticsAPI.geometricModel.CartDOF;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
-
 public class CartesianImpedanceControlModeExternalizable extends CartesianImpedanceControlMode implements Externalizable{
 
 	public final static int length = 96;
-
-
+	
+	
 	public CartesianImpedanceControlModeExternalizable(CartesianImpedanceControlMode other){
 		super(other);
 	}
-
+	
 	public CartesianImpedanceControlModeExternalizable(){
 		super();
 	}
-
+	
 	public IMotionControlMode toControlMode(){
 		CartesianImpedanceControlMode controlMode = new CartesianImpedanceControlMode((CartesianImpedanceControlMode)this);
 		return (IMotionControlMode)controlMode;
 	}
-
+	
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		for(double cartStiffness : getStiffness()){
@@ -42,7 +39,7 @@ public class CartesianImpedanceControlModeExternalizable extends CartesianImpeda
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		double[] cartStiffness = new double[getStiffness().length];
+		double[] cartStiffness = new double[getStiffness().length]; 
 		for(int i = 0; i < getStiffness().length; i++){
 			cartStiffness[i] = in.readDouble();
 		}
@@ -53,7 +50,7 @@ public class CartesianImpedanceControlModeExternalizable extends CartesianImpeda
 		this.parametrize(CartDOF.B).setStiffness(cartStiffness[4]);
 		this.parametrize(CartDOF.C).setStiffness(cartStiffness[5]);
 
-		double[] cartDamping = new double[getDamping().length];
+		double[] cartDamping = new double[getDamping().length]; 
 		for(int i = 0; i < getDamping().length; i++){
 			cartDamping[i] = in.readDouble();
 		}
@@ -63,7 +60,7 @@ public class CartesianImpedanceControlModeExternalizable extends CartesianImpeda
 		this.parametrize(CartDOF.A).setDamping(cartDamping[3]);
 		this.parametrize(CartDOF.B).setDamping(cartDamping[4]);
 		this.parametrize(CartDOF.C).setDamping(cartDamping[5]);
-
+		
 	}
 
 
