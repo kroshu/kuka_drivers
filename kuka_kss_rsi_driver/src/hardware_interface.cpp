@@ -77,8 +77,13 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   rsi_ip_address_ = info_.hardware_parameters["client_ip"];
   rsi_port_ = std::stoi(info_.hardware_parameters["client_port"]);
 
+  // define the file name and location to write the joint data to 
+  std::string filename = "/tmp/joint_log.csv";
+  // log that we are writing a file to output joint position data
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaRSIHardwareInterface"), "Writing joint position data to %s", filename.c_str());
   // declare and create an output file stream to write joint position data to is should be a csv file
-  std::ofstream joint_log_file("joint_log.csv");
+  std::ofstream joint_log_file(filename);
   
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRSIHardwareInterface"), "IP of client machine: %s:%d",
