@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
@@ -76,10 +77,13 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   rsi_ip_address_ = info_.hardware_parameters["client_ip"];
   rsi_port_ = std::stoi(info_.hardware_parameters["client_port"]);
 
+  // declare and create an output file stream to write joint position data to is should be a csv file
+  std::ofstream joint_log_file("~/cosmic_ws/joint_log.csv");
+  
   RCLCPP_INFO(
     rclcpp::get_logger("KukaRSIHardwareInterface"), "IP of client machine: %s:%d",
     rsi_ip_address_.c_str(), rsi_port_);
-
+  
   return CallbackReturn::SUCCESS;
 }
 
@@ -202,6 +206,14 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     joint_pos_correction_deg_[i] =
       (hw_commands_[i] - initial_joint_pos_[i]) * KukaRSIHardwareInterface::R2D;
   }
+  // write the joint position correction to the robot
+  // write the timestamp to the joint_log_file
+  joint_log_file << rclcpp::Clock().now().seconds() << ","
+                 << joint_pos_correction_deg_[0] << "," << joint_pos_correction_deg_[1] << ","
+                 << joint_pos_correction_deg_[2] << "," << joint_pos_correction_deg_[3] << ","
+                 << joint_pos_correction_deg_[4] << "," << joint_pos_correction_deg_[5] << ","
+                 << joint_pos_correction_deg_[6] << std::endl;
+
 
   out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
   server_->send(out_buffer_);

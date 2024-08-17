@@ -21,6 +21,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/macros.hpp"
@@ -85,6 +86,8 @@ private:
   std::unique_ptr<UDPServer> server_;
   std::string in_buffer_;
   std::string out_buffer_;
+  std::ofstream joint_log_file;
+
 
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
