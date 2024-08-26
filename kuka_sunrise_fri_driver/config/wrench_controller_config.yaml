@@ -1,12 +1,12 @@
 wrench_controller:
   ros__parameters:
     joints:
-    - dummy_cart_jointx
-    - dummy_cart_jointy
-    - dummy_cart_jointz
-    - dummy_cart_jointa
-    - dummy_cart_jointb
-    - dummy_cart_jointc
+    - dummy_cart_joint/x
+    - dummy_cart_joint/y
+    - dummy_cart_joint/z
+    - dummy_cart_joint/a
+    - dummy_cart_joint/b
+    - dummy_cart_joint/c
 
     interface_names:
     - effort
