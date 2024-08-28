@@ -92,7 +92,7 @@ void LBRClient::monitor()
 //******************************************************************************
 void LBRClient::waitForCommand()
 {
-   if (ClientCommandMode_CARTESIAN_POSE == _robotState.getClientCommandMode())
+   if (CARTESIAN_POSE == _robotState.getClientCommandMode())
       robotCommand().setCartesianPose(robotState().getIpoCartesianPose());
    else
       robotCommand().setJointPosition(robotState().getIpoJointPosition());
