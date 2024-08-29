@@ -85,6 +85,7 @@ Both launch files support the following argument:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
+- `etb_config`: the location of the configuration file for the `external_torque_broadcaster` (defaults to `kuka_sunrise_fri_driver/config/external_torque_broadcaster._config.yaml`)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
