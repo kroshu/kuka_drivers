@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <string>
