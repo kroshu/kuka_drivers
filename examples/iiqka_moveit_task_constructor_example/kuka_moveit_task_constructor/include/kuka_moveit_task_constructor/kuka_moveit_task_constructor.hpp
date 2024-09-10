@@ -7,16 +7,8 @@
 #include <moveit/task_constructor/task.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
-#if __has_include(<tf2_geometry_msgs/tf2_geometry_msgs.hpp>)
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#else
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#endif
-#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
 #include <tf2_eigen/tf2_eigen.hpp>
-#else
-#include <tf2_eigen/tf2_eigen.h>
-#endif
 
 namespace mtc = moveit::task_constructor;
 
@@ -27,12 +19,14 @@ public:
 
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr getNodeBaseInterface();
   void setupPlanningScene();
-  // Compose an MTC task from a series of stages.
-  mtc::Task createTask();
+  mtc::Task createDepalletizingTask();
   bool doTask(mtc::Task& task);
 
 private:
   rclcpp::Node::SharedPtr node_;
+  void addPalletObjects();
+  void attachObject(const std::string& object_id);
+  void detachAndRemoveObject(const std::string& object_id);
 };
 
 #endif // KUKA_MOVEIT_TASK_CONSTRUCTOR_HPP
