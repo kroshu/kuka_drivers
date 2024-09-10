@@ -26,15 +26,13 @@ public:
   MTCTaskNode(const rclcpp::NodeOptions& options);
 
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr getNodeBaseInterface();
-  void doTask();
   void setupPlanningScene();
-
-private:
   // Compose an MTC task from a series of stages.
   mtc::Task createTask();
-  mtc::Task task_;
+  bool doTask(mtc::Task& task);
+
+private:
   rclcpp::Node::SharedPtr node_;
-  
 };
 
 #endif // KUKA_MOVEIT_TASK_CONSTRUCTOR_HPP

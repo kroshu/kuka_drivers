@@ -31,35 +31,39 @@ void MTCTaskNode::setupPlanningScene()
   psi.applyCollisionObject(object);
 }
 
-void MTCTaskNode::doTask()
+bool MTCTaskNode::doTask(mtc::Task& task)
 {
-  task_ = createTask();
+  if (task.stages()->numChildren() == 0)
+  {
+    RCLCPP_ERROR_STREAM(LOGGER, "No task set.");
+    return false;
+  }
 
   try
   {
-    task_.init();
+    task.init();
   }
   catch (mtc::InitStageException& e)
   {
     RCLCPP_ERROR_STREAM(LOGGER, e);
-    return;
+    return false;
   }
 
-  if (!task_.plan(5))
+  if (!task.plan(5))
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Task planning failed");
-    return;
+    return false;
   }
-  task_.introspection().publishSolution(*task_.solutions().front());
+  task.introspection().publishSolution(*task.solutions().front());
 
-  auto result = task_.execute(*task_.solutions().front());
+  auto result = task.execute(*task.solutions().front());
   if (result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Task execution failed");
-    return;
+    return false;
   }
 
-  return;
+  return true;
 }
 
 mtc::Task MTCTaskNode::createTask()
@@ -156,7 +160,8 @@ int main(int argc, char** argv)
   });
 
   mtc_task_node->setupPlanningScene();
-  mtc_task_node->doTask();
+  mtc::Task task = mtc_task_node->createTask();
+  bool success = mtc_task_node->doTask(task);
 
   spin_thread->join();
   rclcpp::shutdown();
