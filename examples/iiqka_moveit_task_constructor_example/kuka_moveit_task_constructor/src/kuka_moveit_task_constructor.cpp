@@ -107,8 +107,7 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
   auto current_state_stage = std::make_unique<mtc::stages::CurrentState>("current state");
   task.add(std::move(current_state_stage));
 
-  auto sampling_planner =
-    std::make_shared<mtc::solvers::PipelinePlanner>(node_, "pilz_industrial_motion_planner", "PTP");
+  auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_, "ompl", "");
   sampling_planner->setTimeout(30.0);
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
