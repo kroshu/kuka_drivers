@@ -78,7 +78,8 @@ def launch_setup(context, *args, **kwargs):
     )
 
     rviz_config_file = (
-        get_package_share_directory("kuka_resources") + "/config/view_6_axis_planning_scene.rviz"
+        get_package_share_directory("kuka_moveit_task_constructor_depalletizing")
+        + "/rviz/mtc.rviz"
     )
 
     move_group_capabilities = {"capabilities": "move_group/ExecuteTaskSolutionCapability"}

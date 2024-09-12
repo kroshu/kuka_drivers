@@ -104,14 +104,6 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    startup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            get_package_share_directory("kuka_iiqka_eac_driver"), 
-            "/launch/startup.launch.py"
-        ]),
-        launch_arguments={'use_fake_hardware': 'true'}.items()
-    )
-
     # MTC Demo node
     mtc_demo = Node(
         package="kuka_moveit_task_constructor_depalletizing",
@@ -122,7 +114,7 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    to_start = [move_group_server, rviz, startup_launch, mtc_demo]
+    to_start = [move_group_server, rviz, mtc_demo]
 
     return to_start
 

@@ -16,7 +16,11 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from moveit_configs_utils import MoveItConfigsBuilder
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.launch_description_sources.python_launch_description_source import (
+    PythonLaunchDescriptionSource,
+)
 from launch.substitutions import LaunchConfiguration
 
 
@@ -82,17 +86,25 @@ def launch_setup(context, *args, **kwargs):
         parameters=[moveit_config.to_dict(), move_group_capabilities],
     )
 
+    startup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            get_package_share_directory("kuka_iiqka_eac_driver"), 
+            "/launch/startup.launch.py"
+        ]),
+        launch_arguments={'use_fake_hardware': 'true'}.items()
+    )
+
     # MTC Demo node
     mtc_demo = Node(
-        package="kuka_moveit_task_constructor",
-        executable="kuka_moveit_task_constructor",
+        package="kuka_moveit_task_constructor_depalletizing",
+        executable="kuka_moveit_task_constructor_depalletizing",
         output="screen",
         parameters=[
             moveit_config.to_dict(),
         ],
     )
 
-    to_start = [mtc_demo, move_group_server]
+    to_start = [move_group_server, startup_launch, mtc_demo]
 
     return to_start
 

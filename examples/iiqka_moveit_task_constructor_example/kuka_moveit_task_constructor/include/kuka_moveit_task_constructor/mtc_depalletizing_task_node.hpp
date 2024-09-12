@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_MOVEIT_TASK_CONSTRUCTOR__KUKA_MOVEIT_TASK_CONSTRUCTOR_HPP_
-#define KUKA_MOVEIT_TASK_CONSTRUCTOR__KUKA_MOVEIT_TASK_CONSTRUCTOR_HPP_
+#ifndef KUKA_MOVEIT_TASK_CONSTRUCTOR__MTC_DEPALLETIZING_TASK_NODE_HPP_
+#define KUKA_MOVEIT_TASK_CONSTRUCTOR__MTC_DEPALLETIZING_TASK_NODE_HPP_
 
+#include "kuka_moveit_task_constructor/imtc_task.hpp"
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
-#include <moveit/task_constructor/task.h>
-
-#include <string>
 
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
@@ -29,21 +27,21 @@
 
 namespace mtc = moveit::task_constructor;
 
-class MTCTaskNode
+class MTCDepalletizingTaskNode : public IMTCTask
 {
 public:
-  explicit MTCTaskNode(const rclcpp::NodeOptions & options);
+  explicit MTCDepalletizingTaskNode(const rclcpp::NodeOptions & options);
 
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr getNodeBaseInterface();
-  void setupPlanningScene();
-  mtc::Task createDepalletizingTask();
-  bool doTask(mtc::Task & task);
+  void attachObject(const std::string & object_id);
+  void detachObject(const std::string & object_id);
+  void setupPlanningScene() override;
+  mtc::Task createTask() override;
+  bool doTask(mtc::Task & task) override;
 
 private:
   rclcpp::Node::SharedPtr node_;
   void addPalletObjects();
-  void attachObject(const std::string & object_id);
-  void detachAndRemoveObject(const std::string & object_id);
 };
 
-#endif  // KUKA_MOVEIT_TASK_CONSTRUCTOR__KUKA_MOVEIT_TASK_CONSTRUCTOR_HPP_
+#endif  // KUKA_MOVEIT_TASK_CONSTRUCTOR__MTC_DEPALLETIZING_TASK_NODE_HPP_

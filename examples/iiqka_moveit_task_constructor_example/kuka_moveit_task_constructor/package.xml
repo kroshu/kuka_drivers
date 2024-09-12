@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kuka_moveit_task_constructor</name>
+  <name>kuka_moveit_task_constructor_depalletizing</name>
   <version>0.0.0</version>
-  <description>An example package supporting the moveit task constructor for the kuka robots</description>
+  <description>A demonstration package for depalletizing, utilizing the MoveIt Task Constructor with KUKA robots.</description>
   <maintainer email="peto.adam@yahoo.com">Adam Peto</maintainer>
   <license>Apache-2.0</license>
 

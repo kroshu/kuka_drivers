@@ -12,26 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_moveit_task_constructor/kuka_moveit_task_constructor.hpp"
+#include "kuka_moveit_task_constructor/mtc_depalletizing_task_node.hpp"
 
-static const rclcpp::Logger LOGGER = rclcpp::get_logger("kuka_moveit_task_constructor");
+static const rclcpp::Logger LOGGER = rclcpp::get_logger("mtc_depalletizing_task_node");
 
-rclcpp::node_interfaces::NodeBaseInterface::SharedPtr MTCTaskNode::getNodeBaseInterface()
+double PALLET_SIZE = 0.097;
+double PALLET_DISTANCE = 0.1;
+
+rclcpp::node_interfaces::NodeBaseInterface::SharedPtr MTCDepalletizingTaskNode::getNodeBaseInterface()
 {
   return node_->get_node_base_interface();
 }
 
-MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions & options)
-: node_{std::make_shared<rclcpp::Node>("mtc_node", options)}
+MTCDepalletizingTaskNode::MTCDepalletizingTaskNode(const rclcpp::NodeOptions & options)
+: node_{std::make_shared<rclcpp::Node>("mtc_depalletizing_task_node", options)}
 {
 }
 
-void MTCTaskNode::setupPlanningScene()
+void MTCDepalletizingTaskNode::setupPlanningScene()
 {
   addPalletObjects();  // Setup the pallet objects in the planning scene
 }
 
-void MTCTaskNode::addPalletObjects()
+void MTCDepalletizingTaskNode::addPalletObjects()
 {
   moveit::planning_interface::PlanningSceneInterface psi;
 
@@ -48,15 +51,15 @@ void MTCTaskNode::addPalletObjects()
         shape_msgs::msg::SolidPrimitive primitive;
         primitive.type = primitive.BOX;
         primitive.dimensions.resize(3);
-        primitive.dimensions[primitive.BOX_X] = 0.07;
-        primitive.dimensions[primitive.BOX_Y] = 0.07;
-        primitive.dimensions[primitive.BOX_Z] = 0.07;
+        primitive.dimensions[primitive.BOX_X] = PALLET_SIZE;
+        primitive.dimensions[primitive.BOX_Y] = PALLET_SIZE;
+        primitive.dimensions[primitive.BOX_Z] = PALLET_SIZE;
 
         geometry_msgs::msg::Pose pose;
         pose.orientation.w = 1.0;
-        pose.position.x = 0.3 + i * 0.1;
-        pose.position.y = -0.1 + j * 0.1;
-        pose.position.z = 0.2 - 0.1 * k;
+        pose.position.x = 0.3 + i * PALLET_DISTANCE;
+        pose.position.y = -0.1 + j * PALLET_DISTANCE;
+        pose.position.z = 0.2 - k * PALLET_DISTANCE;
 
         pallet_object.primitives.push_back(primitive);
         pallet_object.primitive_poses.push_back(pose);
@@ -69,7 +72,7 @@ void MTCTaskNode::addPalletObjects()
   }
 }
 
-void MTCTaskNode::attachObject(const std::string & object_id)
+void MTCDepalletizingTaskNode::attachObject(const std::string & object_id)
 {
   moveit_msgs::msg::AttachedCollisionObject attached_object;
   attached_object.link_name = "flange";
@@ -80,7 +83,7 @@ void MTCTaskNode::attachObject(const std::string & object_id)
   psi.applyAttachedCollisionObject(attached_object);
 }
 
-void MTCTaskNode::detachAndRemoveObject(const std::string & object_id)
+void MTCDepalletizingTaskNode::detachObject(const std::string & object_id)
 {
   moveit_msgs::msg::AttachedCollisionObject attached_object;
   attached_object.link_name = "flange";
@@ -92,7 +95,7 @@ void MTCTaskNode::detachAndRemoveObject(const std::string & object_id)
   psi.removeCollisionObjects({object_id});
 }
 
-mtc::Task MTCTaskNode::createDepalletizingTask()
+mtc::Task MTCDepalletizingTaskNode::createTask()
 {
   mtc::Task task;
   task.stages()->setName("depalletizing task");
@@ -142,9 +145,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
           "marker_ns", "approach_" + std::to_string(4 * k + 2 * j + i));
         geometry_msgs::msg::PoseStamped approach_pose;
         approach_pose.header.frame_id = "world";
-        approach_pose.pose.position.x = 0.3 + 0.1 * i;
-        approach_pose.pose.position.y = -.1 + 0.1 * j;
-        approach_pose.pose.position.z = 0.35;
+        approach_pose.pose.position.x = 0.3 + PALLET_DISTANCE * i;
+        approach_pose.pose.position.y = -0.1 + PALLET_DISTANCE * j;
+        approach_pose.pose.position.z = 0.4;
         approach_pose.pose.orientation.x = 0.0;
         approach_pose.pose.orientation.y = 1.0;
         approach_pose.pose.orientation.z = 0.0;
@@ -159,9 +162,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
         pick_stage->properties().set("marker_ns", "pick_" + std::to_string(4 * k + 2 * j + i));
         geometry_msgs::msg::PoseStamped pick_pose;
         pick_pose.header.frame_id = "world";
-        pick_pose.pose.position.x = 0.3 + 0.1 * i;
-        pick_pose.pose.position.y = -0.1 + 0.1 * j;
-        pick_pose.pose.position.z = 0.25 - 0.1 * k;
+        pick_pose.pose.position.x = 0.3 + PALLET_DISTANCE * i;
+        pick_pose.pose.position.y = -0.1 + PALLET_DISTANCE * j;
+        pick_pose.pose.position.z = 0.4 - PALLET_DISTANCE * (k + 1) - 0.02;
         pick_pose.pose.orientation.x = 0.0;
         pick_pose.pose.orientation.y = 1.0;
         pick_pose.pose.orientation.z = 0.0;
@@ -182,9 +185,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
         lift_stage->properties().set("marker_ns", "lift_" + std::to_string(4 * k + 2 * j + i));
         geometry_msgs::msg::PoseStamped lift_pose;
         lift_pose.header.frame_id = "world";
-        lift_pose.pose.position.x = 0.3 + 0.1 * i;
-        lift_pose.pose.position.y = -0.1 + 0.1 * j;
-        lift_pose.pose.position.z = 0.35;
+        lift_pose.pose.position.x = 0.3 + PALLET_DISTANCE * i;
+        lift_pose.pose.position.y = -0.1 + PALLET_DISTANCE * j;
+        lift_pose.pose.position.z = 0.4;
         lift_pose.pose.orientation.x = 0.0;
         lift_pose.pose.orientation.y = 1.0;
         lift_pose.pose.orientation.z = 0.0;
@@ -200,9 +203,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
         move_stage->properties().set("marker_ns", "move_" + std::to_string(4 * k + 2 * j + i));
         geometry_msgs::msg::PoseStamped move_pose;
         move_pose.header.frame_id = "world";
-        move_pose.pose.position.x = -0.4 - 0.1 * i;
-        move_pose.pose.position.y = 0.1 - 0.1 * j;
-        move_pose.pose.position.z = 0.3;
+        move_pose.pose.position.x = -0.3 - PALLET_DISTANCE * i;
+        move_pose.pose.position.y = 0.1 - PALLET_DISTANCE * j;
+        move_pose.pose.position.z = 0.4;
         move_pose.pose.orientation.x = 1.0;
         move_pose.pose.orientation.y = 0.0;
         move_pose.pose.orientation.z = 0.0;
@@ -216,10 +219,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
         place_stage->properties().set("marker_ns", "place_" + std::to_string(4 * k + 2 * j + i));
         place_stage->properties().set("link", eef_frame);
         place_stage->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
-        place_stage->setMinMaxDistance(0.0, 0.2);
         geometry_msgs::msg::Vector3Stamped vec_place;
         vec_place.header.frame_id = "world";
-        vec_place.vector.z = (3 - k) * (-0.2);
+        vec_place.vector.z = -(2 - k) * PALLET_DISTANCE - 0.02;
         place_stage->setDirection(vec_place);
         task.add(std::move(place_stage));
 
@@ -235,10 +237,9 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
         lift2->properties().set("marker_ns", "lift2_" + std::to_string(4 * k + 2 * j + i));
         lift2->properties().set("link", eef_frame);
         lift2->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
-        lift2->setMinMaxDistance(0.0, 0.2);
         geometry_msgs::msg::Vector3Stamped vec_lift2;
         vec_lift2.header.frame_id = "world";
-        vec_lift2.vector.z = (3 - k) * 0.2;
+        vec_lift2.vector.z = (2 - k) * PALLET_DISTANCE + 0.02;
         lift2->setDirection(vec_lift2);
         task.add(std::move(lift2));
       }
@@ -248,7 +249,7 @@ mtc::Task MTCTaskNode::createDepalletizingTask()
   return task;
 }
 
-bool MTCTaskNode::doTask(mtc::Task & task)
+bool MTCDepalletizingTaskNode::doTask(mtc::Task & task)
 {
   if (task.stages()->numChildren() == 0)
   {
@@ -290,23 +291,20 @@ int main(int argc, char ** argv)
   rclcpp::NodeOptions options;
   options.automatically_declare_parameters_from_overrides(true);
 
-  auto mtc_task_node = std::make_shared<MTCTaskNode>(options);
+  auto mtc_depalletizing_task_node = std::make_shared<MTCDepalletizingTaskNode>(options);
   rclcpp::executors::MultiThreadedExecutor executor;
 
   auto spin_thread = std::make_unique<std::thread>(
-    [&executor, &mtc_task_node]()
+    [&executor, &mtc_depalletizing_task_node]()
     {
-      executor.add_node(mtc_task_node->getNodeBaseInterface());
+      executor.add_node(mtc_depalletizing_task_node->getNodeBaseInterface());
       executor.spin();
-      executor.remove_node(mtc_task_node->getNodeBaseInterface());
+      executor.remove_node(mtc_depalletizing_task_node->getNodeBaseInterface());
     });
 
-  mtc_task_node->setupPlanningScene();
-  mtc::Task task = mtc_task_node->createDepalletizingTask();
-  while (!mtc_task_node->doTask(task))
-  {
-  }
-
+  mtc_depalletizing_task_node->setupPlanningScene();
+  mtc::Task task = mtc_depalletizing_task_node->createTask();
+  while (!mtc_depalletizing_task_node->doTask(task)){}
   spin_thread->join();
   rclcpp::shutdown();
   return 0;

@@ -66,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
             file_path=get_package_share_directory("kuka_lbr_iisy_moveit_config")
             + "/config/moveit_controllers.yaml"
         )
-        .planning_pipelines(pipelines=["ompl"])
+        .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
         .planning_scene_monitor(
             publish_robot_description=True, publish_robot_description_semantic=True
         )
@@ -77,10 +77,6 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
-    rviz_config_file = (
-        get_package_share_directory("kuka_resources") + "/config/view_6_axis_planning_scene.rviz"
-    )
-
     move_group_capabilities = {"capabilities": "move_group/ExecuteTaskSolutionCapability"}
 
     move_group_server = Node(
@@ -88,28 +84,6 @@ def launch_setup(context, *args, **kwargs):
         executable="move_group",
         output="screen",
         parameters=[moveit_config.to_dict(), move_group_capabilities],
-    )
-
-    rviz = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
-        parameters=[
-            moveit_config.robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.robot_description_kinematics,
-            moveit_config.planning_pipelines,
-        ],
-    )
-
-    startup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            get_package_share_directory("kuka_iiqka_eac_driver"), 
-            "/launch/startup.launch.py"
-        ]),
-        launch_arguments={'use_fake_hardware': 'true'}.items()
     )
 
     # MTC Demo node
@@ -122,7 +96,7 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    to_start = [move_group_server, rviz, startup_launch, mtc_demo]
+    to_start = [move_group_server, mtc_demo]
 
     return to_start
 
