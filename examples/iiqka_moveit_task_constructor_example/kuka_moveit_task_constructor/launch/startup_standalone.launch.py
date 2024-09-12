@@ -16,11 +16,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from moveit_configs_utils import MoveItConfigsBuilder
-from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.launch_description_sources.python_launch_description_source import (
-    PythonLaunchDescriptionSource,
-)
 from launch.substitutions import LaunchConfiguration
 
 

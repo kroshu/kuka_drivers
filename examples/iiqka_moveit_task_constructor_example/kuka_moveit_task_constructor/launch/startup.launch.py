@@ -87,11 +87,10 @@ def launch_setup(context, *args, **kwargs):
     )
 
     startup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            get_package_share_directory("kuka_iiqka_eac_driver"), 
-            "/launch/startup.launch.py"
-        ]),
-        launch_arguments={'use_fake_hardware': 'true'}.items()
+        PythonLaunchDescriptionSource(
+            [get_package_share_directory("kuka_iiqka_eac_driver"), "/launch/startup.launch.py"]
+        ),
+        launch_arguments={"use_fake_hardware": "true"}.items(),
     )
 
     # MTC Demo node

@@ -15,11 +15,14 @@
 #ifndef KUKA_MOVEIT_TASK_CONSTRUCTOR__MTC_DEPALLETIZING_TASK_NODE_HPP_
 #define KUKA_MOVEIT_TASK_CONSTRUCTOR__MTC_DEPALLETIZING_TASK_NODE_HPP_
 
-#include "kuka_moveit_task_constructor/imtc_task.hpp"
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
+
+#include <string>
+
+#include "kuka_moveit_task_constructor/imtc_task.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>

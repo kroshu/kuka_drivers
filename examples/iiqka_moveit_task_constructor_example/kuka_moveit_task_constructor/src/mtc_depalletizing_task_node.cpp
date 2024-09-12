@@ -19,7 +19,8 @@ static const rclcpp::Logger LOGGER = rclcpp::get_logger("mtc_depalletizing_task_
 double PALLET_SIZE = 0.097;
 double PALLET_DISTANCE = 0.1;
 
-rclcpp::node_interfaces::NodeBaseInterface::SharedPtr MTCDepalletizingTaskNode::getNodeBaseInterface()
+rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
+MTCDepalletizingTaskNode::getNodeBaseInterface()
 {
   return node_->get_node_base_interface();
 }
@@ -304,7 +305,9 @@ int main(int argc, char ** argv)
 
   mtc_depalletizing_task_node->setupPlanningScene();
   mtc::Task task = mtc_depalletizing_task_node->createTask();
-  while (!mtc_depalletizing_task_node->doTask(task)){}
+  while (!mtc_depalletizing_task_node->doTask(task))
+  {
+  }
   spin_thread->join();
   rclcpp::shutdown();
   return 0;
