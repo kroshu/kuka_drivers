@@ -233,16 +233,16 @@ mtc::Task MTCDepalletizingTaskNode::createTask()
         task.add(std::move(detach_stage));
 
         // Define Lift2 Stage
-        auto lift2 = std::make_unique<mtc::stages::MoveRelative>(
+        auto lift2_stage = std::make_unique<mtc::stages::MoveRelative>(
           "lift2_" + std::to_string(4 * k + 2 * j + i), cartesian_planner);
-        lift2->properties().set("marker_ns", "lift2_" + std::to_string(4 * k + 2 * j + i));
-        lift2->properties().set("link", eef_frame);
-        lift2->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
+        lift2_stage->properties().set("marker_ns", "lift2_" + std::to_string(4 * k + 2 * j + i));
+        lift2_stage->properties().set("link", eef_frame);
+        lift2_stage->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
         geometry_msgs::msg::Vector3Stamped vec_lift2;
         vec_lift2.header.frame_id = "world";
         vec_lift2.vector.z = (2 - k) * PALLET_DISTANCE + 0.02;
-        lift2->setDirection(vec_lift2);
-        task.add(std::move(lift2));
+        lift2_stage->setDirection(vec_lift2);
+        task.add(std::move(lift2_stage));
       }
     }
   }
