@@ -148,11 +148,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
   setFriConfiguration(send_period_ms_, receive_multiplier_);
-  // Publish the values of the cartesian impedance parameters to the controller
-  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
-  // Publish the values of the joint impedance parameters to the controller
-  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
-
+  
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -172,7 +168,13 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
-  }
+  } 
+
+  // Publish the values of the cartesian impedance parameters to the controller
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
+  // Publish the values of the joint impedance parameters to the controller
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
+ 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
