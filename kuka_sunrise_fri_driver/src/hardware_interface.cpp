@@ -360,10 +360,7 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     {
       const double * joint_torques_ = hw_torque_commands_.data();
       const double * joint_pos = robotState().getMeasuredJointPosition();
-      std::array<double, DOF> joint_pos_corr;
-      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr.begin());
-      activateFrictionCompensation(joint_pos_corr.data());
-      robotCommand().setJointPosition(joint_pos_corr.data());
+      robotCommand().setJointPosition(joint_pos);
       robotCommand().setTorque(joint_torques_);
       break;
     }
@@ -371,10 +368,7 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     {
       const double * wrench_efforts = hw_wrench_commands_.data();
       const double * joint_pos = robotState().getMeasuredJointPosition();
-      std::array<double, DOF> joint_pos_corr;
-      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr.begin());
-      activateFrictionCompensation(joint_pos_corr.data());
-      robotCommand().setJointPosition(joint_pos_corr.data());
+      robotCommand().setJointPosition(joint_pos);
       robotCommand().setWrench(wrench_efforts);
       break;
     }
@@ -494,18 +488,6 @@ KukaFRIHardwareInterface::export_command_interfaces()
       hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[i]);
   }
   return command_interfaces;
-}
-
-// Friction compensation is activated only if the commanded and measured joint positions differ
-void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) const
-{
-  for (int i = 0; i < DOF; i++)
-  {
-    if (values[i] != 0.0)
-    {  // Check for division by zero (very unlikely, but can happen after mastering)
-      values[i] -= (values[i] / fabs(values[i]) * 0.1);
-    }
-  }
 }
 
 void KukaFRIHardwareInterface::onError()
