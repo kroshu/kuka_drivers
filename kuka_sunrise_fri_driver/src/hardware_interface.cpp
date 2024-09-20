@@ -208,10 +208,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       fri_connection_->setCartesianImpedanceControlMode(
-        std::vector<double>(6, 0.0),
-        std::vector<double>(6, 0.1));  // 0.1 is the min accepted value for damping, it probably
-                                       // doesn't matter since sthe stiffness is 0
-
+        hw_cart_stiffness_commands_,
+        hw_cart_damping_commands_);
       fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
       break;
     default:
