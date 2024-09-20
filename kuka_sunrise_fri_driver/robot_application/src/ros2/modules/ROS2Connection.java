@@ -1,20 +1,16 @@
 package ros2.modules;
 
-import java.io.Externalizable;
+import com.kuka.fri.common.ClientCommandMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+import com.kuka.sensitivity.controlmode.CartesianImpedanceControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
 import java.util.Arrays;
-
-import ros2.modules.FRIManager;
 import ros2.serialization.CartesianImpedanceControlModeExternalizable;
-import ros2.serialization.ControlModeParams;
 import ros2.serialization.FRIConfigurationParams;
 import ros2.serialization.JointImpedanceControlModeExternalizable;
 import ros2.serialization.MessageEncoding;
-
-import com.kuka.connectivity.fastRobotInterface.ClientCommandMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 public class ROS2Connection {
 
@@ -99,7 +95,7 @@ public class ROS2Connection {
 		POSITION(		(byte)1),
 		JOINT_IMPEDANCE((byte)2),
 		CARTESIAN_IMPEDANCE((byte)3);
-
+		
 		public final byte value;
 
 		ControlModeID(byte value){
@@ -174,6 +170,8 @@ public class ROS2Connection {
 				case SET_COMMAND_MODE:
 					feedbackData = setCommandMode(inMessageData);
 					break;
+        		default:
+          			break;
 			}
 			System.out.println("Command executed.");
 			feedbackCommandSuccess(command, feedbackData);
@@ -364,6 +362,8 @@ public class ROS2Connection {
 				controlMode = cartexternalizable.toControlMode();
 				System.out.println("Control mode CARTESIAN_IMPEDANCE selected");
 				break;
+      		default:
+        		break;
 		}
 		System.out.println("Control mode decoded.");
 		FRIManager.CommandResult commandResult = _FRIManager.setControlMode(controlMode);

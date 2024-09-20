@@ -57,74 +57,73 @@ cost of any service and repair.
 \file
 \version {2.5}
 */
-#ifndef _KUKA_FRI_CONNECTION_H
-#define _KUKA_FRI_CONNECTION_H
+#ifndef _KUKA_FRI_DATA_HELPER_H
+#define _KUKA_FRI_DATA_HELPER_H
 
+#include <cmath>
 
-/** Kuka namespace */
 namespace KUKA
 {
-namespace FRI
-{
-   
-   /**
-    * \brief FRI connection interface. 
-    * 
-    * Connections to the KUKA Sunrise controller have to be implemented using
-    * this interface.
-    */
-   class IConnection
+   namespace FRI
    {
-   
-   public:
-      
-      /** \brief Virtual destructor. */
-      virtual ~IConnection() {}
-   
+
       /**
-       * \brief Open a connection to the KUKA Sunrise controller.
-       * 
-       * @param port The port ID
-       * @param remoteHost The address of the remote host
-       * @return True if connection was established
-       */
-      virtual bool open(int port, const char *remoteHost) = 0;
-   
-      /**
-       * \brief Close a connection to the KUKA Sunrise controller.
-       */
-      virtual void close() = 0;
-      
-      /**
-       * \brief Checks whether a connection to the KUKA Sunrise controller is established.
-       * 
-       * @return True if connection is established
-       */
-      virtual bool isOpen() const = 0;
-   
-      /**
-       * \brief Receive a new FRI monitoring message from the KUKA Sunrise controller. 
-       * 
-       * This method blocks until a new message arrives.
-       * @param buffer Pointer to the allocated buffer that will hold the FRI message
-       * @param maxSize Size in bytes of the allocated buffer
-       * @return Number of bytes received (0 when connection was terminated, negative in case of errors)
-       */
-      virtual int receive(char *buffer, int maxSize) = 0;
-   
-      /**
-       * \brief Send a new FRI command message to the KUKA Sunrise controller.
-       * 
-       * @param buffer Pointer to the buffer holding the FRI message
-       * @param size Size in bytes of the message to be send
-       * @return True if successful
-       */
-      virtual bool send(const char* buffer, int size) = 0;   
-   
-   };
-   
-}
-}
+      * \brief Data helper class containing conversion functions.
+      */
+      struct DataHelper
+      {
+
+         /**
+         * \brief Helper enum to access quaternion entries.
+         */
+         enum QUATERNION_IDX
+         {
+            QUAT_TX = 0,
+            QUAT_TY,
+            QUAT_TZ,
+            QUAT_QW,
+            QUAT_QX,
+            QUAT_QY,
+            QUAT_QZ
+         };
 
 
-#endif // _KUKA_FRI_CONNECTION_H
+         /**
+         * \brief Function to convert a matrix transformation to a normalized quaternion transformation.
+         *
+         * The resulting quaternion transformation is provided as [t_x, t_y, t_z, q_w, q_x, q_y, q_z],
+         * with a unit quaternion, i.e. the length of vector [q_w, q_x, q_y, q_z] must be 1.
+         * The input transformation matrix has 3x4 elements. It consists of a rotational matrix (3x3 elements)
+         * and a translational vector (3x1 elements). The complete transformation matrix has the
+         * following structure:
+         * [Transformation(3x4)] = [Rotation(3x3) | Translation(3x1) ]
+         *
+         * @param[in]  matrixTrafo       given matrix transformation
+         * @param[out] quaternionTrafo   resulting quaternion transformation
+         */
+         static void convertTrafoMatrixToQuaternion(const double (&matrixTrafo)[3][4],
+            double (&quaternionTrafo)[7]);
+
+
+         /**
+         * \brief Function to convert a quaternion transformation to a matrix transformation.
+         *
+         * The input quaternion transformation must be provided as [t_x, t_y, t_z, q_w, q_x, q_y, q_z],
+         * with a unit quaternion, i.e. the length of vector [q_w, q_x, q_y, q_z] must be 1.
+         * The output transformation matrix has 3x4 elements. It consists of a rotational matrix (3x3 elements)
+         * and a translational vector (3x1 elements). The complete transformation matrix has the
+         * following structure:
+         * [Transformation(3x4)] = [Rotation(3x3) | Translation(3x1) ]
+         *
+         * @param[in]  quaternionTrafo    given quaternion transformation
+         * @param[out] matrixTrafo        resulting matrix transformation
+         */
+         static void convertTrafoQuaternionToMatrix(const double(&quaternionTrafo)[7],
+            double(&matrixTrafo)[3][4]);
+
+      };
+
+   }
+}
+
+#endif // _KUKA_FRI_DATA_HELPER_H
