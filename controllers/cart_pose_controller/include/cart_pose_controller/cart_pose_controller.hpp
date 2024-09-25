@@ -20,12 +20,13 @@
 #include <vector>
 
 #include "forward_command_controller/multi_interface_forward_command_controller.hpp"
+
 #include "cart_pose_controller/visibility_control.h"
 #include "cart_pose_controller_parameters.hpp"
 
 namespace kuka_controllers
 {
-class CartPoseController : public pid_controller::PidController
+class CartPoseController : public forward_command_controller::ForwardControllersBase
 {
 public:
   CART_POSE_CONTROLLER_PUBLIC CartPoseController();
