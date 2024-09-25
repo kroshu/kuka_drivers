@@ -32,6 +32,10 @@ static constexpr char HW_IF_Z[] = "z";
 static constexpr char HW_IF_A[] = "a";
 static constexpr char HW_IF_B[] = "b";
 static constexpr char HW_IF_C[] = "c";
+static constexpr char HW_IF_QX[] = "qx";
+static constexpr char HW_IF_QY[] = "qy";
+static constexpr char HW_IF_QZ[] = "qz";
+static constexpr char HW_IF_QW[] = "qw";
 static constexpr char HW_IF_CART_PREFIX[] = "dummy_cart_joint";
 
 /* Interface prefixes */

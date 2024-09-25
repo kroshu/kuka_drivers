@@ -14,7 +14,8 @@ controller_manager:
       type: kuka_controllers/EventBroadcaster
     wrench_controller:
       type: kuka_controllers/WrenchController
-
+    cartesian_pose_controller:
+      type: kuka_controllers/CartPoseController
     # Configuration controllers
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController

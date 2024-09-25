@@ -68,7 +68,8 @@ enum ClientCommandModeID : std::uint8_t
 {
   POSITION_COMMAND_MODE = 1,
   WRENCH_COMMAND_MODE = 2,
-  TORQUE_COMMAND_MODE = 3
+  TORQUE_COMMAND_MODE = 3,
+  CARTESIAN_POSE_COMMAND_MODE = 4
 };
 
 static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x10};

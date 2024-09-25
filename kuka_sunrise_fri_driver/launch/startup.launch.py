@@ -40,6 +40,7 @@ def launch_setup(context, *args, **kwargs):
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
     wc_config = LaunchConfiguration("wc_config")
+    cpc_config = LaunchConfiguration("cpc_config")    
     cic_config = LaunchConfiguration("cic_config")
 
     if ns.perform(context) == "":
@@ -121,6 +122,7 @@ def launch_setup(context, *args, **kwargs):
             ec_config,
             cic_config,
             wc_config,
+            cpc_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -173,6 +175,7 @@ def launch_setup(context, *args, **kwargs):
         "event_broadcaster",
         "cartesian_impedance_controller",
         "wrench_controller",
+        "cartesian_pose_controller",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -234,6 +237,13 @@ def generate_launch_description():
             "wc_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/wrench_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cpc_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/cartesian_pose_controller_config.yaml",
         )
     )
     launch_arguments.append(
