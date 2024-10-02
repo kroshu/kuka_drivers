@@ -145,28 +145,34 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_names, activate=False):
+    def controller_spawner(controller_name, param_file=None, activate=False):
         arg_list = [
-            controller_names,
+            controller_name,
             "-c",
             controller_manager_node,
             "-n",
             ns,
         ]
+
+        # Add param-file if it's provided
+        if param_file:
+            arg_list.extend(["--param-file", param_file])
+
         if not activate:
             arg_list.append("--inactive")
+
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = [
-        "joint_state_broadcaster",
-        "joint_trajectory_controller",
-        "joint_group_impedance_controller",
-        "effort_controller",
-        "control_mode_handler",
-        "event_broadcaster",
-    ]
+    controllers = {
+        "joint_state_broadcaster": None,
+        "joint_trajectory_controller": jtc_config,
+        "joint_group_impedance_controller": jic_config,
+        "effort_controller": ec_config,
+        "control_mode_handler": None,
+        "event_broadcaster": None,
+    }
 
-    controller_spawners = [controller_spawner(name) for name in controller_names]
+    controller_spawners = [controller_spawner(name, param_file) for name, param_file in controllers.items()]
 
     nodes_to_start = [
         control_node,
