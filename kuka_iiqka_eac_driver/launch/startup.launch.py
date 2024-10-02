@@ -172,7 +172,9 @@ def launch_setup(context, *args, **kwargs):
         "event_broadcaster": None,
     }
 
-    controller_spawners = [controller_spawner(name, param_file) for name, param_file in controllers.items()]
+    controller_spawners = [
+        controller_spawner(name, param_file) for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
         control_node,
