@@ -104,7 +104,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             robot_description,
             controller_config,
-            jtc_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
