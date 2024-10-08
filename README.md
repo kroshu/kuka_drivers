@@ -24,7 +24,7 @@ mkdir -p ~/ros2_ws/src
 Clone KUKA ROS2 repositories.
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/kroshu/kuka_drivers.git
+git clone -b humble https://github.com/kroshu/kuka_drivers.git
 vcs import < kuka_drivers/upstream.repos
 ```
 
