@@ -43,7 +43,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
   hw_cart_pose_states_.resize(7);// it's always 7 dof: position x,y,z; orientation quaternion qx,qy,qz,qw
-  hw_cart_pose_states_.resize(7);
+  hw_cart_pose_commands_.resize(7);
 
   hw_wrench_commands_.resize(6);  // it's always 6 dof: force x,y,z; torque x,y,z
   hw_cart_stiffness_commands_.resize(6, 150);
@@ -303,7 +303,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
     robot_state_.operation_mode_ = robotState().getOperationMode();
     robot_state_.drive_state_ = robotState().getDriveState();
     robot_state_.overlay_type_ = robotState().getOverlayType();
-
+    RCLCPP_DEBUG(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "cartesianPoseQuaternion state: %f %f %f %f %f %f %f",cart_pose[0],cart_pose[1],
+        cart_pose[2],cart_pose[3],cart_pose[4],cart_pose[5]
+        ,cart_pose[6]);
     for (auto & output : gpio_outputs_)
     {
       output.getValue();
@@ -377,12 +381,13 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
     {
       const double * cartesianPoseQuaternion = hw_cart_pose_commands_.data();
-      robotCommand().setCartesianPose(cartesianPoseQuaternion);
-      RCLCPP_ERROR(
+      RCLCPP_DEBUG(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "cartesianPoseQuaternion: %f %f %f %f %f %f %f",cartesianPoseQuaternion[0],cartesianPoseQuaternion[1],
+        "cartesianPoseQuaternion command: %f %f %f %f %f %f %f",cartesianPoseQuaternion[0],cartesianPoseQuaternion[1],
         cartesianPoseQuaternion[2],cartesianPoseQuaternion[3],cartesianPoseQuaternion[4],cartesianPoseQuaternion[5]
         ,cartesianPoseQuaternion[6]);
+        robotCommand().setCartesianPose(cartesianPoseQuaternion);
+      
       break;
     }
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
