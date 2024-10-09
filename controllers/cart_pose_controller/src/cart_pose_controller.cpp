@@ -54,8 +54,6 @@ controller_interface::CallbackReturn CartPoseController::read_parameters()
     for (const auto & interface : params_.interface_names)
     {
       command_interface_types_.emplace_back(joint + "/" + interface);
-      RCLCPP_ERROR(get_node()->get_logger(), "cart joints: %s %s ",joint.c_str(),interface.c_str());
-
     }
   }
 
@@ -67,11 +65,6 @@ controller_interface::InterfaceConfiguration CartPoseController::command_interfa
   controller_interface::InterfaceConfiguration command_interfaces_config;
   command_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   command_interfaces_config.names = command_interface_types_;
-  for (const auto & interface : command_interface_types_)
-    {
-      RCLCPP_ERROR(get_node()->get_logger(), "command_interface_types_: %s , %i",interface.c_str(),command_interface_types_.size());
-
-    }
   return command_interfaces_config;
 }
 
@@ -95,32 +88,9 @@ controller_interface::return_type CartPoseController::update(
     return controller_interface::return_type::ERROR;
   }
 
-  RCLCPP_ERROR(get_node()->get_logger(), "command size: %i %i %f %f %f %f %f %f %f",command_interfaces_.size(), (*joint_commands)->data.size(),
-  (*joint_commands)->data[0],(*joint_commands)->data[1],(*joint_commands)->data[2],(*joint_commands)->data[3],
-  (*joint_commands)->data[4],(*joint_commands)->data[5],(*joint_commands)->data[6],(*joint_commands)->data[7]);
-  
-RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(0).get_name().c_str());
-RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(0).get_interface_name().c_str());
-
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(1).get_name().c_str());
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(2).get_name().c_str());
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(3).get_name().c_str());
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(4).get_name().c_str());
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(5).get_name().c_str());
-  RCLCPP_ERROR(get_node()->get_logger(), "command name: %s ",command_interfaces_.at(6).get_name().c_str());
-  
-  command_interfaces_.at(0).set_value(0.1);
-  command_interfaces_.at(1).set_value(0.2);
-  command_interfaces_.at(2).set_value(0.3);
-  command_interfaces_.at(3).set_value(0.4);
-  command_interfaces_.at(4).set_value(0.5);
-  command_interfaces_.at(5).set_value(0.6);
-  command_interfaces_.at(6).set_value(0.7);
-  
-
   for (auto index = 0ul; index < command_interfaces_.size(); index++)
   {
-    RCLCPP_ERROR(get_node()->get_logger(), "cart joints %i: %f ",index, (*joint_commands)->data[index]);
+    //RCLCPP_ERROR(get_node()->get_logger(), "cart joints %i: %f ",index, (*joint_commands)->data[index]);
     command_interfaces_.at(index).set_value((*joint_commands)->data[index]);
   }
 
