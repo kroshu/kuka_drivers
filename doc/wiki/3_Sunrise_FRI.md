@@ -31,6 +31,7 @@ The parameters in the driver configuration file can be also changed during runti
 - `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. The updated values are sent to the hardware interface using the `joint_group_impedance_controller` to adapt to conventions, but it is not possible to change them in active state due to the constraints of FRI. (Therefore the `joint_group_impedance_controller` is deactivated at driver activation.)
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
+- `wrench_controller_name`: The name of the controller (string) that controls the `wrench` interface of the robot. It can't be changed in active state.
 
 ### Usage
 
@@ -49,7 +50,8 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
-
+- `wrench_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/feature/fri_wrench_control/kuka_sunrise_fri_driver/config/wrench_controller_config.yaml))
+  
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
     ros2 lifecycle set robot_manager configure
@@ -74,6 +76,8 @@ Both launch files support the following argument:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
+- `cic_config`: the location of the configuration file for the `cartesian_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/cartesian_impedance_controller_config.yaml`)
+- `wc_config`: the location of the configuration file for the `wrench_controller` (defaults to `kuka_sunrise_fri_driver/config/wrench_controller_config.yaml`)
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
