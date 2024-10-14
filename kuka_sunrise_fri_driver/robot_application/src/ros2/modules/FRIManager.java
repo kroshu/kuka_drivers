@@ -205,12 +205,23 @@ public class FRIManager{
 		}
 		@Override
 		public CommandResult activateControl(){
-			FRIJointOverlay friJointOverlay =
+		  System.out.println("ClientCommandMode: " + FRIManager.this._clientCommandMode + ".");
+		  if (FRIManager.this._clientCommandMode==ClientCommandMode.CARTESIAN_POSE) {
+		    FRICartesianOverlay friCartesianOverlay =
+          new FRICartesianOverlay(FRIManager.this._FRISession);
+		    PositionHold motion =
+	          new PositionHold(FRIManager.this._controlMode, -1, null);
+	        FRIManager.this._motionContainer =
+	          FRIManager.this._lbr.getFlange().moveAsync(motion.addMotionOverlay(friCartesianOverlay));
+		  }
+		  else {
+		    FRIJointOverlay friJointOverlay =
 					new FRIJointOverlay(FRIManager.this._FRISession, FRIManager.this._clientCommandMode);
-			PositionHold motion =
+		    PositionHold motion =
 					new PositionHold(FRIManager.this._controlMode, -1, null);
-			FRIManager.this._motionContainer =
+		    FRIManager.this._motionContainer =
 					FRIManager.this._lbr.getFlange().moveAsync(motion.addMotionOverlay(friJointOverlay));
+		  }
 			return CommandResult.EXECUTED;
 		}
 		@Override
