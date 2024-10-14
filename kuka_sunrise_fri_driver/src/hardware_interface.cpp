@@ -210,9 +210,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
+      fri_connection_->setPositionControlMode();
       fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);
-      fri_connection_->setCartesianImpedanceControlMode(
-        hw_cart_stiffness_commands_, hw_cart_damping_commands_);
       break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       fri_connection_->setCartesianImpedanceControlMode(
