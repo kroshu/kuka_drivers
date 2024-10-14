@@ -12,6 +12,8 @@ controller_manager:
       type: kuka_controllers/FRIStateBroadcaster
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+    external_torque_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
     wrench_controller:
       type: kuka_controllers/WrenchController
     cartesian_pose_controller:

@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     jtc_config = LaunchConfiguration("jtc_config")
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
+    etb_config = LaunchConfiguration("etb_config")
     wc_config = LaunchConfiguration("wc_config")
     cpc_config = LaunchConfiguration("cpc_config")    
     cic_config = LaunchConfiguration("cic_config")
@@ -117,12 +118,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             robot_description,
             controller_config,
-            jtc_config,
-            jic_config,
-            ec_config,
-            cic_config,
-            wc_config,
-            cpc_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -152,33 +147,42 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_names, activate=False):
+    def controller_spawner(controller_name, param_file=None, activate=False):
         arg_list = [
-            controller_names,
+            controller_name,
             "-c",
             controller_manager_node,
             "-n",
             ns,
         ]
+
+        # Add param-file if it's provided
+        if param_file:
+            arg_list.extend(["--param-file", param_file])
+
         if not activate:
             arg_list.append("--inactive")
+
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = [
-        "joint_state_broadcaster",
-        "joint_trajectory_controller",
-        "fri_configuration_controller",
-        "fri_state_broadcaster",
-        "joint_group_impedance_controller",
-        "effort_controller",
-        "control_mode_handler",
-        "event_broadcaster",
-        "cartesian_impedance_controller",
-        "wrench_controller",
-        "cartesian_pose_controller",
-    ]
+    controllers = {
+        "joint_state_broadcaster": None,
+        "external_torque_broadcaster": etb_config,
+        "joint_trajectory_controller": jtc_config,
+        "fri_configuration_controller": None,
+        "fri_state_broadcaster": None,
+        "joint_group_impedance_controller": jic_config,
+        "effort_controller": ec_config,
+        "control_mode_handler": None,
+        "event_broadcaster": None,
+        "cartesian_impedance_controller": cic_config,
+        "wrench_controller": wc_config,
+        "cartesian_pose_controller": cpc_config,
+    }
 
-    controller_spawners = [controller_spawner(name) for name in controller_names]
+    controller_spawners = [
+        controller_spawner(name, param_file) for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
         control_node,
@@ -230,6 +234,13 @@ def generate_launch_description():
             "ec_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/effort_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "etb_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/external_torque_broadcaster_config.yaml",
         )
     )
     launch_arguments.append(
