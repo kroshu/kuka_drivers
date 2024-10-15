@@ -313,6 +313,8 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       break;
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       break;
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
+      break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       [[fallthrough]];
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
@@ -446,6 +448,8 @@ std::string RobotManagerNode::GetControllerName() const
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       return joint_torque_controller_name_;
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
+      return cart_pose_controller_name_;
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
       return cart_pose_controller_name_;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       return wrench_controller_name_;

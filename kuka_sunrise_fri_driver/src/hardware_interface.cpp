@@ -213,6 +213,11 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setPositionControlMode();
       fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);
       break;
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
+      fri_connection_->setCartesianImpedanceControlMode(
+        hw_cart_stiffness_commands_, hw_cart_damping_commands_);
+      fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);
+      break;
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       fri_connection_->setCartesianImpedanceControlMode(
         hw_cart_stiffness_commands_, hw_cart_damping_commands_);
@@ -378,6 +383,8 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       break;
     }
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
+      [[fallthrough]];
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
     {
       const double * cartesianPoseQuaternion = hw_cart_pose_commands_.data();
       RCLCPP_DEBUG(
