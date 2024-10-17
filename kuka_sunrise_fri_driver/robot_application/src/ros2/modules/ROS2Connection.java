@@ -1,18 +1,16 @@
 package ros2.modules;
 
-import java.io.Externalizable;
+import com.kuka.fri.common.ClientCommandMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+import com.kuka.sensitivity.controlmode.CartesianImpedanceControlMode;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
 import java.util.Arrays;
-
-import ros2.modules.FRIManager;
-import ros2.serialization.ControlModeParams;
+import ros2.serialization.CartesianImpedanceControlModeExternalizable;
 import ros2.serialization.FRIConfigurationParams;
 import ros2.serialization.JointImpedanceControlModeExternalizable;
 import ros2.serialization.MessageEncoding;
-
-import com.kuka.connectivity.fastRobotInterface.ClientCommandMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 public class ROS2Connection {
 
@@ -95,7 +93,8 @@ public class ROS2Connection {
 
 	private enum ControlModeID{
 		POSITION(		(byte)1),
-		JOINT_IMPEDANCE((byte)2);
+		JOINT_IMPEDANCE((byte)2),
+		CARTESIAN_IMPEDANCE((byte)3);
 
 		public final byte value;
 
@@ -171,6 +170,8 @@ public class ROS2Connection {
 				case SET_COMMAND_MODE:
 					feedbackData = setCommandMode(inMessageData);
 					break;
+        		default:
+          			break;
 			}
 			System.out.println("Command executed.");
 			feedbackCommandSuccess(command, feedbackData);
@@ -244,7 +245,7 @@ public class ROS2Connection {
 	private byte[] disconnect(byte[] cmdData){
 		_FRIManager.close();
 		_disconnect = true;
-		//_TCPConnection.closeConnection(); //TODO: close connection after feedback was sent
+		//TODO: close connection after feedback was sent
 		return null;
 	}
 
@@ -323,6 +324,9 @@ public class ROS2Connection {
 		} else if (controlMode instanceof JointImpedanceControlMode){
 			controlModeID = ControlModeID.JOINT_IMPEDANCE;
 			controlModeData = MessageEncoding.Encode(new JointImpedanceControlModeExternalizable((JointImpedanceControlMode)controlMode), JointImpedanceControlModeExternalizable.length);
+		} else if (controlMode instanceof CartesianImpedanceControlMode){
+			controlModeID = ControlModeID.CARTESIAN_IMPEDANCE;
+			controlModeData = MessageEncoding.Encode(new CartesianImpedanceControlModeExternalizable((CartesianImpedanceControlMode)controlMode), CartesianImpedanceControlModeExternalizable.length);
 		} else {
 			throw new RuntimeException("Control mode not supported");
 		}
@@ -340,14 +344,26 @@ public class ROS2Connection {
 		switch(controlModeID){
 			case POSITION:
 				controlMode = new PositionControlMode();
+				System.out.println("Control mode POSITION selected");
 				break;
 			case JOINT_IMPEDANCE:
 				ensureArrayLength(controlModeData, JointImpedanceControlModeExternalizable.length + 6);
-				JointImpedanceControlModeExternalizable externalizable = new JointImpedanceControlModeExternalizable();
+				JointImpedanceControlModeExternalizable jointexternalizable = new JointImpedanceControlModeExternalizable();
 				System.out.println("Decoding params");
-				MessageEncoding.Decode(controlModeData, externalizable);
-				controlMode = externalizable.toControlMode();
+				MessageEncoding.Decode(controlModeData, jointexternalizable);
+				controlMode = jointexternalizable.toControlMode();
+				System.out.println("Control mode JOINT_IMPEDANCE selected");
 				break;
+			case CARTESIAN_IMPEDANCE:
+				ensureArrayLength(controlModeData, CartesianImpedanceControlModeExternalizable.length + 6);
+				CartesianImpedanceControlModeExternalizable cartexternalizable = new CartesianImpedanceControlModeExternalizable();
+				System.out.println("Decoding params");
+				MessageEncoding.Decode(controlModeData, cartexternalizable);
+				controlMode = cartexternalizable.toControlMode();
+				System.out.println("Control mode CARTESIAN_IMPEDANCE selected");
+				break;
+      		default:
+        		break;
 		}
 		System.out.println("Control mode decoded.");
 		FRIManager.CommandResult commandResult = _FRIManager.setControlMode(controlMode);

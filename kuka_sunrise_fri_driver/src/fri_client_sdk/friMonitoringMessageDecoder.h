@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software “KUKA Sunrise.FRI Client SDK” is targeted to work in
+conjunction with the “KUKA Sunrise.FRI” toolkit.
+In the following, the term “software” refers to all material directly
+belonging to the provided SDK “Software development kit”, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,13 +55,13 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #ifndef _KUKA_FRI_MONITORINGMESSAGEDECODER_H
 #define _KUKA_FRI_MONITORINGMESSAGEDECODER_H
 
-#include <FRIMessages.pb.h>
-#include <pb_frimessages_callbacks.h>
+#include "FRIMessages.pb.h"
+#include "pb_frimessages_callbacks.h"
 
 
 namespace KUKA
@@ -69,60 +69,63 @@ namespace KUKA
 namespace FRI
 {
 
-static const int FRI_MONITOR_MSG_MAX_SIZE = 1500;      //!< max size of a FRI monitoring message
+   static const int FRI_MONITOR_MSG_MAX_SIZE = 1500;   //!< max size of a FRI monitoring message
 
 
-class MonitoringMessageDecoder
-{
+   class MonitoringMessageDecoder
+   {
 
-public:
-  MonitoringMessageDecoder(FRIMonitoringMessage * pMessage, int num);
+   public:
 
-  ~MonitoringMessageDecoder();
+      MonitoringMessageDecoder(FRIMonitoringMessage* pMessage, int num);
 
-  bool decode(char * buffer, int size);
+      ~MonitoringMessageDecoder();
 
-private:
-  struct LocalMonitoringDataContainer
-  {
-    tRepeatedDoubleArguments m_AxQMsrLocal;
-    tRepeatedDoubleArguments m_AxTauMsrLocal;
-    tRepeatedDoubleArguments m_AxQCmdT1mLocal;
-    tRepeatedDoubleArguments m_AxTauCmdLocal;
-    tRepeatedDoubleArguments m_AxTauExtMsrLocal;
-    tRepeatedIntArguments m_AxDriveStateLocal;
-    tRepeatedDoubleArguments m_AxQCmdIPO;
+      bool decode(char* buffer, int size);
 
-    LocalMonitoringDataContainer()
-    {
-      init_repeatedDouble(&m_AxQMsrLocal);
-      init_repeatedDouble(&m_AxTauMsrLocal);
-      init_repeatedDouble(&m_AxQCmdT1mLocal);
-      init_repeatedDouble(&m_AxTauCmdLocal);
-      init_repeatedDouble(&m_AxTauExtMsrLocal);
-      init_repeatedDouble(&m_AxQCmdIPO);
-      init_repeatedInt(&m_AxDriveStateLocal);
-    }
 
-    ~LocalMonitoringDataContainer()
-    {
-      free_repeatedDouble(&m_AxQMsrLocal);
-      free_repeatedDouble(&m_AxTauMsrLocal);
-      free_repeatedDouble(&m_AxQCmdT1mLocal);
-      free_repeatedDouble(&m_AxTauCmdLocal);
-      free_repeatedDouble(&m_AxTauExtMsrLocal);
-      free_repeatedDouble(&m_AxQCmdIPO);
-      free_repeatedInt(&m_AxDriveStateLocal);
-    }
-  };
+   private:
 
-  int m_nNum;
+      struct LocalMonitoringDataContainer
+      {
+         tRepeatedDoubleArguments m_AxQMsrLocal;
+         tRepeatedDoubleArguments m_AxTauMsrLocal;
+         tRepeatedDoubleArguments m_AxQCmdT1mLocal;
+         tRepeatedDoubleArguments m_AxTauCmdLocal;
+         tRepeatedDoubleArguments m_AxTauExtMsrLocal;
+         tRepeatedIntArguments m_AxDriveStateLocal;
+         tRepeatedDoubleArguments m_AxQCmdIPO;
 
-  LocalMonitoringDataContainer m_tSendContainer;
-  FRIMonitoringMessage * m_pMessage;
+         LocalMonitoringDataContainer()
+         {
+            init_repeatedDouble(&m_AxQMsrLocal);
+            init_repeatedDouble(&m_AxTauMsrLocal);
+            init_repeatedDouble(&m_AxQCmdT1mLocal);
+            init_repeatedDouble(&m_AxTauCmdLocal);
+            init_repeatedDouble(&m_AxTauExtMsrLocal);
+            init_repeatedDouble(&m_AxQCmdIPO);
+            init_repeatedInt(&m_AxDriveStateLocal);
+         }
 
-  void initMessage();
-};
+         ~LocalMonitoringDataContainer()
+         {
+            free_repeatedDouble(&m_AxQMsrLocal);
+            free_repeatedDouble(&m_AxTauMsrLocal);
+            free_repeatedDouble(&m_AxQCmdT1mLocal);
+            free_repeatedDouble(&m_AxTauCmdLocal);
+            free_repeatedDouble(&m_AxTauExtMsrLocal);
+            free_repeatedDouble(&m_AxQCmdIPO);
+            free_repeatedInt(&m_AxDriveStateLocal);
+         }
+      };
+
+      int m_nNum;
+
+      LocalMonitoringDataContainer m_tSendContainer;
+      FRIMonitoringMessage* m_pMessage;
+
+      void initMessage();
+   };
 
 }
 }

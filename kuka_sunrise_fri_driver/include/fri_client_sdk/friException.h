@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software “KUKA Sunrise.FRI Client SDK” is targeted to work in
+conjunction with the “KUKA Sunrise.FRI” toolkit.
+In the following, the term “software” refers to all material directly
+belonging to the provided SDK “Software development kit”, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,12 +55,12 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #ifndef _KUKA_FRI_EXCEPTION_H
 #define _KUKA_FRI_EXCEPTION_H
 
-#include <stdio.h>
+#include "stdio.h"
 
 /** Kuka namespace */
 namespace KUKA
@@ -68,82 +68,83 @@ namespace KUKA
 namespace FRI
 {
 
-/**
+   /**
     * \brief Standard exception for the FRI Client
     *
     * \note For realtime considerations the internal message buffer is static.
     * So don't use this exception in more than one thread per process.
     */
-class FRIException
-{
+   class FRIException
+   {
 
-public:
-  /**
-     * \brief FRIException Constructor
-     *
-     * @param message Error message
-     */
-  FRIException(const char * message)
-  {
-    strncpy(_buffer, message, sizeof(_buffer) - 1);
-    _buffer[sizeof(_buffer) - 1] = 0;      // ensure string termination
-    printf("FRIException: ");
-    printf("%s", _buffer);
-    printf("\n");
-  }
+   public:
 
-  /**
-     * \brief FRIException Constructor
-     *
-     * @param message Error message which may contain one "%s" parameter
-     * @param param1 First format parameter for parameter message.
-     */
-  FRIException(const char * message, const char * param1)
-  {
+      /**
+       * \brief FRIException Constructor
+       *
+       * @param message Error message
+       */
+      FRIException(const char* message)
+      {
+         strncpy(_buffer, message, sizeof(_buffer) - 1);
+         _buffer[sizeof(_buffer) - 1] = 0; // ensure string termination
+         printf("FRIException: ");
+         printf(_buffer);
+         printf("\n");
+      }
+
+      /**
+       * \brief FRIException Constructor
+       *
+       * @param message Error message which may contain one "%s" parameter
+       * @param param1 First format parameter for parameter message.
+       */
+      FRIException(const char* message, const char* param1)
+      {
 #ifdef _MSC_VER
-    _snprintf(      // visual studio compilers (up to VS 2013) only know this method
+         _snprintf( // visual studio compilers (up to VS 2013) only know this method
 #else
-    snprintf(
+         snprintf(
 #endif
-      _buffer, sizeof(_buffer), message, param1);
-    printf("FRIException: ");
-    printf("%s", _buffer);
-    printf("\n");
-  }
+            _buffer, sizeof(_buffer), message, param1);
+         printf("FRIException: ");
+         printf(_buffer);
+         printf("\n");
+      }
 
-  /**
-     * \brief FRIException Constructor
-     *
-     * @param message Error message which may contain two "%s" parameter
-     * @param param1 First format parameter for parameter message.
-     * @param param2 Second format parameter for parameter message.
-     */
-  FRIException(const char * message, const char * param1, const char * param2)
-  {
+      /**
+       * \brief FRIException Constructor
+       *
+       * @param message Error message which may contain two "%s" parameter
+       * @param param1 First format parameter for parameter message.
+       * @param param2 Second format parameter for parameter message.
+       */
+      FRIException(const char* message, const char* param1, const char* param2)
+      {
 #ifdef _MSC_VER
-    _snprintf(      // visual studio compilers (up to VS 2013) only know this method
+         _snprintf( // visual studio compilers (up to VS 2013) only know this method
 #else
-    snprintf(
+         snprintf(
 #endif
-      _buffer, sizeof(_buffer), message, param1, param2);
-    printf("FRIException: ");
-    printf("%s", _buffer);
-    printf("\n");
-  }
+            _buffer, sizeof(_buffer), message, param1, param2);
+         printf("FRIException: ");
+         printf(_buffer);
+         printf("\n");
+      }
 
-  /**
-     * \brief Get error string.
-     * @return Error message stored in the exception.
-     */
-  const char * getErrorMessage() const {return _buffer;}
+      /**
+       * \brief Get error string.
+       * @return Error message stored in the exception.
+       */
+      const char* getErrorMessage() const { return _buffer; }
 
-  /** \brief Virtual destructor. */
-  virtual ~FRIException() {}
+      /** \brief Virtual destructor. */
+      virtual ~FRIException() {}
 
-protected:
-  static char _buffer[1024];
+   protected:
+      static char _buffer[1024];
 
-};
+   };
 
 }
 }

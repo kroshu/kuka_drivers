@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,7 +55,7 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #ifndef _KUKA_FRI_LBR_CLIENT_H
 #define _KUKA_FRI_LBR_CLIENT_H
@@ -70,71 +70,73 @@ namespace KUKA
 namespace FRI
 {
 
-/**
+   /**
     * \brief Implementation of the IClient interface for the KUKA LBR (lightweight) robots.
     *
     * Provides access to the current LBR state and the possibility to send new
     * commands to the LBR.
     */
-class LBRClient : public IClient
-{
+   class LBRClient : public IClient
+   {
 
-public:
-  /** \brief Constructor. */
-  LBRClient();
+   public:
 
-  /** \brief Destructor. */
-  ~LBRClient();
+      /** \brief Constructor. */
+      LBRClient();
 
-  /**
-     * \brief Callback that is called whenever the FRI session state changes.
-     *
-     * @param oldState previous FRI session state
-     * @param newState current FRI session state
-     */
-  virtual void onStateChange(ESessionState oldState, ESessionState newState);
+      /** \brief Destructor. */
+      ~LBRClient();
 
-  /**
-     * \brief Callback for the FRI session states 'Monitoring Wait' and 'Monitoring Ready'.
-     */
-  virtual void monitor();
+      /**
+       * \brief Callback that is called whenever the FRI session state changes.
+       *
+       * @param oldState previous FRI session state
+       * @param newState current FRI session state
+       */
+      virtual void onStateChange(ESessionState oldState, ESessionState newState);
 
-  /**
-     * \brief Callback for the FRI session state 'Commanding Wait'.
-     */
-  virtual void waitForCommand();
+      /**
+       * \brief Callback for the FRI session states 'Monitoring Wait' and 'Monitoring Ready'.
+       */
+      virtual void monitor();
 
-  /**
-     * \brief Callback for the FRI session state 'Commanding'.
-     */
-  virtual void command();
+      /**
+       * \brief Callback for the FRI session state 'Commanding Wait'.
+       */
+      virtual void waitForCommand();
 
-  /**
-     * \brief Provide read access to the current robot state.
-     *
-     * @return Reference to the LBRState instance
-     */
-  const LBRState & robotState() const {return _robotState;}
+      /**
+       * \brief Callback for the FRI session state 'Commanding'.
+       */
+      virtual void command();
 
-  /**
-     * \brief Provide write access to the robot commands.
-     *
-     * @return Reference to the LBRCommand instance
-     */
-  LBRCommand & robotCommand() {return _robotCommand;}
+      /**
+       * \brief Provide read access to the current robot state.
+       *
+       * @return Reference to the LBRState instance
+       */
+      const LBRState& robotState() const { return _robotState; }
 
-private:
-  LBRState _robotState;          //!< wrapper class for the FRI monitoring message
-  LBRCommand _robotCommand;      //!< wrapper class for the FRI command message
+      /**
+       * \brief Provide write access to the robot commands.
+       *
+       * @return Reference to the LBRCommand instance
+       */
+      LBRCommand& robotCommand() { return _robotCommand; }
 
-  /**
-     * \brief Method to create and initialize the client data structure (used internally).
-     *
-     * @return newly allocated client data structure
-     */
-  virtual ClientData * createData();
+   private:
 
-};
+      LBRState _robotState;      //!< wrapper class for the FRI monitoring message
+      LBRCommand _robotCommand;  //!< wrapper class for the FRI command message
+
+      /**
+       * \brief Method to create and initialize the client data structure (used internally).
+       *
+       * @return newly allocated client data structure
+       */
+      virtual ClientData* createData();
+
+   };
 
 }
 }

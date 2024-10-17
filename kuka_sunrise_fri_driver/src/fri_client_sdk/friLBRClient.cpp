@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,15 +55,14 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #include <cstdio>
-#include <iostream>
 #include <fri_client_sdk/friLBRClient.h>
 #include <friClientData.h>
 
 using namespace KUKA::FRI;
-char FRIException::_buffer[1024] = {0};
+char FRIException::_buffer[1024] = { 0 };
 
 //******************************************************************************
 LBRClient::LBRClient()
@@ -80,42 +79,47 @@ LBRClient::~LBRClient()
 //******************************************************************************
 void LBRClient::onStateChange(ESessionState oldState, ESessionState newState)
 {
-  // TODO: String converter function for states
-  std::cout << "LBRiiwaClient state changed from " <<
-    oldState << " to " << newState << std::endl;
+   // TODO: String converter function for states
+   printf("LBRiiwaClient state changed from %d to %d\n", oldState, newState);
 }
 
 //******************************************************************************
 void LBRClient::monitor()
 {
-  robotCommand().setJointPosition(robotState().getCommandedJointPosition());
+   // place your code here to monitor the robot's current state
 }
 
 //******************************************************************************
 void LBRClient::waitForCommand()
 {
-  robotCommand().setJointPosition(robotState().getIpoJointPosition());
+   if (CARTESIAN_POSE == _robotState.getClientCommandMode())
+      robotCommand().setCartesianPose(robotState().getIpoCartesianPose());
+   else
+      robotCommand().setJointPosition(robotState().getIpoJointPosition());
 }
 
 //******************************************************************************
 void LBRClient::command()
 {
-  robotCommand().setJointPosition(robotState().getIpoJointPosition());
+   if (CARTESIAN_POSE == _robotState.getClientCommandMode())
+      robotCommand().setCartesianPose(robotState().getIpoCartesianPose());
+   else
+      robotCommand().setJointPosition(robotState().getIpoJointPosition());
 }
 
 //******************************************************************************
-ClientData * LBRClient::createData()
+ClientData* LBRClient::createData()
 {
-  ClientData * data = new ClientData(_robotState.NUMBER_OF_JOINTS);
+   ClientData* data = new ClientData(_robotState.NUMBER_OF_JOINTS);
 
-  // link monitoring and command message to wrappers
-  _robotState._message = &data->monitoringMsg;
-  _robotCommand._cmdMessage = &data->commandMsg;
-  _robotCommand._monMessage = &data->monitoringMsg;
+   // link monitoring and command message to wrappers
+   _robotState._message = &data->monitoringMsg;
+   _robotCommand._cmdMessage = &data->commandMsg;
+   _robotCommand._monMessage = &data->monitoringMsg;
 
-  // set specific message IDs
-  data->expectedMonitorMsgID = _robotState.LBRMONITORMESSAGEID;
-  data->commandMsg.header.messageIdentifier = _robotCommand.LBRCOMMANDMESSAGEID;
+   // set specific message IDs
+   data->expectedMonitorMsgID = _robotState.LBRMONITORMESSAGEID;
+   data->commandMsg.header.messageIdentifier = _robotCommand.LBRCOMMANDMESSAGEID;
 
-  return data;
+   return data;
 }

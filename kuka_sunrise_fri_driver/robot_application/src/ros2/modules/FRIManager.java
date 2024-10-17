@@ -1,29 +1,27 @@
 package ros2.modules;
 
+import com.kuka.fri.FRIConfiguration;
+import com.kuka.fri.FRIJointOverlay;
+import com.kuka.fri.FRISession;
+
+import com.kuka.fri.common.ClientCommandMode;
+import com.kuka.fri.common.FRISessionState;
+import com.kuka.io.IIoDefinitionProvider;
+import com.kuka.motion.IMotionContainer;
+import com.kuka.device.RoboticArm;
+import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
+import com.kuka.roboticsAPI.motionModel.ErrorHandlingAction;
+import com.kuka.roboticsAPI.motionModel.IMotionErrorHandler;
+import com.kuka.roboticsAPI.motionModel.PositionHold;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.sensitivity.LBR;
+import com.kuka.sensitivity.controlmode.JointImpedanceControlMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
+import javax.inject.Inject;
 import ros2.serialization.FRIConfigurationParams;
-
-import com.kuka.connectivity.fastRobotInterface.ClientCommandMode;
-import com.kuka.connectivity.fastRobotInterface.FRIChannelInformation.FRISessionState;
-import com.kuka.connectivity.fastRobotInterface.FRIChannelInformation;
-import com.kuka.connectivity.fastRobotInterface.FRIConfiguration;
-import com.kuka.connectivity.fastRobotInterface.FRIJointOverlay;
-import com.kuka.connectivity.fastRobotInterface.FRISession;
-import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
-import com.kuka.roboticsAPI.deviceModel.Device;
-import com.kuka.roboticsAPI.deviceModel.LBR;
-import com.kuka.roboticsAPI.motionModel.ErrorHandlingAction;
-import com.kuka.roboticsAPI.motionModel.IErrorHandler;
-import com.kuka.roboticsAPI.motionModel.IMotionContainer;
-import com.kuka.roboticsAPI.motionModel.PositionHold;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
-import com.kuka.roboticsAPI.requestModel.GetApplicationOverrideRequest;
 
 public class FRIManager{
 	public enum CommandResult{
@@ -41,9 +39,9 @@ public class FRIManager{
 	private ClientCommandMode _clientCommandMode;
 	private IMotionContainer _motionContainer;
 	private FRIMotionErrorHandler _friMotionErrorHandler = new FRIMotionErrorHandler();
-	//private IApplicationControl _applicationControl;
 
 	private static double[] stiffness_ = new double[7];
+
 
 	public FRIManager(LBR lbr, IApplicationControl applicationControl){
 		_currentState = new InactiveState();
@@ -52,10 +50,8 @@ public class FRIManager{
 		_FRIConfiguration = new FRIConfigurationParams().toFRIConfiguration(_lbr);
 		Arrays.fill(stiffness_, 200);
 		_controlMode = new JointImpedanceControlMode(stiffness_);
-		//_controlMode = new PositionControlMode();
-		_clientCommandMode = ClientCommandMode.POSITION;
-		//_applicationControl = applicationControl;
-		applicationControl.registerMoveAsyncErrorHandler(_friMotionErrorHandler);
+		_clientCommandMode = ClientCommandMode.JOINT_POSITION;
+		applicationControl.registerMotionErrorHandler(_friMotionErrorHandler);
 	}
 
 	public void registerROS2ConnectionModule(ROS2Connection ros2ConnectionModule){
@@ -209,12 +205,23 @@ public class FRIManager{
 		}
 		@Override
 		public CommandResult activateControl(){
-			FRIJointOverlay friJointOverlay =
+		  System.out.println("ClientCommandMode: " + FRIManager.this._clientCommandMode + ".");
+		  if (FRIManager.this._clientCommandMode==ClientCommandMode.CARTESIAN_POSE) {
+		    FRICartesianOverlay friCartesianOverlay =
+          new FRICartesianOverlay(FRIManager.this._FRISession);
+		    PositionHold motion =
+	          new PositionHold(FRIManager.this._controlMode, -1, null);
+	        FRIManager.this._motionContainer =
+	          FRIManager.this._lbr.getFlange().moveAsync(motion.addMotionOverlay(friCartesianOverlay));
+		  }
+		  else {
+		    FRIJointOverlay friJointOverlay =
 					new FRIJointOverlay(FRIManager.this._FRISession, FRIManager.this._clientCommandMode);
-			PositionHold motion =
+		    PositionHold motion =
 					new PositionHold(FRIManager.this._controlMode, -1, null);
-			FRIManager.this._motionContainer =
-					FRIManager.this._lbr.moveAsync(motion.addMotionOverlay(friJointOverlay));
+		    FRIManager.this._motionContainer =
+					FRIManager.this._lbr.getFlange().moveAsync(motion.addMotionOverlay(friJointOverlay));
+		  }
 			return CommandResult.EXECUTED;
 		}
 		@Override
@@ -237,29 +244,46 @@ public class FRIManager{
 		}
 	}
 
-	private class FRIMotionErrorHandler implements IErrorHandler{
+	private class FRIMotionErrorHandler implements IMotionErrorHandler{
 
 		@Override
-		public ErrorHandlingAction handleError(Device device,
+		public ErrorHandlingAction handleExecutionError(
 				IMotionContainer failedContainer,
 				List<IMotionContainer> canceledContainers) {
 			FRISessionState  sessionState = _FRISession.getFRIChannelInformation().getFRISessionState();
 			switch(sessionState){
 			case IDLE:
 				FRIManager.this._ROS2Connection.handleFRIEndedError();
-				//FRIManager.this._currentState = new InactiveState();
 				break;
 			default:
 				FRIManager.this._ROS2Connection.handleControlEndedError();
-				//FRIManager.this._currentState = new FRIActiveState();
-				break;
+  				break;
 			}
 			System.out.println("Failed container: " + failedContainer.toString() + ".");
 			System.out.println("Error: " + failedContainer.getErrorMessage());
 			System.out.println("Runtime data: " + failedContainer.getRuntimeData());
 			System.out.println("Cancelled containers: " + canceledContainers.toString());
-			return ErrorHandlingAction.Ignore;
+			return ErrorHandlingAction.IGNORE;
 		}
+		@Override
+    public ErrorHandlingAction handleMaintainingError(IMotionContainer lastContainer,
+    List<IMotionContainer> canceledContainers,
+    String errorMessage) {
+      FRISessionState  sessionState = _FRISession.getFRIChannelInformation().getFRISessionState();
+      switch(sessionState){
+      case IDLE:
+        FRIManager.this._ROS2Connection.handleFRIEndedError();
+        break;
+      default:
+        FRIManager.this._ROS2Connection.handleControlEndedError();
+        break;
+      }
+      System.out.println("Last container: " + lastContainer.toString() + ".");
+      System.out.println("Error: " + lastContainer.getErrorMessage());
+      System.out.println("Runtime data: " + lastContainer.getRuntimeData());
+      System.out.println("Cancelled containers: " + canceledContainers.toString());
+      return ErrorHandlingAction.IGNORE;
+    }
 
 	}
 

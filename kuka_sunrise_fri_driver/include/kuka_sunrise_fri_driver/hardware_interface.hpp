@@ -124,9 +124,15 @@ private:
   // State and command interfaces
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;
-  std::vector<double> hw_stiffness_commands_;
-  std::vector<double> hw_damping_commands_;
-
+  std::vector<double> hw_joint_stiffness_commands_;
+  std::vector<double> hw_joint_damping_commands_;
+  std::vector<double> hw_wrench_commands_;
+  std::vector<double> hw_cart_stiffness_commands_;
+  std::vector<double> hw_cart_damping_commands_;
+#ifdef FRI_V2_5
+  std::vector<double> hw_cart_pose_commands_;
+  std::vector<double> hw_cart_pose_states_;
+#endif
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_ext_torque_states_;

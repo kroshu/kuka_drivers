@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,7 +55,7 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #include <cstdio>
 #include <friCommandMessageEncoder.h>
@@ -64,10 +64,10 @@ cost of any service and repair.
 using namespace KUKA::FRI;
 
 //******************************************************************************
-CommandMessageEncoder::CommandMessageEncoder(FRICommandMessage * pMessage, int num)
-: m_nNum(num), m_pMessage(pMessage)
+CommandMessageEncoder::CommandMessageEncoder(FRICommandMessage* pMessage, int num)
+   : m_nNum(num), m_pMessage(pMessage)
 {
-  initMessage();
+   initMessage();
 }
 
 //******************************************************************************
@@ -79,44 +79,47 @@ CommandMessageEncoder::~CommandMessageEncoder()
 //******************************************************************************
 void CommandMessageEncoder::initMessage()
 {
-  m_pMessage->has_commandData = false;
-  m_pMessage->has_endOfMessageData = false;
-  m_pMessage->commandData.has_jointPosition = false;
-  m_pMessage->commandData.has_cartesianWrenchFeedForward = false;
-  m_pMessage->commandData.has_jointTorque = false;
-  m_pMessage->commandData.commandedTransformations_count = 0;
-  m_pMessage->header.messageIdentifier = 0;
-  // init with 0. Necessary for creating the correct reflected sequence count in the monitoring msg
-  m_pMessage->header.sequenceCounter = 0;
-  m_pMessage->header.reflectedSequenceCounter = 0;
+   m_pMessage->has_commandData = false;
+   m_pMessage->has_endOfMessageData = false;
+   m_pMessage->commandData.has_jointPosition = false;
+   m_pMessage->commandData.has_cartesianWrenchFeedForward = false;
+   m_pMessage->commandData.has_jointTorque = false;
+   m_pMessage->commandData.has_cartesianPose = false;
+   m_pMessage->commandData.commandedTransformations_count = 0;
+   m_pMessage->commandData.has_redundancyInformation = false;
+   m_pMessage->header.messageIdentifier = 0;
+   // init with 0. Necessary for creating the correct reflected sequence count in the monitoring msg
+   m_pMessage->header.sequenceCounter = 0;
+   m_pMessage->header.reflectedSequenceCounter = 0;
 
-  m_pMessage->commandData.writeIORequest_count = 0;
+   m_pMessage->commandData.writeIORequest_count = 0;
 
-  // allocate and map memory for protobuf repeated structures
-  map_repeatedDouble(
-    FRI_MANAGER_NANOPB_ENCODE, m_nNum,
-    &m_pMessage->commandData.jointPosition.value,
-    &m_tRecvContainer.jointPosition);
-  map_repeatedDouble(
-    FRI_MANAGER_NANOPB_ENCODE, m_nNum,
-    &m_pMessage->commandData.jointTorque.value,
-    &m_tRecvContainer.jointTorque);
+   // allocate and map memory for protobuf repeated structures
+   map_repeatedDouble(FRI_MANAGER_NANOPB_ENCODE, m_nNum,
+         &m_pMessage->commandData.jointPosition.value,
+         &m_tRecvContainer.jointPosition);
+   map_repeatedDouble(FRI_MANAGER_NANOPB_ENCODE, m_nNum,
+         &m_pMessage->commandData.jointTorque.value,
+         &m_tRecvContainer.jointTorque);
 
-  // nanopb encoding needs to know how many elements the static array contains
-  // a Cartesian wrench feed forward vector always contains 6 elements
-  m_pMessage->commandData.cartesianWrenchFeedForward.element_count = 6;
+   // nanopb encoding needs to know how many elements the static array contains
+   // a quaternion always contains 7 elements
+   m_pMessage->commandData.cartesianPose.element_count = 7;
+   // a Cartesian wrench feed forward vector always contains 6 elements
+   m_pMessage->commandData.cartesianWrenchFeedForward.element_count = 6;
 }
 
 //******************************************************************************
-bool CommandMessageEncoder::encode(char * buffer, int & size)
+bool CommandMessageEncoder::encode(char* buffer, int& size)
 {
-  // generate stream for encoding
-  pb_ostream_t stream = pb_ostream_from_buffer((uint8_t *)buffer, FRI_COMMAND_MSG_MAX_SIZE);
-  // encode monitoring Message to stream
-  bool status = pb_encode(&stream, FRICommandMessage_fields, m_pMessage);
-  size = stream.bytes_written;
-  if (!status) {
-    printf("!!encoding error: %s!!\n", PB_GET_ERROR(&stream));
-  }
-  return status;
+    // generate stream for encoding
+    pb_ostream_t stream = pb_ostream_from_buffer((uint8_t*)buffer, FRI_COMMAND_MSG_MAX_SIZE);
+    // encode monitoring Message to stream
+    bool status = pb_encode(&stream, FRICommandMessage_fields, m_pMessage);
+    size = stream.bytes_written;
+    if (!status)
+    {
+        printf("!!encoding error on Command message: %s!!\n", PB_GET_ERROR(&stream));
+    }
+    return status;
 }

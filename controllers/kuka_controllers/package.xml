@@ -13,6 +13,8 @@
   <exec_depend>fri_configuration_controller</exec_depend>
   <exec_depend>fri_state_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>
+  <exec_depend>wrench_controller</exec_depend>
+  <exec_depend>cart_pose_controller</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

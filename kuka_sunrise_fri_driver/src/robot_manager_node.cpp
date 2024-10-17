@@ -60,6 +60,9 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   joint_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
     "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
 
+  cart_imp_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+    "cartesian_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
+
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
@@ -77,11 +80,11 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
   registerParameter<int>(
-    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const int & receive_multiplier)
     { return this->onReceiveMultiplierChangeRequest(receive_multiplier); });
 
@@ -106,15 +109,43 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
         controller_name, kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE);
     });
 
+  registerParameter<std::string>(
+    "wrench_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE);
+    });
+#ifdef FRI_V2_5
+  registerParameter<std::string>(
+    "cart_pose_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
+    [this](const std::string & controller_name)
+    {
+      return this->onControllerNameChangeRequest(
+        controller_name, kuka_drivers_core::ControllerType::CARTESIAN_POSITION_CONTROLLER_TYPE);
+    });
+#endif
   registerParameter<std::vector<double>>(
-    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & joint_stiffness)
     { return this->onJointStiffnessChangeRequest(joint_stiffness); });
 
   registerParameter<std::vector<double>>(
-    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "joint_damping", joint_damping_, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & joint_damping)
     { return this->onJointDampingChangeRequest(joint_damping); });
+
+  registerParameter<std::vector<double>>(
+    "cartesian_stiffness", cartesian_stiffness_,
+    kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const std::vector<double> & cartesian_stiffness)
+    { return this->onCartesianStiffnessChangeRequest(cartesian_stiffness); });
+
+  registerParameter<std::vector<double>>(
+    "cartesian_damping", cartesian_damping_,
+    kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const std::vector<double> & cartesian_damping)
+    { return this->onCartesianDampingChangeRequest(cartesian_damping); });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -132,6 +163,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
+#ifdef FRI_V2_5
+    RCLCPP_ERROR(get_logger(), "FRI VERSION 2.5");
+#endif
     return FAILURE;
   }
 
@@ -139,12 +173,18 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
         {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::CONTROL_MODE_HANDLER,
-         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
+         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER,
+         kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
   }
+
+  // Publish the values of the cartesian impedance parameters to the controller
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
+  // Publish the values of the joint impedance parameters to the controller
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
 
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
@@ -161,7 +201,8 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
         {kuka_drivers_core::FRI_CONFIGURATION_CONTROLLER, kuka_drivers_core::CONTROL_MODE_HANDLER,
-         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
+         kuka_drivers_core::EVENT_BROADCASTER, kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER,
+         kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -192,15 +233,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  // Publish the values of the joint impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray joint_imp_msg;
-  for (int i = 0; i < 7; i++)
-  {
-    joint_imp_msg.data.push_back(joint_stiffness_[i]);
-    joint_imp_msg.data.push_back(joint_damping_[i]);
-  }
-  joint_imp_pub_->publish(joint_imp_msg);
-
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -218,7 +250,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
         change_controller_state_client_,
         {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::EXTERNAL_TORQUE_BROADCASTER,
          kuka_drivers_core::FRI_STATE_BROADCASTER, GetControllerName()},
-        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER}))
+        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER,
+         kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
@@ -243,7 +276,9 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
+        change_controller_state_client_,
+        {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER,
+         kuka_drivers_core::CARTESIAN_IMPEDANCE_CONTROLLER},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
          kuka_drivers_core::EXTERNAL_TORQUE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))
@@ -279,7 +314,14 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
-      // TODO(Svastits): check whether this is necessary for impedance mode too
+      break;
+#ifdef FRI_V2_5
+    case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
+      break;
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
+      break;
+#endif
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       [[fallthrough]];
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       if (send_period_ms_ > 5)
@@ -385,6 +427,14 @@ bool RobotManagerNode::onControllerNameChangeRequest(
     case kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE:
       joint_torque_controller_name_ = controller_name;
       break;
+#ifdef FRI_V2_5
+    case kuka_drivers_core::ControllerType::CARTESIAN_POSITION_CONTROLLER_TYPE:
+      cart_pose_controller_name_ = controller_name;
+      break;
+#endif
+    case kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE:
+      wrench_controller_name_ = controller_name;
+      break;
     default:
       // This should actually never happen
       RCLCPP_ERROR(get_logger(), "Invalid controller type");
@@ -405,6 +455,14 @@ std::string RobotManagerNode::GetControllerName() const
       return joint_pos_controller_name_;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       return joint_torque_controller_name_;
+#ifdef FRI_V2_5
+    case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
+      return cart_pose_controller_name_;
+    case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
+      return cart_pose_controller_name_;
+#endif
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+      return wrench_controller_name_;
     default:
       throw std::runtime_error("Stored control mode is not allowed");
   }
@@ -416,6 +474,19 @@ void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
   msg.receive_multiplier = receive_multiplier;
   msg.send_period_ms = send_period_ms;
   fri_config_pub_->publish(msg);
+}
+
+void RobotManagerNode::setImpedanceConfiguration(
+  const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
+  const std::vector<double> & stiffness, const std::vector<double> & damping) const
+{
+  std_msgs::msg::Float64MultiArray msg;
+  for (std::size_t i = 0; i < stiffness.size(); i++)
+  {
+    msg.data.push_back(stiffness[i]);
+    msg.data.push_back(damping[i]);
+  }
+  pub->publish(msg);
 }
 
 bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)
@@ -434,6 +505,7 @@ bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> &
     }
   }
   joint_stiffness_ = joint_stiffness;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   return true;
 }
 
@@ -453,6 +525,60 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
     }
   }
   joint_damping_ = joint_damping;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
+  return true;
+}
+
+bool RobotManagerNode::onCartesianStiffnessChangeRequest(
+  const std::vector<double> & cartesian_stiffness)
+{
+  if (cartesian_stiffness.size() != 6)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter cartesian stiffness");
+    return false;
+  }
+  for (std::size_t i = 0; i < 3; i++)
+  {
+    if (cartesian_stiffness[i] < 0 || cartesian_stiffness[i] > 5000)
+    {
+      RCLCPP_ERROR(
+        get_logger(), "Translational stiffness values must be between 0.0 and 5000.0 (N/m)");
+      return false;
+    }
+  }
+  for (std::size_t i = 3; i < 6; i++)
+  {
+    if (cartesian_stiffness[i] < 0 || cartesian_stiffness[i] > 300)
+    {
+      RCLCPP_ERROR(
+        get_logger(), "Rotaional stiffness values must be between 0.0 and 300.0 (N/rad)");
+      return false;
+    }
+  }
+  cartesian_stiffness_ = cartesian_stiffness;
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
+
+  return true;
+}
+
+bool RobotManagerNode::onCartesianDampingChangeRequest(
+  const std::vector<double> & cartesian_damping)
+{
+  if (cartesian_damping.size() != 6)
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid parameter array length for parameter cartesian damping");
+    return false;
+  }
+  for (double cd : cartesian_damping)
+  {
+    if (cd < 0.1 || cd > 1)
+    {
+      RCLCPP_ERROR(get_logger(), "Cartesian damping values must be >=0.1 && <=1");
+      return false;
+    }
+  }
+  cartesian_damping_ = cartesian_damping;
+  setImpedanceConfiguration(cart_imp_pub_, cartesian_stiffness_, cartesian_damping_);
   return true;
 }
 

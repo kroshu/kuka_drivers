@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,10 +55,9 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #include <cstdio>
-#include <iostream>
 #include <fri_client_sdk/friClientApplication.h>
 #include <fri_client_sdk/friClientIf.h>
 #include <fri_client_sdk/friConnectionIf.h>
@@ -69,133 +68,143 @@ cost of any service and repair.
 using namespace KUKA::FRI;
 
 //******************************************************************************
-ClientApplication::ClientApplication(IConnection & connection, IClient & client)
-: _connection(connection), _robotClient(&client), _trafoClient(NULL), _data(NULL)
+ClientApplication::ClientApplication(IConnection& connection, IClient& client)
+   : _connection(connection), _robotClient(&client),_trafoClient(NULL), _data(NULL)
 {
-  _data = _robotClient->createData();
+   _data = _robotClient->createData();
 }
 
 //******************************************************************************
-ClientApplication::ClientApplication(
-  IConnection & connection, IClient & client,
-  TransformationClient & trafoClient)
-: _connection(connection), _robotClient(&client), _trafoClient(&trafoClient), _data(NULL)
+ClientApplication::ClientApplication(IConnection& connection, IClient& client, TransformationClient& trafoClient)
+   : _connection(connection), _robotClient(&client), _trafoClient(&trafoClient), _data(NULL)
 {
-  _data = _robotClient->createData();
-  _trafoClient->linkData(_data);
+   _data = _robotClient->createData();
+   _trafoClient->linkData(_data);
 }
 
 //******************************************************************************
 ClientApplication::~ClientApplication()
 {
-  disconnect();
-  delete _data;
+   disconnect();
+   delete _data;
 }
 
 //******************************************************************************
-bool ClientApplication::connect(int port, const char * remoteHost)
+bool ClientApplication::connect(int port, const char *remoteHost)
 {
-  if (_connection.isOpen()) {
-    std::cout << "Warning: client application already connected!" << std::endl;
-    return true;
-  }
+   if (_connection.isOpen())
+   {
+      printf("Warning: client application already connected!\n");
+      return true;
+   }
 
-  return _connection.open(port, remoteHost);
+   return _connection.open(port, remoteHost);
 }
 
 //******************************************************************************
 void ClientApplication::disconnect()
 {
-  if (_connection.isOpen()) {_connection.close();}
+   if (_connection.isOpen()) _connection.close();
 }
 
 //******************************************************************************
 bool ClientApplication::step()
 {
-  if (!_connection.isOpen()) {
-    std::cout << "Error: client application is not connected!" << std::endl;
-    return false;
-  }
-
-  // **************************************************************************
-  // Receive and decode new monitoring message
-  // **************************************************************************
-  int size = _connection.receive(_data->receiveBuffer, FRI_MONITOR_MSG_MAX_SIZE);
-
-  if (size <= 0) { // TODO: size == 0 -> connection closed (maybe go to IDLE instead of stopping?)
-    std::cout << "Error: failed while trying to receive monitoring message!" << std::endl;
-    return false;
-  }
-
-  if (!_data->decoder.decode(_data->receiveBuffer, size)) {
-    return false;
-  }
-
-  // check message type (so that our wrappers match)
-  if (_data->expectedMonitorMsgID != _data->monitoringMsg.header.messageIdentifier) {
-    std::cout << "Error: incompatible IDs for received message, got: " <<
-      _data->monitoringMsg.header.messageIdentifier << " expected: " << _data->expectedMonitorMsgID;
-    return false;
-  }
-
-  // **************************************************************************
-  // callbacks
-  // **************************************************************************
-  // reset command message before callbacks
-  _data->resetCommandMessage();
-
-  // callbacks for robot client
-  ESessionState currentState = (ESessionState)_data->monitoringMsg.connectionInfo.sessionState;
-
-  if (_data->lastState != currentState) {
-    _robotClient->onStateChange(_data->lastState, currentState);
-    _data->lastState = currentState;
-  }
-
-  switch (currentState) {
-    case MONITORING_WAIT:
-    case MONITORING_READY:
-      _robotClient->monitor();
-      break;
-    case COMMANDING_WAIT:
-      _robotClient->waitForCommand();
-      break;
-    case COMMANDING_ACTIVE:
-      _robotClient->command();
-      break;
-    case IDLE:
-    default:
-      return true;    // nothing to send back
-  }
-
-  // callback for transformation client
-  if (_trafoClient != NULL) {
-    _trafoClient->provide();
-  }
-
-  // **************************************************************************
-  // Encode and send command message
-  // **************************************************************************
-
-  _data->lastSendCounter++;
-  // check if its time to send an answer
-  if (_data->lastSendCounter >= _data->monitoringMsg.connectionInfo.receiveMultiplier) {
-    _data->lastSendCounter = 0;
-
-    // set sequence counters
-    _data->commandMsg.header.sequenceCounter = _data->sequenceCounter++;
-    _data->commandMsg.header.reflectedSequenceCounter =
-      _data->monitoringMsg.header.sequenceCounter;
-
-    if (!_data->encoder.encode(_data->sendBuffer, size)) {
+   if (!_connection.isOpen())
+   {
+      printf("Error: client application is not connected!\n");
       return false;
-    }
+   }
 
-    if (!_connection.send(_data->sendBuffer, size)) {
-      std::cout << "Error: failed while trying to send command message!" << std::endl;
+   // **************************************************************************
+   // Receive and decode new monitoring message
+   // **************************************************************************
+   int size = _connection.receive(_data->receiveBuffer, FRI_MONITOR_MSG_MAX_SIZE);
+
+   if (size <= 0)
+   {  // TODO: size == 0 -> connection closed (maybe go to IDLE instead of stopping?)
+      printf("Error: failed while trying to receive monitoring message!\n");
       return false;
-    }
-  }
+   }
 
-  return true;
+   if (!_data->decoder.decode(_data->receiveBuffer, size))
+   {
+      return false;
+   }
+
+   // check message type (so that our wrappers match)
+   if (_data->expectedMonitorMsgID != _data->monitoringMsg.header.messageIdentifier)
+   {
+      printf("Error: incompatible IDs for received message (got: %d expected %d)!\n",
+            (int)_data->monitoringMsg.header.messageIdentifier,
+            (int)_data->expectedMonitorMsgID);
+      return false;
+   }
+
+   // **************************************************************************
+   // callbacks
+   // **************************************************************************
+   // reset command message before callbacks
+   _data->resetCommandMessage();
+
+   // callbacks for robot client
+   ESessionState currentState = (ESessionState)_data->monitoringMsg.connectionInfo.sessionState;
+
+   if (_data->lastState != currentState)
+   {
+      _robotClient->onStateChange(_data->lastState, currentState);
+      _data->lastState = currentState;
+   }
+
+   switch (currentState)
+   {
+      case MONITORING_WAIT:
+      case MONITORING_READY:
+         _robotClient->monitor();
+         break;
+      case COMMANDING_WAIT:
+         _robotClient->waitForCommand();
+         break;
+      case COMMANDING_ACTIVE:
+         _robotClient->command();
+         break;
+      case IDLE:
+      default:
+         return true; // nothing to send back
+   }
+
+   // callback for transformation client
+   if(_trafoClient != NULL)
+   {
+      _trafoClient->provide();
+   }
+
+   // **************************************************************************
+   // Encode and send command message
+   // **************************************************************************
+
+   _data->lastSendCounter++;
+   // check if its time to send an answer
+   if (_data->lastSendCounter >= _data->monitoringMsg.connectionInfo.receiveMultiplier)
+   {
+      _data->lastSendCounter = 0;
+
+      // set sequence counters
+      _data->commandMsg.header.sequenceCounter = _data->sequenceCounter++;
+      _data->commandMsg.header.reflectedSequenceCounter =
+            _data->monitoringMsg.header.sequenceCounter;
+
+      if (!_data->encoder.encode(_data->sendBuffer, size))
+      {
+         return false;
+      }
+
+      if (!_connection.send(_data->sendBuffer, size))
+      {
+         printf("Error: failed while trying to send command message!\n");
+         return false;
+      }
+   }
+
+   return true;
 }

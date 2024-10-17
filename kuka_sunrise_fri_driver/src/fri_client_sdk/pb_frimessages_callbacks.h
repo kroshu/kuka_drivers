@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software “KUKA Sunrise.FRI Client SDK” is targeted to work in
+conjunction with the “KUKA Sunrise.FRI” toolkit.
+In the following, the term “software” refers to all material directly
+belonging to the provided SDK “Software development kit”, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,7 +55,7 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #ifndef _pb_frimessages_callbacks_H
 #define _pb_frimessages_callbacks_H
@@ -64,64 +64,55 @@ cost of any service and repair.
 extern "C" {
 #endif
 
-#include <pb.h>
-#include <FRIMessages.pb.h>
+#include "pb.h"
+#include "FRIMessages.pb.h"
 
 /** container for repeated double elements */
-typedef struct repeatedDoubleArguments
-{
-  size_t size;
-  size_t max_size;
-  double * value;
+typedef struct repeatedDoubleArguments {
+   size_t size;
+   size_t max_size;
+   double* value;
 } tRepeatedDoubleArguments;
 
 /** container for repeated integer elements */
-typedef struct repeatedIntArguments
-{
-  size_t size;
-  size_t max_size;
-  int64_t * value;
+typedef struct repeatedIntArguments {
+   size_t size;
+   size_t max_size;
+   int64_t* value;
 } tRepeatedIntArguments;
 
 /** enumeration for direction (encoding/decoding) */
-typedef enum DIRECTION
-{
-  FRI_MANAGER_NANOPB_DECODE = 0,  //!< Argument um eine
-  FRI_MANAGER_NANOPB_ENCODE = 1   //!<
+typedef enum DIRECTION {
+   FRI_MANAGER_NANOPB_DECODE = 0, //!< Argument um eine
+   FRI_MANAGER_NANOPB_ENCODE = 1  //!<
 } eNanopbCallbackDirection;
 
 
-bool encode_repeatedDouble(
-  pb_ostream_t * stream, const pb_field_t * field,
-  void * const * arg);
+bool encode_repeatedDouble(pb_ostream_t *stream, const pb_field_t *field,
+      void * const *arg);
 
-bool decode_repeatedDouble(
-  pb_istream_t * stream, const pb_field_t * field,
-  void ** arg);
+bool decode_repeatedDouble(pb_istream_t *stream, const pb_field_t *field,
+      void **arg);
 
-bool encode_repeatedInt(
-  pb_ostream_t * stream, const pb_field_t * field,
-  void * const * arg);
+bool encode_repeatedInt(pb_ostream_t *stream, const pb_field_t *field,
+      void * const *arg);
 
-bool decode_repeatedInt(
-  pb_istream_t * stream, const pb_field_t * field,
-  void ** arg);
+bool decode_repeatedInt(pb_istream_t *stream, const pb_field_t *field,
+      void **arg);
 
-void map_repeatedDouble(
-  eNanopbCallbackDirection dir, int numDOF,
-  pb_callback_t * values, tRepeatedDoubleArguments * arg);
+void map_repeatedDouble(eNanopbCallbackDirection dir, int numDOF,
+      pb_callback_t *values, tRepeatedDoubleArguments *arg);
 
-void map_repeatedInt(
-  eNanopbCallbackDirection dir, int numDOF,
-  pb_callback_t * values, tRepeatedIntArguments * arg);
+void map_repeatedInt(eNanopbCallbackDirection dir, int numDOF,
+      pb_callback_t *values, tRepeatedIntArguments *arg);
 
-void init_repeatedDouble(tRepeatedDoubleArguments * arg);
+void init_repeatedDouble(tRepeatedDoubleArguments *arg);
 
-void init_repeatedInt(tRepeatedIntArguments * arg);
+void init_repeatedInt(tRepeatedIntArguments *arg);
 
-void free_repeatedDouble(tRepeatedDoubleArguments * arg);
+void free_repeatedDouble(tRepeatedDoubleArguments *arg);
 
-void free_repeatedInt(tRepeatedIntArguments * arg);
+void free_repeatedInt(tRepeatedIntArguments *arg);
 
 #ifdef __cplusplus
 } /* extern "C" */

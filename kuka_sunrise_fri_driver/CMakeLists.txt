@@ -31,7 +31,16 @@ find_path(NANOPB_INCLUDE_DIR
   PATHS /usr/include/nanopb /usr/local/include/nanopb
 )
 
-include_directories(include src/fri_client_sdk ${NANOPB_INCLUDE_DIR})
+option(WITH_FRI_VERSION_2_5 "Using the FRI 2.5 version" ON)
+
+if (WITH_FRI_VERSION_2_5)
+  add_definitions(-DFRI_V2_5)
+  set(FRI_CLIENT_SDK_VERSION "FRI_v2_5")
+else()
+  set(FRI_CLIENT_SDK_VERSION "FRI_v1_5")
+endif()
+
+include_directories(include src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk include/${FRI_CLIENT_SDK_VERSION} ${NANOPB_INCLUDE_DIR})
 
 add_library(fri_connection SHARED
   src/connection_helpers/fri_connection.cpp
@@ -43,17 +52,17 @@ target_link_libraries(fri_connection
 file(GLOB fri_client_sources
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}"
-    src/fri_client_sdk/HWIFClientApplication.cpp
-    src/fri_client_sdk/friClientApplication.cpp
-    src/fri_client_sdk/friCommandMessageEncoder.cpp
-    src/fri_client_sdk/friLBRClient.cpp
-    src/fri_client_sdk/friLBRCommand.cpp
-    src/fri_client_sdk/friLBRState.cpp
-    src/fri_client_sdk/FRIMessages.pb.c
-    src/fri_client_sdk/friMonitoringMessageDecoder.cpp
-    src/fri_client_sdk/friTransformationClient.cpp
-    src/fri_client_sdk/friUdpConnection.cpp
-    src/fri_client_sdk/pb_frimessages_callbacks.c
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/HWIFClientApplication.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friClientApplication.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friCommandMessageEncoder.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friLBRClient.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friLBRCommand.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friLBRState.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/FRIMessages.pb.c
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friMonitoringMessageDecoder.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friTransformationClient.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friUdpConnection.cpp
+    src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/pb_frimessages_callbacks.c
 )
 
 # Add the Fast Robot Interface library
@@ -62,16 +71,17 @@ add_library(fri_client_sdk SHARED ${fri_client_sources})
 file(GLOB private_headers
   LIST_DIRECTORIES FALSE
   RELATIVE "${PROJECT_SOURCE_DIR}"
-  src/fri_client_sdk/friClientData.h
-  src/fri_client_sdk/friCommandMessageEncoder.h
-  src/fri_client_sdk/FRIMessages.pb.h
-  src/fri_client_sdk/friMonitoringMessageDecoder.h
-  src/fri_client_sdk/pb_frimessages_callbacks.h
+  src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friClientData.h
+  src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friCommandMessageEncoder.h
+  src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/FRIMessages.pb.h
+  src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/friMonitoringMessageDecoder.h
+  src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk/pb_frimessages_callbacks.h
 )
 
 target_link_libraries(fri_client_sdk PRIVATE protobuf-nanopb)
 
-install(DIRECTORY include/fri_client_sdk DESTINATION include)
+install(DIRECTORY include/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk DESTINATION include)
+
 install(FILES ${private_headers} DESTINATION include)
 
 add_library(${PROJECT_NAME} SHARED

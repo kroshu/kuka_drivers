@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,59 +55,95 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #include <fri_client_sdk/friLBRState.h>
 #include <fri_client_sdk/friLBRCommand.h>
 #include <friClientData.h>
 #include <pb_frimessages_callbacks.h>
+#include <fri_client_sdk/friDataHelper.h>
 
 using namespace KUKA::FRI;
 
 //******************************************************************************
-void LBRCommand::setJointPosition(const double * values)
+void LBRCommand::setJointPosition(const double* values)
 {
-  _cmdMessage->has_commandData = true;
-  _cmdMessage->commandData.has_jointPosition = true;
-  tRepeatedDoubleArguments * dest =
-    (tRepeatedDoubleArguments *)_cmdMessage->commandData.jointPosition.value.arg;
-  memcpy(dest->value, values, LBRState::NUMBER_OF_JOINTS * sizeof(double));
+   _cmdMessage->has_commandData = true;
+   _cmdMessage->commandData.has_jointPosition = true;
+   tRepeatedDoubleArguments *dest =
+            (tRepeatedDoubleArguments*)_cmdMessage->commandData.jointPosition.value.arg;
+   memcpy(dest->value, values, LBRState::NUMBER_OF_JOINTS * sizeof(double));
 }
 
 //******************************************************************************
-void LBRCommand::setWrench(const double * wrench)
+void LBRCommand::setWrench(const double* wrench)
 {
-  _cmdMessage->has_commandData = true;
-  _cmdMessage->commandData.has_cartesianWrenchFeedForward = true;
+   _cmdMessage->has_commandData = true;
+   _cmdMessage->commandData.has_cartesianWrenchFeedForward = true;
 
-  double * dest = _cmdMessage->commandData.cartesianWrenchFeedForward.element;
-  memcpy(dest, wrench, 6 * sizeof(double));
-}
-//******************************************************************************
-void LBRCommand::setTorque(const double * torques)
-{
-  _cmdMessage->has_commandData = true;
-  _cmdMessage->commandData.has_jointTorque = true;
-
-  tRepeatedDoubleArguments * dest =
-    (tRepeatedDoubleArguments *)_cmdMessage->commandData.jointTorque.value.arg;
-  memcpy(dest->value, torques, LBRState::NUMBER_OF_JOINTS * sizeof(double));
+   double *dest = _cmdMessage->commandData.cartesianWrenchFeedForward.element;
+   memcpy(dest, wrench, 6 * sizeof(double));
 }
 
 //******************************************************************************
-void LBRCommand::setBooleanIOValue(const char * name, const bool value)
+void LBRCommand::setTorque(const double* torques)
 {
-  ClientData::setBooleanIOValue(_cmdMessage, name, value, _monMessage);
+   _cmdMessage->has_commandData = true;
+   _cmdMessage->commandData.has_jointTorque= true;
+
+   tRepeatedDoubleArguments *dest = (tRepeatedDoubleArguments*)_cmdMessage->commandData.jointTorque.value.arg;
+   memcpy(dest->value, torques, LBRState::NUMBER_OF_JOINTS * sizeof(double));
 }
 
 //******************************************************************************
-void LBRCommand::setAnalogIOValue(const char * name, const double value)
+void LBRCommand::setCartesianPose(const double* cartesianPoseQuaternion,
+    double const *const redundancyValue)
 {
-  ClientData::setAnalogIOValue(_cmdMessage, name, value, _monMessage);
+   _cmdMessage->has_commandData = true;
+   _cmdMessage->commandData.has_cartesianPose = true;
+   _cmdMessage->commandData.cartesianPose.name[0] = '\0';
+   memcpy(_cmdMessage->commandData.cartesianPose.element, cartesianPoseQuaternion, 7 * sizeof(double));
+
+   _cmdMessage->commandData.has_redundancyInformation = true;
+   _cmdMessage->commandData.redundancyInformation.strategy =
+       _monMessage->monitorData.measuredRedundancyInformation.strategy;
+
+   if (NULL != redundancyValue)
+   {
+      //set value if provided
+
+      _cmdMessage->commandData.redundancyInformation.value = *redundancyValue;
+   }
+   else
+   {
+      // use interpolated redundancy value if no value is commanded
+      _cmdMessage->commandData.redundancyInformation.value = _monMessage->ipoData.redundancyInformation.value;
+   }
 }
 
 //******************************************************************************
-void LBRCommand::setDigitalIOValue(const char * name, const unsigned long long value)
+void LBRCommand::setCartesianPoseAsMatrix(const double(&measuredCartesianPose)[3][4],
+    double const *const redundancyValue)
 {
-  ClientData::setDigitalIOValue(_cmdMessage, name, value, _monMessage);
+   double quaternion[7];
+   DataHelper::convertTrafoMatrixToQuaternion(measuredCartesianPose, quaternion);
+   setCartesianPose(quaternion, redundancyValue);
+}
+
+//******************************************************************************
+void LBRCommand::setBooleanIOValue(const char* name, const bool value)
+{
+   ClientData::setBooleanIOValue(_cmdMessage, name, value, _monMessage);
+}
+
+//******************************************************************************
+void LBRCommand::setAnalogIOValue(const char* name, const double value)
+{
+   ClientData::setAnalogIOValue(_cmdMessage, name, value, _monMessage);
+}
+
+//******************************************************************************
+void LBRCommand::setDigitalIOValue(const char* name, const unsigned long long value)
+{
+   ClientData::setDigitalIOValue(_cmdMessage, name, value, _monMessage);
 }

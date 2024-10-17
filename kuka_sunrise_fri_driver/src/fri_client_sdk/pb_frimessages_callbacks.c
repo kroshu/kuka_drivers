@@ -1,21 +1,21 @@
 /**
 
  The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software “KUKA Sunrise.FRI Client SDK” is targeted to work in
+conjunction with the “KUKA Sunrise.FRI” toolkit.
+In the following, the term “software” refers to all material directly
+belonging to the provided SDK “Software development kit”, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -56,14 +56,14 @@ cost of any service and repair.
 
 
  \file
- \version {1.15}
+ \version {2.5}
  */
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pb_frimessages_callbacks.h>
-#include <pb_encode.h>
-#include <pb_decode.h>
+#include "pb_frimessages_callbacks.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
 
 bool encode_repeatedDouble(pb_ostream_t *stream, const pb_field_t *field, void * const *arg)
 {
@@ -100,7 +100,6 @@ bool encode_repeatedDouble(pb_ostream_t *stream, const pb_field_t *field, void *
 
 bool decode_repeatedDouble(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
-   PB_UNUSED(field);
    tRepeatedDoubleArguments* arguments = 0;
    size_t i = 0;
    double* values = 0;
@@ -163,7 +162,6 @@ bool encode_repeatedInt(pb_ostream_t *stream, const pb_field_t *field, void * co
 
 bool decode_repeatedInt(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
-   PB_UNUSED(field);
    tRepeatedIntArguments* arguments = 0;
    size_t i = 0;
    uint64_t* values = 0;

@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software �KUKA Sunrise.FRI Client SDK� is targeted to work in
+conjunction with the �KUKA Sunrise.FRI� toolkit.
+In the following, the term �software� refers to all material directly
+belonging to the provided SDK �Software development kit�, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,7 +55,7 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 #ifndef _KUKA_FRI_TRANSFORMATION_CLIENT_H
 #define _KUKA_FRI_TRANSFORMATION_CLIENT_H
@@ -69,10 +69,10 @@ namespace KUKA
 namespace FRI
 {
 
-// forward declaration
-struct ClientData;
+	// forward declaration
+	struct ClientData;
 
-/**
+   /**
     * \brief Abstract FRI transformation client.
     *
     * A transformation client enables the user to send transformation matrices cyclically to the
@@ -84,181 +84,207 @@ struct ClientData;
     * implement the provide() callback. This callback is called once by the
     * client application whenever a new FRI message arrives.
     *
-    * <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>
     */
-class TransformationClient
-{
+   class TransformationClient
+   {
 
-  friend class ClientApplication;
+      friend class ClientApplication;
 
-public:
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     * \brief Constructor.
-     **/
-  TransformationClient();
+   public:
 
-  /** <br> <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>   <br>
-     * \brief Virtual destructor.
-     **/
-  virtual ~TransformationClient();
+      /**
+       * \brief Constructor.
+       **/
+      TransformationClient();
 
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     * \brief Callback which is called whenever a new FRI message arrives.
-     *
-     *  In this callback all requested transformations have to be set.
-     *
-     *  \see getRequestedTransformationIDs(), setTransformation()
-     */
-  virtual void provide() = 0;
+      /**
+       * \brief Virtual destructor.
+       **/
+      virtual ~TransformationClient();
 
-  /**
-     * \brief Get the sample time in seconds.
-     *
-     * This is the period in which the KUKA Sunrise controller is sending
-     * FRI packets.
-     * @return sample time in seconds
-     */
-  double getSampleTime() const;     // sec
+      /**
+       * \brief Callback which is called whenever a new FRI message arrives.
+       *
+       *  In this callback all requested transformations have to be set.
+       *
+       *  \see getRequestedTransformationIDs(), setTransformation()
+       */
+      virtual void provide() = 0;
 
-  /**
-     * \brief Get the current FRI connection quality.
-     *
-     * @return current FRI connection quality
-     */
-  EConnectionQuality getConnectionQuality() const;
+      /**
+       * \brief Get the sample time in seconds.
+       *
+       * This is the period in which the KUKA Sunrise controller is sending
+       * FRI packets.
+       * @return sample time in seconds
+       */
+      double getSampleTime() const; // sec
 
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     * \brief  Returns a vector of identifiers of all requested transformation matrices.
-     *
-     * The custom TransformationClient has to provide data for transformation matrices with these
-     * identifiers.
-     *
-     * @return reference to vector of IDs of requested transformations
-     */
-  const std::vector<const char *> & getRequestedTransformationIDs() const;
+      /**
+       * \brief Get the current FRI connection quality.
+       *
+       * @return current FRI connection quality
+       */
+      EConnectionQuality getConnectionQuality() const;
 
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     *
-     * \brief Get the timestamp of the current received FRI monitor message in Unix time.
-     *
-     * This method returns the seconds since 0:00, January 1st, 1970 (UTC).
-     * Use getTimestampNanoSec() to increase your timestamp resolution when
-     * seconds are insufficient.
-     *
-     * @return timestamp encoded as Unix time (seconds)
-     */
-  unsigned int getTimestampSec() const;
+      /**
+       * \brief  Returns a vector of identifiers of all requested transformation matrices.
+       *
+       * The custom TransformationClient has to provide data for transformation matrices with these
+       * identifiers.
+       *
+       * @return reference to vector of IDs of requested transformations
+       */
+      const std::vector<const char*>& getRequestedTransformationIDs() const;
 
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     * \brief Get the nanoseconds elapsed since the last second (in Unix time).
-     *
-     * This method complements getTimestampSec() to get a high resolution
-     * timestamp.
-     *
-     * @return timestamp encoded as Unix time (nanoseconds part)
-     */
-  unsigned int getTimestampNanoSec() const;
+      /**
+       * \brief Get the timestamp of the current received FRI monitor message in Unix time.
+       *
+       * This method returns the seconds since 0:00, January 1st, 1970 (UTC).
+       * Use getTimestampNanoSec() to increase your timestamp resolution when
+       * seconds are insufficient.
+       *
+       * @return timestamp encoded as Unix time (seconds)
+       */
+      const unsigned int getTimestampSec() const;
 
-  /**
-     * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
-     * \brief Provides a requested transformation matrix.
-     *
-     * A transformation matrix has 3x4 elements. It consists of a rotational matrix (3x3 elements)
-     * and a translational vector (3x1 elements). The complete transformation matrix has the
-     * following structure: <br>
-     * [Transformation(3x4)] = [Rotation(3x3) | Translation(3x1) ]
-     * <p>
-     * All provided transformation matrices need a timestamp that corresponds to their
-     * time of acquisition. This timestamp must be synchronized to the timestamp
-     * provided by the KUKA Sunrise controller (see getTimestampSec(), getTimestampNanoSec()).
-     * <p>
-     * If an update to the last transformation is not yet available when the provide()
-     * callback is executed, the last transformation (including its timestamp) should be
-     * repeated until a new transformation is available.
-     *
-     * @throw FRIException Throws a FRIException if the maximum number of transformations is exceeded.
-     * @param transformationID Identifier string of the transformation matrix
-     * @param transformationMatrix Provided transformation matrix
-     * @param timeSec Timestamp encoded as Unix time (seconds)
-     * @param timeNanoSec Timestamp encoded as Unix time (nanoseconds part)
-     */
-  void setTransformation(
-    const char * transformationID, const double transformationMatrix[3][4],
-    unsigned int timeSec, unsigned int timeNanoSec);
+      /**
+       * \brief Get the nanoseconds elapsed since the last second (in Unix time).
+       *
+       * This method complements getTimestampSec() to get a high resolution
+       * timestamp.
+       *
+       * @return timestamp encoded as Unix time (nanoseconds part)
+       */
+      const unsigned int getTimestampNanoSec() const;
 
-  /**
-     * \brief Set boolean output value.
-     *
-     * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
-     * @throw FRIException May throw an FRIException if the IO is of wrong type, unknown or not an output.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @param value Boolean value to set.
-     */
-  void setBooleanIOValue(const char * name, const bool value);
+      /**
+      * \brief Provides a requested transformation as a quaternion transformation vector.
+      *
+      * A quaternion transformation vector consists of: [t_x, t_y, t_z, q_w, q_x, q_y, q_z],
+      * where the first three values describe the translation t as a regular 3-dim
+      * vector, while the last four values describe the rotation q as an unit quaternion.
+      * <p>
+      * The unit quaternion q is a 4-dimensional vector, describing the orientation as
+      * one rotation around the vector v = [v_x, v_y, v_z] about the angle phi.
+      * <p>
+      * [ q_w ] = [ cos (phi/2) ]
+      * [ q_x ] = [ sin (phi/2) * v_x ]
+      * [ q_y ] = [ sin (phi/2) * v_y ]
+      * [ q_z ] = [ sin (phi/2) * v_z ]
+      * <p>
+      * All provided transformation need a timestamp that corresponds to their
+      * time of acquisition. This timestamp must be synchronized to the timestamp
+      * provided by the KUKA Sunrise controller (see getTimestampSec(), getTimestampNanoSec()).
+      * <p>
+      * If an update to the last transformation is not yet available when the provide()
+      * callback is executed, the last transformation (including its timestamp) should be
+      * repeated until a new transformation is available.
+      *
+      * @throw FRIException Throws a FRIException if the maximum number of transformations is exceeded.
+      * @param transformationID Identifier string of the transformation matrix
+      * @param transformationQuaternion Provided transformation quaternion
+      * @param timeSec Timestamp encoded as Unix time (seconds)
+      * @param timeNanoSec Timestamp encoded as Unix time (nanoseconds part)
+      */
+      void setTransformation(const char* transformationID, const double (&transformationQuaternion)[7],
+         unsigned int timeSec, unsigned int timeNanoSec);
 
-  /**
-     * \brief Set digital output value.
-     *
-     * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
-     * @throw FRIException May throw an FRIException if the IO is of wrong type, unknown or not an output.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @param value Digital value to set.
-     */
-  void setDigitalIOValue(const char * name, const unsigned long long value);
+      /**
+       * \brief Provides a requested transformation as a homogeneous matrix.
+       *
+       * A transformation matrix has 3x4 elements. It consists of a rotational matrix (3x3 elements)
+       * and a translational vector (3x1 elements). The complete transformation matrix has the
+       * following structure: <br>
+       * [Transformation(3x4)] = [Rotation(3x3) | Translation(3x1)]
+       * <p>
+       * All provided transformation matrices need a timestamp that corresponds to their
+       * time of acquisition. This timestamp must be synchronized to the timestamp
+       * provided by the KUKA Sunrise controller (see getTimestampSec(), getTimestampNanoSec()).
+       * <p>
+       * If an update to the last transformation is not yet available when the provide()
+       * callback is executed, the last transformation (including its timestamp) should be
+       * repeated until a new transformation is available.
+       * <p>
+       *
+       * @throw FRIException Throws a FRIException if the maximum number of transformations is exceeded.
+       * @param transformationID Identifier string of the transformation matrix
+       * @param transformationMatrix Provided transformation matrix
+       * @param timeSec Timestamp encoded as Unix time (seconds)
+       * @param timeNanoSec Timestamp encoded as Unix time (nanoseconds part)
+       */
+      void setTransformation(const char* transformationID, const double (&transformationMatrix)[3][4],
+         unsigned int timeSec, unsigned int timeNanoSec);
 
-  /**
-     * \brief Set analog output value.
-     *
-     * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
-     * @throw FRIException May throw an FRIException if the IO is of wrong type, unknown or not an output.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @param value Analog value to set.
-     */
-  void setAnalogIOValue(const char * name, const double value);
+      /**
+       * \brief Set boolean output value.
+       *
+       * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
+       * @throw FRIException May throw a FRIException if the IO is of wrong type, unknown or not an output.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @param value Boolean value to set.
+       */
+      void setBooleanIOValue(const char* name, const bool value);
 
-  /**
-     * \brief Get boolean IO value.
-     *
-     * @throw FRIException May throw an FRIException if the IO is of wrong type or unknown.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @return Returns IO's boolean value.
-     */
-  bool getBooleanIOValue(const char * name) const;
+      /**
+       * \brief Set digital output value.
+       *
+       * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
+       * @throw FRIException May throw a FRIException if the IO is of wrong type, unknown or not an output.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @param value Digital value to set.
+       */
+      void setDigitalIOValue(const char* name, const unsigned long long value);
 
-  /**
-     * \brief Get digital IO value.
-     *
-     * @throw FRIException May throw an FRIException if the IO is of wrong type or unknown.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @return Returns IO's digital value.
-     */
-  unsigned long long getDigitalIOValue(const char * name) const;
+      /**
+       * \brief Set analog output value.
+       *
+       * @throw FRIException Throws a FRIException if more outputs are set than can be registered.
+       * @throw FRIException May throw a FRIException if the IO is of wrong type, unknown or not an output.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @param value Analog value to set.
+       */
+      void setAnalogIOValue(const char* name, const double value);
 
-  /**
-     * \brief Get analog IO value.
-     *
-     * @throw FRIException May throw an FRIException if the IO is of wrong type or unknown.
-     * @param name Full name of the IO (Syntax "IOGroupName.IOName").
-     * @return Returns IO's analog value.
-     */
-  double getAnalogIOValue(const char * name) const;
+      /**
+       * \brief Get boolean IO value.
+       *
+       * @throw FRIException May throw a FRIException if the IO is of wrong type or unknown.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @return Returns IO's boolean value.
+       */
+      bool getBooleanIOValue(const char* name) const;
 
-private:
-  ClientData * _data;      //!< the client data structure
+      /**
+       * \brief Get digital IO value.
+       *
+       * @throw FRIException May throw a FRIException if the IO is of wrong type or unknown.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @return Returns IO's digital value.
+       */
+      unsigned long long getDigitalIOValue(const char* name) const;
 
-  /**
-     * \brief Method to link the client data structure (used internally).
-     *
-     * @param clientData the client data structure
-     */
-  void linkData(ClientData * clientData);
+      /**
+       * \brief Get analog IO value.
+       *
+       * @throw FRIException May throw a FRIException if the IO is of wrong type or unknown.
+       * @param name Full name of the IO (Syntax "IOGroupName.IOName").
+       * @return Returns IO's analog value.
+       */
+      double getAnalogIOValue(const char* name) const;
 
-};
+   private:
+
+      ClientData* _data;   //!< the client data structure
+
+      /**
+       * \brief Method to link the client data structure (used internally).
+       *
+       * @param clientData the client data structure
+       */
+      void linkData(ClientData* clientData);
+
+   };
 
 }
 }

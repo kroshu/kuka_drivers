@@ -1,21 +1,21 @@
 /**
 
 The following license terms and conditions apply, unless a redistribution
-agreement or other license is obtained by KUKA Roboter GmbH, Augsburg, Germany.
+agreement or other license is obtained by KUKA Deutschland GmbH, Augsburg, Germany.
 
 SCOPE
 
-The software "KUKA Sunrise.Connectivity FRI Client SDK" is targeted to work in
-conjunction with the "KUKA Sunrise.Connectivity FastRobotInterface" toolkit.
-In the following, the term "software" refers to all material directly
-belonging to the provided SDK "Software development kit", particularly source
+The software “KUKA Sunrise.FRI Client SDK” is targeted to work in
+conjunction with the “KUKA Sunrise.FRI” toolkit.
+In the following, the term “software” refers to all material directly
+belonging to the provided SDK “Software development kit”, particularly source
 code, libraries, binaries, manuals and technical documentation.
 
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2019
-KUKA Roboter GmbH
+Copyright (C)  2014-2021
+KUKA Deutschland GmbH
 Augsburg, Germany
 
 LICENSE
@@ -55,7 +55,7 @@ cost of any service and repair.
 
 
 \file
-\version {1.15}
+\version {2.5}
 */
 
 #ifndef _KUKA_FRI_CLIENT_APPLICATION_H
@@ -68,13 +68,13 @@ namespace KUKA
 namespace FRI
 {
 
-// forward declarations
-class IClient;
-class TransformationClient;
-class IConnection;
-struct ClientData;
+   // forward declarations
+   class IClient;
+   class TransformationClient;
+   class IConnection;
+   struct ClientData;
 
-/**
+   /**
     * \brief FRI client application class.
     *
     * A client application takes an instance of the IConnection interface and
@@ -84,66 +84,68 @@ struct ClientData;
     * The algorithmic functionality of an FRI client application is implemented
     * using the IClient interface.
     */
-class ClientApplication
-{
+   class ClientApplication
+   {
 
-public:
-  /**
-     * \brief Constructor without transformation client.
-     *
-     * This constructor takes an instance of the IConnection interface and
-     * an instance of the IClient interface as parameters.
-     * @param connection FRI connection class
-     * @param client FRI client class
-     */
-  ClientApplication(IConnection & connection, IClient & client);
+   public:
 
-  /**
-     * \brief Constructor with transformation client.
-     *
-     * This constructor takes an instance of the IConnection interface and
-     * an instance of the IClient interface and an instance of a
-     * TransformationClient as parameters.
-     * @param connection FRI connection class
-     * @param client FRI client class
-     * @param trafoClient FRI transformation client class
-     */
-  ClientApplication(IConnection & connection, IClient & client, TransformationClient & trafoClient);
+      /**
+       * \brief Constructor without transformation client.
+       *
+       * This constructor takes an instance of the IConnection interface and
+       * an instance of the IClient interface as parameters.
+       * @param connection FRI connection class
+       * @param client FRI client class
+       */
+      ClientApplication(IConnection& connection, IClient& client);
 
-  /** \brief Destructor. */
-  ~ClientApplication();
+      /**
+       * \brief Constructor with transformation client.
+       *
+       * This constructor takes an instance of the IConnection interface and
+       * an instance of the IClient interface and an instance of a
+       * TransformationClient as parameters.
+       * @param connection FRI connection class
+       * @param client FRI client class
+       * @param trafoClient FRI transformation client class
+       */
+      ClientApplication(IConnection& connection, IClient& client, TransformationClient& trafoClient);
 
-  /**
-     * \brief Connect the FRI client application with a KUKA Sunrise controller.
-     *
-     * @param port The port ID
-     * @param remoteHost The address of the remote host
-     * @return True if connection was established
-     */
-  bool connect(int port, const char * remoteHost = NULL);
+      /** \brief Destructor. */
+      ~ClientApplication();
 
-  /**
-     * \brief Disconnect the FRI client application from a KUKA Sunrise controller.
-     */
-  void disconnect();
+      /**
+       * \brief Connect the FRI client application with a KUKA Sunrise controller.
+       *
+       * @param port The port ID
+       * @param remoteHost The address of the remote host
+       * @return True if connection was established
+       */
+      bool connect(int port, const char *remoteHost = NULL);
 
-  /**
-     * \brief Run a single processing step.
-     *
-     * The processing step consists of receiving a new FRI monitoring message,
-     * calling the corresponding client callback and sending the resulting
-     * FRI command message back to the KUKA Sunrise controller.
-     * @return True if all of the substeps succeeded.
-     */
-  bool step();
+      /**
+       * \brief Disconnect the FRI client application from a KUKA Sunrise controller.
+       */
+      void disconnect();
 
-protected:
-  IConnection & _connection;               //!< connection interface
-  IClient * _robotClient;                  //!< robot client interface
-  TransformationClient * _trafoClient;     //!< transformation client interface
-  ClientData * _data;                      //!< client data structure (for internal use)
+      /**
+       * \brief Run a single processing step.
+       *
+       * The processing step consists of receiving a new FRI monitoring message,
+       * calling the corresponding client callback and sending the resulting
+       * FRI command message back to the KUKA Sunrise controller.
+       * @return True if all of the substeps succeeded.
+       */
+      bool step();
 
-};
+   protected:
+
+      IConnection&   _connection;          //!< connection interface
+      IClient*       _robotClient;         //!< robot client interface
+      TransformationClient* _trafoClient;  //!< transformation client interface
+      ClientData*    _data;                //!< client data structure (for internal use)
+
+   };
 
 }
 }
