@@ -4,10 +4,11 @@ cartesian_pose_controller:
     - dummy_cart_joint/x
     - dummy_cart_joint/y
     - dummy_cart_joint/z
+    - dummy_cart_joint/qw
     - dummy_cart_joint/qx
     - dummy_cart_joint/qy
     - dummy_cart_joint/qz
-    - dummy_cart_joint/qw 
+    
     
     interface_names:
     - position

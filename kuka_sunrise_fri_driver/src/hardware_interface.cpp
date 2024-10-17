@@ -307,11 +307,6 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
     robot_state_.operation_mode_ = robotState().getOperationMode();
     robot_state_.drive_state_ = robotState().getDriveState();
     robot_state_.overlay_type_ = robotState().getOverlayType();
-    RCLCPP_DEBUG(
-        rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "cartesianPoseQuaternion state: %f %f %f %f %f %f %f",cart_pose[0],cart_pose[1],
-        cart_pose[2],cart_pose[3],cart_pose[4],cart_pose[5]
-        ,cart_pose[6]);
     for (auto & output : gpio_outputs_)
     {
       output.getValue();
@@ -469,8 +464,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   }
   std::vector<std::string> cart_joints_list = {
     hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
-    hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY, hardware_interface::HW_IF_QZ,
-    hardware_interface::HW_IF_QW};
+    hardware_interface::HW_IF_QW,hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
+    hardware_interface::HW_IF_QZ};
   for (size_t i = 0; i < cart_joints_list.size(); ++i)
   {
     state_interfaces.emplace_back(
@@ -516,8 +511,9 @@ KukaFRIHardwareInterface::export_command_interfaces()
   }
   std::vector<std::string> cart_joints_list = {
     hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
-    hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY, hardware_interface::HW_IF_QZ,
-    hardware_interface::HW_IF_QW};
+    hardware_interface::HW_IF_QW, hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
+    hardware_interface::HW_IF_QZ,
+    };
   for (size_t i = 0; i < cart_joints_list.size(); ++i)
   {
     command_interfaces.emplace_back(
