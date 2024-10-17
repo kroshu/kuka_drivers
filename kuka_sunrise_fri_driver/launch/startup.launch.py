@@ -41,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
     ec_config = LaunchConfiguration("ec_config")
     etb_config = LaunchConfiguration("etb_config")
     wc_config = LaunchConfiguration("wc_config")
-    cpc_config = LaunchConfiguration("cpc_config")    
+    cpc_config = LaunchConfiguration("cpc_config")
     cic_config = LaunchConfiguration("cic_config")
 
     if ns.perform(context) == "":

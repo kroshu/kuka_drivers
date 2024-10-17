@@ -30,8 +30,10 @@ class CartPoseController : public forward_command_controller::ForwardControllers
 {
 public:
   CART_POSE_CONTROLLER_PUBLIC CartPoseController();
-  CART_POSE_CONTROLLER_PUBLIC controller_interface::return_type update(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override;
-  CART_POSE_CONTROLLER_PUBLIC controller_interface::InterfaceConfiguration command_interface_configuration() const override;
+  CART_POSE_CONTROLLER_PUBLIC controller_interface::return_type update(
+    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override;
+  CART_POSE_CONTROLLER_PUBLIC controller_interface::InterfaceConfiguration
+  command_interface_configuration() const override;
 
 private:
   CART_POSE_CONTROLLER_LOCAL void declare_parameters() override;

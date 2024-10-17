@@ -42,7 +42,8 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
-  hw_cart_pose_states_.resize(7);// it's always 7 dof: position x,y,z; orientation quaternion qx,qy,qz,qw
+  hw_cart_pose_states_.resize(
+    7);  // it's always 7 dof: position x,y,z; orientation quaternion qx,qy,qz,qw
   hw_cart_pose_commands_.resize(7);
 
   hw_wrench_commands_.resize(6);  // it's always 6 dof: force x,y,z; torque x,y,z
@@ -384,11 +385,11 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       const double * cartesianPoseQuaternion = hw_cart_pose_commands_.data();
       RCLCPP_DEBUG(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
-        "cartesianPoseQuaternion command: %f %f %f %f %f %f %f",cartesianPoseQuaternion[0],cartesianPoseQuaternion[1],
-        cartesianPoseQuaternion[2],cartesianPoseQuaternion[3],cartesianPoseQuaternion[4],cartesianPoseQuaternion[5]
-        ,cartesianPoseQuaternion[6]);
-        robotCommand().setCartesianPose(cartesianPoseQuaternion);
-      
+        "cartesianPoseQuaternion command: %f %f %f %f %f %f %f", cartesianPoseQuaternion[0],
+        cartesianPoseQuaternion[1], cartesianPoseQuaternion[2], cartesianPoseQuaternion[3],
+        cartesianPoseQuaternion[4], cartesianPoseQuaternion[5], cartesianPoseQuaternion[6]);
+      robotCommand().setCartesianPose(cartesianPoseQuaternion);
+
       break;
     }
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
@@ -463,8 +464,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
       info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
   }
   std::vector<std::string> cart_joints_list = {
-    hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
-    hardware_interface::HW_IF_QW,hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
+    hardware_interface::HW_IF_X,  hardware_interface::HW_IF_Y,  hardware_interface::HW_IF_Z,
+    hardware_interface::HW_IF_QW, hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
     hardware_interface::HW_IF_QZ};
   for (size_t i = 0; i < cart_joints_list.size(); ++i)
   {
@@ -510,17 +511,17 @@ KukaFRIHardwareInterface::export_command_interfaces()
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
   std::vector<std::string> cart_joints_list = {
-    hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
+    hardware_interface::HW_IF_X,  hardware_interface::HW_IF_Y,  hardware_interface::HW_IF_Z,
     hardware_interface::HW_IF_QW, hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
     hardware_interface::HW_IF_QZ,
-    };
+  };
   for (size_t i = 0; i < cart_joints_list.size(); ++i)
   {
     command_interfaces.emplace_back(
       std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
       hardware_interface::HW_IF_POSITION, &hw_cart_pose_commands_[i]);
   }
-   std::vector<std::string> cart_effort_list = {
+  std::vector<std::string> cart_effort_list = {
     hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
     hardware_interface::HW_IF_A, hardware_interface::HW_IF_B, hardware_interface::HW_IF_C};
   for (size_t i = 0; i < cart_effort_list.size(); i++)

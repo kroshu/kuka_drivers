@@ -39,10 +39,10 @@ public class FRIManager{
 	private ClientCommandMode _clientCommandMode;
 	private IMotionContainer _motionContainer;
 	private FRIMotionErrorHandler _friMotionErrorHandler = new FRIMotionErrorHandler();
-	
+
 	private static double[] stiffness_ = new double[7];
-	
-    
+
+
 	public FRIManager(LBR lbr, IApplicationControl applicationControl){
 		_currentState = new InactiveState();
 		_lbr = lbr;

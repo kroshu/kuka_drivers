@@ -60,7 +60,8 @@ controller_interface::CallbackReturn CartPoseController::read_parameters()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::InterfaceConfiguration CartPoseController::command_interface_configuration() const
+controller_interface::InterfaceConfiguration CartPoseController::command_interface_configuration()
+  const
 {
   controller_interface::InterfaceConfiguration command_interfaces_config;
   command_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -90,7 +91,8 @@ controller_interface::return_type CartPoseController::update(
 
   for (auto index = 0ul; index < command_interfaces_.size(); index++)
   {
-    //RCLCPP_ERROR(get_node()->get_logger(), "cart joints %i: %f ",index, (*joint_commands)->data[index]);
+    // RCLCPP_ERROR(get_node()->get_logger(), "cart joints %i: %f ",index,
+    // (*joint_commands)->data[index]);
     command_interfaces_.at(index).set_value((*joint_commands)->data[index]);
   }
 

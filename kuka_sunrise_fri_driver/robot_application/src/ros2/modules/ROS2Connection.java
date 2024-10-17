@@ -95,7 +95,7 @@ public class ROS2Connection {
 		POSITION(		(byte)1),
 		JOINT_IMPEDANCE((byte)2),
 		CARTESIAN_IMPEDANCE((byte)3);
-		
+
 		public final byte value;
 
 		ControlModeID(byte value){

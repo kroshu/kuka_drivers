@@ -32,7 +32,7 @@ import ros2.modules.TCPConnection;
 public class ROS2_Control extends RoboticsAPIApplication {
 	@Inject
 	private LBR _lbr;
-	
+
 	private TCPConnection _TCPConnection;
 	private ROS2Connection _ROS2Connection;
 	private FRIManager _FRIManager;

@@ -8,7 +8,7 @@ cartesian_pose_controller:
     - dummy_cart_joint/qx
     - dummy_cart_joint/qy
     - dummy_cart_joint/qz
-    
-    
+
+
     interface_names:
     - position

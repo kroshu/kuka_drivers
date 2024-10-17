@@ -54,7 +54,7 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
 - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
 - `wrench_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/wrench_controller_config.yaml))
-  
+
 1. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
     ros2 lifecycle set robot_manager configure
