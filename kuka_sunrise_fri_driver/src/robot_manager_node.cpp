@@ -116,6 +116,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return this->onControllerNameChangeRequest(
         controller_name, kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE);
     });
+#ifdef FRI_V2_5
   registerParameter<std::string>(
     "cart_pose_controller_name", "", kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
@@ -123,7 +124,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return this->onControllerNameChangeRequest(
         controller_name, kuka_drivers_core::ControllerType::CARTESIAN_POSITION_CONTROLLER_TYPE);
     });
-
+#endif
   registerParameter<std::vector<double>>(
     "joint_stiffness", joint_stiffness_, kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::vector<double> & joint_stiffness)
@@ -162,6 +163,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
         lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
   {
     RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
+#ifdef FRI_V2_5
+    RCLCPP_ERROR(get_logger(), "FRI VERSION 2.5");
+#endif
     return FAILURE;
   }
 
@@ -311,10 +315,12 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
       break;
+#ifdef FRI_V2_5
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       break;
     case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
       break;
+#endif
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       [[fallthrough]];
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
@@ -421,9 +427,11 @@ bool RobotManagerNode::onControllerNameChangeRequest(
     case kuka_drivers_core::ControllerType::TORQUE_CONTROLLER_TYPE:
       joint_torque_controller_name_ = controller_name;
       break;
+#ifdef FRI_V2_5
     case kuka_drivers_core::ControllerType::CARTESIAN_POSITION_CONTROLLER_TYPE:
       cart_pose_controller_name_ = controller_name;
       break;
+#endif
     case kuka_drivers_core::ControllerType::WRENCH_CONTROLLER_TYPE:
       wrench_controller_name_ = controller_name;
       break;
@@ -447,10 +455,12 @@ std::string RobotManagerNode::GetControllerName() const
       return joint_pos_controller_name_;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       return joint_torque_controller_name_;
+#ifdef FRI_V2_5
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       return cart_pose_controller_name_;
     case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
       return cart_pose_controller_name_;
+#endif
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       return wrench_controller_name_;
     default:

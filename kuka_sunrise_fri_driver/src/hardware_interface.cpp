@@ -42,10 +42,11 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
+#ifdef FRI_V2_5  
   hw_cart_pose_states_.resize(
     7);  // it's always 7 dof: position x,y,z; orientation quaternion qx,qy,qz,qw
   hw_cart_pose_commands_.resize(7);
-
+#endif
   hw_wrench_commands_.resize(6);  // it's always 6 dof: force x,y,z; torque x,y,z
   hw_cart_stiffness_commands_.resize(6, 150);
   hw_cart_damping_commands_.resize(6, 0.15);
@@ -210,6 +211,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
+#ifdef FRI_V2_5 //only available in FRI version 2.5
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       fri_connection_->setPositionControlMode();
       fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);
@@ -219,6 +221,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         hw_cart_stiffness_commands_, hw_cart_damping_commands_);
       fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);
       break;
+#endif
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
       fri_connection_->setCartesianImpedanceControlMode(
         hw_cart_stiffness_commands_, hw_cart_damping_commands_);
@@ -269,7 +272,9 @@ void KukaFRIHardwareInterface::waitForCommand()
   // Therefore the control signal should not be modified in this callback
   // TODO(Svastits): check for torque/impedance mode, where state can change
   hw_position_commands_ = hw_position_states_;
+#ifdef FRI_V2_5
   hw_cart_pose_commands_ = hw_cart_pose_states_;
+#endif
   rclcpp::Time stamp = ros_clock_.now();
   updateCommand(stamp);
 }
@@ -297,8 +302,10 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
     const double * external_torque = robotState().getExternalTorque();
     hw_ext_torque_states_.assign(
       external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+#ifdef FRI_V2_5
     const double * cart_pose = robotState().getMeasuredCartesianPose();
     hw_cart_pose_states_.assign(cart_pose, cart_pose + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
+#endif
     robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
     robot_state_.session_state_ = robotState().getSessionState();
     robot_state_.connection_quality_ = robotState().getConnectionQuality();
@@ -378,6 +385,7 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
       robotCommand().setTorque(joint_torques_);
       break;
     }
+#ifdef FRI_V2_5
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       [[fallthrough]];
     case kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL:
@@ -392,6 +400,7 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
 
       break;
     }
+#endif
     case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
     {
       const double * wrench_efforts = hw_wrench_commands_.data();
@@ -463,6 +472,7 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
   }
+#ifdef FRI_V2_5
   std::vector<std::string> cart_joints_list = {
     hardware_interface::HW_IF_X,  hardware_interface::HW_IF_Y,  hardware_interface::HW_IF_Z,
     hardware_interface::HW_IF_QW, hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
@@ -473,7 +483,7 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
       std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
       hardware_interface::HW_IF_POSITION, &hw_cart_pose_states_[i]);
   }
-
+#endif
   state_interfaces.emplace_back(
     hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
   return state_interfaces;
@@ -510,6 +520,7 @@ KukaFRIHardwareInterface::export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
+#ifdef FRI_V2_5
   std::vector<std::string> cart_joints_list = {
     hardware_interface::HW_IF_X,  hardware_interface::HW_IF_Y,  hardware_interface::HW_IF_Z,
     hardware_interface::HW_IF_QW, hardware_interface::HW_IF_QX, hardware_interface::HW_IF_QY,
@@ -521,6 +532,7 @@ KukaFRIHardwareInterface::export_command_interfaces()
       std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
       hardware_interface::HW_IF_POSITION, &hw_cart_pose_commands_[i]);
   }
+#endif
   std::vector<std::string> cart_effort_list = {
     hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
     hardware_interface::HW_IF_A, hardware_interface::HW_IF_B, hardware_interface::HW_IF_C};
