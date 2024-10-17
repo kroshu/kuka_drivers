@@ -37,12 +37,14 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 
   hw_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());
-  hw_stiffness_commands_.resize(info_.joints.size());
-  hw_damping_commands_.resize(info_.joints.size());
+  hw_joint_stiffness_commands_.resize(info_.joints.size());
+  hw_joint_damping_commands_.resize(info_.joints.size());
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
-
+  hw_wrench_commands_.resize(6);  // it's always 6 dof: force x,y,z; torque x,y,z
+  hw_cart_stiffness_commands_.resize(6, 150);
+  hw_cart_damping_commands_.resize(6, 0.15);
   if (info_.gpios.size() != 1)
   {
     RCLCPP_FATAL(rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 1 GPIO");
@@ -195,7 +197,8 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
-      fri_connection_->setJointImpedanceControlMode(hw_stiffness_commands_, hw_damping_commands_);
+      fri_connection_->setJointImpedanceControlMode(
+        hw_joint_stiffness_commands_, hw_joint_damping_commands_);
       fri_connection_->setClientCommandMode(ClientCommandModeID::POSITION_COMMAND_MODE);
       break;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
@@ -203,7 +206,11 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
-
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+      fri_connection_->setCartesianImpedanceControlMode(
+        hw_cart_stiffness_commands_, hw_cart_damping_commands_);
+      fri_connection_->setClientCommandMode(ClientCommandModeID::WRENCH_COMMAND_MODE);
+      break;
     default:
       RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Unsupported control mode");
       return CallbackReturn::ERROR;
@@ -353,11 +360,16 @@ void KukaFRIHardwareInterface::updateCommand(const rclcpp::Time &)
     {
       const double * joint_torques_ = hw_torque_commands_.data();
       const double * joint_pos = robotState().getMeasuredJointPosition();
-      std::array<double, DOF> joint_pos_corr;
-      std::copy(joint_pos, joint_pos + DOF, joint_pos_corr.begin());
-      activateFrictionCompensation(joint_pos_corr.data());
-      robotCommand().setJointPosition(joint_pos_corr.data());
+      robotCommand().setJointPosition(joint_pos);
       robotCommand().setTorque(joint_torques_);
+      break;
+    }
+    case kuka_drivers_core::ControlMode::WRENCH_CONTROL:
+    {
+      const double * wrench_efforts = hw_wrench_commands_.data();
+      const double * joint_pos = robotState().getMeasuredJointPosition();
+      robotCommand().setJointPosition(joint_pos);
+      robotCommand().setWrench(wrench_efforts);
       break;
     }
     default:
@@ -454,29 +466,28 @@ KukaFRIHardwareInterface::export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_joint_stiffness_commands_[i]);
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_joint_damping_commands_[i]);
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
-  return command_interfaces;
-}
-
-// Friction compensation is activated only if the commanded and measured joint positions differ
-void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) const
-{
-  for (int i = 0; i < DOF; i++)
+  std::vector<std::string> cart_joints_list = {
+    hardware_interface::HW_IF_X, hardware_interface::HW_IF_Y, hardware_interface::HW_IF_Z,
+    hardware_interface::HW_IF_A, hardware_interface::HW_IF_B, hardware_interface::HW_IF_C};
+  for (size_t i = 0; i < cart_joints_list.size(); i++)
   {
-    if (values[i] != 0.0)
-    {
-      values[i] -= (values[i] / fabs(values[i]) * 0.1);
-    }
-    else
-    {
-      values[i] -= 0.1;
-    }
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_EFFORT, &hw_wrench_commands_[i]);
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_STIFFNESS, &hw_cart_stiffness_commands_[i]);
+    command_interfaces.emplace_back(
+      std::string(hardware_interface::HW_IF_CART_PREFIX) + "/" + std::string(cart_joints_list[i]),
+      hardware_interface::HW_IF_DAMPING, &hw_cart_damping_commands_[i]);
   }
+  return command_interfaces;
 }
 
 void KukaFRIHardwareInterface::onError()
