@@ -14,16 +14,16 @@ code, libraries, binaries, manuals and technical documentation.
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2021 
+Copyright (C)  2014-2021
 KUKA Deutschland GmbH
 Augsburg, Germany
 
-LICENSE 
+LICENSE
 
 Redistribution and use of the software in source and binary forms, with or
 without modification, are permitted provided that the following conditions are
 met:
-a) The software is used in conjunction with KUKA products only. 
+a) The software is used in conjunction with KUKA products only.
 b) Redistributions of source code must retain the above copyright notice, this
 list of conditions and the disclaimer.
 c) Redistributions in binary form must reproduce the above copyright notice,
@@ -40,14 +40,14 @@ DISCLAIMER OF WARRANTY
 
 The Software is provided "AS IS" and "WITH ALL FAULTS," without warranty of
 any kind, including without limitation the warranties of merchantability,
-fitness for a particular purpose and non-infringement. 
+fitness for a particular purpose and non-infringement.
 KUKA makes no warranty that the Software is free of defects or is suitable for
 any particular purpose. In no event shall KUKA be responsible for loss or
 damages arising from the installation or use of the Software, including but
 not limited to any indirect, punitive, special, incidental or consequential
 damages of any character including, without limitation, damages for loss of
 goodwill, work stoppage, computer failure or malfunction, or any and all other
-commercial damages or losses. 
+commercial damages or losses.
 The entire risk to the quality and performance of the Software is not borne by
 KUKA. Should the Software prove defective, KUKA is not liable for the entire
 cost of any service and repair.
@@ -80,21 +80,21 @@ namespace FRI
 
       FRIMonitoringMessage monitoringMsg;          //!< monitoring message struct
       FRICommandMessage commandMsg;                //!< command message struct
-      
+
       MonitoringMessageDecoder decoder;            //!< monitoring message decoder
       CommandMessageEncoder encoder;               //!< command message encoder
-      
+
       ESessionState lastState;                     //!< last FRI state
       uint32_t sequenceCounter;                    //!< sequence counter for command messages
       uint32_t lastSendCounter;                    //!< steps since last send command
-      uint32_t expectedMonitorMsgID;               //!< expected ID for received monitoring messages     
+      uint32_t expectedMonitorMsgID;               //!< expected ID for received monitoring messages
 
       const size_t MAX_REQUESTED_TRANSFORMATIONS;  //!< maximum count of requested transformations
       const size_t MAX_SIZE_TRANSFORMATION_ID;     //!< maximum size in bytes of a transformation ID
       std::vector<const char*> requestedTrafoIDs;  //!< list of requested transformation ids
-      
-      ClientData(int numDofs) 
-      : decoder(&monitoringMsg, numDofs), 
+
+      ClientData(int numDofs)
+      : decoder(&monitoringMsg, numDofs),
         encoder(&commandMsg, numDofs),
         lastState(IDLE),
         sequenceCounter(0),
@@ -106,7 +106,7 @@ namespace FRI
       {
          requestedTrafoIDs.reserve(MAX_REQUESTED_TRANSFORMATIONS);
       }
-      
+
       void resetCommandMessage()
       {
          commandMsg.commandData.has_jointPosition = false;
@@ -115,10 +115,10 @@ namespace FRI
          commandMsg.commandData.commandedTransformations_count = 0;
          commandMsg.commandData.has_cartesianPose = false;
          commandMsg.commandData.has_redundancyInformation = false;
-         commandMsg.has_commandData = false;     
+         commandMsg.has_commandData = false;
          commandMsg.commandData.writeIORequest_count = 0;
       }
-      
+
       //******************************************************************************
       static const FriIOValue& getBooleanIOValue(const FRIMonitoringMessage* message, const char* name)
       {
@@ -138,49 +138,49 @@ namespace FRI
       }
 
       //******************************************************************************
-      static void setBooleanIOValue(FRICommandMessage* message, const char* name, const bool value, 
+      static void setBooleanIOValue(FRICommandMessage* message, const char* name, const bool value,
             const FRIMonitoringMessage* monMessage)
       {
          setIOValue(message, name, monMessage, FriIOType_BOOLEAN).digitalValue = value;
       }
 
       //******************************************************************************
-      static void setDigitalIOValue(FRICommandMessage* message, const char* name, const unsigned long long value, 
+      static void setDigitalIOValue(FRICommandMessage* message, const char* name, const unsigned long long value,
             const FRIMonitoringMessage* monMessage)
       {
          setIOValue(message, name, monMessage, FriIOType_DIGITAL).digitalValue = value;
       }
 
       //******************************************************************************
-      static void setAnalogIOValue(FRICommandMessage* message, const char* name, const double value, 
+      static void setAnalogIOValue(FRICommandMessage* message, const char* name, const double value,
             const FRIMonitoringMessage* monMessage)
       {
          setIOValue(message, name, monMessage, FriIOType_ANALOG).analogValue = value;
       }
-   
+
    protected:
-      
+
       //******************************************************************************
-      static const FriIOValue& getIOValue(const FRIMonitoringMessage* message, const char* name, 
+      static const FriIOValue& getIOValue(const FRIMonitoringMessage* message, const char* name,
             const FriIOType ioType)
       {
          if(message != NULL && message->has_monitorData == true)
          {
             const MessageMonitorData& monData = message->monitorData;
-            const bool analogValue = (ioType == FriIOType_ANALOG); 
-            const bool digitalValue = (ioType == FriIOType_DIGITAL) | (ioType == FriIOType_BOOLEAN); 
+            const bool analogValue = (ioType == FriIOType_ANALOG);
+            const bool digitalValue = (ioType == FriIOType_DIGITAL) | (ioType == FriIOType_BOOLEAN);
             for(size_t i = 0; i < monData.readIORequest_count; i++)
             {
                const FriIOValue& ioValue = monData.readIORequest[i];
                if(strcmp(name, ioValue.name) == 0)
                {
                   if(ioValue.type == ioType &&
-                     ioValue.has_digitalValue == digitalValue && 
+                     ioValue.has_digitalValue == digitalValue &&
                      ioValue.has_analogValue == analogValue)
                   {
                      return ioValue;
                   }
-                  
+
                   const char* ioTypeName;
                   switch(ioType)
                   {
@@ -189,7 +189,7 @@ namespace FRI
                      case FriIOType_BOOLEAN: ioTypeName = "boolean"; break;
                      default: ioTypeName = "?"; break;
                   }
-                  
+
                   throw FRIException("IO %s is not of type %s.", name, ioTypeName);
                }
             }
@@ -197,9 +197,9 @@ namespace FRI
 
          throw FRIException("Could not locate IO %s in monitor message.", name);
       }
-      
+
       //******************************************************************************
-      static FriIOValue& setIOValue(FRICommandMessage* message, const char* name,  
+      static FriIOValue& setIOValue(FRICommandMessage* message, const char* name,
             const FRIMonitoringMessage* monMessage, const FriIOType ioType)
       {
          MessageCommandData& cmdData = message->commandData;
@@ -212,29 +212,29 @@ namespace FRI
             {
                throw FRIException("IO %s is not an output value.", name);
             }
-            
+
             // add IO value to command message
             FriIOValue& ioValue = cmdData.writeIORequest[cmdData.writeIORequest_count];
-            
+
             strncpy(ioValue.name, name, sizeof(ioValue.name) - 1);
             ioValue.name[sizeof(ioValue.name) - 1] = 0; // ensure termination
             ioValue.type = ioType;
             ioValue.has_digitalValue = (ioType == FriIOType_DIGITAL) | (ioType == FriIOType_BOOLEAN);
             ioValue.has_analogValue = (ioType == FriIOType_ANALOG);
             ioValue.direction = FriIODirection_OUTPUT;
-            
+
             cmdData.writeIORequest_count ++;
             message->has_commandData = true;
-            
+
             return ioValue;
          }
          else
          {
             throw FRIException("Exceeded maximum number of outputs that can be set.");
          }
-      }      
+      }
    };
-   
+
 }
 }
 

@@ -5,7 +5,7 @@
 #### Client side
 - It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime)).
 - Set a fixed IP in the subnet of the controller for the real-time machine.
-
+- If you are using FRI version 1.15 set the `WITH_FRI_VERSION_2_5` parameter in the `CMakeLists.txt` to `OFF`
 #### Controller side
 
 - Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench

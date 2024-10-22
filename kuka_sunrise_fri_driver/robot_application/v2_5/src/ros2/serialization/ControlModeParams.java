@@ -17,7 +17,7 @@ public abstract class ControlModeParams implements Externalizable{
 		POSITION(		(byte)1),
 		JOINT_IMPEDANCE((byte)2),
 		CARTESIAN_IMPEDANCE((byte)3);
-		
+
 		public final byte value;
 
 		ControlModeID(byte value){
@@ -101,9 +101,9 @@ class JointImpedanceControlModeParams extends ControlModeParams{
 
 class CartesianImpedanceControlModeParams extends ControlModeParams{
 	public CartesianImpedanceControlModeParams(){
-		
+
 	}
 	public CartesianImpedanceControlModeParams(CartesianImpedanceControlMode controlMode){
-		
+
 	}
 }

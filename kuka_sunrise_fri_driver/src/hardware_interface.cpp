@@ -42,7 +42,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   hw_torque_states_.resize(info_.joints.size());
   hw_ext_torque_states_.resize(info_.joints.size());
   hw_torque_commands_.resize(info_.joints.size());
-#ifdef FRI_V2_5  
+#ifdef FRI_V2_5
   hw_cart_pose_states_.resize(
     7);  // it's always 7 dof: position x,y,z; orientation quaternion qx,qy,qz,qw
   hw_cart_pose_commands_.resize(7);
@@ -211,7 +211,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         std::vector<double>(DOF, 0.0), std::vector<double>(DOF, 0.0));
       fri_connection_->setClientCommandMode(ClientCommandModeID::TORQUE_COMMAND_MODE);
       break;
-#ifdef FRI_V2_5 //only available in FRI version 2.5
+#ifdef FRI_V2_5  // only available in FRI version 2.5
     case kuka_drivers_core::ControlMode::CARTESIAN_POSITION_CONTROL:
       fri_connection_->setPositionControlMode();
       fri_connection_->setClientCommandMode(ClientCommandModeID::CARTESIAN_POSE_COMMAND_MODE);

@@ -80,7 +80,7 @@ private:
   std::string joint_pos_controller_name_;
   std::string joint_torque_controller_name_;
   std::string wrench_controller_name_;
-#ifdef FRI_V2_5  
+#ifdef FRI_V2_5
   std::string cart_pose_controller_name_;
 #endif
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 100.0);

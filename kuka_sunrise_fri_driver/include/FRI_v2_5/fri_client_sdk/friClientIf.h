@@ -14,16 +14,16 @@ code, libraries, binaries, manuals and technical documentation.
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2021 
+Copyright (C)  2014-2021
 KUKA Deutschland GmbH
 Augsburg, Germany
 
-LICENSE 
+LICENSE
 
 Redistribution and use of the software in source and binary forms, with or
 without modification, are permitted provided that the following conditions are
 met:
-a) The software is used in conjunction with KUKA products only. 
+a) The software is used in conjunction with KUKA products only.
 b) Redistributions of source code must retain the above copyright notice, this
 list of conditions and the disclaimer.
 c) Redistributions in binary form must reproduce the above copyright notice,
@@ -40,14 +40,14 @@ DISCLAIMER OF WARRANTY
 
 The Software is provided "AS IS" and "WITH ALL FAULTS," without warranty of
 any kind, including without limitation the warranties of merchantability,
-fitness for a particular purpose and non-infringement. 
+fitness for a particular purpose and non-infringement.
 KUKA makes no warranty that the Software is free of defects or is suitable for
 any particular purpose. In no event shall KUKA be responsible for loss or
 damages arising from the installation or use of the Software, including but
 not limited to any indirect, punitive, special, incidental or consequential
 damages of any character including, without limitation, damages for loss of
 goodwill, work stoppage, computer failure or malfunction, or any and all other
-commercial damages or losses. 
+commercial damages or losses.
 The entire risk to the quality and performance of the Software is not borne by
 KUKA. Should the Software prove defective, KUKA is not liable for the entire
 cost of any service and repair.
@@ -71,7 +71,7 @@ namespace FRI
 
    // forward declarations
    struct ClientData;
-   
+
 
    /** \brief Enumeration of the FRI session state. */
    enum ESessionState
@@ -116,7 +116,7 @@ namespace FRI
       TRANSITIONING = 1,      //!< drive is in a transitioning state (before or after motion)
       ACTIVE = 2              //!< drive is being actively commanded
    };
-   
+
    /** \brief Enumeration of control mode. */
    enum EControlMode
    {
@@ -125,84 +125,84 @@ namespace FRI
       JOINT_IMP_CONTROL_MODE = 2, //!< joint impedance control mode
       NO_CONTROL = 3              //!< drives are not used
    };
-   
-   
+
+
    /** \brief Enumeration of the client command mode. */
    enum EClientCommandMode
    {
       NO_COMMAND_MODE = 0, //!< no client command mode available
       JOINT_POSITION = 1,  //!< commanding joint positions by the client
       WRENCH = 2,          //!< commanding wrenches and joint positions by the client
-      TORQUE = 3,          //!< commanding joint torques and joint positions by the client 
-      CARTESIAN_POSE = 4   //!< commanding Cartesian poses by the client 
+      TORQUE = 3,          //!< commanding joint torques and joint positions by the client
+      CARTESIAN_POSE = 4   //!< commanding Cartesian poses by the client
    };
-   
+
    /** \brief Enumeration of the overlay type. */
    enum EOverlayType
    {
       NO_OVERLAY = 0,   //!< no overlay type available
-      JOINT = 1,        //!< joint overlay  
+      JOINT = 1,        //!< joint overlay
       CARTESIAN = 2     //!< cartesian overlay
    };
-   
+
    /** \brief Enumeration of redundancy strategies. */
    enum ERedundancyStrategy
    {
       E1 = 0,          //!< E1 redundancy strategy
       NO_STRATEGY = 4  //!< No redundancy strategy
    };
-   
+
    /**
-    * \brief FRI client interface. 
-    * 
-    * This is the callback interface that should be implemented by FRI clients. 
+    * \brief FRI client interface.
+    *
+    * This is the callback interface that should be implemented by FRI clients.
     * Callbacks are automatically called by the client application
     * (ClientApplication) whenever new FRI messages arrive.
     */
    class IClient
    {
       friend class ClientApplication;
-      
+
    public:
-      
+
       /** \brief Virtual destructor. */
       virtual ~IClient() {}
-   
-      /** 
+
+      /**
        * \brief Callback that is called whenever the FRI session state changes.
-       * 
+       *
        * @param oldState previous FRI session state
        * @param newState current FRI session state
        */
       virtual void onStateChange(ESessionState oldState, ESessionState newState) = 0;
-   
+
       /**
        * \brief Callback for the FRI session states 'Monitoring Wait' and 'Monitoring Ready'.
        */
       virtual void monitor() = 0;
-   
+
       /**
        * \brief Callback for the FRI session state 'Commanding Wait'.
        */
       virtual void waitForCommand() = 0;
-   
+
       /**
        * \brief Callback for the FRI session state 'Commanding'.
        */
       virtual void command() = 0;
-      
+
    protected:
-      
+
       /**
        * \brief Method to create and initialize the client data structure (used internally).
-       * 
+       *
        * @return newly allocated client data structure
        */
       virtual ClientData* createData() = 0;
-      
-      
+
+
    };
-   
+
 }
 }
 

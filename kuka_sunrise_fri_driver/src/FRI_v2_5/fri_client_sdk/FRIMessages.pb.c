@@ -73,4 +73,3 @@ PB_BIND(FRICommandMessage, FRICommandMessage, 2)
  */
 PB_STATIC_ASSERT(sizeof(double) == 8, DOUBLE_MUST_BE_8_BYTES)
 #endif
-

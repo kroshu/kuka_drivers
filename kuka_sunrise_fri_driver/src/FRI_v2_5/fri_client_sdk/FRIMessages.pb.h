@@ -159,7 +159,7 @@ typedef struct _RedundancyInformation {
 /* FRI Message Header. Contains the information for timing handshake and the message identifier.
  The following messageIdentifiers are currently available:
  LBR Monitoring Message: 0x245142
- LBR Command Message: 0x34001 
+ LBR Command Message: 0x34001
  @KUKA.Internal */
 typedef struct _MessageHeader {
     uint32_t messageIdentifier; /* Message identifier. */
@@ -167,7 +167,7 @@ typedef struct _MessageHeader {
     uint32_t reflectedSequenceCounter; /* Reflected sequence counter. Checked to determine the timing. */
 } MessageHeader;
 
-/* FRI Connection info. Contains the connection state and additional informations. 
+/* FRI Connection info. Contains the connection state and additional information.
  @KUKA.Internal */
 typedef struct _ConnectionInfo {
     FRISessionState sessionState; /* state of the FRI session. */
@@ -178,12 +178,12 @@ typedef struct _ConnectionInfo {
     uint32_t receiveMultiplier; /* Multiplier of sendPeriod, on which the Controller expects a new CommmandMessage. */
 } ConnectionInfo;
 
-/* Robot Information Object. Contains all static Information about the robot. e.g. 
+/* Robot Information Object. Contains all static Information about the robot. e.g.
  Number of Joints.
  @KUKA.Internal */
 typedef struct _RobotInfo {
     bool has_numberOfJoints;
-    int32_t numberOfJoints; /* availabe number of joints. */
+    int32_t numberOfJoints; /* available number of joints. */
     bool has_safetyState;
     SafetyState safetyState; /* Safety state of the controller. */
     pb_callback_t driveState; /* Drivestate of the drives. */
@@ -193,7 +193,7 @@ typedef struct _RobotInfo {
     ControlMode controlMode; /* Controlmode of the robot. */
 } RobotInfo;
 
-/* FRI Monitor Data. Contains the cylic Information about the current robot state.
+/* FRI Monitor Data. Contains the cyclic Information about the current robot state.
  @KUKA.Internal */
 typedef struct _MessageMonitorData {
     bool has_measuredJointPosition;
@@ -216,7 +216,7 @@ typedef struct _MessageMonitorData {
     TimeStamp timestamp; /* timestamp of the measurement. */
 } MessageMonitorData;
 
-/* FRI Interpolator Data. Contains the cyclic commands which are going to be send 
+/* FRI Interpolator Data. Contains the cyclic commands which are going to be send
  to the robot by the interpolator.
  @KUKA.Internal */
 typedef struct _MessageIpoData {

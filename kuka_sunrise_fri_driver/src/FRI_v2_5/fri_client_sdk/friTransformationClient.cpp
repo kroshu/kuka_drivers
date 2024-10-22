@@ -14,16 +14,16 @@ code, libraries, binaries, manuals and technical documentation.
 COPYRIGHT
 
 All Rights Reserved
-Copyright (C)  2014-2021 
+Copyright (C)  2014-2021
 KUKA Deutschland GmbH
 Augsburg, Germany
 
-LICENSE 
+LICENSE
 
 Redistribution and use of the software in source and binary forms, with or
 without modification, are permitted provided that the following conditions are
 met:
-a) The software is used in conjunction with KUKA products only. 
+a) The software is used in conjunction with KUKA products only.
 b) Redistributions of source code must retain the above copyright notice, this
 list of conditions and the disclaimer.
 c) Redistributions in binary form must reproduce the above copyright notice,
@@ -40,14 +40,14 @@ DISCLAIMER OF WARRANTY
 
 The Software is provided "AS IS" and "WITH ALL FAULTS," without warranty of
 any kind, including without limitation the warranties of merchantability,
-fitness for a particular purpose and non-infringement. 
+fitness for a particular purpose and non-infringement.
 KUKA makes no warranty that the Software is free of defects or is suitable for
 any particular purpose. In no event shall KUKA be responsible for loss or
 damages arising from the installation or use of the Software, including but
 not limited to any indirect, punitive, special, incidental or consequential
 damages of any character including, without limitation, damages for loss of
 goodwill, work stoppage, computer failure or malfunction, or any and all other
-commercial damages or losses. 
+commercial damages or losses.
 The entire risk to the quality and performance of the Software is not borne by
 KUKA. Should the Software prove defective, KUKA is not liable for the entire
 cost of any service and repair.
@@ -74,7 +74,7 @@ using namespace KUKA::FRI;
 TransformationClient::TransformationClient()
 {
 }
-      
+
 //******************************************************************************
 TransformationClient::~TransformationClient()
 {
@@ -88,12 +88,12 @@ const std::vector<const char*>& TransformationClient::getRequestedTransformation
    for (unsigned int i=0; i<trafoCount; i++)
    {
       _data->requestedTrafoIDs[i] = _data->monitoringMsg.requestedTransformations[i].name;
-   }   
+   }
 	return _data->requestedTrafoIDs;
 }
 
 //******************************************************************************
-const unsigned int TransformationClient::getTimestampSec() const 
+const unsigned int TransformationClient::getTimestampSec() const
 {
 	return _data->monitoringMsg.monitorData.timestamp.sec;
 }
@@ -132,8 +132,8 @@ void TransformationClient::setTransformation(const char* transformationID,
 }
 
 //******************************************************************************
-void TransformationClient::setTransformation(const char* transformationID, 
-   const double (&transformationMatrix)[3][4], 
+void TransformationClient::setTransformation(const char* transformationID,
+   const double (&transformationMatrix)[3][4],
    const unsigned int timeSec, const unsigned int timeNanoSec)
 {
 
