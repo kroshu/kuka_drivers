@@ -41,9 +41,10 @@ public class FRIManager{
 	private ClientCommandMode _clientCommandMode;
 	private IMotionContainer _motionContainer;
 	private FRIMotionErrorHandler _friMotionErrorHandler = new FRIMotionErrorHandler();
-	//private IApplicationControl _applicationControl;
 
 	private static double[] stiffness_ = new double[7];
+
+
 
 	public FRIManager(LBR lbr, IApplicationControl applicationControl){
 		_currentState = new InactiveState();
@@ -52,9 +53,7 @@ public class FRIManager{
 		_FRIConfiguration = new FRIConfigurationParams().toFRIConfiguration(_lbr);
 		Arrays.fill(stiffness_, 200);
 		_controlMode = new JointImpedanceControlMode(stiffness_);
-		//_controlMode = new PositionControlMode();
 		_clientCommandMode = ClientCommandMode.POSITION;
-		//_applicationControl = applicationControl;
 		applicationControl.registerMoveAsyncErrorHandler(_friMotionErrorHandler);
 	}
 
@@ -247,11 +246,9 @@ public class FRIManager{
 			switch(sessionState){
 			case IDLE:
 				FRIManager.this._ROS2Connection.handleFRIEndedError();
-				//FRIManager.this._currentState = new InactiveState();
 				break;
 			default:
 				FRIManager.this._ROS2Connection.handleControlEndedError();
-				//FRIManager.this._currentState = new FRIActiveState();
 				break;
 			}
 			System.out.println("Failed container: " + failedContainer.toString() + ".");
