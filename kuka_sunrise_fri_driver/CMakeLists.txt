@@ -37,7 +37,7 @@ if (WITH_FRI_VERSION_2_5)
   add_definitions(-DFRI_V2_5)
   set(FRI_CLIENT_SDK_VERSION "FRI_v2_5")
 else()
-  set(FRI_CLIENT_SDK_VERSION "FRI_v1_5")
+  set(FRI_CLIENT_SDK_VERSION "FRI_v1_15")
 endif()
 
 include_directories(include src/${FRI_CLIENT_SDK_VERSION}/fri_client_sdk include/${FRI_CLIENT_SDK_VERSION} ${NANOPB_INCLUDE_DIR})
