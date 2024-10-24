@@ -270,8 +270,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
-      // TODO(Svastits): check whether this is necessary for impedance mode too
-      [[fallthrough]];
+      break;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       if (send_period_ms_ > 5)
       {
