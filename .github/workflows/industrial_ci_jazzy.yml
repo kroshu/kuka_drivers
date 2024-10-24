@@ -1,4 +1,4 @@
-name: ROS-Industrial CI
+name: ROS-Industrial CI jazzy
 run-name: ROS-Industrial CI - ${{ github.event_name }}
 
 # This determines when this workflow is run
@@ -27,7 +27,7 @@ on:
 
 jobs:
   industrial_ci:
-    name: ROS-Industrial CI
+    name: ROS-Industrial CI jazzy
     env:
       ROS_REPO: ros
       BUILDER: colcon
