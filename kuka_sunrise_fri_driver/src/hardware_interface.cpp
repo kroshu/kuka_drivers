@@ -150,7 +150,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   // Set up UDP connection (UDP replier on client)
-  if (!client_application_.connect(30200, controller_ip_.c_str()))
+  if (!client_application_.connect(client_port_, controller_ip_.c_str()))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set up UDP connection");
     return CallbackReturn::FAILURE;
