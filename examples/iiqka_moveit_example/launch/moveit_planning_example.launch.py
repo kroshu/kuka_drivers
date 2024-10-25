@@ -84,6 +84,7 @@ def launch_setup(context, *args, **kwargs):
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
+        namespace=ns.perform(context),
         parameters=[moveit_config.to_dict(), {"publish_planning_scene_hz": 30.0}],
     )
 
@@ -92,10 +93,11 @@ def launch_setup(context, *args, **kwargs):
         executable="rviz2",
         name="rviz2",
         output="log",
+        namespace=ns.perform(context),
         arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
     )
 
-    to_start = [startup_launch, move_group_server, rviz]
+    to_start = [startup_launch, move_group_server]
 
     return to_start
 

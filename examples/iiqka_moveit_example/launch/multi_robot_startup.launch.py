@@ -17,8 +17,13 @@ from launch.launch_description_sources.python_launch_description_source import (
 )
 from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
+from moveit_configs_utils import MoveItConfigsBuilder
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 from launch import LaunchDescription
+
 
 
 def generate_launch_description():
@@ -28,9 +33,9 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
+                        get_package_share_directory("iiqka_moveit_example"),
                         "/launch/",
-                        "startup_with_rviz.launch.py",
+                        "moveit_planning_example.launch.py",
                     ]
                 ),
                 launch_arguments={
@@ -39,25 +44,7 @@ def generate_launch_description():
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
                     "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",  # noqa: E501
                     "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
-                    "rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}",  # noqa: E501
-                }.items(),
-            ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
-                        "/launch/",
-                        "startup.launch.py",
-                    ]
-                ),
-                launch_arguments={
-                    "namespace": "test2",
-                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
-                    "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",  # noqa: E501
-                    "ec_config": f"{test_config_dir + 'test2_effort_controller_config.yaml'}",
-                    "robot_model": "lbr_iisy11_r1300",
-                    "x": "2",
+                    #"rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}",  # noqa: E501
                 }.items(),
             ),
         ]
