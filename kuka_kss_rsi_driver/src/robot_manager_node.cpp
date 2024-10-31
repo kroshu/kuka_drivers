@@ -1,4 +1,4 @@
-// Copyright 2023 Svastits Áron
+// Copyright 2023 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 
+#include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_kss_rsi_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -39,8 +40,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   this->registerStaticParameter<std::string>(
-    "robot_model", "kr6_r700_sixx",
-    kuka_drivers_core::ParameterSetAccessRights{true, false, false, false, false},
+    "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 }
@@ -97,7 +97,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 
   // Activate RT controller(s)
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {"joint_state_broadcaster", "joint_trajectory_controller"},
+        change_controller_state_client_,
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER,
+         kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER},
         {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
@@ -125,7 +127,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {"joint_state_broadcaster", "joint_trajectory_controller"},
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER,
+         kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");

@@ -2,30 +2,36 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_sunrise_fri_driver</name>
-  <version>0.0.0</version>
+  <version>0.9.2</version>
   <description>ROS2 KUKA sunrise interface</description>
-  <maintainer email="resizoltan@gmail.com">Zoltan Resi</maintainer>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
-  <license>Apache 2.0</license>
+  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
-  <depend>sensor_msgs</depend>
   <depend>kuka_driver_interfaces</depend>
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>controller_manager_msgs</depend>
 
+  <depend>libnanopb-dev</depend>
+
   <exec_depend>ros2_control</exec_depend>
-  <exec_depend>ros2_controllers</exec_depend>
-  <exec_depend>fri_state_broadcaster</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>fri_configuration_controller</exec_depend>
+  <exec_depend>fri_state_broadcaster</exec_depend>
+  <exec_depend>kuka_control_mode_handler</exec_depend>
+  <exec_depend>kuka_event_broadcaster</exec_depend>
+  <exec_depend>joint_group_impedance_controller</exec_depend>
+  <exec_depend>kuka_lbr_iiwa_support</exec_depend>
+
+  <test_depend>ros2lifecycle</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

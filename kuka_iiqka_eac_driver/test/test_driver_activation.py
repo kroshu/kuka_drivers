@@ -1,4 +1,4 @@
-# Copyright 2024 Áron Svastits
+# Copyright 2024 Aron Svastits
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,10 +40,13 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "use_fake_hardware": "true",
+                }.items(),
             ),
             launch.actions.TimerAction(
-                period=2.0,
+                period=10.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
@@ -52,7 +55,7 @@ def generate_test_description():
                 ],
             ),
             launch.actions.TimerAction(
-                period=4.0,
+                period=15.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
@@ -73,9 +76,11 @@ class TestDriverActivation(unittest.TestCase):
             "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
+        proc_output.assertWaitFor(
+            "Setting component 'lbr_iisy3_r760' to 'unconfigured' state.", timeout=5
+        )
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=10
+            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=15
         )
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=15)
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=20)

@@ -1,4 +1,4 @@
-# Copyright 2024 Áron Svastits
+# Copyright 2024 Aron Svastits
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,4 +55,6 @@ class TestDriverStartup(unittest.TestCase):
             "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
         )
         # Check whether disabling automatic activation was successful
-        proc_output.assertWaitFor("Hardware Component with name '' does not exists", timeout=5)
+        proc_output.assertWaitFor(
+            "Setting component 'lbr_iisy3_r760' to 'unconfigured' state.", timeout=5
+        )

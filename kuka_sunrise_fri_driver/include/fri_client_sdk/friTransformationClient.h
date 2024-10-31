@@ -151,7 +151,7 @@ public:
      *
      * @return timestamp encoded as Unix time (seconds)
      */
-  const unsigned int getTimestampSec() const;
+  unsigned int getTimestampSec() const;
 
   /**
      * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>
@@ -162,7 +162,7 @@ public:
      *
      * @return timestamp encoded as Unix time (nanoseconds part)
      */
-  const unsigned int getTimestampNanoSec() const;
+  unsigned int getTimestampNanoSec() const;
 
   /**
      * <br>  <b>This element is an undocumented internal feature. It is not intended to be used by applications as it might change or be removed in future versions.</b>  <br>

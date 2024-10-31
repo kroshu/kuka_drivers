@@ -1,4 +1,4 @@
-// Copyright 2023 Áron Svastits
+// Copyright 2023 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,12 +32,15 @@ static constexpr char IO_PREFIX[] = "gpio";
 static constexpr char CONFIG_PREFIX[] = "runtime_config";
 // Constant defining prefix for fri state
 static constexpr char FRI_STATE_PREFIX[] = "fri_state";
+// Constant defining prefix for states
+static constexpr char STATE_PREFIX[] = "state";
 
 /* Configuration interfaces */
 // Constant defining control_mode configuration interface
 static constexpr char CONTROL_MODE[] = "control_mode";
 // Constant defining the receive multiplier interface needed for FRI
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
+static constexpr char SEND_PERIOD[] = "send_period_ms";
 
 /* FRI state interfaces */
 static constexpr char SESSION_STATE[] = "session_state";
@@ -48,6 +51,9 @@ static constexpr char OPERATION_MODE[] = "operation_mode";
 static constexpr char DRIVE_STATE[] = "drive_state";
 static constexpr char OVERLAY_TYPE[] = "overlay_type";
 static constexpr char TRACKING_PERFORMANCE[] = "tracking_performance";
+
+// Constant defining server_state interface necessary for event broadcasting
+static constexpr char SERVER_STATE[] = "server_state";
 
 }  // namespace hardware_interface
 

@@ -100,6 +100,7 @@ bool encode_repeatedDouble(pb_ostream_t *stream, const pb_field_t *field, void *
 
 bool decode_repeatedDouble(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
+   PB_UNUSED(field);
    tRepeatedDoubleArguments* arguments = 0;
    size_t i = 0;
    double* values = 0;
@@ -162,6 +163,7 @@ bool encode_repeatedInt(pb_ostream_t *stream, const pb_field_t *field, void * co
 
 bool decode_repeatedInt(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
+   PB_UNUSED(field);
    tRepeatedIntArguments* arguments = 0;
    size_t i = 0;
    uint64_t* values = 0;

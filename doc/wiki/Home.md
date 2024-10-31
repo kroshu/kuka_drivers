@@ -34,7 +34,7 @@ The startup procedure for any system in ROS can be defined using a launch file, 
 The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The hardware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meaning:
 
 - `unconfigured`: all necessary components are started, but no connection is needed to the robot
-- `configured`: The driver has configured the parameters necessary to start external control. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
+- `configured`: The driver has valid parameters configured, external control can be initiated. It is possible to change most parameters (with the exception of IP addresses and robot model) in this state without having to clean up the `robot_manager` node. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
 - `active`: external control is running with cyclic real-time communication, controllers are active
 
 To achieve these synchronized states, the state transitions of the system do the following steps (implemented by the launch file and the `robot_manager` node):
@@ -61,11 +61,11 @@ The control mode specifications are also part of the common API. They are define
 
 - joint position control: the driver streams cyclic position updates for every joint.
     - Needed command interface(s): `position`
-- joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally.
+- joint impedance control: the driver streams cyclic position updates for every joint and additionally stiffness [Nm/rad] and normalized damping [-] attributes, which define how the joint reacts to external effects (around the setpoint position). The effect of gravity is compensated internally. (FRI does not allow changing the impedance attributes in runtime, therefore the initial damping and stiffness values are valid for the whole motion.)
     - Needed command interface(s): `position`, `stiffness`, `damping`
 - joint velocity control: the driver streams cyclic velocity updates for every joint.
     - Needed command interface(s): `velocity`
-- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensatin and should not move.)
+- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensation and should not move.)
     - Needed command interface(s): `effort`
 - cartesian position control: the driver streams cyclic pose updates for every degree of freedom. The orientation representation is the KUKA ABC convention. It is the responsibility of the user to stream poses, for which a valid IK solution exists.
     - Needed command interface(s): `cart_position`
@@ -92,17 +92,17 @@ The repository contains a few other packages aside from the 3 drivers:
 - `kuka_driver_interfaces`: this package contains the custom message definition necessary for KUKA robots.
 - `kuka_drivers_core`: this package contains core functionalities used by more drivers, including the `control_node`, base classes for nodes with improved parameter handling, enum and constant definitions and a class for managing the controller activation and deactivation at control mode changes. Details about these features can be found in the package [documentation](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/README.md)
 - `kuka_rsi_simulator`: this package contains a simple simulator of RSI, that implements a UDP server accepting the same xml format as RSI and returning the commanded values as the current state, without any checks.
-- `iiqka_moveit_example`: this package contains basic examples of using moveit with the driver, more information in the [next section](#moveit-integration). Additionally it contains a [launch file](../../examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](../../examples/iiqka_moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
+- `iiqka_moveit_example`: this package contains basic examples of using moveit with the driver, more information in the [next section](#moveit-integration). Additionally it contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
 
 ## Moveit integration
 
 The `ros2_control` framework supports Moveit out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package (`iiqka_moveit_example`) is provided to help developers.
 
-The package contains a [launch file](../../examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
+The package contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
 
 After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
 
-The package also contains examples of sending planning requests from C++ code, in which case the `rviz` plugin is not necessary. The `MoveitExample` class implements a wrapper around the `MoveGroupInterface`, the example executables in the package use this class to interact with Moveit. Four examples are provided:
+The package also contains examples of sending planning requests from C++ code, in which case the `rviz` plugin is not necessary. The `MoveitExample` class implements a wrapper around the `MoveGroupInterface`, the example executables in the package use this class to interact with `Moveit`. Four examples are provided:
 - `moveit_basic_planners_example`: the example uses the `PILZ` motion planner to plan a `PTP` and a `LIN` trajectory. It also demonstrates that planning with collision avoidance is not possible with the `PILZ` planner by adding a collision box that invalidates the planned trajectory.
 - `moveit_collision_avoidance_example`: the example adds a collision box to the scene and demonstrates, that path planning with collision avoidance is possible using the `OMPL` planning pipeline.
 - `moveit_constrained_planning_example`: this example demonstrates constrained planning capabilities, as the planner can find a valid path around the obstacle with the end effector orientation remaining constant (with small tolerance).
@@ -112,10 +112,31 @@ Note: the first three examples should be executed consequently (without restarti
 
 Note: The examples need user interaction in `rviz`, the `Next` button (`RvizVisualToolsGui` tab) should be pressed each time the logs indicate it.
 
+
+### Planning in impedance mode
+
+Planning with `Moveit`, or simply moving the robot in impedance mode is quite tricky, as often there is a mismatch between the actual and commanded positions.
+Both `Moveit` and the `joint_trajectory_controller` start planning/execution from the actually measured values, creating a jump in the commands (from the previous command to the measured state), which can trigger a joint limit violation. To solve this issue, the planning request must be modified to start from the commanded position instead of the measured one.
+For example in the `moveit_basic_planners_example` the following lines must be added before each planning request:
+```C++
+  moveit_msgs::msg::RobotState start_state;
+  std::vector<double> commanded_pos;  // TODO: fill this vector with the actually commanded positions
+  start_state.joint_state.name = example_node->moveGroupInterface()->getJointNames();
+  start_state.joint_state.position = commanded_pos;
+  example_node->moveGroupInterface()->setStartState(start_state);
+```
+Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
+
+If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
+```yaml
+open_loop_control: true
+```
+
+
 ## Multi-robot scenario
 
 As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components has to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modified to reflect the new node and joint names. An example of this can found in the `iiqka_moveit_example` package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
 
 ## Detailed setup and startup instructions
 
-For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/iiQKA_EAC) robots.
+For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) robots.

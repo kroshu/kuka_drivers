@@ -1,4 +1,4 @@
-// Copyright 2022 Áron Svastits
+// Copyright 2022 Aron Svastits
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,13 +27,11 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
+
+#include "kuka/external-control-sdk/iiqka/sdk.h"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/ecs/v1/motion_services_ecs.grpc.pb.h"
-#include "nanopb/kuka/core/motion/joint.pb.hh"
-#include "nanopb/kuka/ecs/v1/control_signal_external.pb.hh"
-#include "nanopb/kuka/ecs/v1/motion_state_external.pb.hh"
-#include "os-core-udp-communication/replier.h"
+#include "kuka_drivers_core/hardware_event.hpp"
 
 #include "kuka_iiqka_eac_driver/visibility_control.h"
 
@@ -42,7 +40,6 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 
 namespace kuka_eac
 {
-
 class KukaEACHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
@@ -72,39 +69,38 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC return_type
   write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-private:
-  KUKA_IIQKA_EAC_DRIVER_LOCAL void ObserveControl();
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent event);
 
-  bool is_active_ = false;
-  bool msg_received_ = false;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
+
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC void reset_cycle_count() { cycle_count_ = 0; }
+
+private:
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
+
+  std::unique_ptr<kuka::external::control::iiqka::Robot> robot_ptr_;
 
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
-
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
 
-  double hw_control_mode_command_;
+  double hw_control_mode_command_ = 0;
+  double server_state_ = 0;
+  int cycle_count_ = 0;
 
-#ifdef NON_MOCK_SETUP
-  kuka::ecs::v1::CommandState command_state_;
-  std::unique_ptr<kuka::ecs::v1::ExternalControlService::Stub> stub_;
-  std::unique_ptr<grpc::ClientContext> context_;
-#endif
+  std::mutex event_mutex_;
 
-  std::thread observe_thread_;
+  kuka_drivers_core::ControlMode prev_control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
-  std::unique_ptr<os::core::udp::communication::Replier> udp_replier_;
-  std::chrono::milliseconds receive_timeout_{100};
-
-  uint8_t out_buff_arr_[1500];
-
-  nanopb::kuka::ecs::v1::ControlSignalExternal control_signal_ext_{
-    nanopb::kuka::ecs::v1::ControlSignalExternal_init_default};
-  nanopb::kuka::ecs::v1::MotionStateExternal motion_state_external_{
-    nanopb::kuka::ecs::v1::MotionStateExternal_init_default};
+  bool msg_received_;
+  std::atomic<bool> stop_requested_{false};
 };
 }  // namespace kuka_eac
 

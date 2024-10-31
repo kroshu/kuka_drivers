@@ -1,0 +1,7 @@
+<library path="fri_state_broadcaster">
+  <class name="kuka_controllers/FRIStateBroadcaster" type="kuka_controllers::FRIStateBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the state changes of ECI
+    </description>
+  </class>
+</library>

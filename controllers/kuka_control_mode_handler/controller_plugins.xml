@@ -1,0 +1,7 @@
+<library path="kuka_control_mode_handler">
+  <class name="kuka_controllers/ControlModeHandler" type="kuka_controllers::ControlModeHandler" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller sets the control mode of KUKA robots in runtime
+    </description>
+  </class>
+</library>

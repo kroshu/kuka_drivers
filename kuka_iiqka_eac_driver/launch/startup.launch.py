@@ -1,4 +1,4 @@
-# Copyright 2022 Áron Svastits
+# Copyright 2022 Aron Svastits
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
+    roundtrip_time = LaunchConfiguration("roundtrip_time")
     qos_config = LaunchConfiguration("qos_config")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
@@ -86,6 +87,9 @@ def launch_setup(context, *args, **kwargs):
             "yaw:=",
             yaw,
             " ",
+            "roundtrip_time:=",
+            roundtrip_time,
+            " ",
             "qos_config_file:=",
             qos_config,
         ],
@@ -106,7 +110,18 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_drivers_core",
         executable="control_node",
-        parameters=[robot_description, controller_config, jtc_config, jic_config, ec_config],
+        parameters=[
+            robot_description,
+            controller_config,
+            jtc_config,
+            jic_config,
+            ec_config,
+            {
+                "hardware_components_initial_state": {
+                    "unconfigured": [tf_prefix + robot_model.perform(context)]
+                },
+            },
+        ],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -148,6 +163,7 @@ def launch_setup(context, *args, **kwargs):
         "joint_group_impedance_controller",
         "effort_controller",
         "control_mode_handler",
+        "event_broadcaster",
     ]
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -174,6 +190,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="2500"))
     launch_arguments.append(
         DeclareLaunchArgument(
             "qos_config",

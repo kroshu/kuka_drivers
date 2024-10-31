@@ -14,4 +14,4 @@ joint_trajectory_controller:
       - position
     state_publish_rate: 50.0
     action_monitor_rate: 20.0
-    allow_nonzero_velocity_at_trajectory_end: True
+    allow_nonzero_velocity_at_trajectory_end: true

@@ -1,0 +1,7 @@
+<library path="kuka_event_broadcaster">
+  <class name="kuka_controllers/EventBroadcaster" type="kuka_controllers::EventBroadcaster" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This broadcaster publishes the state changes of ECI
+    </description>
+  </class>
+</library>

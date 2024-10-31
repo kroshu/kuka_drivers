@@ -20,7 +20,7 @@ package_name = "kuka_rsi_simulator"
 
 setup(
     name=package_name,
-    version="0.1.0",
+    version="0.9.2",
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
@@ -35,7 +35,7 @@ setup(
     maintainer="Marton Antal",
     maintainer_email="antal.marci@gmail.com",
     description="Simple package for simulating the KUKA RSI interface.",
-    license="BSD",
+    license="Apache-2.0",
     entry_points={
         "console_scripts": ["rsi_simulator = kuka_rsi_simulator.rsi_simulator:main"],
     },
