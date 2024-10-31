@@ -45,7 +45,7 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
+                        get_package_share_directory("kuka_kss_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
@@ -54,9 +54,7 @@ def generate_launch_description():
                     "namespace": "test2",
                     "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
                     "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
-                    "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",  # noqa: E501
-                    "ec_config": f"{test_config_dir + 'test2_effort_controller_config.yaml'}",
-                    "robot_model": "lbr_iisy11_r1300",
+                    "robot_model": "kr6_r700_sixx", 
                     "x": "2",
                 }.items(),
             ),

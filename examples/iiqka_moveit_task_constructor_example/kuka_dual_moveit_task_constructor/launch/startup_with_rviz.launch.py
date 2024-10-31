@@ -48,15 +48,11 @@ def launch_setup(context, *args, **kwargs):
                 "pitch": pitch.perform(context),
                 "yaw": yaw.perform(context),
                 "prefix": tf_prefix,
-                "namespace": ns
             },
         )
         .robot_description_semantic(
             file_path=get_package_share_directory("kuka_lbr_iisy_moveit_config")
-            + f"/urdf/{robot_model.perform(context)}.srdf",
-            mappings={
-                "prefix": tf_prefix
-            }
+            + f"/urdf/{robot_model.perform(context)}.srdf"
         )
         .robot_description_kinematics(
             file_path=get_package_share_directory("kuka_lbr_iisy_moveit_config")
@@ -66,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
             file_path=get_package_share_directory("kuka_lbr_iisy_moveit_config")
             + "/config/moveit_controllers.yaml"
         )
-        .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
+        .planning_pipelines(pipelines=["ompl"])
         .planning_scene_monitor(
             publish_robot_description=True, publish_robot_description_semantic=True
         )
@@ -77,14 +73,31 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
+    rviz_config_file = (
+        get_package_share_directory("kuka_resources") + "/config/view_6_axis_planning_scene.rviz"
+    )
+
     move_group_capabilities = {"capabilities": "move_group/ExecuteTaskSolutionCapability"}
 
     move_group_server = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        namespace=ns,
         parameters=[moveit_config.to_dict(), move_group_capabilities],
+    )
+
+    rviz = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="log",
+        arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
+        parameters=[
+            moveit_config.robot_description,
+            moveit_config.robot_description_semantic,
+            moveit_config.robot_description_kinematics,
+            moveit_config.planning_pipelines,
+        ],
     )
 
     # MTC Demo node
@@ -92,13 +105,12 @@ def launch_setup(context, *args, **kwargs):
         package="kuka_moveit_task_constructor_depalletizing",
         executable="kuka_moveit_task_constructor_depalletizing",
         output="screen",
-        namespace=ns,
         parameters=[
             moveit_config.to_dict(),
         ],
     )
 
-    to_start = [move_group_server, mtc_demo]
+    to_start = [move_group_server, rviz, mtc_demo]
 
     return to_start
 

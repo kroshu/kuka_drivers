@@ -75,8 +75,9 @@ void MTCDepalletizingTaskNode::addPalletObjects()
 
 void MTCDepalletizingTaskNode::attachObject(const std::string & object_id)
 {
+  std::string frame_id_prefix = (node_->get_namespace() == std::string("/")) ? std::string("") : std::string(node_->get_namespace()) + "/";
   moveit_msgs::msg::AttachedCollisionObject attached_object;
-  attached_object.link_name = "flange";
+  attached_object.link_name = frame_id_prefix + "flange";
   attached_object.object.id = object_id;
   attached_object.object.operation = attached_object.object.REMOVE;
 
@@ -86,8 +87,9 @@ void MTCDepalletizingTaskNode::attachObject(const std::string & object_id)
 
 void MTCDepalletizingTaskNode::detachObject(const std::string & object_id)
 {
+  std::string frame_id_prefix = (node_->get_namespace() == std::string("/")) ? std::string("") : std::string(node_->get_namespace()) + "/";
   moveit_msgs::msg::AttachedCollisionObject attached_object;
-  attached_object.link_name = "flange";
+  attached_object.link_name = frame_id_prefix + "flange";
   attached_object.object.id = object_id;
   attached_object.object.operation = attached_object.object.REMOVE;
 
@@ -125,9 +127,9 @@ mtc::Task MTCDepalletizingTaskNode::createTask()
   start->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
 
   // Define the joint positions for the goal
-  std::map<std::string, double> start_joint_positions = {{"joint_1", 0.0}, {"joint_2", -1.57},
-                                                         {"joint_3", 0.0}, {"joint_4", 0.0},
-                                                         {"joint_5", 0.0}, {"joint_6", 0.0}};
+  std::map<std::string, double> start_joint_positions = {{"test1_joint_1", 0.0}, {"test1_joint_2", -1.57},
+                                                         {"test1_joint_3", 0.0}, {"test1_joint_4", 0.0},
+                                                         {"test1_joint_5", 0.0}, {"test1_joint_6", 0.0}};
   start->setGoal(start_joint_positions);
   task.add(std::move(start));
 
