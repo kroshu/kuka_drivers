@@ -12,5 +12,4 @@ DerivePointerAlignment: false
 PointerAlignment: Middle
 ReflowComments: true
 IncludeBlocks: Preserve
-InsertBraces: true
 ...

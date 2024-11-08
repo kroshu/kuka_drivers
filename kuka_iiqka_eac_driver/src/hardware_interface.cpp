@@ -43,6 +43,8 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
 
+  hw_signal_configuration_ptr_ = std::make_shared<std::vector<kuka::external::control::iiqka::Signal_Configuration>>();
+
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
     if (joint.command_interfaces.size() != 4)
@@ -173,6 +175,18 @@ CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::St
   if (!SetupQoS())
   {
     return CallbackReturn::FAILURE;
+  }
+
+  if (!GetSignalConfiguration())
+  {
+    return CallbackReturn::FAILURE;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Configured signal list:");
+  for (auto && signal : hw_signal_configuration_)
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "signal_%ld - name: %s", signal.GetSignalId(),
+      signal.GetName().c_str());
   }
 
   RCLCPP_INFO(
@@ -346,6 +360,21 @@ bool KukaEACHardwareInterface::SetupQoS()
     return false;
   }
 
+  return true;
+}
+
+bool KukaEACHardwareInterface::GetSignalConfiguration()
+{
+  kuka::external::control::Status get_signal_configuration =
+    robot_ptr_->GetSignalConfiguration(hw_signal_configuration_);
+  if (get_signal_configuration.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "Failed to receive signal configuration, errir message: %s",
+      get_signal_configuration.message);
+    return false;
+  }
   return true;
 }
 
