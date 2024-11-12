@@ -107,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument(
-        "robot_model", default_value="kr6_r700_sixx"))
+        "robot_model", default_value="kr6_r900_sixx"))
     launch_arguments.append(DeclareLaunchArgument(
         "namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))

@@ -1,4 +1,4 @@
-// Copyright 2022 Áron Svastits
+// Copyright 2024 Gergely Kovács
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,42 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef MOVEIT_EXAMPLES__MOVEIT_COLLISION_AVOIDANCE_EXAMPLE_HPP_
+#define MOVEIT_EXAMPLES__MOVEIT_COLLISION_AVOIDANCE_EXAMPLE_HPP_
+
 #include <math.h>
 #include <memory>
 
 #include "moveit_examples/moveit_example.hpp"
 
-int main(int argc, char * argv[])
+void moveItCollisionAvoidanceExample(std::shared_ptr<MoveitExample> example_node,
+    const std::vector<double> & start_coords,
+    const geometry_msgs::msg::Vector3 & standing_pose_coords,
+    const geometry_msgs::msg::Vector3 & collision_box_pos,
+    const geometry_msgs::msg::Vector3 & collision_box_size)
 {
-  // Setup
-  // Initialize ROS and create the Node
-  rclcpp::init(argc, argv);
-  auto const example_node = std::make_shared<MoveitExample>();
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(example_node);
-  std::thread([&executor]() { executor.spin(); }).detach();
-
   example_node->initialize();
 
   // Add robot platform
   example_node->addRobotPlatform();
 
   // Go to correct position for the example
-  auto init_trajectory = example_node->planToPosition(
-    std::vector<double>{0.3587, 0.3055, -1.3867, 0.0, -0.4896, -0.3587});
+  auto init_trajectory = example_node->planToPosition(start_coords);
   if (init_trajectory != nullptr)
   {
     example_node->moveGroupInterface()->execute(*init_trajectory);
   }
 
   // Add collision object
-  example_node->addCollisionBox(
-    geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.125).y(0.15).z(0.5),
-    geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(1.0).z(0.1));
+  example_node->addCollisionBox(collision_box_pos, collision_box_size);
   example_node->addBreakPoint();
 
   auto standing_pose =
-    Eigen::Isometry3d(Eigen::Translation3d(0.1, 0, 0.8) * Eigen::Quaterniond::Identity());
+    Eigen::Isometry3d(Eigen::Translation3d(standing_pose_coords.x, standing_pose_coords.y, standing_pose_coords.z) * Eigen::Quaterniond::Identity());
 
   // Plan with collision avoidance
   auto planned_trajectory =
@@ -58,8 +54,6 @@ int main(int argc, char * argv[])
     example_node->addBreakPoint();
     example_node->moveGroupInterface()->execute(*planned_trajectory);
   }
-
-  // Shutdown ROS
-  rclcpp::shutdown();
-  return 0;
 }
+
+#endif  // MOVEIT_EXAMPLES__MOVEIT_COLLISION_AVOIDANCE_EXAMPLE_HPP_

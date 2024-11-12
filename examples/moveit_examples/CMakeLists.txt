@@ -12,14 +12,26 @@ find_package(moveit_visual_tools REQUIRED)
 
 include_directories(include)
 
-add_executable(moveit_basic_planners_example src/moveit_basic_planners_example.cpp)
-ament_target_dependencies(moveit_basic_planners_example
+add_executable(iiqka_moveit_basic_planners_example src/iiqka/moveit_basic_planners_example.cpp)
+ament_target_dependencies(iiqka_moveit_basic_planners_example
   moveit_ros_planning_interface
   moveit_visual_tools
 )
 
-add_executable(moveit_collision_avoidance_example src/moveit_collision_avoidance_example.cpp)
-ament_target_dependencies(moveit_collision_avoidance_example
+add_executable(kss_moveit_basic_planners_example src/kss/moveit_basic_planners_example.cpp)
+ament_target_dependencies(kss_moveit_basic_planners_example
+  moveit_ros_planning_interface
+  moveit_visual_tools
+)
+
+add_executable(iiqka_moveit_collision_avoidance_example src/iiqka/moveit_collision_avoidance_example.cpp)
+ament_target_dependencies(iiqka_moveit_collision_avoidance_example
+  moveit_ros_planning_interface
+  moveit_visual_tools
+)
+
+add_executable(kss_moveit_collision_avoidance_example src/kss/moveit_collision_avoidance_example.cpp)
+ament_target_dependencies(kss_moveit_collision_avoidance_example
   moveit_ros_planning_interface
   moveit_visual_tools
 )
@@ -37,8 +49,10 @@ ament_target_dependencies(moveit_depalletizing_example
 )
 
 install(TARGETS
-  moveit_basic_planners_example
-  moveit_collision_avoidance_example
+  iiqka_moveit_basic_planners_example
+  kss_moveit_basic_planners_example
+  iiqka_moveit_collision_avoidance_example
+  kss_moveit_collision_avoidance_example
   moveit_constrained_planning_example
   moveit_depalletizing_example
   EXPORT export_${PROJECT_NAME}
