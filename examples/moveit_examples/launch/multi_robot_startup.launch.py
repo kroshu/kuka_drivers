@@ -39,7 +39,7 @@ def generate_launch_description():
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
                     "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",  # noqa: E501
                     "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
-                    "rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}",  # noqa: E501
+                    "rviz_config": f"{get_package_share_directory('moveit_examples') + '/config/multi_robot.rviz'}",  # noqa: E501
                 }.items(),
             ),
             IncludeLaunchDescription(

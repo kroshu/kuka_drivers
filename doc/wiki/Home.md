@@ -92,13 +92,13 @@ The repository contains a few other packages aside from the 3 drivers:
 - `kuka_driver_interfaces`: this package contains the custom message definition necessary for KUKA robots.
 - `kuka_drivers_core`: this package contains core functionalities used by more drivers, including the `control_node`, base classes for nodes with improved parameter handling, enum and constant definitions and a class for managing the controller activation and deactivation at control mode changes. Details about these features can be found in the package [documentation](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/README.md)
 - `kuka_rsi_simulator`: this package contains a simple simulator of RSI, that implements a UDP server accepting the same xml format as RSI and returning the commanded values as the current state, without any checks.
-- `iiqka_moveit_example`: this package contains basic examples of using moveit with the driver, more information in the [next section](#moveit-integration). Additionally it contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
+- `moveit_examples`: this package contains basic examples of using moveit with the driver, more information in the [next section](#moveit-integration). Additionally it contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/moveit_examples/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](https://github.com/kroshu/kuka_drivers/blob/master/examples/moveit_examples/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
 
 ## Moveit integration
 
-The `ros2_control` framework supports Moveit out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package (`iiqka_moveit_example`) is provided to help developers.
+The `ros2_control` framework supports Moveit out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package (`moveit_examples`) is provided to help developers.
 
-The package contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
+The package contains a [launch file](https://github.com/kroshu/kuka_drivers/blob/master/examples/moveit_examples/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
 
 After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
 
@@ -127,7 +127,7 @@ For example in the `moveit_basic_planners_example` the following lines must be a
 ```
 Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
 
-If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/kuka_drivers/blob/master/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
+If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/kuka_drivers/blob/master/examples/moveit_examples/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
 ```yaml
 open_loop_control: true
 ```
@@ -135,7 +135,7 @@ open_loop_control: true
 
 ## Multi-robot scenario
 
-As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components has to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modified to reflect the new node and joint names. An example of this can found in the `iiqka_moveit_example` package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
+As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components has to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modified to reflect the new node and joint names. An example of this can found in the `moveit_examples` package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
 
 ## Detailed setup and startup instructions
 

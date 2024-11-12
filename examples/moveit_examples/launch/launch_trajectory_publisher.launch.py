@@ -21,7 +21,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     position_goals = PathJoinSubstitution(
         [
-            FindPackageShare("iiqka_moveit_example"),
+            FindPackageShare("moveit_examples"),
             "config",
             "dummy_publisher.yaml",
         ]

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
-#define IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
+#ifndef MOVEIT_EXAMPLES__MOVEIT_EXAMPLE_HPP_
+#define MOVEIT_EXAMPLES__MOVEIT_EXAMPLE_HPP_
 
 #include <math.h>
 
@@ -51,42 +51,6 @@ public:
 
     move_group_interface_->setMaxVelocityScalingFactor(0.1);
     move_group_interface_->setMaxAccelerationScalingFactor(0.1);
-  }
-
-  moveit_msgs::msg::RobotTrajectory::SharedPtr drawCircle()
-  {
-    std::vector<geometry_msgs::msg::Pose> waypoints;
-    moveit_msgs::msg::RobotTrajectory trajectory;
-    geometry_msgs::msg::Pose msg;
-
-    // circle facing forward
-    msg.orientation.x = 0.0;
-    msg.orientation.y = sqrt(2) / 2;
-    msg.orientation.z = 0.0;
-    msg.orientation.w = sqrt(2) / 2;
-    msg.position.x = 0.4;
-    // Define waypoints in a circle
-    for (int i = 0; i < 63; i++)
-    {
-      msg.position.y = -0.2 + sin(0.1 * i) * 0.15;
-      msg.position.z = 0.4 + cos(0.1 * i) * 0.15;
-      waypoints.push_back(msg);
-    }
-
-    RCLCPP_INFO(LOGGER, "Start planning");
-    double fraction =
-      move_group_interface_->computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
-    RCLCPP_INFO(LOGGER, "Planning done!");
-
-    if (fraction < 1)
-    {
-      RCLCPP_ERROR(LOGGER, "Could not compute trajectory through all waypoints!");
-      return nullptr;
-    }
-    else
-    {
-      return std::make_shared<moveit_msgs::msg::RobotTrajectory>(trajectory);
-    }
   }
 
   moveit_msgs::msg::RobotTrajectory::SharedPtr planToPoint(
@@ -347,4 +311,4 @@ protected:
   const std::string PLANNING_GROUP = "manipulator";
 };
 
-#endif  // IIQKA_MOVEIT_EXAMPLE__MOVEIT_EXAMPLE_HPP_
+#endif  // moveit_examples__MOVEIT_EXAMPLE_HPP_

@@ -13,7 +13,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>iiqka_moveit_example</exec_depend>
+  <exec_depend>moveit_examples</exec_depend>
   <exec_depend>kuka_driver_interfaces</exec_depend>
   <exec_depend>kuka_drivers_core</exec_depend>
   <exec_depend>kuka_iiqka_eac_driver</exec_depend>

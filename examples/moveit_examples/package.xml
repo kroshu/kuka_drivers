@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>iiqka_moveit_example</name>
+  <name>moveit_examples</name>
+  TODO versioning?
   <version>0.9.2</version>
-  <description>ROS example package using the iiQKA driver and moveit</description>
+  <description>ROS example package using the drivers and moveit</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
   <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
@@ -15,6 +16,7 @@
   <depend>moveit_visual_tools</depend>
 
   <exec_depend>kuka_iiqka_eac_driver</exec_depend>
+  <exec_depend>kuka_kss_rsi_driver</exec_depend>
   <exec_depend>moveit</exec_depend>
   <exec_depend>ros2_controllers_test_nodes</exec_depend>
 

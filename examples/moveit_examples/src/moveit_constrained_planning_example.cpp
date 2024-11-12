@@ -15,7 +15,7 @@
 #include <math.h>
 #include <memory>
 
-#include "iiqka_moveit_example/moveit_example.hpp"
+#include "moveit_examples/moveit_example.hpp"
 
 int main(int argc, char * argv[])
 {
