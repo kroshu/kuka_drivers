@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
   std::thread([&executor]() { executor.spin(); }).detach();
 
   moveItCollisionAvoidanceExample(example_node,
-      std::vector<double>{0.2111, -0.9106, 0.0, -1.8677, 1.2075, -0.2111},
+      std::vector<double>{0.2111, -0.9106, 1.2075, 0.0, -1.8677,  -0.2111},
       geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0).z(1.2),
       geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.3).y(-0.075).z(1),
       geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(1.0).z(0.1));
