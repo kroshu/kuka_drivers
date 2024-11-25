@@ -21,7 +21,7 @@
 #include "moveit_examples/moveit_example.hpp"
 
 void moveItCollisionAvoidanceExample(std::shared_ptr<MoveitExample> example_node,
-    const std::vector<double> & start_coords,
+    const geometry_msgs::msg::Vector3 & start_coords,
     const geometry_msgs::msg::Vector3 & standing_pose_coords,
     const geometry_msgs::msg::Vector3 & collision_box_pos,
     const geometry_msgs::msg::Vector3 & collision_box_size)
@@ -32,7 +32,9 @@ void moveItCollisionAvoidanceExample(std::shared_ptr<MoveitExample> example_node
   example_node->addRobotPlatform();
 
   // Go to correct position for the example
-  auto init_trajectory = example_node->planToPosition(start_coords);
+  auto start_pos =
+    Eigen::Isometry3d(Eigen::Translation3d(start_coords.x, start_coords.y, start_coords.z) * Eigen::Quaterniond::Identity());
+  auto init_trajectory = example_node->planToPoint(start_pos);
   if (init_trajectory != nullptr)
   {
     example_node->moveGroupInterface()->execute(*init_trajectory);

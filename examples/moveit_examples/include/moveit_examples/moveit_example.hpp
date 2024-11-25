@@ -255,16 +255,16 @@ public:
     planning_scene_diff_publisher_->publish(planning_scene);
   }
 
-  void setOrientationConstraint(const geometry_msgs::msg::Quaternion & orientation)
+  void setOrientationConstraint(const geometry_msgs::msg::Quaternion & orientation, double tolerance)
   {
     moveit_msgs::msg::OrientationConstraint orientation_constraint;
     moveit_msgs::msg::Constraints constraints;
     orientation_constraint.header.frame_id = move_group_interface_->getPlanningFrame();
     orientation_constraint.link_name = move_group_interface_->getEndEffectorLink();
     orientation_constraint.orientation = orientation;
-    orientation_constraint.absolute_x_axis_tolerance = 0.2;
-    orientation_constraint.absolute_y_axis_tolerance = 0.2;
-    orientation_constraint.absolute_z_axis_tolerance = 0.2;
+    orientation_constraint.absolute_x_axis_tolerance = tolerance;
+    orientation_constraint.absolute_y_axis_tolerance = tolerance;
+    orientation_constraint.absolute_z_axis_tolerance = tolerance;
     orientation_constraint.weight = 1.0;
 
     constraints.orientation_constraints.emplace_back(orientation_constraint);

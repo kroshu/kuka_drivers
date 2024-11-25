@@ -36,14 +36,20 @@ ament_target_dependencies(kss_moveit_collision_avoidance_example
   moveit_visual_tools
 )
 
-add_executable(moveit_constrained_planning_example src/moveit_constrained_planning_example.cpp)
-ament_target_dependencies(moveit_constrained_planning_example
+add_executable(iiqka_moveit_constrained_planning_example src/iiqka/moveit_constrained_planning_example.cpp)
+ament_target_dependencies(iiqka_moveit_constrained_planning_example
   moveit_ros_planning_interface
   moveit_visual_tools
 )
 
-add_executable(moveit_depalletizing_example src/moveit_depalletizing_example.cpp)
-ament_target_dependencies(moveit_depalletizing_example
+add_executable(kss_moveit_constrained_planning_example src/kss/moveit_constrained_planning_example.cpp)
+ament_target_dependencies(kss_moveit_constrained_planning_example
+  moveit_ros_planning_interface
+  moveit_visual_tools
+)
+
+add_executable(iiqka_moveit_depalletizing_example src/iiqka/moveit_depalletizing_example.cpp)
+ament_target_dependencies(iiqka_moveit_depalletizing_example
   moveit_ros_planning_interface
   moveit_visual_tools
 )
@@ -53,8 +59,9 @@ install(TARGETS
   kss_moveit_basic_planners_example
   iiqka_moveit_collision_avoidance_example
   kss_moveit_collision_avoidance_example
-  moveit_constrained_planning_example
-  moveit_depalletizing_example
+  iiqka_moveit_constrained_planning_example
+  kss_moveit_constrained_planning_example
+  iiqka_moveit_depalletizing_example
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )

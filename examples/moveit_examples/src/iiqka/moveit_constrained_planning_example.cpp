@@ -1,4 +1,4 @@
-// Copyright 2022 Áron Svastits
+// Copyright 2024 Gergely Kovács
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "moveit_examples/moveit_collision_avoidance_example.hpp"
+#include "moveit_examples/moveit_constrained_planning_example.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -24,11 +24,12 @@ int main(int argc, char * argv[])
   executor.add_node(example_node);
   std::thread([&executor]() { executor.spin(); }).detach();
 
-  moveItCollisionAvoidanceExample(example_node,
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.7).y(-0.15).z(0.75),
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0).z(1.2),
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.3).y(-0.075).z(1),
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0.8).z(0.1));
+  moveItConstrainedPlanningExample(example_node,
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0).z(0.8),
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.4).y(-0.15).z(0.55),
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.25).y(-0.075).z(0.675),
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0.8).z(0.1),
+      0.2);
 
   // Shutdown ROS
   rclcpp::shutdown();

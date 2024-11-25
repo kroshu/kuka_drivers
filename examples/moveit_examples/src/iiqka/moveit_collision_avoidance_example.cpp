@@ -25,10 +25,10 @@ int main(int argc, char * argv[])
   std::thread([&executor]() { executor.spin(); }).detach();
 
   moveItCollisionAvoidanceExample(example_node,
-      std::vector<double>{0.3587, 0.3055, -1.3867, 0.0, -0.4896, -0.3587},
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.4).y(-0.15).z(0.55),
       geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0).z(0.8),
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.125).y(0.15).z(0.5),
-      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(1.0).z(0.1));
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.25).y(-0.075).z(0.675),
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0.8).z(0.1));
 
   // Shutdown ROS
   rclcpp::shutdown();
