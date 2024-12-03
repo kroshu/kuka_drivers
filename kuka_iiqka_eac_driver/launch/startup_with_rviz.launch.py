@@ -35,6 +35,12 @@ def generate_launch_description():
         ),
     )
 
+    robot_description_kinematics = {
+        "robot_description_kinematics": {
+            "manipulator": {"kinematics_solver": "kdl_kinematics_plugin/KDLKinematicsPlugin"}
+        }
+    }
+
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [get_package_share_directory("kuka_iiqka_eac_driver"), "/launch/startup.launch.py"]
@@ -51,6 +57,9 @@ def generate_launch_description():
                 name="rviz2",
                 output="log",
                 arguments=["-d", rviz_config, "--ros-args", "--log-level", "error"],
+                parameters=[
+                    robot_description_kinematics,
+                ],
             ),
         ]
     )
