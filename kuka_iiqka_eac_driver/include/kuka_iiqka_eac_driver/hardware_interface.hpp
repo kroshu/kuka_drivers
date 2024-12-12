@@ -88,6 +88,10 @@ private:
   std::vector<double> hw_damping_commands_;
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
+  std::vector<kuka::external::control::SignalValue> hw_signal_value_;
+
+  // TODO(Komaromi): Remove this
+  int iter = 0;
 
   std::shared_ptr<std::vector<kuka::external::control::iiqka::Signal_Configuration>>
     hw_signal_config_list_ptr_{nullptr};

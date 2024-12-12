@@ -42,6 +42,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
   hw_stiffness_commands_.resize(info_.joints.size(), 30);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
+  hw_signal_value_.resize(100);
 
   hw_signal_config_list_ptr_ =
     std::make_shared<std::vector<kuka::external::control::iiqka::Signal_Configuration>>();
@@ -190,6 +191,8 @@ CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::St
       signal.GetName().c_str());
   }
 
+  hw_signal_config_list_ptr_->at(11).SetSignalToUse(true);
+
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
     "Set QoS profile with %s consequent and %s packet losses allowed in %s milliseconds",
@@ -244,25 +247,39 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // Bigger timeout blocks controller configuration
+  auto start = std::chrono::high_resolution_clock::now();
   kuka::external::control::Status receive_state =
     robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(10));
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"), "Duration: %ld, Receive state: %s", duration,
+    receive_state.message);
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
     auto & req_message = robot_ptr_->GetLastMotionState();
-
     std::copy(
       req_message.GetMeasuredPositions().begin(), req_message.GetMeasuredPositions().end(),
       hw_position_states_.begin());
     std::copy(
       req_message.GetMeasuredTorques().begin(), req_message.GetMeasuredTorques().end(),
       hw_torque_states_.begin());
-
+    // std::copy(
+    //   req_message.GetSignalValues().begin(), req_message.GetSignalValues().end(),
+    //   hw_signal_value_.begin());
     if (cycle_count_ == 0)
     {
       std::copy(
         hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
     }
+    // for (auto && signal_value : hw_signal_value_)
+    // {
+    //   RCLCPP_INFO(
+    //     rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
+    //     signal_value.GetSignalID(), signal_value.GetBoolValue());
+    // }
 
     cycle_count_++;
   }
@@ -281,6 +298,43 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
+  // // Creating change in signal value
+  // for (auto && signal_value : hw_signal_value_)
+  // {
+  //   if (
+  //     signal_value.GetValueType() ==
+  //     kuka::external::control::SignalValue::SignalValueType::BOOL_VALUE)
+  //   {
+  //     bool value = !signal_value.GetBoolValue();
+  //     signal_value.SetBoolValue(value);
+  //     RCLCPP_INFO(
+  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
+  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
+  //   }
+  // }
+
+  // // TODO(Komaromi): Remove this
+  // if (iter == 0)
+  // {
+  //   for (auto && signal_value : hw_signal_value_)
+  //   {
+  //     RCLCPP_INFO(
+  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
+  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
+  //   }
+  // }
+  // else if (iter >= 251)
+  // {
+  //   for (auto && signal_value : hw_signal_value_)
+  //   {
+  //     RCLCPP_INFO(
+  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
+  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
+  //   }
+  //   iter = 0;
+  // }
+  // iter++;
+
   robot_ptr_->GetControlSignal().AddJointPositionValues(
     hw_position_commands_.begin(), hw_position_commands_.end());
   robot_ptr_->GetControlSignal().AddTorqueValues(
@@ -288,6 +342,9 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   robot_ptr_->GetControlSignal().AddStiffnessAndDampingValues(
     hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
     hw_damping_commands_.end());
+
+  // robot_ptr_->GetControlSignal().AddSignalValues(hw_signal_value_.begin(),
+  // hw_signal_value_.end());
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
@@ -366,16 +423,26 @@ bool KukaEACHardwareInterface::SetupQoS()
 
 bool KukaEACHardwareInterface::GetSignalConfiguration()
 {
-  kuka::external::control::Status get_signal_configuration =
+  std::cout << "SignalConfig" << std::endl;
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "SignalConfig");
+  kuka::external::control::Status get_signal_config_status =
     robot_ptr_->GetSignalConfiguration(hw_signal_config_list_ptr_);
-  if (get_signal_configuration.return_code != kuka::external::control::ReturnCode::OK)
+
+  if (get_signal_config_status.return_code != kuka::external::control::ReturnCode::OK)
   {
     RCLCPP_ERROR(
       rclcpp::get_logger("KukaEACHardwareInterface"),
-      "Failed to receive signal configuration, errir message: %s",
-      get_signal_configuration.message);
+      "Failed to receive signal configuration, error message: %s",
+      get_signal_config_status.message);
     return false;
   }
+  else
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "SignalConfig received, message: %s",
+      get_signal_config_status.message);
+  }
+
   return true;
 }
 
