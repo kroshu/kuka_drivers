@@ -71,8 +71,14 @@ def launch_setup(context, *args, **kwargs):
     )
 
     rviz_config_file = (
-        get_package_share_directory("kuka_resources") + "/config/view_6_axis_planning_scene.rviz"
+        get_package_share_directory("kuka_resources") + "/config/planning_6_axis.rviz"
     )
+
+    robot_description_kinematics = {
+        "robot_description_kinematics": {
+            "manipulator": {"kinematics_solver": "kdl_kinematics_plugin/KDLKinematicsPlugin"}
+        }
+    }
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -93,6 +99,9 @@ def launch_setup(context, *args, **kwargs):
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "error"],
+        parameters=[
+            robot_description_kinematics,
+        ],
     )
 
     to_start = [startup_launch, move_group_server, rviz]
