@@ -1,4 +1,4 @@
-joint_trajectory_controller:
+/**/joint_trajectory_controller:
   ros__parameters:
     joints:
     - joint_1

@@ -9,7 +9,7 @@ test1/controller_manager:
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController
     effort_controller:
-      type: effort_controllers/JointGroupPositionController
+      type: effort_controllers/JointGroupEffortController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:

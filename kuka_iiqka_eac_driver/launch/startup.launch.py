@@ -104,7 +104,7 @@ def launch_setup(context, *args, **kwargs):
         get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
 
-    controller_manager_node = ns.perform(context) + "/controller_manager"
+    controller_manager_node = "controller_manager"
 
     control_node = Node(
         namespace=ns,
