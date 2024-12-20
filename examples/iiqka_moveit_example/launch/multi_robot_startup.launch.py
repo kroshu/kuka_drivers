@@ -36,6 +36,9 @@ def generate_launch_description():
                 launch_arguments={
                     "namespace": "test1",
                     "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
+                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "jic_config": f"{test_config_dir + 'test1_joint_impedance_controller_config.yaml'}",  # noqa: E501
+                    "ec_config": f"{test_config_dir + 'test1_effort_controller_config.yaml'}",
                     "rviz_config": f"{get_package_share_directory('iiqka_moveit_example') + '/config/multi_robot.rviz'}",  # noqa: E501
                 }.items(),
             ),
@@ -50,6 +53,9 @@ def generate_launch_description():
                 launch_arguments={
                     "namespace": "test2",
                     "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
+                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "jic_config": f"{test_config_dir + 'test2_joint_impedance_controller_config.yaml'}",  # noqa: E501
+                    "ec_config": f"{test_config_dir + 'test2_effort_controller_config.yaml'}",
                     "robot_model": "lbr_iisy11_r1300",
                     "x": "2",
                 }.items(),
