@@ -86,7 +86,7 @@ repos:
         name: ament_cppcheck
         exclude: .*/fri_client_sdk/.*|.*/mock/.*
         description: Static code analysis of C/C++ files.
-        stages: [commit]
+        stages: [pre-commit]
         entry: env AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS=TRUE ament_cppcheck
         language: system
         files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
@@ -98,7 +98,7 @@ repos:
         name: ament_cpplint
         exclude: .*/fri_client_sdk/.*|.*/mock/.*
         description: Static code analysis of C/C++ files.
-        stages: [commit]
+        stages: [pre-commit]
         entry: ament_cpplint
         language: system
         files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
@@ -110,7 +110,7 @@ repos:
       - id: ament_lint_cmake
         name: ament_lint_cmake
         description: Check format of CMakeLists.txt files.
-        stages: [commit]
+        stages: [pre-commit]
         entry: ament_lint_cmake
         language: system
         files: CMakeLists\.txt$
@@ -122,7 +122,7 @@ repos:
         name: ament_copyright
         exclude: .*/fri_client_sdk/.*|.*/mock/.*
         description: Check if copyright notice is available in all files.
-        stages: [commit]
+        stages: [pre-commit]
         entry: ament_copyright
         language: system
 
