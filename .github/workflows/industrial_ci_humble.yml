@@ -47,10 +47,17 @@ jobs:
           if [[ "${{ github.event_name }}" == "schedule" ]] || { [[ "${{ github.event_name }}" == "push" ]] && [[ "${{ github.ref }}" != "refs/heads/humble" ]]; }; then
             echo "ANALYZER=" >> $GITHUB_ENV
           fi
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        if: github.event.schedule != ''
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           ref: humble
+      - name: Checkout humble branch for scheduled runs
+        if: github.event.schedule == ''
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       # This step will fetch/store the directory used by ccache before/after the ci run
       - uses: actions/cache@v4
