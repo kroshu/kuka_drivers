@@ -1,4 +1,4 @@
-test2/joint_trajectory_controller:
+/test2/joint_trajectory_controller:
   ros__parameters:
     joints:
     - test2_joint_1

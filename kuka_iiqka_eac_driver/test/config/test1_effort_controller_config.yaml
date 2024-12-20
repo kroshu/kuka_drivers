@@ -1,4 +1,4 @@
-test1/effort_controller:
+/test1/effort_controller:
   ros__parameters:
     joints:
     - test1_joint_1

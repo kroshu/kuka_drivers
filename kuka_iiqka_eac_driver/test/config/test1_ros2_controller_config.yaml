@@ -1,4 +1,4 @@
-test1/controller_manager:
+/test1/controller_manager:
   ros__parameters:
     update_rate: 250  # Hz
 
