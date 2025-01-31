@@ -253,9 +253,9 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-  RCLCPP_INFO(
-    rclcpp::get_logger("KukaEACHardwareInterface"), "Duration: %ld, Receive state: %s", duration,
-    receive_state.message);
+  // RCLCPP_INFO(
+  //   rclcpp::get_logger("KukaEACHardwareInterface"), "Duration: %ld, Receive state: %s", duration,
+  //   receive_state.message);
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
@@ -266,9 +266,9 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     std::copy(
       req_message.GetMeasuredTorques().begin(), req_message.GetMeasuredTorques().end(),
       hw_torque_states_.begin());
-    // std::copy(
-    //   req_message.GetSignalValues().begin(), req_message.GetSignalValues().end(),
-    //   hw_signal_value_.begin());
+    std::copy(
+      req_message.GetSignalValues().begin(), req_message.GetSignalValues().end(),
+      hw_signal_value_.begin());
     if (cycle_count_ == 0)
     {
       std::copy(
@@ -298,20 +298,20 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
-  // // Creating change in signal value
-  // for (auto && signal_value : hw_signal_value_)
-  // {
-  //   if (
-  //     signal_value.GetValueType() ==
-  //     kuka::external::control::SignalValue::SignalValueType::BOOL_VALUE)
-  //   {
-  //     bool value = !signal_value.GetBoolValue();
-  //     signal_value.SetBoolValue(value);
-  //     RCLCPP_INFO(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
-  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
-  //   }
-  // }
+  // Creating change in signal value
+  for (auto && signal_value : hw_signal_value_)
+  {
+    if (
+      signal_value.GetValueType() ==
+      kuka::external::control::iiqka::SignalValue::SignalValueType::BOOL_VALUE)
+    {
+      bool value = !signal_value.GetBoolValue();
+      signal_value.SetBoolValue(value);
+      // RCLCPP_INFO(
+      //   rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
+      //   signal_value.GetSignalID(), signal_value.GetBoolValue());
+    }
+  }
 
   // // TODO(Komaromi): Remove this
   // if (iter == 0)
@@ -343,8 +343,15 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
     hw_damping_commands_.end());
 
-  // robot_ptr_->GetControlSignal().AddSignalValues(hw_signal_value_.begin(),
-  // hw_signal_value_.end());
+  robot_ptr_->GetControlSignal().AddSignalValues(
+    hw_signal_value_.begin(), hw_signal_value_.begin() + 1);
+
+  for (auto && signal : robot_ptr_->GetControlSignal().GetSignalValues())
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d", signal.GetSignalID(),
+      signal.GetBoolValue());
+  }
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
