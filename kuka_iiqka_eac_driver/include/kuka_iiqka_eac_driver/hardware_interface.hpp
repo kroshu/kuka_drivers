@@ -79,6 +79,7 @@ private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool GetSignalConfiguration();
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool UpdateSignalStates();
 
   std::unique_ptr<kuka::external::control::iiqka::Robot> robot_ptr_;
 
@@ -86,15 +87,17 @@ private:
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
+  std::vector<double> hw_signal_commands_;
   std::vector<double> hw_position_states_;
   std::vector<double> hw_torque_states_;
-  std::vector<std::shared_ptr<kuka::external::control::BaseSignalValue>> hw_signal_value_;
+  std::vector<double> hw_signal_states_;
 
   // TODO(Komaromi): Remove this
   int iter = 0;
 
+  std::vector<std::shared_ptr<kuka::external::control::BaseSignalValue>> signal_values_;
   std::shared_ptr<std::vector<kuka::external::control::iiqka::Signal_Configuration>>
-    hw_signal_config_list_ptr_{nullptr};
+    signal_config_list_ptr_{nullptr};
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;
   int cycle_count_ = 0;
