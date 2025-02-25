@@ -49,7 +49,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
     {
-      this->controller_name_ = controller_name;
+      this->position_controller_name_ = controller_name;
       return true;
     });
 }
@@ -107,7 +107,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate RT controller(s)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->controller_name_}, {}))
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_}, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     // TODO(Svastits): this can be removed if rollback is implemented properly
@@ -134,7 +134,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {},
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->controller_name_},
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
