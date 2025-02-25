@@ -121,12 +121,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_kss_rsi_driver",
         executable="robot_manager_node",
-        parameters=[
-            driver_config,
-            {
-                "robot_model": robot_model
-            }
-        ],
+        parameters=[driver_config, {"robot_model": robot_model}],
     )
     robot_state_publisher = Node(
         namespace=ns,
