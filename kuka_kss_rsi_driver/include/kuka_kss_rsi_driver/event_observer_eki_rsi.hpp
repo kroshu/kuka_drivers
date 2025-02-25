@@ -25,26 +25,19 @@ class KukaRSIEventObserver : public kuka::external::control::EventHandler
 {
 public:
   explicit KukaRSIEventObserver(KukaRSIHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")),
-    hw_interface_(hw_interface),
-    control_started_(false),
-    test_error_received_(false)
+  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
   void OnSampling() override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
-    control_started_ = true;
-    test_error_received_ = false;
     RCLCPP_INFO(logger_, "External control is active");
   }
 
   void OnControlModeSwitch(const std::string &) override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH);
-    control_started_ = false;
-    test_error_received_ = false;
     RCLCPP_INFO(logger_, "Control mode switch is in progress");
   }
 
@@ -57,15 +50,6 @@ public:
 
   void OnError(const std::string & reason) override
   {
-    // The EKI server sends a test error
-    // This has to be checked, but no reaction is necessary
-    if (control_started_ && !test_error_received_)
-    {
-      RCLCPP_ERROR(logger_, "Test error event received!");
-      test_error_received_ = true;
-      return;
-    }
-
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
     RCLCPP_ERROR(logger_, "External control stopped due to an error: %s", reason.c_str());
     hw_interface_->set_stop_flag();
@@ -74,8 +58,6 @@ public:
 private:
   const rclcpp::Logger logger_;
   KukaRSIHardwareInterface * hw_interface_;
-  bool control_started_;
-  bool test_error_received_;
 };
 }  // namespace kuka_kss_rsi_driver
 
