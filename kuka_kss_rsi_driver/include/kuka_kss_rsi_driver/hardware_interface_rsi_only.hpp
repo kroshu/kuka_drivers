@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
-#define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
+#define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -91,4 +91,4 @@ private:
 };
 }  // namespace kuka_kss_rsi_driver
 
-#endif  // KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_

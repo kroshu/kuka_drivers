@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
-#define KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#ifndef KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
+#define KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
 
 #include <map>
 #include <memory>
@@ -62,4 +62,4 @@ private:
 };
 }  // namespace kuka_rsi
 
-#endif  // KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#endif  // KUKA_KSS_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_

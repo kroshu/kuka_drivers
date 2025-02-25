@@ -1,0 +1,120 @@
+// Copyright 2025 Kristóf Pásztor
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
+#define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
+
+#include <chrono>
+#include <cmath>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#include "pluginlib/class_list_macros.hpp"
+#include "rclcpp/macros.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/state.hpp"
+
+#include "hardware_interface/system_interface.hpp"
+#include "trajectory_msgs/msg/joint_trajectory.hpp"
+
+#include "kuka/external-control-sdk/kss/sdk.h"
+#include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_kss_rsi_driver/rsi_command.hpp"
+#include "kuka_kss_rsi_driver/rsi_state.hpp"
+#include "kuka_kss_rsi_driver/udp_server.hpp"
+#include "kuka_kss_rsi_driver/visibility_control.h"
+
+using hardware_interface::return_type;
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+namespace kuka_kss_rsi_driver
+{
+class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
+{
+public:
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
+  : logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
+  {
+  }
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  CallbackReturn on_init(const hardware_interface::HardwareInfo &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC
+  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
+
+private:
+  KUKA_KSS_RSI_DRIVER_LOCAL bool SetupRobot();
+
+  KUKA_KSS_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
+
+  KUKA_KSS_RSI_DRIVER_LOCAL void Write();
+
+  KUKA_KSS_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
+  const rclcpp::Logger logger_;
+  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
+
+  std::vector<double> hw_position_states_;
+  std::vector<double> hw_position_states_deg_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_position_commands_deg_;
+
+  bool is_active_;
+  double hw_control_mode_command_;
+  double server_state_;
+
+  std::mutex event_mutex_;
+
+  kuka_drivers_core::ControlMode prev_control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+
+  bool msg_received_;
+  std::atomic<bool> stop_requested_{false};
+
+  static constexpr double R2D = 180 / M_PI;
+  static constexpr double D2R = M_PI / 180;
+};
+}  // namespace kuka_kss_rsi_driver
+
+#endif  // KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
