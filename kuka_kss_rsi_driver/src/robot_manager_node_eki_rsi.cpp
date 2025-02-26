@@ -75,8 +75,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & robot_model) { return OnRobotModelChangeRequest(robot_model); });
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
@@ -115,8 +114,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
@@ -149,8 +147,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
   terminate_ = false;
@@ -187,8 +184,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 

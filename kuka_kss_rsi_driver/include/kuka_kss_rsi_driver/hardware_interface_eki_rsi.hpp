@@ -64,6 +64,8 @@ public:
 
   KUKA_KSS_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
+  KUKA_KSS_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+
   KUKA_KSS_RSI_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 

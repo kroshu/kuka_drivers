@@ -95,6 +95,12 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
+CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+{
+  robot_ptr_.reset();
+  return CallbackReturn::SUCCESS;
+}
+
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto control_mode =
@@ -124,7 +130,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Deactivating hardware interface");
   set_stop_flag();
   return CallbackReturn::SUCCESS;
 }
@@ -234,10 +239,12 @@ void KukaRSIHardwareInterface::Write()
   if (stop_requested_)
   {
     RCLCPP_INFO(logger_, "Sending stop signal");
+    is_active_ = false;
     send_reply_status = robot_ptr_->StopControlling();
   }
   else if (control_mode_change_requested)
   {
+    // TODO(pasztork): Test this branch once other control modes become available.
     RCLCPP_INFO(logger_, "Requesting control mode change");
     send_reply_status = robot_ptr_->SwitchControlMode(
       static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
