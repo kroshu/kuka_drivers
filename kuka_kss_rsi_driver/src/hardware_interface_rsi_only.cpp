@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-#include <stdexcept>
-#include <string>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "pluginlib/class_list_macros.hpp"
 
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_rsi_only.hpp"
 
 namespace kuka_kss_rsi_driver
@@ -33,52 +32,21 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
 
-  for (const hardware_interface::ComponentInfo & joint : info_.joints)
+  for (const auto & joint : info_.joints)
   {
-    if (joint.command_interfaces.size() != 1)
+    bool interfaces_ok = CheckJointInterfaces(joint);
+    if (!interfaces_ok)
     {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaRSIHardwareInterface"), "expecting exactly 1 command interface");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaRSIHardwareInterface"),
-        "expecting only POSITION command interface");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces.size() != 1)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaRSIHardwareInterface"), "expecting exactly 1 state interface");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaRSIHardwareInterface"), "expecting only POSITION state interface");
       return CallbackReturn::ERROR;
     }
   }
 
-  // RSI
-  in_buffer_.resize(1024);
-  out_buffer_.resize(1024);
+  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
 
-  initial_joint_pos_.resize(info_.joints.size(), 0.0);
-  joint_pos_correction_deg_.resize(info_.joints.size(), 0.0);
-  ipoc_ = 0;
-
-  rsi_ip_address_ = info_.hardware_parameters["client_ip"];
-  rsi_port_ = std::stoi(info_.hardware_parameters["client_port"]);
-
-  RCLCPP_INFO(
-    rclcpp::get_logger("KukaRSIHardwareInterface"), "IP of client machine: %s:%d",
-    rsi_ip_address_.c_str(), rsi_port_);
+  first_write_done_ = false;
+  is_active_ = false;
+  msg_received_ = false;
+  stop_requested_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -106,54 +74,39 @@ KukaRSIHardwareInterface::export_command_interfaces()
   return command_interfaces;
 }
 
+CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+{
+  const bool setup_success = SetupRobot();
+  return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+}
+
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  stop_flag_ = false;
-  // Wait for connection from robot
-  server_.reset(new UDPServer(rsi_ip_address_, rsi_port_));
-  server_->set_timeout(10000);  // Set receive timeout to 10 seconds for activation
+  stop_requested_ = false;
 
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Connecting to robot . . .");
+  Read(10'000);
+  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  Write();
 
-  int bytes = server_->recv(in_buffer_);
-  if (bytes == 0)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "Connection timeout");
-    return CallbackReturn::FAILURE;
-  }
-
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Got data from robot");
-
-  // Drop empty <rob> frame with RSI <= 2.3
-  if (bytes < 100)
-  {
-    bytes = server_->recv(in_buffer_);
-  }
-
-  rsi_state_ = RSIState(in_buffer_);
-
-  for (size_t i = 0; i < info_.joints.size(); ++i)
-  {
-    hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-    hw_commands_[i] = hw_states_[i];
-    initial_joint_pos_[i] = rsi_state_.initial_positions[i] * KukaRSIHardwareInterface::D2R;
-  }
-  ipoc_ = rsi_state_.ipoc;
-
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
-  server_->send(out_buffer_);
-  server_->set_timeout(1000);  // Set receive timeout to 1 second
-
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "System Successfully started!");
+  msg_received_ = false;
+  first_write_done_ = true;
   is_active_ = true;
+
+  RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  stop_flag_ = true;
-  RCLCPP_INFO(rclcpp::get_logger("KukaRSIHardwareInterface"), "Stop flag was set!");
+  stop_requested_ = true;
+  RCLCPP_INFO(logger_, "Stop requested!");
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+{
+  robot_ptr_.reset();
   return CallbackReturn::SUCCESS;
 }
 
@@ -165,47 +118,115 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     return return_type::OK;
   }
 
-  if (server_->recv(in_buffer_) == 0)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaRSIHardwareInterface"), "No data received from robot");
-    this->on_deactivate(this->get_lifecycle_state());
-    return return_type::ERROR;
-  }
-  rsi_state_ = RSIState(in_buffer_);
-
-  for (std::size_t i = 0; i < info_.joints.size(); ++i)
-  {
-    hw_states_[i] = rsi_state_.positions[i] * KukaRSIHardwareInterface::D2R;
-  }
-  ipoc_ = rsi_state_.ipoc;
+  Read(1'000);
   return return_type::OK;
 }
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // It is possible, that write is called immediately after activation
-  // In this case write in that tick should be skipped to be able to read state at first
-  // First cycle (with 0 ipoc) is handled in the on_activate method, so 0 ipoc means
-  //  read was not called yet
-  if (!is_active_ || ipoc_ == 0)
+  if (!is_active_ || !msg_received_ || !first_write_done_)
   {
     return return_type::OK;
   }
 
-  if (stop_flag_)
-  {
-    is_active_ = false;
-  }
+  Write();
 
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    joint_pos_correction_deg_[i] =
-      (hw_commands_[i] - initial_joint_pos_[i]) * KukaRSIHardwareInterface::R2D;
-  }
-
-  out_buffer_ = RSICommand(joint_pos_correction_deg_, ipoc_, stop_flag_).xml_doc;
-  server_->send(out_buffer_);
   return return_type::OK;
+}
+
+bool KukaRSIHardwareInterface::SetupRobot()
+{
+  RCLCPP_INFO(logger_, "Initiating network setup...");
+
+  using Configuration = kuka::external::control::kss::Configuration;
+  Configuration config;
+  config.installed_interface = Configuration::InstalledInterface::RSI_ONLY;
+  config.client_ip_address = info_.hardware_parameters["client_ip"];
+  config.dof = info_.joints.size();
+
+  robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
+
+  const auto setup = robot_ptr_->Setup();
+  if (setup.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Setup failed: %s", setup.message);
+    return false;
+  }
+
+  RCLCPP_INFO(logger_, "Network setup successful!");
+
+  return true;
+}
+
+void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
+{
+  std::chrono::milliseconds timeout(request_timeout);
+  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
+
+  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
+  if (msg_received_)
+  {
+    const auto & req_message = robot_ptr_->GetLastMotionState();
+    const auto & positions = req_message.GetMeasuredPositions();
+    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+  }
+}
+
+void KukaRSIHardwareInterface::Write()
+{
+  // Write values to hardware interface
+  auto & control_signal = robot_ptr_->GetControlSignal();
+  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+
+  kuka::external::control::Status send_reply_status;
+  if (stop_requested_)
+  {
+    RCLCPP_INFO(logger_, "Sending stop signal");
+    first_write_done_ = false;
+    is_active_ = false;
+    msg_received_ = false;
+    send_reply_status = robot_ptr_->StopControlling();
+  }
+  else
+  {
+    send_reply_status = robot_ptr_->SendControlSignal();
+  }
+
+  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
+    throw std::runtime_error("Error sending reply");
+  }
+}
+
+bool KukaRSIHardwareInterface::CheckJointInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  if (joint.command_interfaces.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "Expecting exactly 1 command interface");
+    return false;
+  }
+
+  if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+  {
+    RCLCPP_FATAL(logger_, "Expecting only POSITION command interface");
+    return false;
+  }
+
+  if (joint.state_interfaces.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "Expecting exactly 1 state interface");
+    return false;
+  }
+
+  if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+  {
+    RCLCPP_FATAL(logger_, "Expecting only POSITION state interface");
+    return false;
+  }
+
+  return true;
 }
 }  // namespace kuka_kss_rsi_driver
 

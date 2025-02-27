@@ -24,14 +24,11 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH "~/.local/lib/cmake")
 
 find_package(ament_cmake REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(kuka-external-control-sdk CONFIG REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(hardware_interface REQUIRED)
-find_package(controller_manager_msgs REQUIRED)
-
-if(USE_EKI)
-  find_package(kuka-external-control-sdk CONFIG REQUIRED)
-endif()
 
 find_package(pluginlib REQUIRED)
 
@@ -57,13 +54,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KSS_RSI_DRIVER_BUILDING
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-if(USE_EKI)
-  ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
-  target_link_libraries(${PROJECT_NAME} tinyxml Kuka::kuka-external-control-sdk)
-else()
-  ament_target_dependencies(${PROJECT_NAME} hardware_interface)
-  target_link_libraries(${PROJECT_NAME} tinyxml)
-endif()
+ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
+target_link_libraries(${PROJECT_NAME} tinyxml Kuka::kuka-external-control-sdk)
 
 add_executable(robot_manager_node ${ROBOT_MANAGER_SOURCE})
 ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
