@@ -15,27 +15,15 @@
 #ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
 #define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
 
-#include <chrono>
-#include <cmath>
-#include <memory>
-#include <mutex>
-#include <string>
 #include <vector>
 
-#include "pluginlib/class_list_macros.hpp"
+#include "hardware_interface/system_interface.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "hardware_interface/system_interface.hpp"
-#include "trajectory_msgs/msg/joint_trajectory.hpp"
-
 #include "kuka/external-control-sdk/kss/robot.h"
 #include "kuka_drivers_core/control_mode.hpp"
-#include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_kss_rsi_driver/rsi_command.hpp"
-#include "kuka_kss_rsi_driver/rsi_state.hpp"
-#include "kuka_kss_rsi_driver/udp_server.hpp"
 #include "kuka_kss_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -98,17 +86,18 @@ private:
   std::vector<double> hw_states_;
   std::vector<double> hw_commands_;
 
-  bool is_active_;
   double hw_control_mode_command_;
   double server_state_;
 
   std::mutex event_mutex_;
 
   kuka_drivers_core::ControlMode prev_control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+  kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
+  bool first_write_done_;
+  bool is_active_;
   bool msg_received_;
   std::atomic<bool> stop_requested_{false};
 };

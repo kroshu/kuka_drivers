@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-#include <stdexcept>
-#include <string>
+#include <chrono>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_kss_rsi_driver/event_observer_eki_rsi.hpp"
@@ -47,9 +46,12 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
-  is_active_ = false;
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
+
+  first_write_done_ = false;
+  is_active_ = false;
+  msg_received_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -119,7 +121,12 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5'000);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  Write();
+
+  msg_received_ = false;
+  first_write_done_ = true;
   is_active_ = true;
+
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
   return CallbackReturn::SUCCESS;
@@ -135,6 +142,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 {
   if (!is_active_)
   {
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     return return_type::OK;
   }
 
@@ -144,7 +152,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (!is_active_ || !msg_received_)
+  if (!is_active_ || !msg_received_ || !first_write_done_)
   {
     return return_type::OK;
   }
@@ -223,7 +231,9 @@ void KukaRSIHardwareInterface::Write()
   if (stop_requested_)
   {
     RCLCPP_INFO(logger_, "Sending stop signal");
+    first_write_done_ = false;
     is_active_ = false;
+    msg_received_ = false;
     send_reply_status = robot_ptr_->StopControlling();
   }
   else if (control_mode_change_requested)
