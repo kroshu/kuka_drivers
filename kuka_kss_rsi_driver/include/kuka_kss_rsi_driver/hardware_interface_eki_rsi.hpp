@@ -49,7 +49,7 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
   KUKA_KSS_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
-  : logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
+  : SystemInterface(), logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
   {
   }
 
