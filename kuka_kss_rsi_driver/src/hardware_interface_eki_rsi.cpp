@@ -32,8 +32,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
 
-  hw_position_states_.resize(info_.joints.size(), 0.0);
-  hw_position_commands_.resize(info_.joints.size(), 0.0);
+  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_commands_.resize(info_.joints.size(), 0.0);
 
   for (const auto & joint : info_.joints)
   {
@@ -60,7 +60,7 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
   }
 
   state_interfaces.emplace_back(
@@ -77,7 +77,7 @@ KukaRSIHardwareInterface::export_command_interfaces()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
   }
 
   command_interfaces.emplace_back(
@@ -118,8 +118,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   // We must first receive the initial position of the robot
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5'000);
-  std::copy(
-    hw_position_states_.cbegin(), hw_position_states_.cend(), hw_position_commands_.begin());
+  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
   is_active_ = true;
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
@@ -205,7 +204,7 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
   {
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
-    std::copy(positions.cbegin(), positions.cend(), hw_position_states_.begin());
+    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
   }
 
   std::lock_guard<std::mutex> lk(event_mutex_);
@@ -216,8 +215,7 @@ void KukaRSIHardwareInterface::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(
-    hw_position_commands_.cbegin(), hw_position_commands_.cend());
+  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
 
   const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
   const bool control_mode_change_requested = control_mode != prev_control_mode_;
