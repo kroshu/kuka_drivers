@@ -33,9 +33,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   }
 
   hw_position_states_.resize(info_.joints.size(), 0.0);
-  hw_position_states_deg_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
-  hw_position_commands_deg_.resize(info_.joints.size(), 0.0);
 
   for (const auto & joint : info_.joints)
   {
@@ -165,9 +163,11 @@ void KukaRSIHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent
 
 bool KukaRSIHardwareInterface::SetupRobot()
 {
-  RCLCPP_INFO(logger_, "Initiating connection setup to the robot...");
+  RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
 
-  kuka::external::control::kss::Configuration config;
+  using Configuration = kuka::external::control::kss::Configuration;
+  Configuration config;
+  config.installed_interface = Configuration::InstalledInterface::EKI_RSI;
   config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   config.dof = info_.joints.size();
@@ -190,7 +190,7 @@ bool KukaRSIHardwareInterface::SetupRobot()
     return false;
   }
 
-  RCLCPP_INFO(logger_, "Successfully established connection to the robot!");
+  RCLCPP_INFO(logger_, "Successfully established connection to the robot controller!");
 
   return true;
 }
@@ -203,17 +203,9 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
-    auto & req_message = robot_ptr_->GetLastMotionState();
-
-    std::copy(
-      req_message.GetMeasuredPositions().cbegin(), req_message.GetMeasuredPositions().cend(),
-      hw_position_states_deg_.begin());
-
-    // RSI uses degrees, ROS uses radians
-    const auto degree_to_radian = [](double deg) { return deg * KukaRSIHardwareInterface::D2R; };
-    std::transform(
-      hw_position_states_deg_.cbegin(), hw_position_states_deg_.cend(), hw_position_states_.begin(),
-      degree_to_radian);
+    const auto & req_message = robot_ptr_->GetLastMotionState();
+    const auto & positions = req_message.GetMeasuredPositions();
+    std::copy(positions.cbegin(), positions.cend(), hw_position_states_.begin());
   }
 
   std::lock_guard<std::mutex> lk(event_mutex_);
@@ -222,16 +214,10 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
 
 void KukaRSIHardwareInterface::Write()
 {
-  // ROS uses radians, RSI uses degrees
-  const auto radian_to_degree = [](double rad) { return rad * KukaRSIHardwareInterface::R2D; };
-  std::transform(
-    hw_position_commands_.cbegin(), hw_position_commands_.cend(), hw_position_commands_deg_.begin(),
-    radian_to_degree);
-
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(
-    hw_position_commands_deg_.cbegin(), hw_position_commands_deg_.cend());
+    hw_position_commands_.cbegin(), hw_position_commands_.cend());
 
   const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
   const bool control_mode_change_requested = control_mode != prev_control_mode_;

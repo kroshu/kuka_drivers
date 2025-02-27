@@ -30,7 +30,7 @@
 #include "hardware_interface/system_interface.hpp"
 #include "trajectory_msgs/msg/joint_trajectory.hpp"
 
-#include "kuka/external-control-sdk/kss/sdk.h"
+#include "kuka/external-control-sdk/kss/robot.h"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_kss_rsi_driver/rsi_command.hpp"
@@ -96,9 +96,7 @@ private:
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 
   std::vector<double> hw_position_states_;
-  std::vector<double> hw_position_states_deg_;
   std::vector<double> hw_position_commands_;
-  std::vector<double> hw_position_commands_deg_;
 
   bool is_active_;
   double hw_control_mode_command_;
@@ -113,9 +111,6 @@ private:
 
   bool msg_received_;
   std::atomic<bool> stop_requested_{false};
-
-  static constexpr double R2D = 180 / M_PI;
-  static constexpr double D2R = M_PI / 180;
 };
 }  // namespace kuka_kss_rsi_driver
 

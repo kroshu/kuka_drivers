@@ -15,7 +15,6 @@
 #ifndef KUKA_KSS_RSI_DRIVER__EVENT_OBSERVER_EKI_RSI_HPP_
 #define KUKA_KSS_RSI_DRIVER__EVENT_OBSERVER_EKI_RSI_HPP_
 
-#include "kuka/external-control-sdk/kss/sdk.h"
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
