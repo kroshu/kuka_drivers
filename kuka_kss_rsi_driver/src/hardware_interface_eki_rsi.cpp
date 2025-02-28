@@ -231,8 +231,8 @@ void KukaRSIHardwareInterface::Write()
   if (stop_requested_)
   {
     RCLCPP_INFO(logger_, "Sending stop signal");
-    first_write_done_ = false;
     is_active_ = false;
+    first_write_done_ = false;
     msg_received_ = false;
     send_reply_status = robot_ptr_->StopControlling();
   }

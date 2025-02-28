@@ -44,7 +44,6 @@ public:
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED);
     RCLCPP_INFO(logger_, "External control stopped");
-    hw_interface_->set_stop_flag();
   }
 
   void OnError(const std::string & reason) override
