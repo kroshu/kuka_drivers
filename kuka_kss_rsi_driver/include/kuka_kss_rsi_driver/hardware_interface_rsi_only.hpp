@@ -60,10 +60,10 @@ public:
   KUKA_KSS_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
 
   KUKA_KSS_RSI_DRIVER_PUBLIC
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
   KUKA_KSS_RSI_DRIVER_PUBLIC
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool SetupRobot();
