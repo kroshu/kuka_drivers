@@ -19,6 +19,7 @@ namespace kuka_drivers_core
 {
 /* Fixed controller names */
 static constexpr char JOINT_STATE_BROADCASTER[] = "joint_state_broadcaster";
+static constexpr char GPIO_CONTROLLER[] = "gpio_controller";
 static constexpr char CONTROL_MODE_HANDLER[] = "control_mode_handler";
 static constexpr char EVENT_BROADCASTER[] = "event_broadcaster";
 static constexpr char FRI_CONFIGURATION_CONTROLLER[] = "fri_configuration_controller";

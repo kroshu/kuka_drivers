@@ -10,7 +10,10 @@ controller_manager:
       type: kuka_controllers/JointGroupImpedanceController
     effort_controller:
       type: effort_controllers/JointGroupEffortController
+    gpio_controller:
+      type: gpio_controllers/GpioCommandController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+    
