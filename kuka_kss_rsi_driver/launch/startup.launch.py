@@ -95,6 +95,11 @@ def launch_setup(context, *args, **kwargs):
 
     robot_description = {"robot_description": robot_description_content}
 
+    # The driver config contains only parameters that can be changed after startup
+    driver_config = (
+        get_package_share_directory("kuka_kss_rsi_driver") + "/config/driver_config.yaml"
+    )
+
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
@@ -117,7 +122,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_kss_rsi_driver",
         executable="robot_manager_node",
-        parameters=[{"robot_model": robot_model}],
+        parameters=[driver_config, {"robot_model": robot_model}],
     )
     robot_state_publisher = Node(
         namespace=ns,

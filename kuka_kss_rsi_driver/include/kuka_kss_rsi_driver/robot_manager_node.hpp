@@ -56,6 +56,7 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
 
   std::string robot_model_;
+  std::string position_controller_name_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
