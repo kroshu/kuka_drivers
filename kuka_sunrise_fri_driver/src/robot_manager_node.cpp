@@ -145,7 +145,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     return FAILURE;
   }
-
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -192,15 +192,6 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
-  // Publish the values of the joint impedance parameters to the controller
-  std_msgs::msg::Float64MultiArray joint_imp_msg;
-  for (int i = 0; i < 7; i++)
-  {
-    joint_imp_msg.data.push_back(joint_stiffness_[i]);
-    joint_imp_msg.data.push_back(joint_damping_[i]);
-  }
-  joint_imp_pub_->publish(joint_imp_msg);
-
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -216,8 +207,8 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Activate joint state broadcaster and controller for given control mode
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_,
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER,
-         GetControllerName()},
+        {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::EXTERNAL_TORQUE_BROADCASTER,
+         kuka_drivers_core::FRI_STATE_BROADCASTER, GetControllerName()},
         {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
@@ -245,7 +236,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   if (!kuka_drivers_core::changeControllerState(
         change_controller_state_client_, {kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER},
         {GetControllerName(), kuka_drivers_core::JOINT_STATE_BROADCASTER,
-         kuka_drivers_core::FRI_STATE_BROADCASTER},
+         kuka_drivers_core::EXTERNAL_TORQUE_BROADCASTER, kuka_drivers_core::FRI_STATE_BROADCASTER},
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not deactivate RT controllers");
@@ -279,8 +270,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
     case kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL:
       break;
     case kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL:
-      // TODO(Svastits): check whether this is necessary for impedance mode too
-      [[fallthrough]];
+      break;
     case kuka_drivers_core::ControlMode::JOINT_TORQUE_CONTROL:
       if (send_period_ms_ > 5)
       {
@@ -418,6 +408,19 @@ void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multi
   fri_config_pub_->publish(msg);
 }
 
+void RobotManagerNode::setImpedanceConfiguration(
+  const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
+  const std::vector<double> & stiffness, const std::vector<double> & damping) const
+{
+  std_msgs::msg::Float64MultiArray msg;
+  for (std::size_t i = 0; i < stiffness.size(); i++)
+  {
+    msg.data.push_back(stiffness[i]);
+    msg.data.push_back(damping[i]);
+  }
+  pub->publish(msg);
+}
+
 bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness)
 {
   if (joint_stiffness.size() != 7)
@@ -434,6 +437,7 @@ bool RobotManagerNode::onJointStiffnessChangeRequest(const std::vector<double> &
     }
   }
   joint_stiffness_ = joint_stiffness;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   return true;
 }
 
@@ -453,6 +457,7 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
     }
   }
   joint_damping_ = joint_damping;
+  setImpedanceConfiguration(joint_imp_pub_, joint_stiffness_, joint_damping_);
   return true;
 }
 

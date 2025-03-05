@@ -65,7 +65,7 @@ The control mode specifications are also part of the common API. They are define
     - Needed command interface(s): `position`, `stiffness`, `damping`
 - joint velocity control: the driver streams cyclic velocity updates for every joint.
     - Needed command interface(s): `velocity`
-- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensatin and should not move.)
+- joint torque control: the driver streams cyclic torque updates for every joint, which define the torque overlay to be superimposed over gravity compensation. (An input of 0 means, that the joint should remain in gravity compensation and should not move.)
     - Needed command interface(s): `effort`
 - cartesian position control: the driver streams cyclic pose updates for every degree of freedom. The orientation representation is the KUKA ABC convention. It is the responsibility of the user to stream poses, for which a valid IK solution exists.
     - Needed command interface(s): `cart_position`

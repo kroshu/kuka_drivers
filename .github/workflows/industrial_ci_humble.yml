@@ -1,0 +1,69 @@
+name: ROS-Industrial CI humble
+run-name: ROS-Industrial CI - ${{ github.event_name }}
+
+# This determines when this workflow is run
+# on: [push, pull_request] # on all pushes and PRs
+
+# or more fine-grained
+on:
+  push:
+    branches:
+      - humble
+    paths-ignore:
+      - doc/**
+      - '**.md'
+      - LICENSE
+      - .github/workflows/deploy_wiki.yml
+  pull_request:
+    branches:
+      - humble
+
+  schedule:
+    # Run every Monday at 1PM UTC
+    - cron: 0 13 * * 1
+
+jobs:
+  industrial_ci:
+    name: ROS-Industrial CI humble
+    env:
+      ROS_REPO: ros
+      BUILDER: colcon
+      ANALYZER: sonarqube
+      TEST_COVERAGE: true
+      UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#humble github:kroshu/kuka-external-control-sdk#master'
+      ROS_DISTRO: humble
+      CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
+      EVENT_NAME: ${{ github.event_name }}
+      BRANCH: ${{ github.event.ref }}
+      PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PR_BASE: ${{ github.event.pull_request.base.ref }}
+      PR_NUMBER: ${{ github.event.number }}
+      ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
+      DEBUG_BASH: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset ANALYZER for scheduled and push runs
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || { [[ "${{ github.event_name }}" == "push" ]] && [[ "${{ github.ref }}" != "refs/heads/humble" ]]; }; then
+            echo "ANALYZER=" >> $GITHUB_ENV
+          fi
+      - name: Checkout code
+        if: github.event.schedule != ''
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: humble
+      - name: Checkout humble branch for scheduled runs
+        if: github.event.schedule == ''
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # This step will fetch/store the directory used by ccache before/after the ci run
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
+
+      # Run industrial_ci
+      - uses: 'kroshu/industrial_ci@master'

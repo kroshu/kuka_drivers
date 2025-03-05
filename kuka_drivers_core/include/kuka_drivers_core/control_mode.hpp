@@ -15,6 +15,8 @@
 #ifndef KUKA_DRIVERS_CORE__CONTROL_MODE_HPP_
 #define KUKA_DRIVERS_CORE__CONTROL_MODE_HPP_
 
+#include <cstdint>
+
 namespace kuka_drivers_core
 {
 /**

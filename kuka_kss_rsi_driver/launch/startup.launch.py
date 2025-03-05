@@ -95,6 +95,11 @@ def launch_setup(context, *args, **kwargs):
 
     robot_description = {"robot_description": robot_description_content}
 
+    # The driver config contains only parameters that can be changed after startup
+    driver_config = (
+        get_package_share_directory("kuka_kss_rsi_driver") + "/config/driver_config.yaml"
+    )
+
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
@@ -104,7 +109,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             robot_description,
             controller_config,
-            jtc_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -117,7 +121,7 @@ def launch_setup(context, *args, **kwargs):
         namespace=ns,
         package="kuka_kss_rsi_driver",
         executable="robot_manager_node",
-        parameters=[{"robot_model": robot_model}],
+        parameters=[driver_config, {"robot_model": robot_model}],
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -128,24 +132,32 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-    def controller_spawner(controller_names, activate=False):
+    def controller_spawner(controller_name, param_file=None, activate=False):
         arg_list = [
-            controller_names,
+            controller_name,
             "-c",
             controller_manager_node,
             "-n",
             ns,
         ]
+
+        # Add param-file if it's provided
+        if param_file:
+            arg_list.extend(["--param-file", param_file])
+
         if not activate:
             arg_list.append("--inactive")
+
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = [
-        "joint_state_broadcaster",
-        "joint_trajectory_controller",
-    ]
+    controllers = {
+        "joint_state_broadcaster": None,
+        "joint_trajectory_controller": jtc_config,
+    }
 
-    controller_spawners = [controller_spawner(name) for name in controller_names]
+    controller_spawners = [
+        controller_spawner(name, param_file) for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
         control_node,

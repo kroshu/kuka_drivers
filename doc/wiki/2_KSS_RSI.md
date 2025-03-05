@@ -64,6 +64,7 @@ Method 2:
 #### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
+- `driver_config.yaml`: : contains runtime parameters of the `robot_manager` node
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
@@ -73,8 +74,8 @@ The following parameters must be set in the driver configuration file:
 - `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 
 #### Runtime parameters
-
-The KSS driver currently does not have runtime parameters. Control mode cannot be changed if the driver is running, as that also requires modifying the RSI context on the controller.
+The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
+- `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 
 #### IP Configuration
 The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).

@@ -150,7 +150,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
 CallbackReturn KukaFRIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   // Set up UDP connection (UDP replier on client)
-  if (!client_application_.connect(30200, controller_ip_.c_str()))
+  if (!client_application_.connect(client_port_, controller_ip_.c_str()))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set up UDP connection");
     return CallbackReturn::FAILURE;
@@ -468,7 +468,14 @@ void KukaFRIHardwareInterface::activateFrictionCompensation(double * values) con
 {
   for (int i = 0; i < DOF; i++)
   {
-    values[i] -= (values[i] / fabs(values[i]) * 0.1);
+    if (values[i] != 0.0)
+    {
+      values[i] -= (values[i] / fabs(values[i]) * 0.1);
+    }
+    else
+    {
+      values[i] -= 0.1;
+    }
   }
 }
 
