@@ -162,7 +162,9 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_signal_states_.resize(gpio.state_interfaces.size(), 0.0);
 
   // --- TODO: Delete later ---
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "GPIOS from xacro:");
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"),
+    "GPIOS from xacro: (state interface number: %d)", gpio.state_interfaces.size());
   for (const hardware_interface::ComponentInfo & gpio : info_.gpios)
   {
     for (auto && cmds : gpio.command_interfaces)
@@ -201,117 +203,116 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::FAILURE;
   }
   // Receive Signal Configuration
-  // if (!GetSignalConfiguration())
-  // {
-  //   return CallbackReturn::FAILURE;
-  // }
-  // // TODO: Delete later
-  // RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Configured signal list:");
-  // for (auto && signal : *signal_config_list_ptr_)
-  // {
-  //   RCLCPP_INFO(
-  //     rclcpp::get_logger("KukaEACHardwareInterface"),
-  //     "signal_%ld - name: %s, type: %d, direction: %d", signal.GetSignalId(),
-  //     signal.GetName().c_str(), signal.GetValueType(), signal.GetDirection());
-  // }
+  if (!GetSignalConfiguration())
+  {
+    return CallbackReturn::FAILURE;
+  }
+  // TODO: Delete later
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Configured signal list:");
+  for (auto && signal : *signal_config_list_ptr_)
+  {
+    RCLCPP_INFO(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "signal_%ld - name: %s, type: %d, direction: %d", signal.GetSignalId(),
+      signal.GetName().c_str(), signal.GetValueType(), signal.GetDirection());
+  }
 
-  // // signal_config_list_ptr_->at(11).SetSignalToUse(true);
+  // signal_config_list_ptr_->at(11).SetSignalToUse(true);
 
-  // // Check all the states and commands, verify and add to the used signals
-  // for (auto && signal_config : *signal_config_list_ptr_)
-  // {
-  //   signal_config.SetSignalToUse(false);
-  // }
+  // Check all the states and commands, verify and add to the used signals
+  for (auto && signal_config : *signal_config_list_ptr_)
+  {
+    signal_config.SetSignalToUse(false);
+  }
 
-  // for (auto && state : gpio.state_interfaces)
-  // {
-  //   // search for state in signal_config
-  //   auto signal_config_it = find_if(
-  //     signal_config_list_ptr_->begin(), signal_config_list_ptr_->end(),
-  //     [&state](const kuka::external::control::iiqka::Signal_Configuration & obj)
-  //     { return obj.GetName() == state.name; });
+  for (auto && state : gpio.state_interfaces)
+  {
+    // search for state in signal_config
+    auto signal_config_it = find_if(
+      signal_config_list_ptr_->begin(), signal_config_list_ptr_->end(),
+      [&state](const kuka::external::control::iiqka::Signal_Configuration & obj)
+      { return obj.GetName() == state.name; });
 
-  //   if (signal_config_it != signal_config_list_ptr_->end())
-  //   {
-  //     // cancle to use the gpio until its confirmed to use
-  //     signal_config_it->SetSignalToUse(false);
+    if (signal_config_it != signal_config_list_ptr_->end())
+    {
+      // cancle to use the gpio until its confirmed to use
+      signal_config_it->SetSignalToUse(false);
 
-  //     // search for state in command_interfaces
-  //     auto command_it = find_if(
-  //       gpio.command_interfaces.begin(), gpio.command_interfaces.end(),
-  //       [&state](const hardware_interface::InterfaceInfo & obj) { return obj.name == state.name;
-  //       });
+      // search for state in command_interfaces
+      auto command_it = find_if(
+        gpio.command_interfaces.begin(), gpio.command_interfaces.end(),
+        [&state](const hardware_interface::InterfaceInfo & obj) { return obj.name == state.name; });
 
-  //     if (command_it != gpio.command_interfaces.end())
-  //     {
-  //       // Found maching command interface
+      if (command_it != gpio.command_interfaces.end())
+      {
+        // Found maching command interface
 
-  //       // Check if signal is output
-  //       if (
-  //         signal_config_it->GetDirection() !=
-  //         kuka::external::control::iiqka::Signal_Configuration::SignalDirection::OUTPUT)
-  //       {
-  //         RCLCPP_WARN(
-  //           rclcpp::get_logger("KukaEACHardwareInterface"),
-  //           "A command interface named %s found, but the GPIO is an INPUT",
-  //           command_it->name.c_str());
-  //       }
-  //       // TODO (Komaromi): Check for Value type maching both state and command
-  //       else if (false)
-  //       {
-  //         RCLCPP_WARN(rclcpp::get_logger("KukaEACHardwareInterface"), "");
-  //       }
-  //       else
-  //       {
-  //         if (!signal_config_it->IsSignalUsed())
-  //         {
-  //           signal_config_it->SetSignalToUse(true);
-  //         }
-  //       }
-  //     }
-  //     else
-  //     {
-  //       // Check if signal is input
-  //       if (
-  //         signal_config_it->GetDirection() !=
-  //         kuka::external::control::iiqka::Signal_Configuration::SignalDirection::INPUT)
-  //       {
-  //         RCLCPP_WARN(
-  //           rclcpp::get_logger("KukaEACHardwareInterface"),
-  //           "No command interface found for the state iterface named %s, but the GPIO is an
-  //           OUTPUT", state.name.c_str());
-  //       }
-  //       // TODO (Komaromi): Check for Value type maching both state and command
-  //       else if (false)
-  //       {
-  //         RCLCPP_WARN(rclcpp::get_logger("KukaEACHardwareInterface"), "");
-  //       }
-  //       else
-  //       {
-  //         if (!signal_config_it->IsSignalUsed())
-  //         {
-  //           signal_config_it->SetSignalToUse(true);
-  //         }
-  //       }
-  //     }
-  //   }
-  //   else
-  //   {
-  //     RCLCPP_WARN(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"),
-  //       "No signal config found for state called %s", state.name.c_str());
-  //   }
-  // }
+        // Check if signal is output
+        if (
+          signal_config_it->GetDirection() !=
+          kuka::external::control::iiqka::Signal_Configuration::SignalDirection::OUTPUT)
+        {
+          RCLCPP_WARN(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "A command interface named %s found, but the GPIO is an INPUT",
+            command_it->name.c_str());
+        }
+        // TODO (Komaromi): Check for Value type maching both state and command
+        else if (false)
+        {
+          RCLCPP_WARN(rclcpp::get_logger("KukaEACHardwareInterface"), "");
+        }
+        else
+        {
+          if (!signal_config_it->IsSignalUsed())
+          {
+            signal_config_it->SetSignalToUse(true);
+          }
+        }
+      }
+      else
+      {
+        // Check if signal is input
+        if (
+          signal_config_it->GetDirection() !=
+          kuka::external::control::iiqka::Signal_Configuration::SignalDirection::INPUT)
+        {
+          RCLCPP_WARN(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "No command interface found for the state iterface named %s, but the GPIO is an OUTPUT",
+            state.name.c_str());
+        }
+        // TODO (Komaromi): Check for Value type maching both state and command
+        else if (false)
+        {
+          RCLCPP_WARN(rclcpp::get_logger("KukaEACHardwareInterface"), "");
+        }
+        else
+        {
+          if (!signal_config_it->IsSignalUsed())
+          {
+            signal_config_it->SetSignalToUse(true);
+          }
+        }
+      }
+    }
+    else
+    {
+      RCLCPP_WARN(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "No signal config found for state called %s", state.name.c_str());
+    }
+  }
 
-  // for (auto && signal_config : *signal_config_list_ptr_)
-  // {
-  //   if (signal_config.IsSignalUsed())
-  //   {
-  //     RCLCPP_INFO(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"), "signal named %s set to use.",
-  //       signal_config.GetName().c_str());
-  //   }
-  // }
+  for (auto && signal_config : *signal_config_list_ptr_)
+  {
+    if (signal_config.IsSignalUsed())
+    {
+      RCLCPP_INFO(
+        rclcpp::get_logger("KukaEACHardwareInterface"), "signal named %s set to use.",
+        signal_config.GetName().c_str());
+    }
+  }
 
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
@@ -460,9 +461,9 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
   if ((msg_received_ = receive_state.return_code == kuka::external::control::ReturnCode::OK))
   {
-    RCLCPP_INFO(
-      rclcpp::get_logger("KukaEACHardwareInterface"), "Duration: %ld, Receive state: %s", duration,
-      receive_state.message);
+    // RCLCPP_INFO(
+    //   rclcpp::get_logger("KukaEACHardwareInterface"), "Duration: %ld, Receive state: %s",
+    //   duration, receive_state.message);
     auto req_message = robot_ptr_->GetLastMotionState();
     std::copy(
       req_message.GetMeasuredPositions().begin(), req_message.GetMeasuredPositions().end(),
@@ -471,12 +472,13 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
       req_message.GetMeasuredTorques().begin(), req_message.GetMeasuredTorques().end(),
       hw_torque_states_.begin());
 
-    signal_values_size_ = req_message.GetSignalValuesSize();
-    std::copy(
-      req_message.GetSignalValues().begin(),
-      req_message.GetSignalValues().begin() + signal_values_size_, signal_values_.begin());
-
-    for (int i = 0; i < signal_values_size_; i++)
+    auto signal_values_size = req_message.GetSignalValuesSize();
+    // // std::copy(
+    // //   req_message.GetSignalValues().begin(),
+    // //   req_message.GetSignalValues().end(), signal_values_.begin());
+    RCLCPP_INFO(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "Signal size: %d", signal_values_size);
+    for (int i = 0; i < signal_values_size; i++)
     {
       RCLCPP_INFO(
         rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d, type: %d",
@@ -485,35 +487,40 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
         req_message.GetSignalValues().at(i)->GetValueType());
     }
 
-    if (static_cast<size_t>(signal_values_size_) != hw_signal_states_.size())
+    if (signal_values_size != hw_signal_states_.size())
     {
-      RCLCPP_WARN(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "Got GPIO size is not equal with expected gpio state interface size, using smaller number");
+      // RCLCPP_WARN(
+      //   rclcpp::get_logger("KukaEACHardwareInterface"),
+      //   "Got GPIO size is not equal with expected gpio state interface size, using smaller
+      //   number");
     }
     auto & gpio_values = req_message.GetSignalValues();
-    for (size_t i = 0;
-         i < std::min(static_cast<size_t>(signal_values_size_), hw_signal_states_.size()); i++)
+    for (size_t i = 0; i < hw_signal_states_.size(); i++)
     {
       switch (gpio_values.at(i)->GetValueType())
       {
         case kuka::external::control::BaseSignalValue::SignalValueType::BOOL_VALUE:
-          hw_signal_states_.at(i) = static_cast<double>(gpio_values.at(i)->GetBoolValue());
+          hw_signal_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
           break;
         case kuka::external::control::BaseSignalValue::SignalValueType::DOUBLE_VALUE:
-          hw_signal_states_.at(i) = static_cast<double>(gpio_values.at(i)->GetDoubleValue());
+          hw_signal_states_[i] = static_cast<double>(gpio_values[i]->GetDoubleValue());
           break;
         case kuka::external::control::BaseSignalValue::SignalValueType::RAW_VALUE:
-          hw_signal_states_.at(i) = static_cast<double>(gpio_values.at(i)->GetRawValue());
+          hw_signal_states_[i] = static_cast<double>(gpio_values[i]->GetRawValue());
           break;
         case kuka::external::control::BaseSignalValue::SignalValueType::LONG_VALUE:
-          hw_signal_states_.at(i) = static_cast<double>(gpio_values.at(i)->GetLongValue());
+          hw_signal_states_[i] = static_cast<double>(gpio_values[i]->GetLongValue());
           break;
         default:
           RCLCPP_ERROR(
             rclcpp::get_logger("KukaEACHardwareInterface"),
             "No signal value type found. (Should be dead code)");
       }
+    }
+
+    for (auto && signal : hw_signal_states_)
+    {
+      RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
     }
 
     // UpdateSignalStates();
@@ -585,14 +592,22 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
     hw_damping_commands_.end());
 
-  robot_ptr_->GetControlSignal().AddSignalValues(
-    hw_signal_commands_.begin(), hw_signal_commands_.end());
+  std::vector<double> command = {1.0, 1.0};
+  for (auto && signal : command)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
+  }
+  robot_ptr_->GetControlSignal().AddSignalValues(command.begin(), command.end());
 
   for (auto && signal : robot_ptr_->GetControlSignal().GetSignalValues())
   {
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
       signal->GetBoolValue(), signal->GetBoolValue());
+  }
+  for (auto && signal : hw_signal_commands_)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
   }
 
   kuka::external::control::Status send_reply;
@@ -620,6 +635,7 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       send_reply.message);
     throw std::runtime_error("Error sending reply");
   }
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Reply sent: %s", send_reply.message);
   return return_type::OK;
 }
 

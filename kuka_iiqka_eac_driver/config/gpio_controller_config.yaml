@@ -11,4 +11,4 @@ gpio_controller:
       gpio:
         - interfaces:
           - Output pin 14
-          # - Input pin 17
+          - Input pin 17
