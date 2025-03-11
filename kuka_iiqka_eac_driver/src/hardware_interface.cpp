@@ -592,12 +592,14 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
     hw_damping_commands_.end());
 
-  std::vector<double> command = {1.0, 1.0};
-  for (auto && signal : command)
-  {
-    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
-  }
-  robot_ptr_->GetControlSignal().AddSignalValues(command.begin(), command.end());
+  // std::vector<double> command = {1.0};
+  // for (auto && signal : command)
+  // {
+  //   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
+  // }
+  robot_ptr_->GetControlSignal().AddSignalValues(
+    robot_ptr_->GetLastMotionState().GetSignalValues(), hw_signal_commands_.begin(),
+    hw_signal_commands_.end());
 
   for (auto && signal : robot_ptr_->GetControlSignal().GetSignalValues())
   {
@@ -605,10 +607,10 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
       signal->GetBoolValue(), signal->GetBoolValue());
   }
-  for (auto && signal : hw_signal_commands_)
-  {
-    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
-  }
+  // for (auto && signal : hw_signal_commands_)
+  // {
+  //   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
+  // }
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
