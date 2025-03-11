@@ -30,7 +30,7 @@
       </RsiObject>
       <RsiObject ObjTypeId="64" ObjType="Ethernet" ObjId="ETHERNET1">
          <Parameters>
-            <Parameter IsRuntime="false" Name="ConfigFile" ParamId="0" ParamValue="rsi_ethernet.xml" />
+            <Parameter IsRuntime="false" Name="ConfigFile" ParamId="0" ParamValue="ros_rsi_ethernet.xml" />
             <Parameter Name="Timeout" ParamId="0" ParamValue="100" />
             <Parameter Name="Flag" ParamId="3" ParamValue="1" />
             <Parameter Name="Precision" ParamId="7" ParamValue="4" />
