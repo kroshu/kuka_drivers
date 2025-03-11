@@ -92,10 +92,7 @@ private:
   std::vector<double> hw_torque_states_;
   std::vector<double> hw_signal_states_;
 
-
   std::vector<std::shared_ptr<kuka::external::control::BaseSignalValue>> signal_values_;
-  std::shared_ptr<std::vector<kuka::external::control::iiqka::Signal_Configuration>>
-    signal_config_list_ptr_{nullptr};
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;
   int cycle_count_ = 0;
