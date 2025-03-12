@@ -18,8 +18,12 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
-                                  PathJoinSubstitution)
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -107,7 +111,8 @@ def launch_setup(context, *args, **kwargs):
 
     # The driver config contains only parameters that can be changed after startup
     driver_config = (
-        get_package_share_directory("kuka_kss_rsi_driver") + "/config/driver_config.yaml"
+        get_package_share_directory("kuka_kss_rsi_driver")
+        + "/config/driver_config.yaml"
     )
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
@@ -158,7 +163,9 @@ def launch_setup(context, *args, **kwargs):
         if not activate:
             arg_list.append("--inactive")
 
-        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
+        return Node(
+            package="controller_manager", executable="spawner", arguments=arg_list
+        )
 
     controllers = {
         "joint_state_broadcaster": None,
@@ -184,23 +191,36 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     launch_arguments = []
-    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
-    launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
-    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(
+        DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx")
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument("robot_family", default_value="agilus")
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument("use_fake_hardware", default_value="false")
+    )
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
-    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(
+        DeclareLaunchArgument("controller_ip", default_value="0.0.0.0")
+    )
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
-    launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+    launch_arguments.append(
+        DeclareLaunchArgument("roundtrip_time", default_value="4000")
+    )
 
-    rel_path_to_config_file = ("/config/ros2_controller_config_eki_rsi.yaml" if use_eki()
-                          else "/config/ros2_controller_config_rsi_only.yaml")
+    rel_path_to_config_file = (
+        "/config/ros2_controller_config_eki_rsi.yaml"
+        if use_eki()
+        else "/config/ros2_controller_config_rsi_only.yaml"
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",

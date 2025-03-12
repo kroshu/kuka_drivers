@@ -92,7 +92,7 @@ private:
   std::mutex event_mutex_;
 
   kuka_drivers_core::ControlMode prev_control_mode_ =
-  kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
