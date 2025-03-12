@@ -22,9 +22,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 
-def create_rsi_xml_rob(act_joint_pos, setpoint_joint_pos, timeout_count, ipoc):
+def create_rsi_xml_rob(act_joint_pos, timeout_count, ipoc):
     q = act_joint_pos
-    qd = setpoint_joint_pos
     root = ET.Element("Rob", {"TYPE": "KUKA"})
     ET.SubElement(
         root, "RIst", {"X": "0.0", "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"}
@@ -101,12 +100,10 @@ class RSISimulator(Node):
             self.get_logger().fatal(f"{self.node_name_} Timeout count of 100 exceeded")
             sys.exit()
         try:
-            msg = create_rsi_xml_rob(
-                self.act_joint_pos, self.initial_joint_pos, self.timeout_count, self.ipoc
-            )
+            msg = create_rsi_xml_rob(self.act_joint_pos, self.timeout_count, self.ipoc)
             self.rsi_act_pub_.publish(msg)
             self.socket_.sendto(msg, (self.rsi_ip_address_, self.rsi_port_address_))
-            recv_msg, addr = self.socket_.recvfrom(1024)
+            recv_msg, _ = self.socket_.recvfrom(1024)
             self.rsi_cmd_pub_.publish(recv_msg)
             self.get_logger().warn(f"msg: {recv_msg}")
             des_joint_correction_absolute, ipoc_recv, stop_flag = parse_rsi_xml_sen(recv_msg)
