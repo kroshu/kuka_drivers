@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.from launch import LaunchDescription
 
-import sys
 import socket
+import sys
 import xml.etree.ElementTree as ET
-import numpy as np
 
+import numpy as np
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -30,9 +30,6 @@ def create_rsi_xml_rob(act_joint_pos, setpoint_joint_pos, timeout_count, ipoc):
         root, "RIst", {"X": "0.0", "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"}
     )
     ET.SubElement(
-        root, "RSol", {"X": "0.0", "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"}
-    )
-    ET.SubElement(
         root,
         "AIPos",
         {
@@ -42,18 +39,6 @@ def create_rsi_xml_rob(act_joint_pos, setpoint_joint_pos, timeout_count, ipoc):
             "A4": str(q[3]),
             "A5": str(q[4]),
             "A6": str(q[5]),
-        },
-    )
-    ET.SubElement(
-        root,
-        "ASPos",
-        {
-            "A1": str(qd[0]),
-            "A2": str(qd[1]),
-            "A3": str(qd[2]),
-            "A4": str(qd[3]),
-            "A5": str(qd[4]),
-            "A6": str(qd[5]),
         },
     )
     ET.SubElement(root, "Delay", {"D": str(timeout_count)})

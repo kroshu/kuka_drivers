@@ -19,12 +19,11 @@ import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
-
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions.include_launch_description import IncludeLaunchDescription
-from ament_index_python.packages import get_package_share_directory
 
 
 # Launch 2 drivers with different namespaces
@@ -34,6 +33,7 @@ def generate_test_description():
     test_config_dir = get_package_share_directory("kuka_kss_rsi_driver") + "/test/config/"
     return launch.LaunchDescription(
         [
+            launch.actions.SetEnvironmentVariable("USE_EKI", "ON"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
