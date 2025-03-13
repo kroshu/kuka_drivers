@@ -43,7 +43,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     }
   }
 
-  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
   hw_control_mode_command_ = 0.0;
@@ -175,7 +174,6 @@ bool KukaRSIHardwareInterface::SetupRobot()
   using Configuration = kuka::external::control::kss::Configuration;
   Configuration config;
   config.installed_interface = Configuration::InstalledInterface::EKI_RSI;
-  config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   config.dof = info_.joints.size();
 
