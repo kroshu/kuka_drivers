@@ -206,20 +206,20 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   }
   // TODO: Delete later
   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Configured signal list:");
-  for (auto && signal : *signal_config_list_ptr_)
+  for (auto && signal : robot_ptr_->GetGPIOConfig())
   {
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"),
-      "signal_%ld - name: %s, type: %d, direction: %d", signal.GetSignalId(),
+      "signal_%ld - name: %s, type: %d, direction: %d", signal.GetGPIOId(),
       signal.GetName().c_str(), signal.GetValueType(), signal.GetDirection());
   }
 
   // signal_config_list_ptr_->at(11).SetSignalToUse(true);
 
   // Check all the states and commands, verify and add to the used signals
-  for (auto && signal_config : *signal_config_list_ptr_)
+  for (auto && signal_config : robot_ptr_->GetGPIOConfig())
   {
-    signal_config.SetSignalToUse(false);
+    signal_config.SetGPIOToUse(false);
   }
 
   for (auto && state : gpio.state_interfaces)
@@ -230,7 +230,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
       [&state](const kuka::external::control::iiqka::GPIOConfig & obj)
       { return obj.GetName() == state.name; });
 
-    if (signal_config_it != signal_config_list_ptr_->end())
+    if (signal_config_it != robot_ptr_->GetGPIOConfig().end())
     {
       // cancle to use the gpio until its confirmed to use
       signal_config_it->SetGPIOToUse(false);
@@ -297,9 +297,9 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     }
   }
 
-  for (auto && signal_config : *signal_config_list_ptr_)
+  for (auto && signal_config : robot_ptr_->GetGPIOConfig())
   {
-    if (signal_config.IsSignalUsed())
+    if (signal_config.IsGPIOUsed())
     {
       RCLCPP_INFO(
         rclcpp::get_logger("KukaEACHardwareInterface"), "signal named %s set to use.",
