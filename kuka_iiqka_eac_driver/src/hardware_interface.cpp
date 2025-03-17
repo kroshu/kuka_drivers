@@ -161,7 +161,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   // --- TODO: Delete later ---
   RCLCPP_INFO(
     rclcpp::get_logger("KukaEACHardwareInterface"),
-    "GPIOS from xacro: (state interface number: %d)", gpio.state_interfaces.size());
+    "GPIOS from xacro: (state interface number: %ld)", gpio.state_interfaces.size());
   for (const hardware_interface::ComponentInfo & gpio : info_.gpios)
   {
     for (auto && cmds : gpio.command_interfaces)
@@ -456,8 +456,7 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
       hw_torque_states_.begin());
 
     // TODO (Komaromi): Delete later
-    auto signal_values_size = req_message.GetSignalValuesSize();
-    for (int i = 0; i < signal_values_size; i++)
+    for (int i = 0; i < req_message.GetSignalValues().size(); i++)
     {
       RCLCPP_INFO(
         rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d, type: %d",
@@ -466,15 +465,7 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
         req_message.GetSignalValues().at(i)->GetValueType());
     }
 
-    // if (signal_values_size != hw_signal_states_.size())
-    // {
-    //   RCLCPP_WARN(
-    //     rclcpp::get_logger("KukaEACHardwareInterface"),
-    //     "Got GPIO size is not equal with expected gpio state interface size, using smaller
-    //     number");
-    // }
-
-    //
+    // Save IO states
     auto & gpio_values = req_message.GetSignalValues();
     for (size_t i = 0; i < hw_signal_states_.size(); i++)
     {
@@ -499,17 +490,46 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
       }
     }
 
+    // TODO (Komaromi): Delete later
     for (auto && signal : hw_signal_states_)
     {
       RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
     }
 
-    // UpdateSignalStates();
-
     if (cycle_count_ == 0)
     {
       std::copy(
         hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+
+      auto hw_gpio_iter = hw_signal_commands_.begin();
+      for (auto && gpio : gpio_values)
+      {
+        if (
+          robot_ptr_->GetGPIOConfig().at(gpio->GetSignalID()).GetDirection() ==
+          kuka::external::control::GPIODirection::OUTPUT)
+        {
+          switch (gpio->GetValueType())
+          {
+            case kuka::external::control::GPIOValueType::BOOL_VALUE:
+              *hw_gpio_iter = static_cast<double>(gpio->GetBoolValue());
+              break;
+            case kuka::external::control::GPIOValueType::DOUBLE_VALUE:
+              *hw_gpio_iter = static_cast<double>(gpio->GetDoubleValue());
+              break;
+            case kuka::external::control::GPIOValueType::RAW_VALUE:
+              *hw_gpio_iter = static_cast<double>(gpio->GetRawValue());
+              break;
+            case kuka::external::control::GPIOValueType::LONG_VALUE:
+              *hw_gpio_iter = static_cast<double>(gpio->GetLongValue());
+              break;
+            default:
+              RCLCPP_ERROR(
+                rclcpp::get_logger("KukaEACHardwareInterface"),
+                "No signal value type found. (Should be dead code)");
+          }
+          hw_gpio_iter++;
+        }
+      }
     }
     cycle_count_++;
   }
@@ -528,43 +548,6 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
-  // Creating change in signal value
-  // for (auto && signal_value : signal_values_)
-  // {
-  //   if (
-  //     signal_value->GetValueType() ==
-  //     kuka::external::control::iiqka::SignalValue::SignalValueType::BOOL_VALUE)
-  //   {
-  //     bool value = !signal_value->GetBoolValue();
-  //     signal_value->SetBoolValue(value);
-  //     RCLCPP_INFO(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
-  //       signal_value->GetSignalID(), signal_value->GetBoolValue());
-  //   }
-  // }
-
-  // // TODO(Komaromi): Remove this
-  // if (iter == 0)
-  // {
-  //   for (auto && signal_value : signal_values_)
-  //   {
-  //     RCLCPP_INFO(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
-  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
-  //   }
-  // }
-  // else if (iter >= 251)
-  // {
-  //   for (auto && signal_value : signal_values_)
-  //   {
-  //     RCLCPP_INFO(
-  //       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
-  //       signal_value.GetSignalID(), signal_value.GetBoolValue());
-  //   }
-  //   iter = 0;
-  // }
-  // iter++;
-
   robot_ptr_->GetControlSignal().AddJointPositionValues(
     hw_position_commands_.begin(), hw_position_commands_.end());
   robot_ptr_->GetControlSignal().AddTorqueValues(
@@ -572,12 +555,6 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   robot_ptr_->GetControlSignal().AddStiffnessAndDampingValues(
     hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), hw_damping_commands_.begin(),
     hw_damping_commands_.end());
-
-  // std::vector<double> command = {1.0};
-  // for (auto && signal : command)
-  // {
-  //   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
-  // }
   robot_ptr_->GetControlSignal().AddSignalValues(
     hw_signal_commands_.begin(), hw_signal_commands_.end());
 
@@ -585,12 +562,8 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   {
     RCLCPP_INFO(
       rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d",
-      signal->GetBoolValue(), signal->GetBoolValue());
+      signal->GetSignalID(), signal->GetBoolValue());
   }
-  // for (auto && signal : hw_signal_commands_)
-  // {
-  //   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", signal);
-  // }
 
   kuka::external::control::Status send_reply;
   if (stop_requested_)
@@ -617,7 +590,6 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       send_reply.message);
     throw std::runtime_error("Error sending reply");
   }
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Reply sent: %s", send_reply.message);
   return return_type::OK;
 }
 
@@ -691,36 +663,6 @@ bool KukaEACHardwareInterface::GetSignalConfiguration()
   }
 
   return true;
-}
-
-bool KukaEACHardwareInterface::UpdateSignalStates()
-{
-  // for (size_t i = 0; i < kuka::external::control::iiqka::kMotionState_SignalValueMaxCount; i++)
-  // {
-  //   switch (signal_values_[i]->GetValueType())
-  //   {
-  //     case kuka::external::control::BaseSignalValue::SignalValueType::BOOL_VALUE:
-  //       hw_signal_states_[i] = static_cast<double>(signal_values_[i]->GetBoolValue());
-  //       break;
-  //     case kuka::external::control::BaseSignalValue::SignalValueType::DOUBLE_VALUE:
-  //       hw_signal_states_[i] = static_cast<double>(signal_values_[i]->GetDoubleValue());
-  //       break;
-  //     case kuka::external::control::BaseSignalValue::SignalValueType::RAW_VALUE:
-  //       hw_signal_states_[i] = static_cast<double>(signal_values_[i]->GetRawValue());
-  //       break;
-  //     case kuka::external::control::BaseSignalValue::SignalValueType::LONG_VALUE:
-  //       hw_signal_states_[i] = static_cast<double>(signal_values_[i]->GetLongValue());
-  //       break;
-
-  //     default:
-  //       RCLCPP_ERROR(
-  //         rclcpp::get_logger("KukaEACHardwareInterface"),
-  //         "No signal value type found. (Should be dead code)");
-  //       return false;
-  //   }
-  // }
-  // return true;
-  return false;
 }
 
 void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
