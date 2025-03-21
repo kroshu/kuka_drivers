@@ -157,6 +157,9 @@ private:
 
   RobotState robot_state_;
 
+  std::atomic<bool> fri_started_(false);
+  std::atomic<bool> control_activated_(false);
+
   void activateFrictionCompensation(double * values) const;
   void onError();
 

@@ -209,18 +209,40 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       return CallbackReturn::ERROR;
   }
 
-  // Start FRI (in monitoring mode)
-  if (!fri_connection_->startFRI())
+  // startFRI and activateControl must be done on a different thread, as they would block the read function due to new mutex and cause a timeout  
+  std::thread init_thread(&
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
-    return CallbackReturn::FAILURE;
+    // Start FRI (in monitoring mode)
+    if (!fri_connection_->startFRI())
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+      return;
+    }
+    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
+    fri_started_ = true;
+  
+    // Switch to commanding mode
+    if (!fri_connection_->activateControl())
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
+      return;
+    }
+    control_activated_ = true;
+    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
+  });
+  
+  // Keep cyclic communication, while the other thread is working
+  while (!init_thread.joinable())
+  {
+    client_application_.client_app_read();
+    client_application_.client_app_update();
+    client_application_.client_app_write();
   }
-  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
-
-  // Switch to commanding mode
-  if (!fri_connection_->activateControl())
+  
+  init_thread.join();
+  
+  if (!fri_started_ || !control_activated_)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
     return CallbackReturn::FAILURE;
   }
   return CallbackReturn::SUCCESS;
@@ -233,12 +255,14 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not deactivate control");
     return CallbackReturn::ERROR;
   }
+  control_activated_ = false;
 
   if (!fri_connection_->endFRI())
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not end FRI");
     return CallbackReturn::ERROR;
   }
+  fri_started_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -266,6 +290,13 @@ void KukaFRIHardwareInterface::command()
 hardware_interface::return_type KukaFRIHardwareInterface::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
+  // Make sure to only call client app calls if not called from elsewhere 
+  if (!fri_started_ || !control_activated_)
+  {
+    active_read_ = false;
+    return hardware_interface::return_type::OK;
+  }
+
   if ((active_read_ = client_application_.client_app_read() == true))
   {
     // get the position and efforts and share them with exposed state interfaces
@@ -320,6 +351,12 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
     }
 
+    return hardware_interface::return_type::OK;
+  }
+
+  // Make sure to only call client app calls if not called from elsewhere 
+  if (!fri_started_ || !control_activated_)
+  {
     return hardware_interface::return_type::OK;
   }
 
