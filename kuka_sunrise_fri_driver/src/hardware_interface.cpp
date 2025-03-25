@@ -210,12 +210,14 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   }
 
   // startFRI and activateControl must be done on a different thread, as they would block the read function due to new mutex and cause a timeout  
-  std::thread init_thread(&
-  {
+  thread_running_ = true;
+  std::thread init_thread([&]
+  { 
     // Start FRI (in monitoring mode)
     if (!fri_connection_->startFRI())
     {
       RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+      thread_running_ = false;
       return;
     }
     RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
@@ -225,14 +227,16 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     if (!fri_connection_->activateControl())
     {
       RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
+      thread_running_ = false;
       return;
     }
     control_activated_ = true;
     RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
+    thread_running_ = false;
   });
   
   // Keep cyclic communication, while the other thread is working
-  while (!init_thread.joinable())
+  while (thread_running_)
   {
     client_application_.client_app_read();
     client_application_.client_app_update();
