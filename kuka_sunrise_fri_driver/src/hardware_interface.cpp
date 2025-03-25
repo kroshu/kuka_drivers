@@ -209,32 +209,34 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       return CallbackReturn::ERROR;
   }
 
-  // startFRI and activateControl must be done on a different thread, as they would block the read function due to new mutex and cause a timeout  
+  // startFRI and activateControl must be done on a different thread, as they would block the read
+  // function due to new mutex and cause a timeout
   thread_running_ = true;
-  std::thread init_thread([&]
-  { 
-    // Start FRI (in monitoring mode)
-    if (!fri_connection_->startFRI())
+  std::thread init_thread(
+    [&]
     {
-      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+      // Start FRI (in monitoring mode)
+      if (!fri_connection_->startFRI())
+      {
+        RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not start FRI");
+        thread_running_ = false;
+        return;
+      }
+      RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
+      fri_started_ = true;
+
+      // Switch to commanding mode
+      if (!fri_connection_->activateControl())
+      {
+        RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
+        thread_running_ = false;
+        return;
+      }
+      control_activated_ = true;
+      RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
       thread_running_ = false;
-      return;
-    }
-    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Started FRI");
-    fri_started_ = true;
-  
-    // Switch to commanding mode
-    if (!fri_connection_->activateControl())
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not activate control");
-      thread_running_ = false;
-      return;
-    }
-    control_activated_ = true;
-    RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
-    thread_running_ = false;
-  });
-  
+    });
+
   // Keep cyclic communication, while the other thread is working
   while (thread_running_)
   {
@@ -242,9 +244,9 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     client_application_.client_app_update();
     client_application_.client_app_write();
   }
-  
+
   init_thread.join();
-  
+
   if (!fri_started_ || !control_activated_)
   {
     return CallbackReturn::FAILURE;
@@ -295,7 +297,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   // Make sure to only call client app calls if not called from the other thread
-  // This is relevant only for backward compatibility, as new mutex disables 
+  // This is relevant only for backward compatibility, as new mutex disables
   //  on_activate() and read() at the same time
   if (thread_running_)
   {
@@ -360,7 +362,7 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
     return hardware_interface::return_type::OK;
   }
 
-  // Make sure to only call client app calls if not called from elsewhere 
+  // Make sure to only call client app calls if not called from elsewhere
   if (!fri_started_ || !control_activated_)
   {
     return hardware_interface::return_type::OK;
