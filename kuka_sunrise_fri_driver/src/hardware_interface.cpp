@@ -294,8 +294,10 @@ void KukaFRIHardwareInterface::command()
 hardware_interface::return_type KukaFRIHardwareInterface::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // Make sure to only call client app calls if not called from elsewhere 
-  if (!fri_started_ || !control_activated_)
+  // Make sure to only call client app calls if not called from the other thread
+  // This is relevant only for backward compatibility, as new mutex disables 
+  //  on_activate() and read() at the same time
+  if (thread_running_)
   {
     active_read_ = false;
     return hardware_interface::return_type::OK;
