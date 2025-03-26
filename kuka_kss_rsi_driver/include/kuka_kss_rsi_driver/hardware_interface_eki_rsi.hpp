@@ -27,6 +27,7 @@
 #include "kuka_kss_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
+using InitializationData = kuka::external::control::InitializationData;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_kss_rsi_driver
@@ -69,6 +70,8 @@ public:
   KUKA_KSS_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
   KUKA_KSS_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
+
+  KUKA_KSS_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
 private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool SetupRobot();

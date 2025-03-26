@@ -53,6 +53,13 @@ public:
     hw_interface_->set_stop_flag();
   }
 
+  void OnConnected(const kuka::external::control::InitializationData & init_data) override
+  {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::COMMAND_ACCEPTED);
+    RCLCPP_INFO(logger_, "Client successfully established a connection to the EKI server");
+    hw_interface_->eki_init(init_data);
+  }
+
 private:
   const rclcpp::Logger logger_;
   KukaRSIHardwareInterface * hw_interface_;

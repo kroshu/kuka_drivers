@@ -19,11 +19,15 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_kss_rsi_driver/eki_init_sequence.hpp"
 #include "kuka_kss_rsi_driver/event_observer_eki_rsi.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
+using AxisType = kuka::external::control::AxisType;
+
 namespace kuka_kss_rsi_driver
 {
+
 CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
@@ -167,6 +171,20 @@ void KukaRSIHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent
   last_event_ = event;
 }
 
+void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
+{
+  const InitSequenceReport report = CheckInitDataCompliance(info_, init_data);
+  if (!report.ok)
+  {
+    RCLCPP_ERROR(
+      logger_, "The driver is incompatible with the current hardware and software setup: %s",
+      report.reason.c_str());
+    on_shutdown(get_lifecycle_state());
+  }
+
+  RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+}
+
 bool KukaRSIHardwareInterface::SetupRobot()
 {
   RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
@@ -283,6 +301,7 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 
   return true;
 }
+
 }  // namespace kuka_kss_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(
