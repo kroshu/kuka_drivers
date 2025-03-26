@@ -1,4 +1,4 @@
-name: ROS-Industrial CI
+name: ROS-Industrial CI jazzy
 run-name: ROS-Industrial CI - ${{ github.event_name }}
 
 # This determines when this workflow is run
@@ -27,7 +27,7 @@ on:
 
 jobs:
   industrial_ci:
-    name: ROS-Industrial CI
+    name: ROS-Industrial CI jazzy
     env:
       ROS_REPO: ros
       BUILDER: colcon
@@ -54,7 +54,7 @@ jobs:
         with:
           fetch-depth: 0
       # This step will fetch/store the directory used by ccache before/after the ci run
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
