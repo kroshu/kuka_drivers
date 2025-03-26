@@ -8,7 +8,7 @@
 
 #### Controller side
 
-- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench. The driver only supports Sunsrise 1.X.
+- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench. The driver only supports Sunrise 1.X.
 
 ### Configuration
 
