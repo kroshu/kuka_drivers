@@ -100,6 +100,8 @@ private:
   bool is_active_;
   bool msg_received_;
   std::atomic<bool> stop_requested_{false};
+
+  static constexpr int64_t REQUEST_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_kss_rsi_driver
 
