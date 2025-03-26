@@ -84,7 +84,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 {
   stop_requested_ = false;
 
-  Read(10'000);
+  Read(10 * REQUEST_TIMEOUT_MS);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
   Write();
 
@@ -118,7 +118,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     return return_type::OK;
   }
 
-  Read(1'000);
+  Read(REQUEST_TIMEOUT_MS);
   return return_type::OK;
 }
 
