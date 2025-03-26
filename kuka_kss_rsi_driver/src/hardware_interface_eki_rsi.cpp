@@ -180,6 +180,7 @@ void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
       logger_, "The driver is incompatible with the current hardware and software setup: %s",
       report.reason.c_str());
     on_shutdown(get_lifecycle_state());
+    return;
   }
 
   RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");

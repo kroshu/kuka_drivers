@@ -50,7 +50,7 @@ std::string AxisTypeToString(const AxisType axis_type)
 InitSequenceReport CheckInitDataCompliance(
   const hardware_interface::HardwareInfo & info, const InitializationData & init_data)
 {
-  // TODO: Also check model name, mechanical reduction and RPM values, once all are available
+  // TODO: Also check model name, joint types, mechanical reduction and RPM values, once all are available
 
   if (info.joints.size() != init_data.GetTotalAxisCount())
   {
@@ -59,19 +59,6 @@ InitSequenceReport CheckInitDataCompliance(
       buffer, "Mismatch in axis count: Driver expects %ld, but EKI server reported %d",
       info.joints.size(), init_data.GetTotalAxisCount());
     return {false, buffer};
-  }
-
-  for (size_t i = 0; i < info.joints.size(); ++i)
-  {
-    std::string reported_type = AxisTypeToString(init_data.axis_type[i]);
-    if (info.joints[i].type != reported_type)
-    {
-      char buffer[InitSequenceReport::MAX_REASON_LENGTH];
-      sprintf(
-        buffer, "Axis type mismatch at index %ld: Expected %s, but reported %s", i,
-        info.joints[i].type.c_str(), reported_type.c_str());
-      return {false, buffer};
-    }
   }
 
   return {true, ""};
