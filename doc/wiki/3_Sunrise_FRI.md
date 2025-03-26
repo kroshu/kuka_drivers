@@ -8,7 +8,7 @@
 
 #### Controller side
 
-- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench
+- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench. The driver only supports Sunsrise 1.X.
 
 ### Configuration
 
@@ -21,7 +21,7 @@ The following configuration files are available in the `config` directory of the
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
 ##### IP configuration
-The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
+The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments). Please note that currently the driver only works using the KLI interface of the robot controller, KONI is not yet supported.
 
 #### Runtime parameters
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
@@ -61,7 +61,7 @@ On successful activation the brakes of the robot will be released and external c
 ##### Launch arguments
 
 Both launch files support the following argument:
-- `controller_ip`: IP address of the robot controller
+- `controller_ip`: KLI IP address of the robot controller
 - `client_ip`: IP address of the client PC
 - `client_port`: port of the client machine (default: 30200)
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
