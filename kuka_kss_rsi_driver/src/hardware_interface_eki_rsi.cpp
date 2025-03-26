@@ -92,7 +92,7 @@ KukaRSIHardwareInterface::export_command_interfaces()
 
 CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  const bool setup_success = SetupRobot();
+  const bool connection_successful = ConnectToController();
 
   // Wait for the response to arrive from the controller
   while (!init_report_.sequence_complete)
@@ -107,12 +107,8 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
       init_report_.reason.c_str());
     robot_ptr_.reset();
   }
-  else
-  {
-    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
-  }
 
-  return setup_success && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+  return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
 CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
@@ -193,7 +189,7 @@ void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
   CheckInitDataCompliance(init_data);
 }
 
-bool KukaRSIHardwareInterface::SetupRobot()
+bool KukaRSIHardwareInterface::ConnectToController()
 {
   RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
 

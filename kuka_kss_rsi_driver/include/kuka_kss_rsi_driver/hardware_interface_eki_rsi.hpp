@@ -83,7 +83,7 @@ private:
     static constexpr size_t MAX_REASON_LENGTH = 128;
   };
 
-  KUKA_KSS_RSI_DRIVER_LOCAL bool SetupRobot();
+  KUKA_KSS_RSI_DRIVER_LOCAL bool ConnectToController();
 
   KUKA_KSS_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
