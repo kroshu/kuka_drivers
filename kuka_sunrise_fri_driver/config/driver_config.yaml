@@ -3,7 +3,11 @@ robot_manager:
     control_mode: 1
     position_controller_name: "joint_trajectory_controller"
     torque_controller_name: "effort_controller"
+    wrench_controller_name: "wrench_controller"
+    cart_pose_controller_name: "cartesian_pose_controller"
     receive_multiplier: 1
-    send_period_ms: 10
+    send_period_ms: 5
     joint_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     joint_stiffness: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+    cartesian_damping: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+    cartesian_stiffness: [2000.0, 2000.0, 2000.0, 200.0, 200.0, 200.0]

@@ -40,6 +40,10 @@ def launch_setup(context, *args, **kwargs):
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
     etb_config = LaunchConfiguration("etb_config")
+    wc_config = LaunchConfiguration("wc_config")
+    cpc_config = LaunchConfiguration("cpc_config")
+    cic_config = LaunchConfiguration("cic_config")
+
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -171,6 +175,9 @@ def launch_setup(context, *args, **kwargs):
         "effort_controller": ec_config,
         "control_mode_handler": None,
         "event_broadcaster": None,
+        "cartesian_impedance_controller": cic_config,
+        "wrench_controller": wc_config,
+        "cartesian_pose_controller": cpc_config,
     }
 
     controller_spawners = [
@@ -234,6 +241,27 @@ def generate_launch_description():
             "etb_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/external_torque_broadcaster_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "wc_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/wrench_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cpc_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/cartesian_pose_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cic_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/cartesian_impedance_controller_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

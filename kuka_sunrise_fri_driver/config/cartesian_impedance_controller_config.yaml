@@ -1,0 +1,9 @@
+cartesian_impedance_controller:
+  ros__parameters:
+    joints:
+    - dummy_cart_joint/x
+    - dummy_cart_joint/y
+    - dummy_cart_joint/z
+    - dummy_cart_joint/a
+    - dummy_cart_joint/b
+    - dummy_cart_joint/c

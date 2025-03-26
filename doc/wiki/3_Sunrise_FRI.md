@@ -5,7 +5,7 @@
 #### Client side
 - It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime)).
 - Set a fixed IP in the subnet of the controller for the real-time machine.
-
+- If you are using FRI version 1.15 set the `WITH_FRI_VERSION_2_5` parameter in the `CMakeLists.txt` to `OFF`
 #### Controller side
 
 - Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench
@@ -29,8 +29,10 @@ The parameters in the driver configuration file can be also changed during runti
 - `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`send_period_ms` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
 - `control_mode`: The enum value of the control mode should be given, which updates the `ControlMode` and `ClientCommandMode` parameters of FRI. It cannot be changed in active state.
 - `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. The updated values are sent to the hardware interface using the `joint_group_impedance_controller` to adapt to conventions, but it is not possible to change them in active state due to the constraints of FRI. (Therefore the `joint_group_impedance_controller` is deactivated at driver activation.)
+- `cartesian_damping`, `cartesian_stiffness` (double vectors): these parameters change the stiffness and damping attributes of cartesian impedance control and wrench mode. The updated values are sent to the hardware interface using the `caretsian_impedance_controller` to adapt to conventions, but it is not possible to change them in active state due to the constraints of FRI. (Therefore the `cartesian_impedance_controller` is deactivated at driver activation.)
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
+- `wrench_controller_name`: The name of the controller (string) that controls the `wrench` interface of the robot. It can't be changed in active state.
 
 ### Usage
 
@@ -47,10 +49,13 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
 - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
+- `cartesian_impedance_controller` (of type `JointGroupImpedanceController`,[configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/cartesian_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
 - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
 - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
-3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
+- `wrench_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/wrench_controller_config.yaml))
+
+1. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
     ```
     ros2 lifecycle set robot_manager configure
     ros2 lifecycle set robot_manager activate
@@ -75,6 +80,8 @@ Both launch files support the following argument:
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
 - `etb_config`: the location of the configuration file for the `external_torque_broadcaster` (defaults to `kuka_sunrise_fri_driver/config/external_torque_broadcaster._config.yaml`)
+- `cic_config`: the location of the configuration file for the `cartesian_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/cartesian_impedance_controller_config.yaml`)
+- `wc_config`: the location of the configuration file for the `wrench_controller` (defaults to `kuka_sunrise_fri_driver/config/wrench_controller_config.yaml`)
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
