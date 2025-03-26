@@ -19,7 +19,6 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_kss_rsi_driver/eki_init_sequence.hpp"
 #include "kuka_kss_rsi_driver/event_observer_eki_rsi.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
@@ -95,7 +94,25 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 {
   const bool setup_success = SetupRobot();
 
-  return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+  // Wait for the response to arrive from the controller
+  while (!init_report_.sequence_complete)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(INIT_SLEEP_MS));
+  }
+
+  if (!init_report_.ok)
+  {
+    RCLCPP_ERROR(
+      logger_, "The driver is incompatible with the current hardware and software setup: %s",
+      init_report_.reason.c_str());
+    robot_ptr_.reset();
+  }
+  else
+  {
+    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+  }
+
+  return setup_success && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
 CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
@@ -122,7 +139,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   // We must first receive the initial position of the robot
   // We set a longer timeout, since the first message might not arrive all that fast
-  Read(5 * REQUEST_TIMEOUT_MS);
+  Read(5 * READ_TIMEOUT_MS);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
   Write();
 
@@ -149,7 +166,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     return return_type::OK;
   }
 
-  Read(REQUEST_TIMEOUT_MS);
+  Read(READ_TIMEOUT_MS);
   return return_type::OK;
 }
 
@@ -173,17 +190,7 @@ void KukaRSIHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent
 
 void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
 {
-  const InitSequenceReport report = CheckInitDataCompliance(info_, init_data);
-  if (!report.ok)
-  {
-    RCLCPP_ERROR(
-      logger_, "The driver is incompatible with the current hardware and software setup: %s",
-      report.reason.c_str());
-    on_shutdown(get_lifecycle_state());
-    return;
-  }
-
-  RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+  CheckInitDataCompliance(init_data);
 }
 
 bool KukaRSIHardwareInterface::SetupRobot()
@@ -301,6 +308,24 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
   }
 
   return true;
+}
+
+void KukaRSIHardwareInterface::CheckInitDataCompliance(const InitializationData & init_data)
+{
+  // TODO: Also check model name, joint types, mechanical reduction and RPM values, once all are
+  // made available
+
+  if (info_.joints.size() != init_data.GetTotalAxisCount())
+  {
+    char buffer[InitSequenceReport::MAX_REASON_LENGTH];
+    sprintf(
+      buffer, "Mismatch in axis count: Driver expects %ld, but EKI server reported %d",
+      info_.joints.size(), init_data.GetTotalAxisCount());
+    init_report_ = {true, false, buffer};
+    return;
+  }
+
+  init_report_ = {true, true, ""};
 }
 
 }  // namespace kuka_kss_rsi_driver

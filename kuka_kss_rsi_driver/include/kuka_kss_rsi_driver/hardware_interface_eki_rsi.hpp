@@ -74,6 +74,15 @@ public:
   KUKA_KSS_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
 private:
+  struct InitSequenceReport
+  {
+    bool sequence_complete = false;
+    bool ok = false;
+    std::string reason = "";
+
+    static constexpr size_t MAX_REASON_LENGTH = 128;
+  };
+
   KUKA_KSS_RSI_DRIVER_LOCAL bool SetupRobot();
 
   KUKA_KSS_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
@@ -82,6 +91,8 @@ private:
 
   KUKA_KSS_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
+
+  KUKA_KSS_RSI_DRIVER_LOCAL void CheckInitDataCompliance(const InitializationData & init_data);
 
   const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
@@ -99,12 +110,14 @@ private:
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
+  InitSequenceReport init_report_;
   bool first_write_done_;
   bool is_active_;
   bool msg_received_;
   std::atomic<bool> stop_requested_{false};
 
-  static constexpr int64_t REQUEST_TIMEOUT_MS = 1'000;
+  static constexpr int64_t INIT_SLEEP_MS = 100;
+  static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_kss_rsi_driver
 
