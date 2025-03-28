@@ -23,26 +23,27 @@
 namespace kuka_controllers
 {
 
-using CR = controller_interface::CallbackReturn;
-using IC = controller_interface::InterfaceConfiguration;
-using RT = controller_interface::return_type;
+using CallbackReturn = controller_interface::CallbackReturn;
+using InterfaceConfig = controller_interface::InterfaceConfiguration;
+using ReturnType = controller_interface::return_type;
 
 class KukaDriveHandler : public controller_interface::ControllerInterface
 {
 public:
-  KUKA_DRIVE_HANDLER_PUBLIC CR on_init() override;
+  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_init() override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC IC command_interface_configuration() const override;
+  KUKA_DRIVE_HANDLER_PUBLIC InterfaceConfig command_interface_configuration() const override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC IC state_interface_configuration() const override;
+  KUKA_DRIVE_HANDLER_PUBLIC InterfaceConfig state_interface_configuration() const override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CR on_configure(const rclcpp_lifecycle::State &) override;
+  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CR on_activate(const rclcpp_lifecycle::State &) override;
+  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CR on_deactivate(const rclcpp_lifecycle::State &) override;
+  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC RT update(const rclcpp::Time &, const rclcpp::Duration &) override;
+  KUKA_DRIVE_HANDLER_PUBLIC ReturnType
+  update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_state_subscription_;

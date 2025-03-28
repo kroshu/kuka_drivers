@@ -20,41 +20,47 @@
 namespace kuka_controllers
 {
 
-CR KukaDriveHandler::on_init() { return CR::SUCCESS; }
+CallbackReturn KukaDriveHandler::on_init() { return CallbackReturn::SUCCESS; }
 
-IC KukaDriveHandler::command_interface_configuration() const
+InterfaceConfig KukaDriveHandler::command_interface_configuration() const
 {
-  IC config;
+  InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names.emplace_back(
     std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::DRIVE_STATE);
   return config;
 }
 
-IC KukaDriveHandler::state_interface_configuration() const
+InterfaceConfig KukaDriveHandler::state_interface_configuration() const
 {
-  return IC{controller_interface::interface_configuration_type::NONE};
+  return InterfaceConfig{controller_interface::interface_configuration_type::NONE};
 }
 
-CR KukaDriveHandler::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaDriveHandler::on_configure(const rclcpp_lifecycle::State &)
 {
   drive_state_ = 1.0;
-  auto CR = [this](const std_msgs::msg::Bool::SharedPtr msg)
+  auto cb = [this](const std_msgs::msg::Bool::SharedPtr msg)
   { drive_state_ = msg->data ? 1.0 : 0.0; };
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
-    "~/drive_state", rclcpp::SystemDefaultsQoS(), CR);
+    "~/drive_state", rclcpp::SystemDefaultsQoS(), cb);
   RCLCPP_INFO(get_node()->get_logger(), "Drive handler configured");
-  return CR::SUCCESS;
+  return CallbackReturn::SUCCESS;
 }
 
-CR KukaDriveHandler::on_activate(const rclcpp_lifecycle::State &) { return CR::SUCCESS; }
+CallbackReturn KukaDriveHandler::on_activate(const rclcpp_lifecycle::State &)
+{
+  return CallbackReturn::SUCCESS;
+}
 
-CR KukaDriveHandler::on_deactivate(const rclcpp_lifecycle::State &) { return CR::SUCCESS; }
+CallbackReturn KukaDriveHandler::on_deactivate(const rclcpp_lifecycle::State &)
+{
+  return CallbackReturn::SUCCESS;
+}
 
-RT KukaDriveHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
+ReturnType KukaDriveHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
   bool success = command_interfaces_[0].set_value(drive_state_);
-  return success ? RT::OK : RT::ERROR;
+  return success ? ReturnType::OK : ReturnType::ERROR;
 }
 
 }  // namespace kuka_controllers
