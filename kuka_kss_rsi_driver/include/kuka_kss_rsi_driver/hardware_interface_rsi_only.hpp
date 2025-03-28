@@ -80,7 +80,9 @@ private:
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 
   std::vector<double> hw_states_;
+  std::vector<double> hw_gpio_states_;
   std::vector<double> hw_commands_;
+  std::vector<double> hw_gpio_commands_;
 
   bool first_write_done_;
   bool is_active_;

@@ -32,14 +32,33 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
 
+  // Checking joint config structure
   for (const auto & joint : info_.joints)
   {
-    bool interfaces_ok = CheckJointInterfaces(joint);
-    if (!interfaces_ok)
+    if (!CheckJointInterfaces(joint))
     {
       return CallbackReturn::ERROR;
     }
   }
+
+  // Check gpio components size
+  if (info_.gpios.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "expecting exactly 1 gpio component");
+    return CallbackReturn::ERROR;
+  }
+  auto & gpio = info_.gpios[0];
+  // Check gpio component name
+  if (gpio.name != hardware_interface::IO_PREFIX)
+  {
+    RCLCPP_FATAL(logger_, "expecting gpio component called 'GPIO' first");
+    return CallbackReturn::ERROR;
+  }
+  // TODO (komaromi): Somehow check how many IOs are in the interfaces. RSI can receive and send
+  // 8192 bits, but its not equal with 8192 IOs.
+
+  hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
+  hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
   RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
 
@@ -59,6 +78,13 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
   }
+
+  for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
+  {
+    state_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
+  }
+
   return state_interfaces;
 }
 
@@ -71,6 +97,14 @@ KukaRSIHardwareInterface::export_command_interfaces()
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
   }
+
+  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
+  {
+    command_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
+      &hw_gpio_commands_[i]);
+  }
+
   return command_interfaces;
 }
 
@@ -168,7 +202,47 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
   {
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
+    const auto & gpio_values = req_message.GetGPIOValues();
+
+    // TODO (Komaromi): Delete later
+    for (int i = 0; i < req_message.GetGPIOValues().size(); i++)
+    {
+      RCLCPP_INFO(
+        rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d, type: %d",
+        req_message.GetGPIOValues().at(i)->GetGPIOId(),
+        req_message.GetGPIOValues().at(i)->GetBoolValue(),
+        req_message.GetGPIOValues().at(i)->GetValueType());
+    }
+
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+    // Save IO states
+    for (size_t i = 0; i < hw_gpio_states_.size(); i++)
+    {
+      switch (gpio_values.at(i)->GetValueType())
+      {
+        case kuka::external::control::GPIOValueType::BOOL_VALUE:
+          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
+          break;
+        case kuka::external::control::GPIOValueType::DOUBLE_VALUE:
+          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetDoubleValue());
+          break;
+        case kuka::external::control::GPIOValueType::RAW_VALUE:
+          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetRawValue());
+          break;
+        case kuka::external::control::GPIOValueType::LONG_VALUE:
+          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetLongValue());
+          break;
+        default:
+          RCLCPP_ERROR(
+            rclcpp::get_logger("KukaEACHardwareInterface"),
+            "No signal value type found. (Should be dead code)");
+      }
+    }
+    // TODO (Komaromi): Delete later
+    for (auto && gpio : hw_gpio_states_)
+    {
+      RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", gpio);
+    }
   }
 }
 
@@ -177,6 +251,12 @@ void KukaRSIHardwareInterface::Write()
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+  control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
+
+  for (auto && gpio : control_signal.GetGPIOValues())
+  {
+    RCLCPP_INFO(logger_, "Signal_%d - Value: %d", gpio->GetGPIOId(), gpio->GetBoolValue());
+  }
 
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
@@ -229,6 +309,3 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
   return true;
 }
 }  // namespace kuka_kss_rsi_driver
-
-PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
