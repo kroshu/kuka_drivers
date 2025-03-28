@@ -50,10 +50,12 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
+  drives_enabled_command_ = 1.0;
 
   first_write_done_ = false;
   is_active_ = false;
   msg_received_ = false;
+  prev_drives_enabled_ = true;
 
   return CallbackReturn::SUCCESS;
 }
@@ -87,6 +89,9 @@ KukaRSIHardwareInterface::export_command_interfaces()
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
 
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::DRIVE_STATE, &drives_enabled_command_);
+
   return command_interfaces;
 }
 
@@ -106,6 +111,10 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
       logger_, "The driver is incompatible with the current hardware and software setup: %s",
       init_report_.reason.c_str());
     robot_ptr_.reset();
+  }
+  else
+  {
+    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
   }
 
   return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
@@ -168,8 +177,23 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (!is_active_ || !msg_received_ || !first_write_done_)
+  if (!ShouldWriteJointCommands())
   {
+    const bool drives_enabled = drives_enabled_command_ == 1.0;
+    if (IsDriveEnableCommandValid() && prev_drives_enabled_ != drives_enabled)
+    {
+      if (drives_enabled)
+      {
+        RCLCPP_INFO(logger_, "Turning on drives");
+        robot_ptr_->TurnOnDrives();
+      }
+      else
+      {
+        RCLCPP_INFO(logger_, "Turning off drives");
+        robot_ptr_->TurnOffDrives();
+      }
+      prev_drives_enabled_ = drives_enabled;
+    }
     return return_type::OK;
   }
 
@@ -220,6 +244,16 @@ bool KukaRSIHardwareInterface::ConnectToController()
   RCLCPP_INFO(logger_, "Successfully established connection to the robot controller!");
 
   return true;
+}
+
+bool KukaRSIHardwareInterface::ShouldWriteJointCommands() const
+{
+  return is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_;
+}
+
+bool KukaRSIHardwareInterface::IsDriveEnableCommandValid() const
+{
+  return drives_enabled_command_ == 1.0 || drives_enabled_command_ == 0.0;
 }
 
 void KukaRSIHardwareInterface::Read(const int64_t request_timeout)

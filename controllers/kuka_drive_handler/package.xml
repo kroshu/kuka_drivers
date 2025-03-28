@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kuka_drive_handler</name>
+  <version>0.0.0</version>
+  <description>Drive handler for KUKA robots</description>
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristóf Pásztor</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+  <depend>controller_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>std_msgs</depend>
+  <depend>kuka_drivers_core</depend>
+
+  <test_depend>controller_manager</test_depend>
+  <test_depend>ros2_control_test_assets</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

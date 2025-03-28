@@ -85,6 +85,10 @@ private:
 
   KUKA_KSS_RSI_DRIVER_LOCAL bool ConnectToController();
 
+  KUKA_KSS_RSI_DRIVER_LOCAL bool ShouldWriteJointCommands() const;
+
+  KUKA_KSS_RSI_DRIVER_LOCAL bool IsDriveEnableCommandValid() const;
+
   KUKA_KSS_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_KSS_RSI_DRIVER_LOCAL void Write();
@@ -102,6 +106,7 @@ private:
 
   double hw_control_mode_command_;
   double server_state_;
+  double drives_enabled_command_;
 
   std::mutex event_mutex_;
 
@@ -114,6 +119,7 @@ private:
   bool first_write_done_;
   bool is_active_;
   bool msg_received_;
+  bool prev_drives_enabled_;
   std::atomic<bool> stop_requested_{false};
 
   static constexpr int64_t INIT_SLEEP_MS = 100;

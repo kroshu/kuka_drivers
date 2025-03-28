@@ -166,6 +166,7 @@ def launch_setup(context, *args, **kwargs):
 
     if use_eki():
         controllers["control_mode_handler"] = None
+        controllers["drive_handler"] = None
         controllers["event_broadcaster"] = None
 
     controller_spawners = [

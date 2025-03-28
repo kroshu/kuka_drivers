@@ -8,5 +8,7 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
+    drive_handler:
+      type: kuka_controllers/KukaDriveHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
