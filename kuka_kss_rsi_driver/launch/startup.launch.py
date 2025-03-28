@@ -31,6 +31,7 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    use_gpio = LaunchConfiguration("use_gpio")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
     controller_ip = LaunchConfiguration("controller_ip")
@@ -45,6 +46,7 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    gpio_config = LaunchConfiguration("gpio_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -65,6 +67,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
+            " ",
+            "use_gpio:=",
+            use_gpio,
             " ",
             "client_port:=",
             client_port,
@@ -162,6 +167,7 @@ def launch_setup(context, *args, **kwargs):
     controllers = {
         "joint_state_broadcaster": None,
         "joint_trajectory_controller": jtc_config,
+        "gpio_controller": gpio_config,
     }
 
     if use_eki():
@@ -186,6 +192,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("use_gpio", default_value="true"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
@@ -216,6 +223,13 @@ def generate_launch_description():
             "jtc_config",
             default_value=get_package_share_directory("kuka_kss_rsi_driver")
             + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "gpio_config",
+            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            + "/config/gpio_controller_config.yaml",
         )
     )
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

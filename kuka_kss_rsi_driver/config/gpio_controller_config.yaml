@@ -1,0 +1,14 @@
+gpio_controller:
+  ros__parameters:
+    type: gpio_controllers/GpioCommandController
+    gpios:
+      - gpio
+    command_interfaces:
+      gpio:
+        - interfaces:
+          # - Output pin 14
+    state_interfaces:
+      gpio:
+        - interfaces:
+          # - Output pin 14
+          #- Input pin 17
