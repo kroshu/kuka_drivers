@@ -177,6 +177,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
   config.installed_interface = Configuration::InstalledInterface::RSI_ONLY;
   config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.dof = info_.joints.size();
+  config.gpio_command_size = info_.gpios[0].command_interfaces.size();
+  config.gpio_state_size = info_.gpios[0].state_interfaces.size();
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
 

@@ -10,3 +10,5 @@ controller_manager:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+    gpio_controller:
+      type: gpio_controllers/GpioCommandController

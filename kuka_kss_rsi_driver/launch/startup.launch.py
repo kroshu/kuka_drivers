@@ -35,7 +35,6 @@ def launch_setup(context, *args, **kwargs):
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
     controller_ip = LaunchConfiguration("controller_ip")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
