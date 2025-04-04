@@ -347,5 +347,3 @@ int main(int argc, char * argv[])
   rclcpp::shutdown();
   return 0;
 }
-PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)

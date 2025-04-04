@@ -311,3 +311,6 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
   return true;
 }
 }  // namespace kuka_kss_rsi_driver
+
+PLUGINLIB_EXPORT_CLASS(
+  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
