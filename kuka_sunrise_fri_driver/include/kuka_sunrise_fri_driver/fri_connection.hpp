@@ -60,13 +60,16 @@ enum CommandSuccess : std::uint8_t
 enum ControlModeID : std::uint8_t
 {
   POSITION_CONTROL_MODE = 1,
-  JOINT_IMPEDANCE_CONTROL_MODE = 2
+  JOINT_IMPEDANCE_CONTROL_MODE = 2,
+  CARTESIAN_IMPEDANCE_CONTROL_MODE = 3
 };
 
 enum ClientCommandModeID : std::uint8_t
 {
   POSITION_COMMAND_MODE = 1,
-  TORQUE_COMMAND_MODE = 3
+  WRENCH_COMMAND_MODE = 2,
+  TORQUE_COMMAND_MODE = 3,
+  CARTESIAN_POSE_COMMAND_MODE = 4
 };
 
 static const std::vector<std::uint8_t> FRI_CONFIG_HEADER = {0xAC, 0xED, 0x00, 0x05, 0x77, 0x10};
@@ -88,6 +91,8 @@ public:
   bool setPositionControlMode();
   bool setJointImpedanceControlMode(
     const std::vector<double> & joint_stiffness, const std::vector<double> & joint_damping);
+  bool setCartesianImpedanceControlMode(
+    const std::vector<double> & cart_stiffness, const std::vector<double> & cart_damping);
   bool setClientCommandMode(ClientCommandModeID client_command_mode);
   // bool getControlMode();
   bool setFRIConfig(
