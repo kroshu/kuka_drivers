@@ -54,8 +54,11 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     RCLCPP_FATAL(logger_, "expecting gpio component called 'GPIO' first");
     return CallbackReturn::ERROR;
   }
-  // TODO (komaromi): Somehow check how many IOs are in the interfaces. RSI can receive and send
+  // TODO (Komaromi): Somehow check how many IOs are in the interfaces. RSI can receive and send
   // 8192 bits, but its not equal with 8192 IOs.
+  // TODO (Komaormi): Maybe better to check the configured IO-s robot_ptr->Setup here and then go
+  // throught the IO-s and check the name an size
+  // TODO (Komaromi): For that the construction of control signal have to be changed.
 
   hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
   hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
@@ -120,6 +123,22 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   Read(10 * REQUEST_TIMEOUT_MS);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+
+  // copy gpio states to commands when they have
+  // TODO (Komaromi): Make it better and in a function
+  for (auto && motion_state_gpio : robot_ptr_->GetLastMotionState().GetGPIOValues())
+  {
+    for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
+    {
+      if (
+        motion_state_gpio->GetGPIOConfig()->GetName() ==
+        control_signal_gpio->GetGPIOConfig()->GetName())
+      {
+        hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
+          hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
+      }
+    }
+  }
   Write();
 
   msg_received_ = false;
