@@ -207,20 +207,20 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     const auto & gpio_values = req_message.GetGPIOValues();
 
     // TODO (Komaromi): Delete later
-    for (int i = 0; i < req_message.GetGPIOValues().size(); i++)
+    for (std::size_t i = 0; i < req_message.GetGPIOValues().size(); i++)
     {
       RCLCPP_INFO(
-        rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%d - Value: %d, type: %d",
-        req_message.GetGPIOValues().at(i)->GetGPIOId(),
+        rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%ld - Value: %d, type: %d",
+        req_message.GetGPIOValues().at(i)->GetGPIOConfig()->GetGPIOId(),
         req_message.GetGPIOValues().at(i)->GetBoolValue(),
-        req_message.GetGPIOValues().at(i)->GetValueType());
+        req_message.GetGPIOValues().at(i)->GetGPIOConfig()->GetValueType());
     }
 
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
-      switch (gpio_values.at(i)->GetValueType())
+      switch (gpio_values.at(i)->GetGPIOConfig()->GetValueType())
       {
         case kuka::external::control::GPIOValueType::BOOL_VALUE:
           hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
@@ -257,7 +257,8 @@ void KukaRSIHardwareInterface::Write()
 
   for (auto && gpio : control_signal.GetGPIOValues())
   {
-    RCLCPP_INFO(logger_, "Signal_%d - Value: %d", gpio->GetGPIOId(), gpio->GetBoolValue());
+    RCLCPP_INFO(
+      logger_, "Signal_%ld - Value: %d", gpio->GetGPIOConfig()->GetGPIOId(), gpio->GetBoolValue());
   }
 
   kuka::external::control::Status send_reply_status;
