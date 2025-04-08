@@ -99,7 +99,7 @@ private:
   KUKA_KSS_RSI_DRIVER_LOCAL void CheckInitDataCompliance(const InitializationData & init_data);
 
   const rclcpp::Logger logger_;
-  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
+  std::unique_ptr<kuka::external::control::kss::IKssRobot> robot_ptr_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_commands_;

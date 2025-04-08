@@ -77,7 +77,7 @@ private:
 
   const rclcpp::Logger logger_;
 
-  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
+  std::unique_ptr<kuka::external::control::kss::IKssRobot> robot_ptr_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_commands_;
