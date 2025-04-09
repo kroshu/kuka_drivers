@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kuka_drive_handler</name>
+  <name>kuka_nrt_message_handler</name>
   <version>0.0.0</version>
-  <description>Drive handler for KUKA robots</description>
+  <description>Non-real time message handler KUKA robots</description>
   <maintainer email="pasztor.kristof.kp@gmail.com">Kristóf Pásztor</maintainer>
   <license>Apache-2.0</license>
 

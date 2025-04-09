@@ -96,7 +96,7 @@ CallbackReturn RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   // Activate control mode handler and event broadcaster controllers
   std::vector<std::string> controllers_to_activate{
     kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::DRIVE_HANDLER,
+    kuka_drivers_core::NRT_MESSAGE_HANDLER,
     kuka_drivers_core::EVENT_BROADCASTER,
   };
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
@@ -124,7 +124,7 @@ CallbackReturn RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   // Deactivate control mode handler and event broadcaster
   std::vector<std::string> controllers_to_deactivate{
     kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::DRIVE_HANDLER,
+    kuka_drivers_core::NRT_MESSAGE_HANDLER,
     kuka_drivers_core::EVENT_BROADCASTER,
   };
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(

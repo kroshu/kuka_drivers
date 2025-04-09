@@ -9,8 +9,8 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>kuka_control_mode_handler</exec_depend>
-  <exec_depend>kuka_drive_handler</exec_depend>
   <exec_depend>kuka_event_broadcaster</exec_depend>
+  <exec_depend>kuka_nrt_message_handler</exec_depend>
   <exec_depend>fri_configuration_controller</exec_depend>
   <exec_depend>fri_state_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>

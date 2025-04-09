@@ -1,9 +1,0 @@
-<library path="kuka_drive_handler">
-  <class name="kuka_controllers/KukaDriveHandler"
-         type="kuka_controllers::KukaDriveHandler"
-         base_class_type="controller_interface::ControllerInterface">
-    <description>
-      This controller can both enable and disable KUKA robot drives.
-    </description>
-  </class>
-</library>

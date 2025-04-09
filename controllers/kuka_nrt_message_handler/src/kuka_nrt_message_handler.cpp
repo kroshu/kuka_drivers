@@ -14,15 +14,15 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
-#include "kuka_drive_handler/kuka_drive_handler.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_nrt_message_handler/kuka_nrt_message_handler.hpp"
 
 namespace kuka_controllers
 {
 
-CallbackReturn KukaDriveHandler::on_init() { return CallbackReturn::SUCCESS; }
+CallbackReturn KukaNrtMessageHandler::on_init() { return CallbackReturn::SUCCESS; }
 
-InterfaceConfig KukaDriveHandler::command_interface_configuration() const
+InterfaceConfig KukaNrtMessageHandler::command_interface_configuration() const
 {
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -31,33 +31,33 @@ InterfaceConfig KukaDriveHandler::command_interface_configuration() const
   return config;
 }
 
-InterfaceConfig KukaDriveHandler::state_interface_configuration() const
+InterfaceConfig KukaNrtMessageHandler::state_interface_configuration() const
 {
   return InterfaceConfig{controller_interface::interface_configuration_type::NONE};
 }
 
-CallbackReturn KukaDriveHandler::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaNrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
   drive_state_ = 1.0;
   auto cb = [this](const std_msgs::msg::Bool::SharedPtr msg)
   { drive_state_ = msg->data ? 1.0 : 0.0; };
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
     "~/drive_state", rclcpp::SystemDefaultsQoS(), cb);
-  RCLCPP_INFO(get_node()->get_logger(), "Drive handler configured");
+  RCLCPP_INFO(get_node()->get_logger(), "Non-real time message handler configured");
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaDriveHandler::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaNrtMessageHandler::on_activate(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaDriveHandler::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaNrtMessageHandler::on_deactivate(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-ReturnType KukaDriveHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
+ReturnType KukaNrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
   bool success = command_interfaces_[0].set_value(drive_state_);
   return success ? ReturnType::OK : ReturnType::ERROR;
@@ -66,4 +66,4 @@ ReturnType KukaDriveHandler::update(const rclcpp::Time &, const rclcpp::Duration
 }  // namespace kuka_controllers
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_controllers::KukaDriveHandler, controller_interface::ControllerInterface)
+  kuka_controllers::KukaNrtMessageHandler, controller_interface::ControllerInterface)

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_DRIVE_HANDLER__KUKA_DRIVE_HANDLER_HPP_
-#define KUKA_DRIVE_HANDLER__KUKA_DRIVE_HANDLER_HPP_
+#ifndef KUKA_NRT_MESSAGE_HANDLER__KUKA_NRT_MESSAGE_HANDLER_HPP_
+#define KUKA_NRT_MESSAGE_HANDLER__KUKA_NRT_MESSAGE_HANDLER_HPP_
 
 #include "controller_interface/controller_interface.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-#include "kuka_drive_handler/visibility_control.h"
+#include "kuka_nrt_message_handler/visibility_control.h"
 
 namespace kuka_controllers
 {
@@ -27,22 +27,25 @@ using CallbackReturn = controller_interface::CallbackReturn;
 using InterfaceConfig = controller_interface::InterfaceConfiguration;
 using ReturnType = controller_interface::return_type;
 
-class KukaDriveHandler : public controller_interface::ControllerInterface
+class KukaNrtMessageHandler : public controller_interface::ControllerInterface
 {
 public:
-  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_init() override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC CallbackReturn on_init() override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC InterfaceConfig command_interface_configuration() const override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC InterfaceConfig command_interface_configuration() const override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC InterfaceConfig state_interface_configuration() const override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC InterfaceConfig state_interface_configuration() const override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC CallbackReturn
+  on_configure(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC CallbackReturn
+  on_activate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_DRIVE_HANDLER_PUBLIC ReturnType
+  KUKA_NRT_MESSAGE_HANDLER_PUBLIC ReturnType
   update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
@@ -52,4 +55,4 @@ private:
 
 }  // namespace kuka_controllers
 
-#endif  // KUKA_DRIVE_HANDLER__KUKA_DRIVE_HANDLER_HPP_
+#endif  // KUKA_NRT_MESSAGE_HANDLER__KUKA_NRT_MESSAGE_HANDLER_HPP_
