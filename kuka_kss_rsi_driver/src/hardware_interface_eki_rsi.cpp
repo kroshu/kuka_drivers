@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <regex>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -340,10 +341,61 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
   return true;
 }
 
+std::string FindRobotModelInUrdfName(const std::string & input)
+{
+  // Regex pattern to match robot model names
+  std::regex pattern(
+    "kr\\d+_r\\d+_[a-z\\d]*(?=\\b)",
+    std::regex_constants::ECMAScript | std::regex_constants::icase);
+  std::smatch match;
+  std::string last_match;
+  auto search_start = input.cbegin();
+
+  while (std::regex_search(search_start, input.cend(), match, pattern))
+  {
+    last_match = match.str();
+    search_start = match.suffix().first;
+  }
+
+  // Convert to lowercase
+  std::transform(last_match.begin(), last_match.end(), last_match.begin(), ::tolower);
+
+  // Remove hyphens and underscores
+  last_match.erase(std::remove(last_match.begin(), last_match.end(), '_'), last_match.end());
+
+  return last_match;
+}
+
+std::string ProcessKrcReportedRobotName(const std::string & input)
+{
+  std::string processed = input;
+
+  // Convert to lowercase
+  std::transform(processed.begin(), processed.end(), processed.begin(), ::tolower);
+
+  // Remove hyphens and spaces
+  processed.erase(std::remove(processed.begin(), processed.end(), '-'), processed.end());
+  processed.erase(std::remove(processed.begin(), processed.end(), '_'), processed.end());
+  processed.erase(std::remove(processed.begin(), processed.end(), ' '), processed.end());
+
+  return processed;
+}
+
 void KukaRSIHardwareInterface::CheckInitDataCompliance(const InitializationData & init_data)
 {
-  // TODO: Also check model name, joint types, mechanical reduction and RPM values, once all are
-  // made available
+  const std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
+  const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
+  if (reported.find(expected) == std::string::npos)
+  {
+    char buffer[InitSequenceReport::MAX_REASON_LENGTH];
+    sprintf(
+      buffer,
+      "Robot model mismatch: Expected '%s' to be a substring of reported model '%s'. Please verify "
+      "the robot model.",
+      expected.c_str(), reported.c_str());
+    init_report_ = {true, false, buffer};
+    return;
+  }
 
   if (info_.joints.size() != init_data.GetTotalAxisCount())
   {
