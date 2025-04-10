@@ -20,7 +20,7 @@
 
 namespace kuka_kss_rsi_driver
 {
-class KukaRSIEventObserver : public kuka::external::control::kss::KssEventHandler
+class KukaRSIEventObserver : public kuka::external::control::EventHandler
 {
 public:
   explicit KukaRSIEventObserver(KukaRSIHardwareInterface * hw_interface)
@@ -53,7 +53,20 @@ public:
     hw_interface_->set_stop_flag();
   }
 
-  void OnConnected(const kuka::external::control::InitializationData & init_data) override
+private:
+  const rclcpp::Logger logger_;
+  KukaRSIHardwareInterface * hw_interface_;
+};
+
+class KukaRSIEventHandlerExtension : public kuka::external::control::kss::IKssEventHandlerExtension
+{
+public:
+  explicit KukaRSIEventHandlerExtension(KukaRSIHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
+  {
+  }
+
+  void OnConnected(const kuka::external::control::kss::InitializationData & init_data) override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::COMMAND_ACCEPTED);
     RCLCPP_INFO(logger_, "Client successfully established a connection to the EKI server");
@@ -64,6 +77,7 @@ private:
   const rclcpp::Logger logger_;
   KukaRSIHardwareInterface * hw_interface_;
 };
+
 }  // namespace kuka_kss_rsi_driver
 
 #endif  // KUKA_KSS_RSI_DRIVER__EVENT_OBSERVER_EKI_RSI_HPP_

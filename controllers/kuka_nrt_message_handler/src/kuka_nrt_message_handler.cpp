@@ -28,6 +28,8 @@ InterfaceConfig KukaNrtMessageHandler::command_interface_configuration() const
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names.emplace_back(
     std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::DRIVE_STATE);
+  config.names.emplace_back(
+    std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::CYCLE_TIME);
   return config;
 }
 
@@ -38,11 +40,18 @@ InterfaceConfig KukaNrtMessageHandler::state_interface_configuration() const
 
 CallbackReturn KukaNrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
+  // Drive state
   drive_state_ = 1.0;
-  auto cb = [this](const std_msgs::msg::Bool::SharedPtr msg)
-  { drive_state_ = msg->data ? 1.0 : 0.0; };
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
-    "~/drive_state", rclcpp::SystemDefaultsQoS(), cb);
+    "~/drive_state", rclcpp::SystemDefaultsQoS(),
+    [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });
+
+  // Cycle time
+  cycle_time_ = 1.0;
+  cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::Int16>(
+    "~/cycle_time", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::Int16::SharedPtr msg)
+    { cycle_time_ = static_cast<double>(msg->data); });
+
   RCLCPP_INFO(get_node()->get_logger(), "Non-real time message handler configured");
   return CallbackReturn::SUCCESS;
 }
@@ -59,8 +68,9 @@ CallbackReturn KukaNrtMessageHandler::on_deactivate(const rclcpp_lifecycle::Stat
 
 ReturnType KukaNrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  bool success = command_interfaces_[0].set_value(drive_state_);
-  return success ? ReturnType::OK : ReturnType::ERROR;
+  bool drive_state_set = command_interfaces_[0].set_value(drive_state_);
+  bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_);
+  return drive_state_set && cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
 }
 
 }  // namespace kuka_controllers

@@ -23,8 +23,6 @@
 #include "kuka_kss_rsi_driver/event_observer_eki_rsi.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
-using AxisType = kuka::external::control::AxisType;
-
 namespace kuka_kss_rsi_driver
 {
 
@@ -92,6 +90,10 @@ KukaRSIHardwareInterface::export_command_interfaces()
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::DRIVE_STATE, &drives_enabled_command_);
+
+  command_interfaces.emplace_back(
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
+    &cycle_time_command_interface_);
 
   return command_interfaces;
 }
@@ -180,21 +182,11 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
 {
   if (!ShouldWriteJointCommands())
   {
-    const bool drives_enabled = drives_enabled_command_ == 1.0;
-    if (IsDriveEnableCommandValid() && prev_drives_enabled_ != drives_enabled)
+    if (ChangeDriveState() || ChangeCycleTime())
     {
-      if (drives_enabled)
-      {
-        RCLCPP_INFO(logger_, "Turning on drives");
-        robot_ptr_->TurnOnDrives();
-      }
-      else
-      {
-        RCLCPP_INFO(logger_, "Turning off drives");
-        robot_ptr_->TurnOffDrives();
-      }
-      prev_drives_enabled_ = drives_enabled;
+      return return_type::OK;
     }
+
     return return_type::OK;
   }
 
@@ -226,13 +218,18 @@ bool KukaRSIHardwareInterface::ConnectToController()
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
 
-  auto event_observer = std::make_unique<KukaRSIEventObserver>(this);
-  const auto handler_registration_status =
-    robot_ptr_->RegisterEventHandler(std::move(event_observer));
-  if (handler_registration_status.return_code == kuka::external::control::ReturnCode::ERROR)
+  auto status =
+    robot_ptr_->RegisterEventHandler(std::move(std::make_unique<KukaRSIEventObserver>(this)));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
-    const auto message = handler_registration_status.message;
-    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", message);
+    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
+  }
+
+  status = robot_ptr_->RegisterKssEventHandlerExtension(
+    std::make_unique<KukaRSIEventHandlerExtension>(this));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
   }
 
   const auto setup = robot_ptr_->Setup();
@@ -250,11 +247,6 @@ bool KukaRSIHardwareInterface::ConnectToController()
 bool KukaRSIHardwareInterface::ShouldWriteJointCommands() const
 {
   return is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_;
-}
-
-bool KukaRSIHardwareInterface::IsDriveEnableCommandValid() const
-{
-  return drives_enabled_command_ == 1.0 || drives_enabled_command_ == 0.0;
 }
 
 void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
@@ -408,6 +400,43 @@ void KukaRSIHardwareInterface::CheckInitDataCompliance(const InitializationData 
   }
 
   init_report_ = {true, true, ""};
+}
+
+bool KukaRSIHardwareInterface::ChangeDriveState()
+{
+  const bool drives_enabled = drives_enabled_command_ == 1.0;
+  if (prev_drives_enabled_ != drives_enabled)
+  {
+    if (drives_enabled)
+    {
+      RCLCPP_INFO(logger_, "Turning on drives");
+      robot_ptr_->TurnOnDrives();
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "Turning off drives");
+      robot_ptr_->TurnOffDrives();
+    }
+    prev_drives_enabled_ = drives_enabled;
+    return true;
+  }
+  return false;
+}
+
+bool KukaRSIHardwareInterface::ChangeCycleTime()
+{
+  const RsiCycleTime cycle_time =
+    static_cast<RsiCycleTime>(static_cast<int>(cycle_time_command_interface_));
+
+  if (prev_cycle_time_ != cycle_time)
+  {
+    RCLCPP_INFO(logger_, "%lf\t%d", cycle_time_command_interface_, static_cast<int>(cycle_time_command_interface_));
+    robot_ptr_->SetCycleTime(cycle_time);
+    prev_cycle_time_ = cycle_time;
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace kuka_kss_rsi_driver

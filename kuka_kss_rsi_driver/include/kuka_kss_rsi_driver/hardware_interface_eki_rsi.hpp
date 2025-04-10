@@ -27,8 +27,9 @@
 #include "kuka_kss_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
-using InitializationData = kuka::external::control::InitializationData;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+using InitializationData = kuka::external::control::kss::InitializationData;
+using RsiCycleTime = kuka::external::control::kss::Configuration::CycleTime;
 
 namespace kuka_kss_rsi_driver
 {
@@ -87,8 +88,6 @@ private:
 
   KUKA_KSS_RSI_DRIVER_LOCAL bool ShouldWriteJointCommands() const;
 
-  KUKA_KSS_RSI_DRIVER_LOCAL bool IsDriveEnableCommandValid() const;
-
   KUKA_KSS_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_KSS_RSI_DRIVER_LOCAL void Write();
@@ -97,6 +96,10 @@ private:
     const hardware_interface::ComponentInfo & joint) const;
 
   KUKA_KSS_RSI_DRIVER_LOCAL void CheckInitDataCompliance(const InitializationData & init_data);
+
+  KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeDriveState();
+
+  KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeCycleTime();
 
   const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::IKssRobot> robot_ptr_;
@@ -107,6 +110,7 @@ private:
   double hw_control_mode_command_;
   double server_state_;
   double drives_enabled_command_;
+  double cycle_time_command_interface_;
 
   std::mutex event_mutex_;
 
@@ -114,6 +118,7 @@ private:
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
 
   InitSequenceReport init_report_;
   bool first_write_done_;

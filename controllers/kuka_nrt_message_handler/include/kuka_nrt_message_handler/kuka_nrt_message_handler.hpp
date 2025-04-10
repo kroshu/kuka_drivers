@@ -17,6 +17,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/int16.hpp"
 
 #include "kuka_nrt_message_handler/visibility_control.h"
 
@@ -49,8 +50,13 @@ public:
   update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
+  // Drive state related variables
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_state_subscription_;
   double drive_state_;
+
+  // Cycle time related variables
+  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr cycle_time_subscription_;
+  double cycle_time_;
 };
 
 }  // namespace kuka_controllers

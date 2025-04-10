@@ -42,6 +42,9 @@ static constexpr char CONTROL_MODE[] = "control_mode";
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
 static constexpr char SEND_PERIOD[] = "send_period_ms";
 
+/* KSS command interfaces */
+static constexpr char CYCLE_TIME[] = "cycle_time";
+
 /* FRI state interfaces */
 static constexpr char SESSION_STATE[] = "session_state";
 static constexpr char CONNECTION_QUALITY[] = "connection_quality";
