@@ -4,7 +4,7 @@
   <name>kuka_nrt_message_handler</name>
   <version>0.0.0</version>
   <description>Non-real time message handler KUKA robots</description>
-  <maintainer email="pasztor.kristof.kp@gmail.com">Kristóf Pásztor</maintainer>
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Pasztor</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
