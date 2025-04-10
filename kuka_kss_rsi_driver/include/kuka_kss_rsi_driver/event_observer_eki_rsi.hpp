@@ -20,7 +20,7 @@
 
 namespace kuka_kss_rsi_driver
 {
-class KukaRSIEventObserver : public kuka::external::control::EventHandler
+class KukaRSIEventObserver : public kuka::external::control::kss::KssEventHandler
 {
 public:
   explicit KukaRSIEventObserver(KukaRSIHardwareInterface * hw_interface)
