@@ -122,23 +122,10 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   stop_requested_ = false;
 
   Read(10 * REQUEST_TIMEOUT_MS);
-  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
 
-  // copy gpio states to commands when they have
-  // TODO (Komaromi): Make it better and in a function
-  for (auto && motion_state_gpio : robot_ptr_->GetLastMotionState().GetGPIOValues())
-  {
-    for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
-    {
-      if (
-        motion_state_gpio->GetGPIOConfig()->GetName() ==
-        control_signal_gpio->GetGPIOConfig()->GetName())
-      {
-        hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
-          hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
-      }
-    }
-  }
+  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  CopyGPIOStatesToCommands();
+
   Write();
 
   msg_received_ = false;
@@ -225,16 +212,6 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     const auto & positions = req_message.GetMeasuredPositions();
     const auto & gpio_values = req_message.GetGPIOValues();
 
-    // TODO (Komaromi): Delete later
-    for (std::size_t i = 0; i < req_message.GetGPIOValues().size(); i++)
-    {
-      RCLCPP_INFO(
-        rclcpp::get_logger("KukaEACHardwareInterface"), "Signal_%ld - Value: %d, type: %d",
-        req_message.GetGPIOValues().at(i)->GetGPIOConfig()->GetGPIOId(),
-        req_message.GetGPIOValues().at(i)->GetBoolValue(),
-        req_message.GetGPIOValues().at(i)->GetGPIOConfig()->GetValueType());
-    }
-
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
@@ -259,11 +236,6 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
             "No signal value type found. (Should be dead code)");
       }
     }
-    // TODO (Komaromi): Delete later
-    for (auto && gpio : hw_gpio_states_)
-    {
-      RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Signal value: %f", gpio);
-    }
   }
 }
 
@@ -273,12 +245,6 @@ void KukaRSIHardwareInterface::Write()
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
-
-  for (auto && gpio : control_signal.GetGPIOValues())
-  {
-    RCLCPP_INFO(
-      logger_, "Signal_%ld - Value: %d", gpio->GetGPIOConfig()->GetGPIOId(), gpio->GetBoolValue());
-  }
 
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
@@ -330,7 +296,23 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 
   return true;
 }
+void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
+{
+  for (auto && motion_state_gpio : robot_ptr_->GetLastMotionState().GetGPIOValues())
+  {
+    for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
+    {
+      if (
+        motion_state_gpio->GetGPIOConfig()->GetName() ==
+        control_signal_gpio->GetGPIOConfig()->GetName())
+      {
+        hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
+          hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
+      }
+    }
+  }
+  return;
+}
 }  // namespace kuka_kss_rsi_driver
-
 PLUGINLIB_EXPORT_CLASS(
   kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)

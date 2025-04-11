@@ -75,6 +75,8 @@ private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
+  KUKA_KSS_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
+
   const rclcpp::Logger logger_;
 
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
