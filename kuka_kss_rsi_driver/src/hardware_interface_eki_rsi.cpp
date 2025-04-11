@@ -50,6 +50,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
   drives_enabled_command_ = 1.0;
+  cycle_time_command_interface_ = 1.0;
 
   first_write_done_ = false;
   is_active_ = false;
@@ -430,7 +431,6 @@ bool KukaRSIHardwareInterface::ChangeCycleTime()
 
   if (prev_cycle_time_ != cycle_time)
   {
-    RCLCPP_INFO(logger_, "%lf\t%d", cycle_time_command_interface_, static_cast<int>(cycle_time_command_interface_));
     robot_ptr_->SetCycleTime(cycle_time);
     prev_cycle_time_ = cycle_time;
     return true;
