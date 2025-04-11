@@ -13,13 +13,18 @@
 # limitations under the License.
 
 
-from ament_index_python.packages import get_package_share_directory
+import os
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
-from launch_ros.actions import Node, LifecycleNode
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
+
+
+def use_eki():
+    return os.environ.get("USE_EKI", "OFF") == "ON"
 
 
 def launch_setup(context, *args, **kwargs):
@@ -28,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
+    controller_ip = LaunchConfiguration("controller_ip")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
@@ -65,6 +71,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "client_ip:=",
             client_ip,
+            " ",
+            "controller_ip:=",
+            controller_ip,
             " ",
             "prefix:=",
             tf_prefix,
@@ -155,6 +164,10 @@ def launch_setup(context, *args, **kwargs):
         "joint_trajectory_controller": jtc_config,
     }
 
+    if use_eki():
+        controllers["control_mode_handler"] = None
+        controllers["event_broadcaster"] = None
+
     controller_spawners = [
         controller_spawner(name, param_file) for name, param_file in controllers.items()
     ]
@@ -174,8 +187,9 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
-    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
+    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
@@ -183,13 +197,20 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+
+    rel_path_to_config_file = (
+        "/config/ros2_controller_config_eki_rsi.yaml"
+        if use_eki()
+        else "/config/ros2_controller_config_rsi_only.yaml"
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",
             default_value=get_package_share_directory("kuka_kss_rsi_driver")
-            + "/config/ros2_controller_config.yaml",
+            + rel_path_to_config_file,
         )
     )
+
     launch_arguments.append(
         DeclareLaunchArgument(
             "jtc_config",
