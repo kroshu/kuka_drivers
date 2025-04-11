@@ -44,13 +44,14 @@ CallbackReturn KukaNrtMessageHandler::on_configure(const rclcpp_lifecycle::State
   drive_state_ = 1.0;
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
     "~/drive_state", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });
+    std::bind(&KukaNrtMessageHandler::DriveStateChangedCallback, this, std::placeholders::_1));
 
-  // Cycle time
+  // RSI cycle time
   cycle_time_ = 1.0;
-  cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::Int16>(
-    "~/cycle_time", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::Int16::SharedPtr msg)
-    { cycle_time_ = static_cast<double>(msg->data); });
+  cycle_time_subscription_ =
+    get_node()->create_subscription<kuka_driver_interfaces::msg::RsiCycleTime>(
+      "~/cycle_time", rclcpp::SystemDefaultsQoS(),
+      std::bind(&KukaNrtMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
 
   RCLCPP_INFO(get_node()->get_logger(), "Non-real time message handler configured");
   return CallbackReturn::SUCCESS;
@@ -71,6 +72,27 @@ ReturnType KukaNrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Dur
   bool drive_state_set = command_interfaces_[0].set_value(drive_state_);
   bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_);
   return drive_state_set && cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
+}
+
+void KukaNrtMessageHandler::DriveStateChangedCallback(const std_msgs::msg::Bool::SharedPtr msg)
+{
+  drive_state_ = msg->data ? 1.0 : 0.0;
+}
+
+void KukaNrtMessageHandler::RsiCycleTimeChangedCallback(
+  const kuka_driver_interfaces::msg::RsiCycleTime::SharedPtr msg)
+{
+  if (
+    msg->cycle_time == kuka_driver_interfaces::msg::RsiCycleTime::RSI_4MS ||
+    msg->cycle_time == kuka_driver_interfaces::msg::RsiCycleTime::RSI_12MS)
+  {
+    cycle_time_ = static_cast<double>(msg->cycle_time);
+  }
+  else
+  {
+    RCLCPP_ERROR(
+      get_node()->get_logger(), "'%u' is not a valid value for the RSI cycle time.", msg->cycle_time);
+  }
 }
 
 }  // namespace kuka_controllers

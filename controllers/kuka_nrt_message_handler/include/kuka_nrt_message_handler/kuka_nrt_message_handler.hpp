@@ -17,8 +17,8 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "std_msgs/msg/int16.hpp"
 
+#include "kuka_driver_interfaces/msg/rsi_cycle_time.hpp"
 #include "kuka_nrt_message_handler/visibility_control.h"
 
 namespace kuka_controllers
@@ -50,12 +50,19 @@ public:
   update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
+  KUKA_NRT_MESSAGE_HANDLER_LOCAL void DriveStateChangedCallback(
+    const std_msgs::msg::Bool::SharedPtr msg);
+
+  KUKA_NRT_MESSAGE_HANDLER_LOCAL void RsiCycleTimeChangedCallback(
+    const kuka_driver_interfaces::msg::RsiCycleTime::SharedPtr msg);
+
   // Drive state related variables
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_state_subscription_;
   double drive_state_;
 
   // Cycle time related variables
-  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr cycle_time_subscription_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::RsiCycleTime>::SharedPtr
+    cycle_time_subscription_;
   double cycle_time_;
 };
 

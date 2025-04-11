@@ -14,6 +14,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 
 add_library(kuka_nrt_message_handler SHARED src/kuka_nrt_message_handler.cpp)
 add_library(kuka_nrt_message_handler::kuka_nrt_message_handler ALIAS kuka_nrt_message_handler)
@@ -29,6 +30,7 @@ ament_target_dependencies(
   rclcpp_lifecycle
   std_msgs
   kuka_drivers_core
+  kuka_driver_interfaces
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
