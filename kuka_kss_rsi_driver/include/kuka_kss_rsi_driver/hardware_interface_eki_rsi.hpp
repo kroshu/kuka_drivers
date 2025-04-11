@@ -110,7 +110,7 @@ private:
   double hw_control_mode_command_;
   double server_state_;
   double drives_enabled_command_;
-  double cycle_time_command_interface_;
+  double cycle_time_command_;
 
   std::mutex event_mutex_;
 

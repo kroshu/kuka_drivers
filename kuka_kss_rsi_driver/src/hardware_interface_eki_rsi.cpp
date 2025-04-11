@@ -50,7 +50,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
   drives_enabled_command_ = 1.0;
-  cycle_time_command_interface_ = 1.0;
+  cycle_time_command_ = 1.0;
 
   first_write_done_ = false;
   is_active_ = false;
@@ -93,8 +93,7 @@ KukaRSIHardwareInterface::export_command_interfaces()
     hardware_interface::CONFIG_PREFIX, hardware_interface::DRIVE_STATE, &drives_enabled_command_);
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
-    &cycle_time_command_interface_);
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME, &cycle_time_command_);
 
   return command_interfaces;
 }
@@ -426,8 +425,7 @@ bool KukaRSIHardwareInterface::ChangeDriveState()
 
 bool KukaRSIHardwareInterface::ChangeCycleTime()
 {
-  const RsiCycleTime cycle_time =
-    static_cast<RsiCycleTime>(static_cast<int>(cycle_time_command_interface_));
+  const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(static_cast<int>(cycle_time_command_));
 
   if (prev_cycle_time_ != cycle_time)
   {
