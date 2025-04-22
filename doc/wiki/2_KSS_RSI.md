@@ -86,11 +86,11 @@ The IP address of the client machine must be provided as a launch argument. For 
 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
     ```
-    ros2 launch kuka_kss_rsi_driver startup.launch.py client_ip:=0.0.0.0
+    ros2 launch kuka_rsi_driver startup.launch.py client_ip:=0.0.0.0
     ```
      - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
        - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml))
+       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_rsi_driver/config/joint_trajectory_controller_config.yaml))
 
      -  After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
@@ -117,8 +117,8 @@ Both launch files support the following arguments:
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
 - `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 4000 us, only used if `use_fake_hardware` is true)
-- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_kss_rsi_driver/config/ros2_controller_config.yaml`)
-- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_kss_rsi_driver/config/joint_trajectory_controller_config.yaml`)
+- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
+- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
@@ -136,7 +136,7 @@ BEWARE, that this is a non-realtime process including lifecycle management, so t
 To try out the driver with an open-loop simulation, the driver and the `kuka_rsi_simulator` must be started, (before activation only a "collapsed" robot will be visible in `rviz`):
 
 ```
-ros2 launch kuka_kss_rsi_driver startup_with_rviz.launch.py
+ros2 launch kuka_rsi_driver startup_with_rviz.launch.py
 ```
 
 ```

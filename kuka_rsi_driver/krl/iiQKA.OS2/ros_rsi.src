@@ -44,7 +44,7 @@ DEF RSI_Ethernet( )
 ;
 ; ROS INDUSTRIAL: KUKA RSI HW INTERFACE
 ; Realtime UDP data exchange with
-; kuka_kss_rsi_driver
+; kuka_rsi_driver
 ;
 ; =============================================
 
