@@ -58,11 +58,10 @@ private:
   HardwareInterface * hw_interface_;
 };
 
-class KukaRSIEventHandlerExtension
-: public kuka::external::control::kss::eki::IEventHandlerExtension
+class EventHandlerExtension : public kuka::external::control::kss::eki::IEventHandlerExtension
 {
 public:
-  explicit KukaRSIEventHandlerExtension(HardwareInterface * hw_interface)
+  explicit EventHandlerExtension(HardwareInterface * hw_interface)
   : logger_(rclcpp::get_logger("HardwareInterface")), hw_interface_(hw_interface)
   {
   }

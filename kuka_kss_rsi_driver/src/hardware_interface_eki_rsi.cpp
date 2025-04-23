@@ -293,7 +293,7 @@ bool HardwareInterface::ConnectToController()
   }
 
   status =
-    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<KukaRSIEventHandlerExtension>(this));
+    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
