@@ -32,13 +32,13 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_kss_rsi_driver
 {
 
-class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
+class HardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(HardwareInterface)
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
-  : SystemInterface(), logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
+  KUKA_KSS_RSI_DRIVER_PUBLIC HardwareInterface()
+  : SystemInterface(), logger_{rclcpp::get_logger("HardwareInterface")}
   {
   }
 
@@ -77,7 +77,7 @@ private:
 
   const rclcpp::Logger logger_;
 
-  std::unique_ptr<kuka::external::control::kss::IKssRobot> robot_ptr_;
+  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_commands_;

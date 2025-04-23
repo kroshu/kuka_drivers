@@ -22,24 +22,25 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/external-control-sdk/kss/robot.h"
+#include "kuka/external-control-sdk/kss/eki/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_kss_rsi_driver/robot_status_manager.hpp"
 #include "kuka_kss_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-using InitializationData = kuka::external::control::kss::InitializationData;
-using RsiCycleTime = kuka::external::control::kss::Configuration::CycleTime;
+using InitializationData = kuka::external::control::kss::eki::InitializationData;
+using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_kss_rsi_driver
 {
-class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
+class HardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(HardwareInterface)
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
-  : SystemInterface(), logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
+  KUKA_KSS_RSI_DRIVER_PUBLIC HardwareInterface()
+  : SystemInterface(), logger_(rclcpp::get_logger("HardwareInterface"))
   {
   }
 
@@ -102,7 +103,8 @@ private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeCycleTime();
 
   const rclcpp::Logger logger_;
-  std::unique_ptr<kuka::external::control::kss::IKssRobot> robot_ptr_;
+  std::shared_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
+  StatusManager status_manager_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_commands_;
@@ -127,7 +129,8 @@ private:
   bool prev_drives_enabled_;
   std::atomic<bool> stop_requested_{false};
 
-  static constexpr int64_t INIT_SLEEP_MS = 100;
+  static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
+  static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_kss_rsi_driver

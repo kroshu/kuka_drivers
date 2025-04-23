@@ -20,11 +20,11 @@
 
 namespace kuka_kss_rsi_driver
 {
-class KukaRSIEventObserver : public kuka::external::control::EventHandler
+class EventObserver : public kuka::external::control::EventHandler
 {
 public:
-  explicit KukaRSIEventObserver(KukaRSIHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
+  explicit EventObserver(HardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("HardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
@@ -55,18 +55,19 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  KukaRSIHardwareInterface * hw_interface_;
+  HardwareInterface * hw_interface_;
 };
 
-class KukaRSIEventHandlerExtension : public kuka::external::control::kss::IKssEventHandlerExtension
+class KukaRSIEventHandlerExtension
+: public kuka::external::control::kss::eki::IEventHandlerExtension
 {
 public:
-  explicit KukaRSIEventHandlerExtension(KukaRSIHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
+  explicit KukaRSIEventHandlerExtension(HardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("HardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
-  void OnConnected(const kuka::external::control::kss::InitializationData & init_data) override
+  void OnConnected(const kuka::external::control::kss::eki::InitializationData & init_data) override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::COMMAND_ACCEPTED);
     RCLCPP_INFO(logger_, "Client successfully established a connection to the EKI server");
@@ -75,7 +76,7 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  KukaRSIHardwareInterface * hw_interface_;
+  HardwareInterface * hw_interface_;
 };
 
 }  // namespace kuka_kss_rsi_driver

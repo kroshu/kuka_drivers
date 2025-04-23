@@ -22,7 +22,7 @@
 #include "rclcpp/utilities.hpp"
 #include "ros2_control_test_assets/descriptions.hpp"
 
-TEST(TestLoadKukaNrtMessageHandler, load_controller)
+TEST(TestLoadNrtMessageHandler, load_controller)
 {
   std::shared_ptr<rclcpp::Executor> executor =
     std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
@@ -30,7 +30,7 @@ TEST(TestLoadKukaNrtMessageHandler, load_controller)
   controller_manager::ControllerManager cm(
     executor, ros2_control_test_assets::minimal_robot_urdf, true, "test_controller_manager");
 
-  cm.set_parameter({"test_kuka_nrt_message_handler.type", "kuka_controllers/KukaNrtMessageHandler"});
+  cm.set_parameter({"test_kuka_nrt_message_handler.type", "kuka_controllers/NrtMessageHandler"});
 
   ASSERT_NE(cm.load_controller("test_kuka_nrt_message_handler"), nullptr);
 }

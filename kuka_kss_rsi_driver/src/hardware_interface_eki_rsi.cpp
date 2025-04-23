@@ -26,7 +26,7 @@
 namespace kuka_kss_rsi_driver
 {
 
-CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
   {
@@ -60,7 +60,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> HardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -72,11 +72,12 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
   state_interfaces.emplace_back(
     hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
 
+  status_manager_.RegisterStateInterfaces(state_interfaces);
+
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface>
-KukaRSIHardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> HardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -98,14 +99,14 @@ KukaRSIHardwareInterface::export_command_interfaces()
   return command_interfaces;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn HardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   const bool connection_successful = ConnectToController();
 
   // Wait for the response to arrive from the controller
   while (!init_report_.sequence_complete)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(INIT_SLEEP_MS));
+    std::this_thread::sleep_for(INIT_WAIT_DURATION);
   }
 
   if (!init_report_.ok)
@@ -118,18 +119,21 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   else
   {
     RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+    status_manager_.Start();
+    RCLCPP_INFO(logger_, "The robot status may now be queried");
   }
 
   return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn HardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
 {
+  status_manager_.Stop();
   robot_ptr_.reset();
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto control_mode =
     static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
@@ -160,17 +164,19 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn HardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   set_stop_flag();
   return CallbackReturn::SUCCESS;
 }
 
-return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type HardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  status_manager_.UpdateStateInterfaces();
+
   if (!is_active_)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    std::this_thread::sleep_for(IDLE_SLEEP_DURATION);
     return return_type::OK;
   }
 
@@ -178,7 +184,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   return return_type::OK;
 }
 
-return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
+return_type HardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   if (!ShouldWriteJointCommands())
   {
@@ -195,142 +201,10 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   return return_type::OK;
 }
 
-void KukaRSIHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
+void HardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
 {
   std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
-}
-
-void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
-{
-  CheckInitDataCompliance(init_data);
-}
-
-bool KukaRSIHardwareInterface::ConnectToController()
-{
-  RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
-
-  using Configuration = kuka::external::control::kss::Configuration;
-  Configuration config;
-  config.installed_interface = Configuration::InstalledInterface::EKI_RSI;
-  config.kli_ip_address = info_.hardware_parameters["controller_ip"];
-  config.dof = info_.joints.size();
-
-  robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
-
-  auto status =
-    robot_ptr_->RegisterEventHandler(std::move(std::make_unique<KukaRSIEventObserver>(this)));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
-  }
-
-  status = robot_ptr_->RegisterKssEventHandlerExtension(
-    std::make_unique<KukaRSIEventHandlerExtension>(this));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
-  }
-
-  const auto setup = robot_ptr_->Setup();
-  if (setup.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Setup failed: %s", setup.message);
-    return false;
-  }
-
-  RCLCPP_INFO(logger_, "Successfully established connection to the robot controller!");
-
-  return true;
-}
-
-bool KukaRSIHardwareInterface::ShouldWriteJointCommands() const
-{
-  return is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_;
-}
-
-void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
-{
-  std::chrono::milliseconds timeout(request_timeout);
-  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
-
-  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
-  if (msg_received_)
-  {
-    const auto & req_message = robot_ptr_->GetLastMotionState();
-    const auto & positions = req_message.GetMeasuredPositions();
-    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
-  }
-
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  server_state_ = static_cast<double>(last_event_);
-}
-
-void KukaRSIHardwareInterface::Write()
-{
-  // Write values to hardware interface
-  auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
-
-  const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
-  const bool control_mode_change_requested = control_mode != prev_control_mode_;
-  kuka::external::control::Status send_reply_status;
-  if (stop_requested_)
-  {
-    RCLCPP_INFO(logger_, "Sending stop signal");
-    is_active_ = false;
-    first_write_done_ = false;
-    msg_received_ = false;
-    send_reply_status = robot_ptr_->StopControlling();
-  }
-  else if (control_mode_change_requested)
-  {
-    // TODO(pasztork): Test this branch once other control modes become available.
-    RCLCPP_INFO(logger_, "Requesting control mode change");
-    send_reply_status = robot_ptr_->SwitchControlMode(
-      static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
-    prev_control_mode_ = control_mode;
-  }
-  else
-  {
-    send_reply_status = robot_ptr_->SendControlSignal();
-  }
-
-  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
-    throw std::runtime_error("Error sending reply");
-  }
-}
-
-bool KukaRSIHardwareInterface::CheckJointInterfaces(
-  const hardware_interface::ComponentInfo & joint) const
-{
-  if (joint.command_interfaces.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 command interface");
-    return false;
-  }
-
-  if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-  {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION command interface");
-    return false;
-  }
-
-  if (joint.state_interfaces.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 state interface");
-    return false;
-  }
-
-  if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-  {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION state interface");
-    return false;
-  }
-
-  return true;
 }
 
 std::string FindRobotModelInUrdfName(const std::string & input)
@@ -373,7 +247,7 @@ std::string ProcessKrcReportedRobotName(const std::string & input)
   return processed;
 }
 
-void KukaRSIHardwareInterface::CheckInitDataCompliance(const InitializationData & init_data)
+void HardwareInterface::eki_init(const InitializationData & init_data)
 {
   const std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
   const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
@@ -402,7 +276,139 @@ void KukaRSIHardwareInterface::CheckInitDataCompliance(const InitializationData 
   init_report_ = {true, true, ""};
 }
 
-bool KukaRSIHardwareInterface::ChangeDriveState()
+bool HardwareInterface::ConnectToController()
+{
+  RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
+
+  kuka::external::control::kss::Configuration config;
+  config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  config.dof = info_.joints.size();
+
+  robot_ptr_ = std::make_shared<kuka::external::control::kss::eki::Robot>(config);
+
+  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
+  }
+
+  status =
+    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<KukaRSIEventHandlerExtension>(this));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
+  }
+
+  status = robot_ptr_->Setup();
+  if (status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Setup failed: %s", status.message);
+    return false;
+  }
+
+  status_manager_.RegisterRobotPtr(robot_ptr_);
+  status = robot_ptr_->RegisterStatusResponseHandler(
+    std::make_unique<StatusResponseHandler>(&status_manager_));
+  if (status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
+    return false;
+  }
+
+  RCLCPP_INFO(logger_, "Successfully established connection to the robot controller!");
+
+  return true;
+}
+
+bool HardwareInterface::ShouldWriteJointCommands() const
+{
+  return is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_;
+}
+
+void HardwareInterface::Read(const int64_t request_timeout)
+{
+  std::chrono::milliseconds timeout(request_timeout);
+  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
+
+  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
+  if (msg_received_)
+  {
+    const auto & req_message = robot_ptr_->GetLastMotionState();
+    const auto & positions = req_message.GetMeasuredPositions();
+    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+  }
+
+  std::lock_guard<std::mutex> lck(event_mutex_);
+  server_state_ = static_cast<double>(last_event_);
+}
+
+void HardwareInterface::Write()
+{
+  // Write values to hardware interface
+  auto & control_signal = robot_ptr_->GetControlSignal();
+  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+
+  const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
+  const bool control_mode_change_requested = control_mode != prev_control_mode_;
+  kuka::external::control::Status send_reply_status;
+  if (stop_requested_)
+  {
+    RCLCPP_INFO(logger_, "Sending stop signal");
+    is_active_ = false;
+    first_write_done_ = false;
+    msg_received_ = false;
+    send_reply_status = robot_ptr_->StopControlling();
+  }
+  else if (control_mode_change_requested)
+  {
+    // TODO(pasztork): Test this branch once other control modes become available.
+    RCLCPP_INFO(logger_, "Requesting control mode change");
+    send_reply_status = robot_ptr_->SwitchControlMode(
+      static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
+    prev_control_mode_ = control_mode;
+  }
+  else
+  {
+    send_reply_status = robot_ptr_->SendControlSignal();
+  }
+
+  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
+    throw std::runtime_error("Error sending reply");
+  }
+}
+
+bool HardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
+{
+  if (joint.command_interfaces.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "Expecting exactly 1 command interface");
+    return false;
+  }
+
+  if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+  {
+    RCLCPP_FATAL(logger_, "Expecting only POSITION command interface");
+    return false;
+  }
+
+  if (joint.state_interfaces.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "Expecting exactly 1 state interface");
+    return false;
+  }
+
+  if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+  {
+    RCLCPP_FATAL(logger_, "Expecting only POSITION state interface");
+    return false;
+  }
+
+  return true;
+}
+
+bool HardwareInterface::ChangeDriveState()
 {
   const bool drives_enabled = drives_enabled_command_ == 1.0;
   if (prev_drives_enabled_ != drives_enabled)
@@ -423,7 +429,7 @@ bool KukaRSIHardwareInterface::ChangeDriveState()
   return false;
 }
 
-bool KukaRSIHardwareInterface::ChangeCycleTime()
+bool HardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(static_cast<int>(cycle_time_command_));
 
@@ -439,5 +445,4 @@ bool KukaRSIHardwareInterface::ChangeCycleTime()
 
 }  // namespace kuka_kss_rsi_driver
 
-PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(kuka_kss_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)

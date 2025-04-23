@@ -11,4 +11,4 @@ controller_manager:
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
     nrt_message_handler:
-      type: kuka_controllers/KukaNrtMessageHandler
+      type: kuka_controllers/NrtMessageHandler
