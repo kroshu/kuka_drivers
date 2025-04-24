@@ -73,7 +73,15 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatus>(
     "~/status", rclcpp::SystemDefaultsQoS());
   timer_ = get_node()->create_wall_timer(
-    STATUS_PUBLISH_INTERVAL, [this] { status_publisher_->publish(status_.GetMessage()); });
+    STATUS_PUBLISH_INTERVAL,
+    [this]
+    {
+      if (status_.StatusChanged())
+      {
+        status_.UpdateMessage();
+        status_publisher_->publish(status_.GetMessage());
+      }
+    });
 
   RCLCPP_INFO(get_node()->get_logger(), "Non-real time message handler configured");
   return CallbackReturn::SUCCESS;

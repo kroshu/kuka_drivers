@@ -101,7 +101,7 @@ private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeCycleTime();
 
   const rclcpp::Logger logger_;
-  std::shared_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
+  std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
   StatusManager status_manager_;
 
   std::vector<double> hw_states_;

@@ -81,12 +81,19 @@ private:
     Status & operator=(
       const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces);
 
-    const kuka_driver_interfaces::msg::KssStatus & GetMessage() const { return status_message_; }
+    const kuka_driver_interfaces::msg::KssStatus & GetMessage() const
+    {
+      return prev_status_message_;
+    }
+
+    bool StatusChanged() const { return status_message_ != prev_status_message_; }
+
+    void UpdateMessage() { prev_status_message_ = status_message_; }
 
   private:
     kuka_driver_interfaces::msg::KssStatus status_message_;
+    kuka_driver_interfaces::msg::KssStatus prev_status_message_;
 
-    /* Mapping to state interfaces for easier extensibility */
     const std::array<std::pair<uint8_t *, size_t>, 3> UINT8_MAPPINGS = {
       std::pair<uint8_t *, size_t>{&status_message_.control_mode, 0},
       std::pair<uint8_t *, size_t>{&status_message_.cycle_time, 1},

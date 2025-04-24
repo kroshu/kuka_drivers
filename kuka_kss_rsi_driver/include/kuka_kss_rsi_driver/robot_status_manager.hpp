@@ -32,17 +32,17 @@ namespace kuka_kss_rsi_driver
 class StatusInterfaces
 {
 public:
-  StatusInterfaces & operator=(const kuka::external::control::kss::eki::StatusResponse & response)
+  StatusInterfaces & operator=(const kuka::external::control::kss::eki::StatusUpdate & update)
   {
-    control_mode_ = static_cast<double>(response.control_mode_);
-    cycle_time_ = static_cast<double>(response.cycle_time_);
-    drives_enabled_ = static_cast<double>(response.drives_enabled_);
-    drives_powered_ = static_cast<double>(response.drives_powered_);
-    emergency_stop_ = static_cast<double>(response.emergency_stop_);
-    guard_stop_ = static_cast<double>(response.guard_stop_);
-    in_motion_ = static_cast<double>(response.in_motion_);
-    motion_possible_ = static_cast<double>(response.motion_possible_);
-    operation_mode_ = static_cast<double>(response.operation_mode_);
+    control_mode_ = static_cast<double>(update.control_mode_);
+    cycle_time_ = static_cast<double>(update.cycle_time_);
+    drives_enabled_ = static_cast<double>(update.drives_enabled_);
+    drives_powered_ = static_cast<double>(update.drives_powered_);
+    emergency_stop_ = static_cast<double>(update.emergency_stop_);
+    guard_stop_ = static_cast<double>(update.guard_stop_);
+    in_motion_ = static_cast<double>(update.in_motion_);
+    motion_possible_ = static_cast<double>(update.motion_possible_);
+    operation_mode_ = static_cast<double>(update.operation_mode_);
     return *this;
   }
 
@@ -86,61 +86,15 @@ private:
 class StatusManager
 {
 public:
-  StatusManager()
-  : logger_(rclcpp::get_logger("HardwareInterface")), robot_ptr_{nullptr}, update_{false}
-  {
-  }
-
-  void Start()
-  {
-    if (robot_ptr_ == nullptr)
-    {
-      throw std::runtime_error("Robot pointer has not been initialized");
-    }
-
-    update_ = true;
-    serving_thread_ = std::thread(
-      [this]
-      {
-        kuka::external::control::Status status;
-        while (update_)
-        {
-          status = robot_ptr_->GetStatus();
-          if (status.return_code != kuka::external::control::ReturnCode::OK)
-          {
-            RCLCPP_ERROR(logger_, "Failed to get status from robot: %s", status.message);
-            update_ = false;
-            continue;
-          }
-          std::this_thread::sleep_for(STATUS_CHECK_INTERVAL);
-        }
-      });
-  }
-
-  void Stop()
-  {
-    update_ = false;
-    if (serving_thread_.joinable())
-    {
-      serving_thread_.join();
-    }
-    robot_ptr_.reset();
-  }
-
-  void RegisterRobotPtr(std::shared_ptr<kuka::external::control::kss::eki::Robot> ptr)
-  {
-    robot_ptr_ = ptr;
-  }
-
   void RegisterStateInterfaces(std::vector<hardware_interface::StateInterface> & state_interfaces)
   {
     status_interfaces_.RegisterStateInterfaces(state_interfaces);
   }
 
-  void SetStatusInterfaces(const kuka::external::control::kss::eki::StatusResponse & response)
+  void SetStatusInterfaces(const kuka::external::control::kss::eki::StatusUpdate & update)
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
-    actual_status_interfaces_ = response;
+    actual_status_interfaces_ = update;
   }
 
   void UpdateStateInterfaces()
@@ -156,26 +110,20 @@ public:
   }
 
 private:
-  const rclcpp::Logger logger_;
   StatusInterfaces status_interfaces_;         // Used as ROS 2 state interface
   StatusInterfaces actual_status_interfaces_;  // Stores actual state
-  std::thread serving_thread_;
-  std::shared_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
   std::mutex status_mtx_;
-  std::atomic<bool> update_;
-
-  static constexpr std::chrono::milliseconds STATUS_CHECK_INTERVAL{2'500};
 };
 
-class StatusResponseHandler : public kuka::external::control::kss::eki::IStatusResponseHandler
+class StatusUpdateHandler : public kuka::external::control::kss::eki::IStatusUpdateHandler
 {
 public:
-  StatusResponseHandler(StatusManager * status_manager) : status_manager_{status_manager} {}
+  StatusUpdateHandler(StatusManager * status_manager) : status_manager_{status_manager} {}
 
-  virtual void OnStatusResponseReceived(
-    const kuka::external::control::kss::eki::StatusResponse & response) override
+  virtual void OnStatusUpdateReceived(
+    const kuka::external::control::kss::eki::StatusUpdate & update) override
   {
-    status_manager_->SetStatusInterfaces(response);
+    status_manager_->SetStatusInterfaces(update);
   }
 
 private:
