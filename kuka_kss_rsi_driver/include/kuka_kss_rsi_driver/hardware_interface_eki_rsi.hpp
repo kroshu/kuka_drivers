@@ -96,8 +96,6 @@ private:
   KUKA_KSS_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
-  KUKA_KSS_RSI_DRIVER_LOCAL void CheckInitDataCompliance(const InitializationData & init_data);
-
   KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeDriveState();
 
   KUKA_KSS_RSI_DRIVER_LOCAL bool ChangeCycleTime();

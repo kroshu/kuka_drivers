@@ -65,6 +65,12 @@ public:
     }
   }
 
+  bool IsOperationModeExt()
+  {
+    return static_cast<uint8_t>(operation_mode_) ==
+           static_cast<uint8_t>(kuka::external::control::OperationMode::EXT);
+  }
+
 private:
   double control_mode_ = 0.0;
   double cycle_time_ = 0.0;
@@ -141,6 +147,12 @@ public:
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     status_interfaces_ = actual_status_interfaces_;
+  }
+
+  bool IsKrcInExtMode()
+  {
+    std::lock_guard<std::mutex> lck{status_mtx_};
+    return status_interfaces_.IsOperationModeExt();
   }
 
 private:

@@ -135,6 +135,12 @@ CallbackReturn HardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
 
 CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  if (!status_manager_.IsKrcInExtMode())
+  {
+    RCLCPP_ERROR(logger_, "KRC not in EXT. Switch to EXT to activate.");
+    return CallbackReturn::FAILURE;
+  }
+
   const auto control_mode =
     static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
 
@@ -292,8 +298,7 @@ bool HardwareInterface::ConnectToController()
     RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
   }
 
-  status =
-    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
+  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
