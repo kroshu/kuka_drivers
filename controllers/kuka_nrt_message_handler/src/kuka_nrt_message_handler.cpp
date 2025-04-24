@@ -63,7 +63,7 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
     [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });
 
   // RSI cycle time
-  cycle_time_ = 1.0;
+  cycle_time_ = static_cast<double>(kuka_driver_interfaces::msg::RsiCycleTime::RSI_12MS);
   cycle_time_subscription_ =
     get_node()->create_subscription<kuka_driver_interfaces::msg::RsiCycleTime>(
       "~/cycle_time", rclcpp::SystemDefaultsQoS(),
