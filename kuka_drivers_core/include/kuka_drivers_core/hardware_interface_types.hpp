@@ -44,7 +44,6 @@ static constexpr char SEND_PERIOD[] = "send_period_ms";
 
 /* KSS interface constants */
 static constexpr char CYCLE_TIME[] = "cycle_time";
-static constexpr char DRIVES_ENABLED[] = "drives_enabled";
 static constexpr char DRIVES_POWERED[] = "drives_powered";
 static constexpr char EMERGENCY_STOP[] = "emergency_stop";
 static constexpr char GUARD_STOP[] = "guard_stop";

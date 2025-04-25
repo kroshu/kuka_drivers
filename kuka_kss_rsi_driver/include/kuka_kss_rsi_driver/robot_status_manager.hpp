@@ -36,7 +36,6 @@ public:
   {
     control_mode_ = static_cast<double>(update.control_mode_);
     cycle_time_ = static_cast<double>(update.cycle_time_);
-    drives_enabled_ = static_cast<double>(update.drives_enabled_);
     drives_powered_ = static_cast<double>(update.drives_powered_);
     emergency_stop_ = static_cast<double>(update.emergency_stop_);
     guard_stop_ = static_cast<double>(update.guard_stop_);
@@ -51,7 +50,6 @@ public:
     const std::vector<std::pair<std::string, double *>> interface_data = {
       {hardware_interface::CONTROL_MODE, &control_mode_},
       {hardware_interface::CYCLE_TIME, &cycle_time_},
-      {hardware_interface::DRIVES_ENABLED, &drives_enabled_},
       {hardware_interface::DRIVES_POWERED, &drives_powered_},
       {hardware_interface::EMERGENCY_STOP, &emergency_stop_},
       {hardware_interface::GUARD_STOP, &guard_stop_},
@@ -74,7 +72,6 @@ public:
 private:
   double control_mode_ = 0.0;
   double cycle_time_ = 0.0;
-  double drives_enabled_ = 0.0;
   double drives_powered_ = 0.0;
   double emergency_stop_ = 0.0;
   double guard_stop_ = 0.0;

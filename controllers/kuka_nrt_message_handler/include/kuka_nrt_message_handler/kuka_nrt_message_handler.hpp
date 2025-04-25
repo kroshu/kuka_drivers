@@ -97,15 +97,14 @@ private:
     const std::array<std::pair<uint8_t *, size_t>, 3> UINT8_MAPPINGS = {
       std::pair<uint8_t *, size_t>{&status_message_.control_mode, 0},
       std::pair<uint8_t *, size_t>{&status_message_.cycle_time, 1},
-      std::pair<uint8_t *, size_t>{&status_message_.operation_mode, 8}};
+      std::pair<uint8_t *, size_t>{&status_message_.operation_mode, 7}};
 
     const std::array<std::pair<bool *, size_t>, 6> BOOL_MAPPINGS = {
-      std::pair<bool *, size_t>{&status_message_.drives_enabled, 2},
-      std::pair<bool *, size_t>{&status_message_.drives_powered, 3},
-      std::pair<bool *, size_t>{&status_message_.emergency_stop, 4},
-      std::pair<bool *, size_t>{&status_message_.guard_stop, 5},
-      std::pair<bool *, size_t>{&status_message_.in_motion, 6},
-      std::pair<bool *, size_t>{&status_message_.motion_possible, 7}};
+      std::pair<bool *, size_t>{&status_message_.drives_powered, 2},
+      std::pair<bool *, size_t>{&status_message_.emergency_stop, 3},
+      std::pair<bool *, size_t>{&status_message_.guard_stop, 4},
+      std::pair<bool *, size_t>{&status_message_.in_motion, 5},
+      std::pair<bool *, size_t>{&status_message_.motion_possible, 6}};
   };
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatus>::SharedPtr status_publisher_;
