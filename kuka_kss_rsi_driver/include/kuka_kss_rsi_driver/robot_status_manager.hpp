@@ -25,6 +25,7 @@
 
 #include "kuka/external-control-sdk/kss/eki/client.h"
 #include "kuka/external-control-sdk/kss/eki/extension.h"
+#include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
 namespace kuka_kss_rsi_driver
 {
@@ -110,21 +111,6 @@ private:
   StatusInterfaces status_interfaces_;         // Used as ROS 2 state interface
   StatusInterfaces actual_status_interfaces_;  // Stores actual state
   std::mutex status_mtx_;
-};
-
-class StatusUpdateHandler : public kuka::external::control::kss::eki::IStatusUpdateHandler
-{
-public:
-  StatusUpdateHandler(StatusManager * status_manager) : status_manager_{status_manager} {}
-
-  virtual void OnStatusUpdateReceived(
-    const kuka::external::control::kss::eki::StatusUpdate & update) override
-  {
-    status_manager_->SetStatusInterfaces(update);
-  }
-
-private:
-  StatusManager * status_manager_;
 };
 
 }  // namespace kuka_kss_rsi_driver

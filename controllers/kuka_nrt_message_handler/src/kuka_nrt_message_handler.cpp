@@ -61,9 +61,9 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
     [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });
 
   // RSI cycle time
-  cycle_time_ = static_cast<double>(kuka_driver_interfaces::msg::RsiCycleTime::RSI_12MS);
+  cycle_time_ = static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_12MS);
   cycle_time_subscription_ =
-    get_node()->create_subscription<kuka_driver_interfaces::msg::RsiCycleTime>(
+    get_node()->create_subscription<std_msgs::msg::UInt8>(
       "~/cycle_time", rclcpp::SystemDefaultsQoS(),
       std::bind(&NrtMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
 
@@ -94,19 +94,19 @@ ReturnType NrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
 }
 
 void NrtMessageHandler::RsiCycleTimeChangedCallback(
-  const kuka_driver_interfaces::msg::RsiCycleTime::SharedPtr msg)
+  const std_msgs::msg::UInt8::SharedPtr msg)
 {
   if (
-    msg->cycle_time == kuka_driver_interfaces::msg::RsiCycleTime::RSI_4MS ||
-    msg->cycle_time == kuka_driver_interfaces::msg::RsiCycleTime::RSI_12MS)
+    msg->data == kuka_driver_interfaces::msg::KssStatus::RSI_4MS ||
+    msg->data == kuka_driver_interfaces::msg::KssStatus::RSI_12MS)
   {
-    cycle_time_ = static_cast<double>(msg->cycle_time);
+    cycle_time_ = static_cast<double>(msg->data);
   }
   else
   {
     RCLCPP_ERROR(
-      get_node()->get_logger(), "'%u' is not a valid value for the RSI cycle time",
-      msg->cycle_time);
+      get_node()->get_logger(), "'%hhu' is not a valid value for the RSI cycle time",
+      msg->data);
   }
 }
 

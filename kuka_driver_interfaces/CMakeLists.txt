@@ -23,7 +23,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FriConfiguration.msg"
   "msg/FRIState.msg"
   "msg/KssStatus.msg"
-  "msg/RsiCycleTime.msg"
 )
 
 if(BUILD_TESTING)

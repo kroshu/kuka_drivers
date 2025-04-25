@@ -47,10 +47,10 @@ CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
+  cycle_time_command_ = 0.0;
+  drives_enabled_command_ = 1.0;
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
-  drives_enabled_command_ = 1.0;
-  cycle_time_command_ = static_cast<double>(RsiCycleTime::RSI_12MS);
 
   first_write_done_ = false;
   is_active_ = false;
@@ -279,6 +279,15 @@ void HardwareInterface::eki_init(const InitializationData & init_data)
   init_report_ = {true, true, ""};
 }
 
+void HardwareInterface::initialize_command_interfaces(
+  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
+{
+  prev_control_mode_ = control_mode;
+  prev_cycle_time_ = cycle_time;
+  hw_control_mode_command_ = static_cast<double>(control_mode);
+  cycle_time_command_ = static_cast<double>(cycle_time);
+}
+
 bool HardwareInterface::ConnectToController()
 {
   RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
@@ -309,7 +318,7 @@ bool HardwareInterface::ConnectToController()
   }
 
   status = robot_ptr_->RegisterStatusResponseHandler(
-    std::make_unique<StatusUpdateHandler>(&status_manager_));
+    std::make_unique<StatusUpdateHandler>(this, &status_manager_));
   if (status.return_code != kuka::external::control::ReturnCode::OK)
   {
     RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
@@ -432,7 +441,7 @@ bool HardwareInterface::ChangeDriveState()
 
 bool HardwareInterface::ChangeCycleTime()
 {
-  const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(static_cast<int>(cycle_time_command_));
+  const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
 
   if (prev_cycle_time_ != cycle_time)
   {

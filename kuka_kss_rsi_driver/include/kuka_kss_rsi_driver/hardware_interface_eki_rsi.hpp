@@ -75,6 +75,8 @@ public:
 
   KUKA_KSS_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
+  KUKA_KSS_RSI_DRIVER_PUBLIC void initialize_command_interfaces(kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
+
 private:
   struct InitSequenceReport
   {
