@@ -18,7 +18,6 @@ uint8 EXT = 4
 # Message fields
 uint8 control_mode
 uint8 cycle_time
-bool drives_enabled
 bool drives_powered
 bool emergency_stop
 bool guard_stop

@@ -99,7 +99,7 @@ private:
       std::pair<uint8_t *, size_t>{&status_message_.cycle_time, 1},
       std::pair<uint8_t *, size_t>{&status_message_.operation_mode, 7}};
 
-    const std::array<std::pair<bool *, size_t>, 6> BOOL_MAPPINGS = {
+    const std::array<std::pair<bool *, size_t>, 5> BOOL_MAPPINGS = {
       std::pair<bool *, size_t>{&status_message_.drives_powered, 2},
       std::pair<bool *, size_t>{&status_message_.emergency_stop, 3},
       std::pair<bool *, size_t>{&status_message_.guard_stop, 4},

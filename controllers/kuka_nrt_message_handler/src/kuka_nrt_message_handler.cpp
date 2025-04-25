@@ -39,12 +39,10 @@ InterfaceConfig NrtMessageHandler::state_interface_configuration() const
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
   const std::vector<std::string> state_interfaces = {
-    hardware_interface::CONTROL_MODE,   hardware_interface::CYCLE_TIME,
-    hardware_interface::DRIVES_ENABLED, hardware_interface::DRIVES_POWERED,
-    hardware_interface::EMERGENCY_STOP, hardware_interface::GUARD_STOP,
-    hardware_interface::IN_MOTION,      hardware_interface::MOTION_POSSIBLE,
-    hardware_interface::OPERATION_MODE,
-  };
+    hardware_interface::CONTROL_MODE,    hardware_interface::CYCLE_TIME,
+    hardware_interface::DRIVES_POWERED,  hardware_interface::EMERGENCY_STOP,
+    hardware_interface::GUARD_STOP,      hardware_interface::IN_MOTION,
+    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE};
 
   for (const auto & interface : state_interfaces)
   {
