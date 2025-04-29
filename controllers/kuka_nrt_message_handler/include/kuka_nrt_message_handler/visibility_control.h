@@ -19,31 +19,31 @@
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
-  #ifdef __GNUC__
-    #define KUKA_NRT_MESSAGE_HANDLER_EXPORT __attribute__ ((dllexport))
-    #define KUKA_NRT_MESSAGE_HANDLER_IMPORT __attribute__ ((dllimport))
-  #else
-    #define KUKA_NRT_MESSAGE_HANDLER_EXPORT __declspec(dllexport)
-    #define KUKA_NRT_MESSAGE_HANDLER_IMPORT __declspec(dllimport)
-  #endif
-  #ifdef KUKA_NRT_MESSAGE_HANDLER_BUILDING_LIBRARY
-    #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC KUKA_NRT_MESSAGE_HANDLER_EXPORT
-  #else
-    #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC KUKA_NRT_MESSAGE_HANDLER_IMPORT
-  #endif
-  #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC_TYPE KUKA_NRT_MESSAGE_HANDLER_PUBLIC
-  #define KUKA_NRT_MESSAGE_HANDLER_LOCAL
+#ifdef __GNUC__
+#define KUKA_NRT_MESSAGE_HANDLER_EXPORT __attribute__((dllexport))
+#define KUKA_NRT_MESSAGE_HANDLER_IMPORT __attribute__((dllimport))
 #else
-  #define KUKA_NRT_MESSAGE_HANDLER_EXPORT __attribute__ ((visibility("default")))
-  #define KUKA_NRT_MESSAGE_HANDLER_IMPORT
-  #if __GNUC__ >= 4
-    #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC __attribute__ ((visibility("default")))
-    #define KUKA_NRT_MESSAGE_HANDLER_LOCAL  __attribute__ ((visibility("hidden")))
-  #else
-    #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC
-    #define KUKA_NRT_MESSAGE_HANDLER_LOCAL
-  #endif
-  #define KUKA_NRT_MESSAGE_HANDLER_PUBLIC_TYPE
+#define KUKA_NRT_MESSAGE_HANDLER_EXPORT __declspec(dllexport)
+#define KUKA_NRT_MESSAGE_HANDLER_IMPORT __declspec(dllimport)
+#endif
+#ifdef KUKA_NRT_MESSAGE_HANDLER_BUILDING_LIBRARY
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC KUKA_NRT_MESSAGE_HANDLER_EXPORT
+#else
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC KUKA_NRT_MESSAGE_HANDLER_IMPORT
+#endif
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC_TYPE KUKA_NRT_MESSAGE_HANDLER_PUBLIC
+#define KUKA_NRT_MESSAGE_HANDLER_LOCAL
+#else
+#define KUKA_NRT_MESSAGE_HANDLER_EXPORT __attribute__((visibility("default")))
+#define KUKA_NRT_MESSAGE_HANDLER_IMPORT
+#if __GNUC__ >= 4
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC __attribute__((visibility("default")))
+#define KUKA_NRT_MESSAGE_HANDLER_LOCAL __attribute__((visibility("hidden")))
+#else
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC
+#define KUKA_NRT_MESSAGE_HANDLER_LOCAL
+#endif
+#define KUKA_NRT_MESSAGE_HANDLER_PUBLIC_TYPE
 #endif
 
 #endif  // KUKA_NRT_MESSAGE_HANDLER__VISIBILITY_CONTROL_H_

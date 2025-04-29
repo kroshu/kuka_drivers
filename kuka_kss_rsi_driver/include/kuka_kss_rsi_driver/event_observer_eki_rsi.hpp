@@ -15,6 +15,8 @@
 #ifndef KUKA_KSS_RSI_DRIVER__EVENT_OBSERVER_EKI_RSI_HPP_
 #define KUKA_KSS_RSI_DRIVER__EVENT_OBSERVER_EKI_RSI_HPP_
 
+#include <string>
+
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
 
@@ -86,7 +88,7 @@ public:
   {
   }
 
-  virtual void OnStatusUpdateReceived(
+  void OnStatusUpdateReceived(
     const kuka::external::control::kss::eki::StatusUpdate & update) override
   {
     if (first_update_)

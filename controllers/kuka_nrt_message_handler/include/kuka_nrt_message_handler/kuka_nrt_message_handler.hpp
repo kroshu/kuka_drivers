@@ -16,6 +16,8 @@
 #define KUKA_NRT_MESSAGE_HANDLER__KUKA_NRT_MESSAGE_HANDLER_HPP_
 
 #include <array>
+#include <utility>
+#include <vector>
 
 #include "controller_interface/controller_interface.hpp"
 #include "std_msgs/msg/bool.hpp"

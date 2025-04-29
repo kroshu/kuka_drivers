@@ -19,7 +19,10 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 

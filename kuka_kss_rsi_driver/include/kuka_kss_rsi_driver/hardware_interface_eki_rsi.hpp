@@ -15,6 +15,8 @@
 #ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
 #define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
 
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "hardware_interface/system_interface.hpp"
@@ -75,7 +77,8 @@ public:
 
   KUKA_KSS_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC void initialize_command_interfaces(kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
+  KUKA_KSS_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
+    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
 private:
   struct InitSequenceReport
@@ -83,8 +86,6 @@ private:
     bool sequence_complete = false;
     bool ok = false;
     std::string reason = "";
-
-    static constexpr size_t MAX_REASON_LENGTH = 128;
   };
 
   KUKA_KSS_RSI_DRIVER_LOCAL bool ConnectToController();

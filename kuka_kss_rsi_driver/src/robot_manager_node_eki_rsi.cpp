@@ -20,8 +20,9 @@
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_kss_rsi_driver/robot_manager_node_eki_rsi.hpp"
 
-using namespace controller_manager_msgs::srv;
-using namespace lifecycle_msgs::msg;
+using controller_manager_msgs::srv::SetHardwareComponentState;
+using controller_manager_msgs::srv::SwitchController;
+using lifecycle_msgs::msg::State;
 
 namespace kuka_rsi
 {

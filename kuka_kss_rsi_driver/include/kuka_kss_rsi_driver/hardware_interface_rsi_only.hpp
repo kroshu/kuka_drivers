@@ -15,6 +15,7 @@
 #ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
 #define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
 
+#include <memory>
 #include <vector>
 
 #include "hardware_interface/system_interface.hpp"

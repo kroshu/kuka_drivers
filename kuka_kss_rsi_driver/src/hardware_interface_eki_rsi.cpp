@@ -256,23 +256,19 @@ void HardwareInterface::eki_init(const InitializationData & init_data)
   const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
   if (reported.find(expected) == std::string::npos)
   {
-    char buffer[InitSequenceReport::MAX_REASON_LENGTH];
-    sprintf(
-      buffer,
-      "Robot model mismatch: Expected '%s' to be a substring of reported model '%s'. Please verify "
-      "the robot model.",
-      expected.c_str(), reported.c_str());
-    init_report_ = {true, false, buffer};
+    std::ostringstream oss;
+    oss << "Robot model mismatch: Expected '" << expected
+        << "' to be a substring of reported model '" << reported << "'";
+    init_report_ = {true, false, oss.str()};
     return;
   }
 
   if (info_.joints.size() != init_data.GetTotalAxisCount())
   {
-    char buffer[InitSequenceReport::MAX_REASON_LENGTH];
-    sprintf(
-      buffer, "Mismatch in axis count: Driver expects %ld, but EKI server reported %d",
-      info_.joints.size(), init_data.GetTotalAxisCount());
-    init_report_ = {true, false, buffer};
+    std::ostringstream oss;
+    oss << "Mismatch in axis count: Driver expects " << info_.joints.size()
+        << ", but EKI server reported " << init_data.GetTotalAxisCount();
+    init_report_ = {true, false, oss.str()};
     return;
   }
 
