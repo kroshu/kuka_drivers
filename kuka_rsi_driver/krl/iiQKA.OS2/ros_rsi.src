@@ -90,6 +90,6 @@ IF (ret <> RSIOK) THEN
   HALT
 ENDIF
 
-PTP {A1 0, A2 -90, A3 90, A4 0, A5 0S, A6 0}
+PTP {A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0}
 
 END
