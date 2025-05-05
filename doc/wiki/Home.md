@@ -6,7 +6,7 @@ This project aims to provide reliable real-time capable drivers for all KUKA rob
 - KSS supporting industrial robots, with Robot Sensor Interface (RSI)
 - Sunrise supporting cobots (LBR iiwa-s), with Fast Robot Interface (FRI)
 - iiQKA supporting cobots (LBR iisy-s), with ExternalAPI.Control (EAC)
-- iiQKA supporting all robots, with Robot Sensor Interface (RSI >= 6.0.0)
+- iiQKA.OS2 supporting industrial robots, with Robot Sensor Interface (RSI >= 6.0.0)
 
 It is also the goal of this project to provide the same API for all four OS-s, hiding the underlying startup procedure and communication technology, thus enabling changing seamlessly to a different KUKA OS.
 
@@ -86,7 +86,7 @@ The following table shows the supported features and control modes of each drive
 |KSS| ✓ | ✗ | ✗ | ✗ | | ✗ | ✗ | ✗ | |
 |Sunrise| ✓ | ✓ | ✗ | ✓ | | | ✗ | | |
 |iiQKA| ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-|iiQKA.OS2| ✓ | ✗ | ✗ | ✗ | | ✗ | ✗ | ✗ | |
+|iiQKA.OS2| ✓ | | | | | | | | |
 
 
 ## Additional packages
