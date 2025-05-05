@@ -30,16 +30,16 @@ RSI can only communicate via the KLI network. Make sure that the controller netw
 Configure your project in iiQWorks.Sim with the following steps:
 
 1. Add the desired RSI version (6.0.0 or above) to iiQWorks.Sim
-  - Download RSI option package from the **Software Repository** in **iiQworks.Cockpit**
-  - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
-  - By clicking on the **plus sing** add the downloaded option package from your file system (it should be a **.kop** file).
+    - Download RSI option package from the **Software Repository** in **iiQworks.Cockpit**
+    - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
+    - By clicking on the **plus sing** add the downloaded option package from your file system (it should be a **.kop** file).
 
 2. After adding the desired robot from the eCatalog by draging it to the layout configure the option packages to use.
-  - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
+    - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
 
 3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface** there is two menu available.
-  - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
-  - The second is a list of ethernet congiuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
+    - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
+    - The second is a list of ethernet congiuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
 
 4. Under the **Program** page the KRL program files are available
 
