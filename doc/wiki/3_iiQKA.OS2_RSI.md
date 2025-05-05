@@ -21,8 +21,8 @@ RSI can only communicate via the KLI network. Make sure that the controller netw
 1. Log in as **Expert**, **Safty Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
    
 2. Change network settings:
-  - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
-  - Set the **IP address** and the **Subnet mask** to the chosen address
+    - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
+    - Set the **IP address** and the **Subnet mask** to the chosen address
 
 3. After pressing **Apply** the new network address should be configured.
 
