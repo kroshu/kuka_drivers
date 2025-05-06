@@ -44,7 +44,7 @@ Configure your project in iiQWorks.Sim with the following steps:
 4. Under the **Program** page the KRL program files are available
 
 ##### Update and upload configuration files
-There are 3 files necessary for RSI that are available in the `krl/iiQKA.OS2` directory:
+There are 3 files necessary for RSI that are available in the `krl/iiQKA_OS2` directory:
 
 - `ros_rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
