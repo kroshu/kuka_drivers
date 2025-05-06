@@ -19,7 +19,7 @@ These instructions were tested with RSI 6.0.0 (on iiQKA.OS2)
 RSI can only communicate via the KLI network. Make sure that the controller network and the **PC with ROS** is connected to the same subnet.
 
 1. Log in as **Expert**, **Safety Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
-   
+
 2. Change network settings:
     - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
     - Set the **IP address** and the **Subnet mask** to the chosen address
