@@ -63,13 +63,13 @@ DECL INT ret	; Return value for RSI commands
 ; Move to start position
 PTP {A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0}
 
-; Create RSI Context 
+; Create RSI Context
 ret = RSI_LOAD("ros_rsi")
 IF (ret <> RSIOK) THEN
   HALT
 ENDIF
 
-; Activate RSI Context 
+; Activate RSI Context
 ret = RSI_ACTIVATE("ros_rsi")
 IF (ret <> RSIOK) THEN
   HALT
@@ -84,7 +84,7 @@ ENDIF
 ; Sensor guided movement
 RSI_MOVECORR()
 
-; Turn off RSI 
+; Turn off RSI
 ret = RSI_PROCESS_OFF()
 IF (ret <> RSIOK) THEN
   HALT

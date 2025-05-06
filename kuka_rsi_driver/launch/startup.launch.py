@@ -96,9 +96,7 @@ def launch_setup(context, *args, **kwargs):
     robot_description = {"robot_description": robot_description_content}
 
     # The driver config contains only parameters that can be changed after startup
-    driver_config = (
-        get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
-    )
+    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
