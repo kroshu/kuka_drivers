@@ -54,8 +54,8 @@ public:
 
 private:
   rclcpp::Subscription<kuka_driver_interfaces::msg::FriConfiguration>::SharedPtr fri_config_sub_;
-  int receive_multiplier_ = 1;
-  int send_period_ms_ = 10;
+  double receive_multiplier_ = 1;
+  double send_period_ms_ = 10;
 };
 }  // namespace kuka_controllers
 #endif  // FRI_CONFIGURATION_CONTROLLER__FRI_CONFIGURATION_CONTROLLER_HPP_
