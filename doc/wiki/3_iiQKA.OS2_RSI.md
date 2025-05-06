@@ -18,7 +18,7 @@ These instructions were tested with RSI 6.0.0 (on iiQKA.OS2)
 
 RSI can only communicate via the KLI network. Make sure that the controller network and the **PC with ROS** is connected to the same subnet.
 
-1. Log in as **Expert**, **Safty Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
+1. Log in as **Expert**, **Safety Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
    
 2. Change network settings:
     - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
@@ -34,7 +34,7 @@ Configure your project in iiQWorks.Sim with the following steps:
     - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
     - By clicking on the **plus sing** add the downloaded option package from your file system (it should be a **.kop** file).
 
-2. After adding the desired robot from the eCatalog by draging it to the layout configure the option packages to use.
+2. After adding the desired robot from the eCatalog by dragging it to the layout configure the option packages to use.
     - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
 
 3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface** there is two menu available.
@@ -107,7 +107,7 @@ The IP address of the client machine must be provided as a launch argument. For 
     ros2 lifecycle set robot_manager activate
     ```
    - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
-3. In the **Programing** menu, under the **Navigator** tab start the `Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
+3. In the **Programming** menu, under the **Navigator** tab start the `Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
