@@ -2,7 +2,7 @@
 
 This document provides instructions on how to set up a system that exclusively uses the **Robot Sensor Interface** (RSI) option package for controlling the robot.
 
-If you wish to use RSI in conjunction with the **Ethernet KRL Interface** (EKI), please refer to the [External Control Setup for KSS with EKI and RSI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_eki_rsi_setup.md) documentation. Follow all the steps described in the linked document. Additionally, before building the ROS package, set the `USE_EKI` environment variable to `ON`. This will inform CMake to use the implementation with EKI instead of the one with only RSI.
+If you wish to use RSI in conjunction with the **Ethernet KRL Interface** (EKI), please refer to the [External Control Setup for KSS with EKI and RSI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_eki_setup.md) documentation. Follow all the steps described in the linked document. Additionally, before building the ROS package, set the `USE_EKI` environment variable to `ON`. This will inform CMake to use the implementation with EKI instead of the one with only RSI.
 
 ### Setup
 
