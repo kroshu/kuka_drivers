@@ -26,7 +26,7 @@ Example cli command to set damping to 0.7 and stiffness to 100 for all joints of
 ros2 topic pub /joint_group_impedance_controller/commands std_msgs/msg/Float64MultiArray "{data: [100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7]}" --once
 ```
 
-__Required parameters__:
+__Required Parameters__:
 
 - `joints` [string_array]: Names of joints used by the controller
 
@@ -38,7 +38,7 @@ Broadcasters receive the state interfaces of a hardware and publish it to a ROS2
 
 The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state` topic, using the custom [FRIState](https://github.com/kroshu/kuka_drivers/blob/master/kuka_driver_interfaces/msg/FRIState.msg) message.
 
-__Required parameters__: None
+__Required Parameters__: None
 
 ### 2.2. `kuka_event_broadcaster`
 
@@ -50,7 +50,7 @@ The `EventBroadcaster` publishes server state change events as integers (enum va
 - 5: Control mode switch was successful (only relevant for drivers, where control mode can be changed in active state)
 - 6: External control stopped by an error (Error message is only available in the hardware interface)
 
-__Required parameters__: None
+__Required Parameters__: None
 
 ## 3. Configuration Controllers
 
@@ -61,13 +61,13 @@ Hardware interfaces do not support parameters that can be changed in runtime. To
 The `ControlModeHandler` can update the `control_mode` command interface of a hardware. It listens on the `~/control_mode` topic and makes control mode changes possible without having to reactivate the driver.
 The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
 
-__Required parameters__: None
+__Required Parameters__: None
 
 ### 3.2. `fri_configuration_controller`
 
 The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` advertises the topic `~/set_fri_config`. Sending a message containing the desired integer values of `send_period_ms` and `receive_multiplier` updates the parameters of the hardware interface.
 
-__Required parameters__: None
+__Required Parameters__: None
 
 ## 4. Hybrid Controllers
 
@@ -115,3 +115,5 @@ The `kuka_nrt_message_handler` controller provides several non-real-time capabil
   ```
 
 __Note:__ These features are available only when the driver is in the __configured__ state. However, status updates are still published in the __active__ state. These updates are only sent if the EKI driver has an idle cycle, meaning no other messages are being transmitted at that moment; this applies to both the configured and the active states.
+
+__Required Parameters__: None
