@@ -83,9 +83,10 @@ The following table shows the supported features and control modes of each drive
 |OS | Joint position control | Joint impedance control | Joint velocity control | Joint torque control | Cartesian position control | Cartesian impedance control | Cartesian velocity control | Wrench control| I/O control|
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 |KSS| ✓ | ✗ | ✗ | ✗ | | ✗ | ✗ | ✗ | |
-|Sunrise| ✓ | ✓ | ✗ | ✓ | | | ✗ | | |
+|Sunrise| ✓ | ✓ | ✗ | ✓ | ✓* | ✓* | ✗ |✓| |
 |iiQKA| ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
 
+\*=Only supported with Sunrise 2.4 and FRI 2.5
 
 ## Additional packages
 The repository contains a few other packages aside from the 3 drivers:

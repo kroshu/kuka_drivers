@@ -118,6 +118,27 @@ bool FRIConnection::setJointImpedanceControlMode(
   return sendCommandAndWait(SET_CONTROL_MODE, serialized);
 }
 
+bool FRIConnection::setCartesianImpedanceControlMode(
+  const std::vector<double> & cart_stiffness, const std::vector<double> & cart_damping)
+{
+  std::vector<std::uint8_t> serialized;
+  serialized.reserve(1 + CONTROL_MODE_HEADER.size() + 2 * 6 * sizeof(double));
+  serialized.emplace_back(CARTESIAN_IMPEDANCE_CONTROL_MODE);
+  for (std::uint8_t byte : CONTROL_MODE_HEADER)
+  {
+    serialized.emplace_back(byte);
+  }
+  for (double cs : cart_stiffness)
+  {
+    serializeNext(cs, serialized);
+  }
+  for (double cd : cart_damping)
+  {
+    serializeNext(cd, serialized);
+  }
+  return sendCommandAndWait(SET_CONTROL_MODE, serialized);
+}
+
 bool FRIConnection::setClientCommandMode(ClientCommandModeID client_command_mode)
 {
   std::vector<std::uint8_t> command_data = {client_command_mode};

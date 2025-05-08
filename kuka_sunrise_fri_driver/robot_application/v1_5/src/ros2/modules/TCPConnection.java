@@ -99,7 +99,6 @@ public class TCPConnection{
 			try{
 				DataOutputStream outToClient = new DataOutputStream(_tcpClient.getOutputStream());
 				outToClient.write(message);
-				//outToClient.close();
 			}catch(IOException e){
 				e.printStackTrace();
 			}

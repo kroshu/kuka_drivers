@@ -29,6 +29,8 @@
   <exec_depend>kuka_event_broadcaster</exec_depend>
   <exec_depend>joint_group_impedance_controller</exec_depend>
   <exec_depend>kuka_lbr_iiwa_support</exec_depend>
+  <exec_depend>wrench_controller</exec_depend>
+  <exec_depend>cart_pose_controller</exec_depend>
 
   <test_depend>ros2lifecycle</test_depend>
   <test_depend>launch_testing_ament_cmake</test_depend>

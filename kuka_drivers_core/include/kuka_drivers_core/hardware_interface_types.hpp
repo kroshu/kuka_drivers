@@ -25,6 +25,19 @@ static constexpr char HW_IF_DAMPING[] = "damping";
 // Constant defining external torque interface
 static constexpr char HW_IF_EXTERNAL_TORQUE[] = "external_torque";
 
+// Constand defining cartesian coordinate interfaces
+static constexpr char HW_IF_X[] = "x";
+static constexpr char HW_IF_Y[] = "y";
+static constexpr char HW_IF_Z[] = "z";
+static constexpr char HW_IF_A[] = "a";
+static constexpr char HW_IF_B[] = "b";
+static constexpr char HW_IF_C[] = "c";
+static constexpr char HW_IF_QX[] = "qx";
+static constexpr char HW_IF_QY[] = "qy";
+static constexpr char HW_IF_QZ[] = "qz";
+static constexpr char HW_IF_QW[] = "qw";
+static constexpr char HW_IF_CART_PREFIX[] = "dummy_cart_joint";
+
 /* Interface prefixes */
 // Constant defining prefix for I/O interfaces
 static constexpr char IO_PREFIX[] = "gpio";
@@ -34,7 +47,10 @@ static constexpr char CONFIG_PREFIX[] = "runtime_config";
 static constexpr char FRI_STATE_PREFIX[] = "fri_state";
 // Constant defining prefix for states
 static constexpr char STATE_PREFIX[] = "state";
-
+// Constant defining wrench interface prefixes
+static constexpr char HW_IF_WRENCH_PREFIX[] = "wrench";
+static constexpr char HW_IF_FORCE_PREFIX[] = "force";
+static constexpr char HW_IF_TORQUE_PREFIX[] = "torque";
 /* Configuration interfaces */
 // Constant defining control_mode configuration interface
 static constexpr char CONTROL_MODE[] = "control_mode";
