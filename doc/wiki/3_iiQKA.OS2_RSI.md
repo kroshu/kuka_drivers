@@ -39,7 +39,7 @@ Configure your project in iiQWorks.Sim with the following steps:
 
 3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface** there is two menu available.
     - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
-    - The second is a list of ethernet congiuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
+    - The second is a list of ethernet configuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
 
 4. Under the **Program** page the KRL program files are available
 
