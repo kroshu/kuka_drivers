@@ -8,7 +8,7 @@ It is recommended to use the driver on a real-time capable client machine (furth
 To set up the controller with iiQWorks.Sim (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
 ##### Client IP configuration
-- Use the KRC's built in DHCP server (KSI) to connect to the windows machine (in this case leave the subnet settings as default) or set a fixed IP in the subnet of the KLI interface (in this case you can not have connection with both PCs). This is required to connect to iiQWorks.Sim and transfer the project to the KRC
+- Use the KRC's built in DHCP server (KSI) to connect to the windows machine (in this case leave the subnet settings as default) or set a fixed IP in the subnet of the KLI interface. This is required to connect to iiQWorks.Sim and transfer the project to the KRC
 - Set a fixed IP in the subnet of the KLI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
