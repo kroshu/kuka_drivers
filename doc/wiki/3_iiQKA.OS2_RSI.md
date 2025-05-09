@@ -37,7 +37,7 @@ Configure your project in iiQWorks.Sim with the following steps:
 2. After adding the desired robot from the eCatalog by dragging it to the layout configure the option packages to use.
     - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
 
-3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface** there is two menu available.
+3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface**, there are two menu options available:
     - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
     - The second is a list of ethernet configuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
 
