@@ -17,7 +17,7 @@
   <exec_depend>kuka_driver_interfaces</exec_depend>
   <exec_depend>kuka_drivers_core</exec_depend>
   <exec_depend>kuka_iiqka_eac_driver</exec_depend>
-  <exec_depend>kuka_kss_rsi_driver</exec_depend>
+  <exec_depend>kuka_rsi_driver</exec_depend>
   <exec_depend>kuka_rsi_simulator</exec_depend>
   <exec_depend>kuka_sunrise_fri_driver</exec_depend>
   <!-- Controllers metapackage -->

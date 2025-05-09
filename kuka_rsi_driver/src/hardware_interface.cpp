@@ -19,9 +19,9 @@
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-#include "kuka_kss_rsi_driver/hardware_interface.hpp"
+#include "kuka_rsi_driver/hardware_interface.hpp"
 
-namespace kuka_kss_rsi_driver
+namespace kuka_rsi_driver
 {
 CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
@@ -207,7 +207,7 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   server_->send(out_buffer_);
   return return_type::OK;
 }
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+  kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)

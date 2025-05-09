@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_
-#define KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_
+#ifndef KUKA_RSI_DRIVER__RSI_STATE_HPP_
+#define KUKA_RSI_DRIVER__RSI_STATE_HPP_
 
 #include <tinyxml.h>
 #include <string>
 #include <vector>
 
-namespace kuka_kss_rsi_driver
+namespace kuka_rsi_driver
 {
 class RSIState
 {
@@ -79,6 +79,6 @@ public:
   std::vector<double> initial_cart_position = std::vector<double>(6, 0.0);
   uint64_t ipoc = 0;
 };
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
 
-#endif  // KUKA_KSS_RSI_DRIVER__RSI_STATE_HPP_
+#endif  // KUKA_RSI_DRIVER__RSI_STATE_HPP_

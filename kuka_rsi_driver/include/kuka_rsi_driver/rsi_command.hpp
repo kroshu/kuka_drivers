@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__RSI_COMMAND_HPP_
-#define KUKA_KSS_RSI_DRIVER__RSI_COMMAND_HPP_
+#ifndef KUKA_RSI_DRIVER__RSI_COMMAND_HPP_
+#define KUKA_RSI_DRIVER__RSI_COMMAND_HPP_
 
 #include <tinyxml.h>
 #include <string>
 #include <vector>
 
-namespace kuka_kss_rsi_driver
+namespace kuka_rsi_driver
 {
 class RSICommand
 {
@@ -56,6 +56,6 @@ public:
   }
   std::string xml_doc;
 };
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
 
-#endif  // KUKA_KSS_RSI_DRIVER__RSI_COMMAND_HPP_
+#endif  // KUKA_RSI_DRIVER__RSI_COMMAND_HPP_
