@@ -2,6 +2,6 @@
 <library path="kuka_rsi_driver">
   <class type="kuka_rsi_driver::KukaRSIHardwareInterface"
          base_class_type="hardware_interface::SystemInterface">
-    <description>ros2_control hardware interface for RSI-controled robots</description>
+    <description>ros2_control hardware interface for RSI-controlled robots</description>
   </class>
 </library>
