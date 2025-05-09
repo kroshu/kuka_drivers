@@ -27,61 +27,64 @@ from launch.actions.include_launch_description import IncludeLaunchDescription
 from ament_index_python.packages import get_package_share_directory
 
 
-# Launch 2 drivers with different namespaces
+# Launch driver startup
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    test_config_dir = get_package_share_directory("kuka_kss_rsi_driver") + "/test/config/"
     return launch.LaunchDescription(
         [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_kss_rsi_driver"),
+                        get_package_share_directory("kuka_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
-                ),
-                launch_arguments={
-                    "namespace": "test1",
-                    "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
-                }.items(),
+                )
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_kss_rsi_driver"),
+                        get_package_share_directory("kuka_rsi_simulator"),
                         "/launch/",
-                        "startup.launch.py",
+                        "kuka_rsi_simulator.launch.py",
                     ]
-                ),
-                launch_arguments={
-                    "namespace": "test2",
-                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
-                    "x": "2",
-                }.items(),
+                )
+            ),
+            launch.actions.TimerAction(
+                period=10.0,
+                actions=[
+                    launch.actions.ExecuteProcess(
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
+                        output="screen",
+                    ),
+                ],
+            ),
+            launch.actions.TimerAction(
+                period=15.0,
+                actions=[
+                    launch.actions.ExecuteProcess(
+                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
+                        output="screen",
+                    ),
+                ],
             ),
             launch_testing.actions.ReadyToTest(),
         ]
     )
 
 
-class TestMultiStartup(unittest.TestCase):
+class TestDriverActivation(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        proc_output.assertWaitFor("Robot initialized", timeout=20)
+        proc_output.assertWaitFor("Robot initialized", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'test1_kr6_r700_sixx'", timeout=20
-        )
-        proc_output.assertWaitFor(
-            "Successful initialization of hardware 'test2_kr6_r700_sixx'", timeout=20
+            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor(
-            "Setting component 'test1_kr6_r700_sixx' to 'unconfigured' state.", timeout=20
+            "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
         )
-        proc_output.assertWaitFor(
-            "Setting component 'test2_kr6_r700_sixx' to 'unconfigured' state.", timeout=20
-        )
+        # Check for successful configuration and activation
+        proc_output.assertWaitFor("Successful 'configure' of hardware 'kr6_r700_sixx'", timeout=15)
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'kr6_r700_sixx'", timeout=20)

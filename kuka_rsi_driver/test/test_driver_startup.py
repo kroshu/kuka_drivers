@@ -36,7 +36,7 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_kss_rsi_driver"),
+                        get_package_share_directory("kuka_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(kuka_kss_rsi_driver)
+project(kuka_rsi_driver)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -33,7 +33,7 @@ add_library(${PROJECT_NAME} SHARED
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_KSS_RSI_DRIVER_BUILDING_LIBRARY")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_RSI_DRIVER_BUILDING_LIBRARY")
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 

@@ -96,9 +96,7 @@ def launch_setup(context, *args, **kwargs):
     robot_description = {"robot_description": robot_description_content}
 
     # The driver config contains only parameters that can be changed after startup
-    driver_config = (
-        get_package_share_directory("kuka_kss_rsi_driver") + "/config/driver_config.yaml"
-    )
+    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
@@ -119,7 +117,7 @@ def launch_setup(context, *args, **kwargs):
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
         namespace=ns,
-        package="kuka_kss_rsi_driver",
+        package="kuka_rsi_driver",
         executable="robot_manager_node",
         parameters=[driver_config, {"robot_model": robot_model}],
     )
@@ -186,14 +184,14 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",
-            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/ros2_controller_config.yaml",
         )
     )
     launch_arguments.append(
         DeclareLaunchArgument(
             "jtc_config",
-            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/joint_trajectory_controller_config.yaml",
         )
     )
