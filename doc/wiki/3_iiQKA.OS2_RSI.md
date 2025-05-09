@@ -32,7 +32,7 @@ Configure your project in iiQWorks.Sim with the following steps:
 1. Add the desired RSI version (6.0.0 or above) to iiQWorks.Sim
     - Download RSI option package from the **Software Repository** in **iiQworks.Cockpit**
     - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
-    - By clicking on the **plus sing** add the downloaded option package from your file system (it should be a **.kop** file).
+    - By clicking on the **plus sign** add the downloaded option package from your file system (it should be a **.kop** file).
 
 2. After adding the desired robot from the eCatalog by dragging it to the layout configure the option packages to use.
     - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
