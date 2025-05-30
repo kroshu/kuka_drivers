@@ -42,7 +42,8 @@ InterfaceConfig NrtMessageHandler::state_interface_configuration() const
     hardware_interface::CONTROL_MODE,    hardware_interface::CYCLE_TIME,
     hardware_interface::DRIVES_POWERED,  hardware_interface::EMERGENCY_STOP,
     hardware_interface::GUARD_STOP,      hardware_interface::IN_MOTION,
-    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE};
+    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
+    hardware_interface::ROBOT_STOPPED};
 
   for (const auto & interface : state_interfaces)
   {

@@ -56,6 +56,7 @@ static constexpr char CONNECTION_QUALITY[] = "connection_quality";
 static constexpr char SAFETY_STATE[] = "safety_state";
 static constexpr char COMMAND_MODE[] = "command_mode";
 static constexpr char OPERATION_MODE[] = "operation_mode";
+static constexpr char ROBOT_STOPPED[] = "robot_stopped";
 static constexpr char DRIVE_STATE[] = "drive_state";
 static constexpr char OVERLAY_TYPE[] = "overlay_type";
 static constexpr char TRACKING_PERFORMANCE[] = "tracking_performance";

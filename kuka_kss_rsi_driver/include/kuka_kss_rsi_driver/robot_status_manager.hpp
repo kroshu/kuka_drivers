@@ -46,6 +46,7 @@ public:
     in_motion_ = static_cast<double>(update.in_motion_);
     motion_possible_ = static_cast<double>(update.motion_possible_);
     operation_mode_ = static_cast<double>(update.operation_mode_);
+    robot_stopped_ = static_cast<double>(update.robot_stopped_);
     return *this;
   }
 
@@ -59,7 +60,8 @@ public:
       {hardware_interface::GUARD_STOP, &guard_stop_},
       {hardware_interface::IN_MOTION, &in_motion_},
       {hardware_interface::MOTION_POSSIBLE, &motion_possible_},
-      {hardware_interface::OPERATION_MODE, &operation_mode_}};
+      {hardware_interface::OPERATION_MODE, &operation_mode_},
+      {hardware_interface::ROBOT_STOPPED, &robot_stopped_}};
 
     for (const auto & [name, value_ptr] : interface_data)
     {
@@ -82,6 +84,7 @@ private:
   double in_motion_ = 0.0;
   double motion_possible_ = 0.0;
   double operation_mode_ = 0.0;
+  double robot_stopped_ = 0.0;
 };
 
 class StatusManager
