@@ -132,7 +132,7 @@ private:
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
-  static constexpr int64_t READ_TIMEOUT_MS = 1'000;
+  static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_kss_rsi_driver
 

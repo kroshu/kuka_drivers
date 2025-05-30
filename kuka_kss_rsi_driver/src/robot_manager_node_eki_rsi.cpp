@@ -171,10 +171,10 @@ CallbackReturn RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
-  auto controllers = controller_handler_.GetControllersForMode(control_mode_);
-  controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
-  const bool controller_activation_successful =
-    kuka_drivers_core::changeControllerState(change_controller_state_client_, controllers, {});
+  auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
+  deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
+    change_controller_state_client_, deactivate_controllers, {});
   if (!controller_activation_successful)
   {
     RCLCPP_ERROR(logger, "Could not activate RT controllers");
@@ -204,13 +204,20 @@ CallbackReturn RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     return ERROR;
   }
 
-  // Stop RT controllers
-  // With best effort strictness, deactivation succeeds if specific controller is not active
-  auto controllers = controller_handler_.GetControllersForMode(control_mode_);
-  controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
-  deactivation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, {}, controllers, SwitchController::Request::BEST_EFFORT);
-  if (!deactivation_successful)
+  // Stop real-time controllers with best effort strictness
+  // Deactivation should also succeed if some controllers are not active
+  auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
+  deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+
+  auto controller_request = std::make_shared<SwitchController::Request>();
+  controller_request->strictness = SwitchController::Request::BEST_EFFORT;
+  controller_request->deactivate_controllers = deactivate_controllers;
+  controller_request->timeout.sec = 5;
+
+  auto controller_response = kuka_drivers_core::sendRequest<SwitchController::Response>(
+    change_controller_state_client_, controller_request, 0, SWITCH_RESPONSE_TIMEOUT_MS);
+
+  if (!controller_response || !controller_response->ok)
   {
     RCLCPP_ERROR(logger, "Could not stop controllers");
     return ERROR;
