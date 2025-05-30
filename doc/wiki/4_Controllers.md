@@ -1,10 +1,6 @@
 # KUKA-specific controllers
 
-To simplify the use of KUKA drivers, a set of custom ROS 2 controllers has been
-developed. These controllers are launched using the provided ROS 2 launch files.
-They follow the ROS 2 lifecycle system, and their states and transitions are
-handled by special robot manager nodes designed for each KUKA robot operating
-system. Currently, four types of controllers are available:
+To simplify the use of KUKA drivers, a set of custom ROS 2 controllers has been developed. These controllers are launched using the provided ROS 2 launch files. They follow the ROS 2 lifecycle system, and their states and transitions are handled by special robot manager nodes designed for each KUKA robot operating system. Currently, four types of controllers are available:
 
 1. Traditional Controllers
 2. Broadcasters
@@ -99,16 +95,17 @@ The `kuka_nrt_message_handler` controller provides several non-real-time capabil
 
   Subscribe to `~/status` to receive updates via `kuka_driver_interfaces::msg::KssStatus`, which includes:
 
-  Field            | Possible Values
-  -----------------|-----------------------------------------------
-  `control_mode`   | `1` (joint position), `5` (cartesian position)
-  `cycle_time`     | `1` (4 ms), `2` (12 ms)
-  `drives_powered` | `true`/`false`
-  `emergency_stop` | `true`/`false`
-  `guard_stop`     | `true`/`false`
-  `in_motion`      | `true`/`false`
-  `motion_possible`| `true`/`false`
-  `operation_mode` | `1` (T1), `2` (T2), `3` (AUT), `4` (EXT)
+  Field             | Possible values                          | Description
+  ------------------|------------------------------------------|--------------------------------------------------------------------
+  `control_mode`    | `1` (joint position)                     | Specifies the robot's control mode
+  `cycle_time`      | `1` (4 ms), `2` (12 ms)                  | Defines the selected RSI communication cycle time
+  `drives_powered`  | `true`/`false`                           | Shows whether the robot's drives are powered
+  `emergency_stop`  | `true`/`false`                           | Reflects whether the emergency stop is active
+  `guard_stop`      | `true`/`false`                           | Indicates whether the guard stop is active
+  `in_motion`       | `true`/`false`                           | Shows whether the robot is moving
+  `motion_possible` | `true`/`false`                           | Indicates whether motion is possible
+  `operation_mode`  | `1` (T1), `2` (T2), `3` (AUT), `4` (EXT) | Represent the robot's current operation mode
+  `robot_stopped`   | `true`/`false`                           | Signals whether there is a message that required the robot to stop
 
   ```shell
   ros2 topic echo /nrt_message_handler/status
