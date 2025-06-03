@@ -208,10 +208,10 @@ Regardless of the launch file you choose, the following arguments must be specif
 - `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified)
 - `controller_ip`: The IP address of the **KUKA Line Interface (KLI)**
 
-For instance, to launch the driver for a KR 10 R900-2 robot from the Agilus family, one could use the following command:
+For instance, to launch the driver for a KR 10 R1100-2 robot from the Agilus family, one could use the following command:
 
 ```bash
-ros2 launch kuka_rsi_driver startup.launch.py robot_family:=agilus robot_model:=kr10_r900_2 controller_ip:=172.31.1.147
+ros2 launch kuka_rsi_driver startup.launch.py robot_family:=agilus robot_model:=kr10_r1100_2 controller_ip:=172.31.1.147
 ```
 
 All other launch arguments described in the [Launch arguments](#launch-arguments) section are supported and applicable to this variant of the driver as well.
