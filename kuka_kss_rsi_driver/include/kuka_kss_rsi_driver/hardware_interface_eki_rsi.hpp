@@ -124,6 +124,9 @@ private:
   RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
 
   InitSequenceReport init_report_;
+  std::mutex init_mtx_;
+  std::condition_variable init_cv_;
+
   bool first_write_done_;
   bool is_active_;
   bool msg_received_;

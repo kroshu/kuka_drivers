@@ -104,10 +104,8 @@ CallbackReturn HardwareInterface::on_configure(const rclcpp_lifecycle::State &)
   const bool connection_successful = ConnectToController();
 
   // Wait for the response to arrive from the controller
-  while (!init_report_.sequence_complete)
-  {
-    std::this_thread::sleep_for(INIT_WAIT_DURATION);
-  }
+  std::unique_lock<std::mutex> lk{init_mtx_};
+  init_cv_.wait(lk, [this] { return init_report_.sequence_complete; });
 
   if (!init_report_.ok)
   {
@@ -252,27 +250,31 @@ std::string ProcessKrcReportedRobotName(const std::string & input)
 
 void HardwareInterface::eki_init(const InitializationData & init_data)
 {
-  const std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
-  const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
-  if (reported.find(expected) == std::string::npos)
   {
-    std::ostringstream oss;
-    oss << "Robot model mismatch: Expected '" << expected
-        << "' to be a substring of reported model '" << reported << "'";
-    init_report_ = {true, false, oss.str()};
-    return;
-  }
+    std::lock_guard<std::mutex> lk{init_mtx_};
+    const std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
+    const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
+    if (reported.find(expected) == std::string::npos)
+    {
+      std::ostringstream oss;
+      oss << "Robot model mismatch: Expected '" << expected
+          << "' to be a substring of reported model '" << reported << "'";
+      init_report_ = {true, false, oss.str()};
+      return;
+    }
 
-  if (info_.joints.size() != init_data.GetTotalAxisCount())
-  {
-    std::ostringstream oss;
-    oss << "Mismatch in axis count: Driver expects " << info_.joints.size()
-        << ", but EKI server reported " << init_data.GetTotalAxisCount();
-    init_report_ = {true, false, oss.str()};
-    return;
-  }
+    if (info_.joints.size() != init_data.GetTotalAxisCount())
+    {
+      std::ostringstream oss;
+      oss << "Mismatch in axis count: Driver expects " << info_.joints.size()
+          << ", but EKI server reported " << init_data.GetTotalAxisCount();
+      init_report_ = {true, false, oss.str()};
+      return;
+    }
 
-  init_report_ = {true, true, ""};
+    init_report_ = {true, true, ""};
+  }
+  init_cv_.notify_one();
 }
 
 void HardwareInterface::initialize_command_interfaces(
