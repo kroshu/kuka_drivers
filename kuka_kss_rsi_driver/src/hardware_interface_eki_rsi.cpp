@@ -48,7 +48,7 @@ CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
   cycle_time_command_ = 0.0;
-  drives_enabled_command_ = 1.0;
+  drives_enabled_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
   server_state_ = 0.0;
 
