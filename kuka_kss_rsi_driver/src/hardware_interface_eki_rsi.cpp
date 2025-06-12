@@ -235,30 +235,26 @@ std::string FindRobotModelInUrdfName(const std::string & input)
 
 std::string ProcessKrcReportedRobotName(const std::string & input)
 {
-  std::string processed = input;
-
-  // Convert to lowercase
-  std::transform(processed.begin(), processed.end(), processed.begin(), ::tolower);
-
-  // Remove hyphens and spaces
-  processed.erase(std::remove(processed.begin(), processed.end(), '-'), processed.end());
-  processed.erase(std::remove(processed.begin(), processed.end(), '_'), processed.end());
-  processed.erase(std::remove(processed.begin(), processed.end(), ' '), processed.end());
-
-  return processed;
+  std::string trimmed = input.substr(1);
+  std::size_t space_pos = trimmed.find(' ');
+  std::string robot_model = trimmed.substr(0, space_pos);
+  std::transform(robot_model.begin(), robot_model.end(), robot_model.begin(), ::tolower);
+  robot_model.erase(std::remove(robot_model.begin(), robot_model.end(), '_'), robot_model.end());
+  return robot_model;
 }
 
 void HardwareInterface::eki_init(const InitializationData & init_data)
 {
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
-    const std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
-    const std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
-    if (reported.find(expected) == std::string::npos)
+    const auto expected = FindRobotModelInUrdfName(info_.hardware_parameters["robot_name"]);
+    const auto reported = ProcessKrcReportedRobotName(init_data.model_name);
+    if (
+      expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
     {
       std::ostringstream oss;
-      oss << "Robot model mismatch: Expected '" << expected
-          << "' to be a substring of reported model '" << reported << "'";
+      oss << "Robot model mismatch detected: expected model '" << expected << "', but received '"
+          << reported << "'";
       init_report_ = {true, false, oss.str()};
       return;
     }
