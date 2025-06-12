@@ -6,9 +6,9 @@ gpio_controller:
     command_interfaces:
       gpio:
         - interfaces:
-          # - Output pin 14
+           - GPIO_01
     state_interfaces:
       gpio:
         - interfaces:
-          # - Output pin 14
-          #- Input pin 17
+           - GPIO_01
+           - GPIO_02
