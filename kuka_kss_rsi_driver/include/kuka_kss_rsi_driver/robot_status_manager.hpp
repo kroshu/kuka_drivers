@@ -1,4 +1,4 @@
-// Copyright 2025 Kristof Pasztor
+// Copyright 2025 KUKA Hungaria Kft.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@
 #include <utility>
 #include <vector>
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 
 #include "kuka/external-control-sdk/kss/eki/client.h"
-#include "kuka/external-control-sdk/kss/eki/extension.h"
-#include "kuka_kss_rsi_driver/hardware_interface_eki_rsi.hpp"
+#include "kuka/external-control-sdk/kss/extension.h"
+#include "kuka_kss_rsi_driver/hardware_interface.hpp"
 
 namespace kuka_kss_rsi_driver
 {
@@ -36,7 +36,7 @@ namespace kuka_kss_rsi_driver
 class StatusInterfaces
 {
 public:
-  StatusInterfaces & operator=(const kuka::external::control::kss::eki::StatusUpdate & update)
+  StatusInterfaces & operator=(const kuka::external::control::kss::StatusUpdate & update)
   {
     control_mode_ = static_cast<double>(update.control_mode_);
     cycle_time_ = static_cast<double>(update.cycle_time_);
@@ -95,7 +95,7 @@ public:
     status_interfaces_.RegisterStateInterfaces(state_interfaces);
   }
 
-  void SetStatusInterfaces(const kuka::external::control::kss::eki::StatusUpdate & update)
+  void SetStatusInterfaces(const kuka::external::control::kss::StatusUpdate & update)
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     actual_status_interfaces_ = update;

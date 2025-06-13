@@ -48,13 +48,15 @@ bool changeControllerState(
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr client,
   const std::vector<std::string> & activate_controllers,
   const std::vector<std::string> & deactivate_controllers,
-  int32_t strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT)
+  int32_t strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT,
+  int32_t timeout_sec = 1)
 {
   auto controller_request =
     std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   controller_request->strictness = strictness;
   controller_request->activate_controllers = activate_controllers;
   controller_request->deactivate_controllers = deactivate_controllers;
+  controller_request->timeout.sec = timeout_sec;
 
   auto controller_response = sendRequest<controller_manager_msgs::srv::SwitchController::Response>(
     client, controller_request, 0, 2000);

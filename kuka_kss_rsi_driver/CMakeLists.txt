@@ -1,10 +1,18 @@
 cmake_minimum_required(VERSION 3.5)
 project(kuka_kss_rsi_driver)
 
-# Toggle the EKI server based on the USE_EKI environment variable
 set(USE_EKI OFF)
 if("$ENV{USE_EKI}" STREQUAL "ON")
   set(USE_EKI ON)
+endif()
+
+set(USE_MXA OFF)
+if("$ENV{USE_MXA}" STREQUAL "ON")
+  set(USE_MXA ON)
+endif()
+
+if(USE_EKI AND USE_MXA)
+  message(FATAL_ERROR "Cannot use both EKI and MXA at the same time. Please set only one of USE_EKI or USE_MXA to ON.")
 endif()
 
 # Default to C99
@@ -31,16 +39,20 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
+set(HW_IF_SOURCE src/hardware_interface.cpp)
+set(ROBOT_MANAGER_SOURCE src/robot_manager_node.cpp)
+
 if(USE_EKI)
-  set(HW_IF_SOURCE src/hardware_interface_eki_rsi.cpp)
-  set(ROBOT_MANAGER_SOURCE src/robot_manager_node_eki_rsi.cpp)
+  add_definitions(-DUSE_EKI)
+elseif(USE_MXA)
+  add_definitions(-DUSE_MXA)
 else()
   set(HW_IF_SOURCE src/hardware_interface_rsi_only.cpp)
   set(ROBOT_MANAGER_SOURCE src/robot_manager_node_rsi_only.cpp)
 endif()
 
 # Create the library
-add_library(${PROJECT_NAME} SHARED ${HW_IF_SOURCE})
+add_library(${PROJECT_NAME} SHARED ${HW_IF_SOURCE} src/initialization_handler.cpp)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

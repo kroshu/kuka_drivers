@@ -18,13 +18,18 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
 
 
-def use_eki():
-    return os.environ.get("USE_EKI", "OFF") == "ON"
+def start_all_controllers():
+    return os.environ.get("USE_EKI", "OFF") == "ON" or os.environ.get("USE_MXA", "OFF") == "ON"
 
 
 def launch_setup(context, *args, **kwargs):
@@ -45,6 +50,7 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    log_level = LaunchConfiguration("log_level")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -124,6 +130,7 @@ def launch_setup(context, *args, **kwargs):
                 },
             },
         ],
+        ros_arguments=["--log-level", log_level.perform(context)],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -131,6 +138,7 @@ def launch_setup(context, *args, **kwargs):
         package="kuka_kss_rsi_driver",
         executable="robot_manager_node",
         parameters=[driver_config, {"robot_model": robot_model}],
+        ros_arguments=["--log-level", log_level.perform(context)],
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -138,6 +146,7 @@ def launch_setup(context, *args, **kwargs):
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        ros_arguments=["--log-level", log_level.perform(context)],
     )
 
     # Spawn controllers
@@ -157,14 +166,19 @@ def launch_setup(context, *args, **kwargs):
         if not activate:
             arg_list.append("--inactive")
 
-        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
+        return Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=arg_list,
+            ros_arguments=["--log-level", log_level.perform(context)],
+        )
 
     controllers = {
         "joint_state_broadcaster": None,
         "joint_trajectory_controller": jtc_config,
     }
 
-    if use_eki():
+    if start_all_controllers():
         controllers["control_mode_handler"] = None
         controllers["event_broadcaster"] = None
         controllers["nrt_message_handler"] = None
@@ -198,10 +212,11 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+    launch_arguments.append(DeclareLaunchArgument("log_level", default_value="info"))
 
     rel_path_to_config_file = (
         "/config/ros2_controller_config_eki_rsi.yaml"
-        if use_eki()
+        if start_all_controllers()
         else "/config/ros2_controller_config_rsi_only.yaml"
     )
     launch_arguments.append(

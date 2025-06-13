@@ -21,7 +21,7 @@
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
 
-namespace kuka_rsi
+namespace kuka_kss_rsi_driver
 {
 RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
@@ -160,7 +160,7 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   robot_model_ = ns + robot_model;
   return true;
 }
-}  // namespace kuka_rsi
+}  // namespace kuka_kss_rsi_driver
 
 int main(int argc, char * argv[])
 {
@@ -168,7 +168,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rsi::RobotManagerNode>();
+  auto node = std::make_shared<kuka_kss_rsi_driver::RobotManagerNode>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();
