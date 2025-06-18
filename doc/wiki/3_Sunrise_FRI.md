@@ -79,6 +79,7 @@ Both launch files support the following argument:
 The `startup_with_rviz.launch.py` additionally contains one argument:
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
+**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/tree/feature/gazebo_humble?tab=readme-ov-file#modes).
 
 #### Stopping external control
 
