@@ -223,7 +223,7 @@ void RobotManagerNode::HardwareEventSubscriptionCallback(
       break;
     case kuka_drivers_core::HardwareEvent::CONTROL_STOPPED:
     case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(get_logger(), "External control stopped");
+      RCLCPP_INFO(get_logger(), "Deactivating robot manager due to external control stop or error");
       terminate_ = true;
       switch (get_current_state().id())
       {

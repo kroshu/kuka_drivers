@@ -49,7 +49,8 @@ public:
   {
     hw_interface_->SetServerEvent(kuka_drivers_core::HardwareEvent::ERROR);
     RCLCPP_ERROR(
-      hw_interface_->GetLogger(), "External control stopped due to an error: %s", reason.c_str());
+      hw_interface_->GetLogger(),
+      "External control encountered an error and will be stopped. Reason: %s", reason.c_str());
     hw_interface_->SetStopFlag();
   }
 

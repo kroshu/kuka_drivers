@@ -149,6 +149,19 @@ CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
   // We must first receive the initial position of the robot
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(FIRST_READ_TIMEOUT);
+
+  // If the first read fails, the activation fails
+  if (!msg_received_)
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive initial position data from robot controller!");
+    auto status = robot_ptr_->StopControlling();
+    if (status.return_code != kuka::external::control::ReturnCode::OK)
+    {
+      RCLCPP_ERROR(logger_, "Failed to stop controlling after failed activation: %s", status.message);
+    }
+    return CallbackReturn::FAILURE;
+  }
+
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
   Write();
 
