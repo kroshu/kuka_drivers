@@ -183,8 +183,20 @@ bool KukaRSIHardwareInterface::SetupRobot()
   config.installed_interface = Configuration::InstalledInterface::RSI_ONLY;
   config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.dof = info_.joints.size();
-  config.gpio_command_size = info_.gpios[0].command_interfaces.size();
-  config.gpio_state_size = info_.gpios[0].state_interfaces.size();
+  // TODO: read data type from InterfaceInfo data type
+  for (auto && gpio_command : info_.gpios[0].command_interfaces)
+  {
+    config.gpio_command_configs.emplace_back(kuka::external::control::GPIOConfiguration{
+      gpio_command.name, kuka::external::control::GPIOValueType::DOUBLE_VALUE});
+    // TODO (Komaromi): Add min, max, initial value, size, enable_limits and parameters
+  }
+
+  for (auto && gpio_state : info_.gpios[0].state_interfaces)
+  {
+    config.gpio_state_configs.emplace_back(kuka::external::control::GPIOConfiguration{
+      gpio_state.name, kuka::external::control::GPIOValueType::DOUBLE_VALUE});
+    // TODO (Komaromi): Add min, max, initial value, size, enable_limits and parameters
+  }
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
 
@@ -216,16 +228,13 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
-      switch (gpio_values.at(i)->GetGPIOConfig()->GetValueType())
+      switch (gpio_values.at(i)->GetGPIOConfig().value_type)
       {
         case kuka::external::control::GPIOValueType::BOOL_VALUE:
           hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
           break;
         case kuka::external::control::GPIOValueType::DOUBLE_VALUE:
           hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetDoubleValue());
-          break;
-        case kuka::external::control::GPIOValueType::RAW_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetRawValue());
           break;
         case kuka::external::control::GPIOValueType::LONG_VALUE:
           hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetLongValue());
@@ -302,13 +311,14 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
   {
     for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
     {
-      if (
-        motion_state_gpio->GetGPIOConfig()->GetName() ==
-        control_signal_gpio->GetGPIOConfig()->GetName())
-      {
-        hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
-          hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
-      }
+      // TODO: Fix
+      // if (
+      //   motion_state_gpio->GetGPIOConfig()->GetName() ==
+      //   control_signal_gpio->GetGPIOConfig()->GetName())
+      // {
+      //   hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
+      //     hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
+      // }
     }
   }
   return;
