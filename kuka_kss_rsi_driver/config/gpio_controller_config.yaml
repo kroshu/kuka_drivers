@@ -1,0 +1,14 @@
+gpio_controller:
+  ros__parameters:
+    type: gpio_controllers/GpioCommandController
+    gpios:
+      - gpio
+    command_interfaces:
+      gpio:
+        - interfaces:
+           - GPIO_01
+    state_interfaces:
+      gpio:
+        - interfaces:
+           - GPIO_01
+           - GPIO_02
