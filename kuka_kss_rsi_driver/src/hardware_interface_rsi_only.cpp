@@ -186,16 +186,18 @@ bool KukaRSIHardwareInterface::SetupRobot()
   // TODO: read data type from InterfaceInfo data type
   for (auto && gpio_command : info_.gpios[0].command_interfaces)
   {
-    config.gpio_command_configs.emplace_back(kuka::external::control::GPIOConfiguration{
-      gpio_command.name, kuka::external::control::GPIOValueType::DOUBLE_VALUE});
-    // TODO (Komaromi): Add min, max, initial value, size, enable_limits and parameters
+    config.gpio_command_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
+      gpio_command.name, gpio_command.data_type, gpio_command.enable_limits,
+      std::stod(gpio_command.min), std::stod(gpio_command.max)));
+    // TODO (Komaromi): Add initial value, size and parameters
   }
 
   for (auto && gpio_state : info_.gpios[0].state_interfaces)
   {
-    config.gpio_state_configs.emplace_back(kuka::external::control::GPIOConfiguration{
-      gpio_state.name, kuka::external::control::GPIOValueType::DOUBLE_VALUE});
-    // TODO (Komaromi): Add min, max, initial value, size, enable_limits and parameters
+    config.gpio_state_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
+      gpio_state.name, gpio_state.data_type, gpio_state.enable_limits, std::stod(gpio_state.min),
+      std::stod(gpio_state.max)));
+    // TODO (Komaromi): Add initial value, size, and parameters
   }
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
@@ -228,21 +230,17 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
-      switch (gpio_values.at(i)->GetGPIOConfig().value_type)
+      auto & value = gpio_values.at(i)->GetValue();
+      if (value.has_value())
       {
-        case kuka::external::control::GPIOValueType::BOOL_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
-          break;
-        case kuka::external::control::GPIOValueType::DOUBLE_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetDoubleValue());
-          break;
-        case kuka::external::control::GPIOValueType::LONG_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetLongValue());
-          break;
-        default:
-          RCLCPP_ERROR(
-            rclcpp::get_logger("KukaEACHardwareInterface"),
-            "No signal value type found. (Should be dead code)");
+        hw_gpio_states_[i] = value.value();
+      }
+      else
+      {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
+          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
       }
     }
   }
