@@ -230,7 +230,7 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
-      auto & value = gpio_values.at(i)->GetValue();
+      auto value = gpio_values.at(i)->GetValue();
       if (value.has_value())
       {
         hw_gpio_states_[i] = value.value();
@@ -305,21 +305,18 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 }
 void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
-  for (auto && motion_state_gpio : robot_ptr_->GetLastMotionState().GetGPIOValues())
+  auto & gpio = info_.gpios[0];
+  for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
   {
-    for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
+    for (size_t j = 0; j < gpio.command_interfaces.size(); j++)
     {
-      // TODO: Fix
-      // if (
-      //   motion_state_gpio->GetGPIOConfig()->GetName() ==
-      //   control_signal_gpio->GetGPIOConfig()->GetName())
-      // {
-      //   hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
-      //     hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
-      // }
+      if (gpio.state_interfaces[i].name == gpio.command_interfaces[j].name)
+      {
+        hw_gpio_commands_[j] = hw_gpio_states_[i];
+        break;
+      }
     }
   }
-  return;
 }
 }  // namespace kuka_kss_rsi_driver
 PLUGINLIB_EXPORT_CLASS(
