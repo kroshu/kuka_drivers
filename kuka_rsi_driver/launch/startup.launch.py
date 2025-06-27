@@ -226,7 +226,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "gpio_config",
-            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/gpio_controller_config.yaml",
         )
     )
