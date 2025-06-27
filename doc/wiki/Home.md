@@ -6,8 +6,9 @@ This project aims to provide reliable real-time capable drivers for all KUKA rob
 - KSS supporting industrial robots, with Robot Sensor Interface (RSI)
 - Sunrise supporting cobots (LBR iiwa-s), with Fast Robot Interface (FRI)
 - iiQKA supporting cobots (LBR iisy-s), with ExternalAPI.Control (EAC)
+- iiQKA.OS2 supporting industrial robots, with Robot Sensor Interface (RSI >= 6.0.0)
 
-It is also the goal of this project to provide the same API for all three OS-s, hiding the underlying startup procedure and communication technology, thus enabling changing seamlessly to a different KUKA OS.
+It is also the goal of this project to provide the same API for all four OS-s, hiding the underlying startup procedure and communication technology, thus enabling changing seamlessly to a different KUKA OS.
 
 Additionally the aim was to write high quality, maintainable code with standardized interfaces, that conforms with the standards defined by the [ROS-Industrial project](https://www.rosin-project.eu/).
 
@@ -85,6 +86,7 @@ The following table shows the supported features and control modes of each drive
 |KSS| ✓ | ✗ | ✗ | ✗ | | ✗ | ✗ | ✗ | |
 |Sunrise| ✓ | ✓ | ✗ | ✓ | | | ✗ | | |
 |iiQKA| ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+|iiQKA.OS2| ✓ | | | | | | | | |
 
 
 ## Additional packages
@@ -139,4 +141,4 @@ As the robot controllers manage the timing of the drivers, it does not make sens
 
 ## Detailed setup and startup instructions
 
-For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI) or [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) robots.
+For more detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/4_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) or [iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/3_iiQKA.OS2_KSS) robots.
