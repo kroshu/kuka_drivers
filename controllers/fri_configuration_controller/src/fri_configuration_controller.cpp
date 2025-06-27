@@ -71,9 +71,14 @@ controller_interface::return_type FRIConfigurationController::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
   // TODO(Svastits): disable changes if HWIF is active
-  command_interfaces_[0].set_value(receive_multiplier_);
-  command_interfaces_[1].set_value(send_period_ms_);
-
+  if (!command_interfaces_[0].set_value(receive_multiplier_))
+  {
+    return controller_interface::return_type::ERROR;
+  }
+  if (!command_interfaces_[1].set_value(send_period_ms_))
+  {
+    return controller_interface::return_type::ERROR;
+  }
   return controller_interface::return_type::OK;
 }
 
