@@ -182,17 +182,28 @@ bool HardwareInterface::SetupRobot()
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
   config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.dof = info_.joints.size();
+  RCLCPP_INFO(logger_, "GPIO command params:");
   // TODO: read data type from InterfaceInfo data type
   for (auto && gpio_command : info_.gpios[0].command_interfaces)
   {
+    RCLCPP_INFO(
+      logger_, "name: %s, data_type: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_command.name.c_str(), gpio_command.data_type.c_str(),
+      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
+      gpio_command.max.c_str());
     config.gpio_command_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
       gpio_command.name, gpio_command.data_type, gpio_command.enable_limits,
       std::stod(gpio_command.min), std::stod(gpio_command.max)));
     // TODO (Komaromi): Add initial value, size and parameters
   }
 
+  RCLCPP_INFO(logger_, "GPIO state params:");
   for (auto && gpio_state : info_.gpios[0].state_interfaces)
   {
+    RCLCPP_INFO(
+      logger_, "name: %s, data_type: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_state.name.c_str(), gpio_state.data_type.c_str(),
+      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
     config.gpio_state_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
       gpio_state.name, gpio_state.data_type, gpio_state.enable_limits, std::stod(gpio_state.min),
       std::stod(gpio_state.max)));
@@ -317,5 +328,4 @@ void HardwareInterface::CopyGPIOStatesToCommands()
   }
 }
 }  // namespace kuka_rsi_driver
-PLUGINLIB_EXPORT_CLASS(
-  kuka_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)
