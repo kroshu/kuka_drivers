@@ -120,7 +120,7 @@ CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   stop_requested_ = false;
 
-  Read(10 * REQUEST_TIMEOUT_MS);
+  Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
   CopyGPIOStatesToCommands();
@@ -301,7 +301,7 @@ bool HardwareInterface::CheckJointInterfaces(const hardware_interface::Component
 
   return true;
 }
-void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
+void HardwareInterface::CopyGPIOStatesToCommands()
 {
   auto & gpio = info_.gpios[0];
   for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
@@ -316,6 +316,6 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
     }
   }
 }
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
 PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+  kuka_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)
