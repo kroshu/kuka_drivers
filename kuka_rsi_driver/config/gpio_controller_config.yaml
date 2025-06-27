@@ -6,9 +6,9 @@ gpio_controller:
     command_interfaces:
       gpio:
         - interfaces:
-           - GPIO_01
+           - "01"
     state_interfaces:
       gpio:
         - interfaces:
-           - GPIO_01
-           - GPIO_02
+           - "01"
+           - "02"

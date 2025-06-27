@@ -191,10 +191,13 @@ bool HardwareInterface::SetupRobot()
       gpio_command.name.c_str(), gpio_command.data_type.c_str(),
       gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
       gpio_command.max.c_str());
-    config.gpio_command_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
-      gpio_command.name, gpio_command.data_type, gpio_command.enable_limits,
-      std::stod(gpio_command.min), std::stod(gpio_command.max)));
-    // TODO (Komaromi): Add initial value, size and parameters
+
+    // TODO (Komaromi): Add enable_limits min max initial value, size and parameters
+    config.gpio_command_configs.emplace_back(
+      kuka::external::control::kss::GPIOConfig(gpio_command.name, gpio_command.data_type));
+    // config.gpio_command_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
+    //   gpio_command.name, gpio_command.data_type, gpio_command.enable_limits,
+    //   std::stod(gpio_command.min), std::stod(gpio_command.max)));
   }
 
   RCLCPP_INFO(logger_, "GPIO state params:");
@@ -204,10 +207,13 @@ bool HardwareInterface::SetupRobot()
       logger_, "name: %s, data_type: %s, enable_limits: %s, min: %s, max: %s",
       gpio_state.name.c_str(), gpio_state.data_type.c_str(),
       gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
-    config.gpio_state_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
-      gpio_state.name, gpio_state.data_type, gpio_state.enable_limits, std::stod(gpio_state.min),
-      std::stod(gpio_state.max)));
-    // TODO (Komaromi): Add initial value, size, and parameters
+
+    // TODO (Komaromi): Add enable_limits min max initial value, size, and parameters
+    config.gpio_state_configs.emplace_back(
+      kuka::external::control::kss::GPIOConfig(gpio_state.name, gpio_state.data_type));
+    // config.gpio_state_configs.emplace_back(kuka::external::control::kss::GPIOConfig(
+    //   gpio_state.name, gpio_state.data_type, gpio_state.enable_limits, std::stod(gpio_state.min),
+    //   std::stod(gpio_state.max)));
   }
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
