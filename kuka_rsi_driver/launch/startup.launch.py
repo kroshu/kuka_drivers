@@ -205,8 +205,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",
-            default_value=get_package_share_directory("kuka_rsi_driver")
-            + rel_path_to_config_file,
+            default_value=get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file,
         )
     )
 

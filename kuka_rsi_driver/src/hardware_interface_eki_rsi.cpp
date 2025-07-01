@@ -55,7 +55,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   first_write_done_ = false;
   is_active_ = false;
   msg_received_ = false;
-  prev_drives_enabled_ = true;
+  prev_drives_enabled_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -77,7 +77,8 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> KukaRSIHardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface>
+KukaRSIHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -274,12 +275,14 @@ void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
 }
 
 void KukaRSIHardwareInterface::initialize_command_interfaces(
-  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
+  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
 {
   prev_control_mode_ = control_mode;
   prev_cycle_time_ = cycle_time;
+  prev_drives_enabled_ = drives_powered;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
+  drives_enabled_command_ = drives_powered ? 1.0 : 0.0;
 }
 
 bool KukaRSIHardwareInterface::ConnectToController()
@@ -383,7 +386,8 @@ void KukaRSIHardwareInterface::Write()
   }
 }
 
-bool KukaRSIHardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
+bool KukaRSIHardwareInterface::CheckJointInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
 {
   if (joint.command_interfaces.size() != 1)
   {
@@ -449,4 +453,5 @@ bool KukaRSIHardwareInterface::ChangeCycleTime()
 
 }  // namespace kuka_rsi_driver
 
-PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(
+  kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)

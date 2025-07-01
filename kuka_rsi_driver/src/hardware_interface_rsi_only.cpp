@@ -62,7 +62,8 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> KukaRSIHardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface>
+KukaRSIHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -198,7 +199,8 @@ void KukaRSIHardwareInterface::Write()
   }
 }
 
-bool KukaRSIHardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
+bool KukaRSIHardwareInterface::CheckJointInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
 {
   if (joint.command_interfaces.size() != 1)
   {
@@ -228,4 +230,5 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(const hardware_interface::Co
 }
 }  // namespace kuka_rsi_driver
 
-PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(
+  kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
