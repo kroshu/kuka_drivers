@@ -26,7 +26,7 @@
 namespace kuka_rsi_driver
 {
 
-CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
   {
@@ -60,7 +60,7 @@ CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> HardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -77,7 +77,7 @@ std::vector<hardware_interface::StateInterface> HardwareInterface::export_state_
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> HardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> KukaRSIHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -99,7 +99,7 @@ std::vector<hardware_interface::CommandInterface> HardwareInterface::export_comm
   return command_interfaces;
 }
 
-CallbackReturn HardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   const bool connection_successful = ConnectToController();
 
@@ -122,13 +122,13 @@ CallbackReturn HardwareInterface::on_configure(const rclcpp_lifecycle::State &)
   return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
-CallbackReturn HardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
 {
   robot_ptr_.reset();
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   if (!status_manager_.IsKrcInExtMode())
   {
@@ -165,13 +165,13 @@ CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   set_stop_flag();
   return CallbackReturn::SUCCESS;
 }
 
-return_type HardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   status_manager_.UpdateStateInterfaces();
 
@@ -185,7 +185,7 @@ return_type HardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration
   return return_type::OK;
 }
 
-return_type HardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   if (!ShouldWriteJointCommands())
   {
@@ -202,7 +202,7 @@ return_type HardwareInterface::write(const rclcpp::Time &, const rclcpp::Duratio
   return return_type::OK;
 }
 
-void HardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
+void KukaRSIHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
 {
   std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
@@ -243,7 +243,7 @@ std::string ProcessKrcReportedRobotName(const std::string & input)
   return robot_model;
 }
 
-void HardwareInterface::eki_init(const InitializationData & init_data)
+void KukaRSIHardwareInterface::eki_init(const InitializationData & init_data)
 {
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
@@ -273,7 +273,7 @@ void HardwareInterface::eki_init(const InitializationData & init_data)
   init_cv_.notify_one();
 }
 
-void HardwareInterface::initialize_command_interfaces(
+void KukaRSIHardwareInterface::initialize_command_interfaces(
   kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
 {
   prev_control_mode_ = control_mode;
@@ -282,7 +282,7 @@ void HardwareInterface::initialize_command_interfaces(
   cycle_time_command_ = static_cast<double>(cycle_time);
 }
 
-bool HardwareInterface::ConnectToController()
+bool KukaRSIHardwareInterface::ConnectToController()
 {
   RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
 
@@ -324,12 +324,12 @@ bool HardwareInterface::ConnectToController()
   return true;
 }
 
-bool HardwareInterface::ShouldWriteJointCommands() const
+bool KukaRSIHardwareInterface::ShouldWriteJointCommands() const
 {
   return is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_;
 }
 
-void HardwareInterface::Read(const int64_t request_timeout)
+void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
 {
   std::chrono::milliseconds timeout(request_timeout);
   const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
@@ -346,7 +346,7 @@ void HardwareInterface::Read(const int64_t request_timeout)
   server_state_ = static_cast<double>(last_event_);
 }
 
-void HardwareInterface::Write()
+void KukaRSIHardwareInterface::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
@@ -383,7 +383,7 @@ void HardwareInterface::Write()
   }
 }
 
-bool HardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
+bool KukaRSIHardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
 {
   if (joint.command_interfaces.size() != 1)
   {
@@ -412,7 +412,7 @@ bool HardwareInterface::CheckJointInterfaces(const hardware_interface::Component
   return true;
 }
 
-bool HardwareInterface::ChangeDriveState()
+bool KukaRSIHardwareInterface::ChangeDriveState()
 {
   const bool drives_enabled = drives_enabled_command_ == 1.0;
   if (prev_drives_enabled_ != drives_enabled)
@@ -433,7 +433,7 @@ bool HardwareInterface::ChangeDriveState()
   return false;
 }
 
-bool HardwareInterface::ChangeCycleTime()
+bool KukaRSIHardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
 

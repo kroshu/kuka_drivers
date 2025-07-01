@@ -36,13 +36,13 @@ using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
-class HardwareInterface : public hardware_interface::SystemInterface
+class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(HardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC HardwareInterface()
-  : SystemInterface(), logger_(rclcpp::get_logger("HardwareInterface"))
+  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
+  : SystemInterface(), logger_(rclcpp::get_logger("KukaRSIHardwareInterface"))
   {
   }
 
