@@ -228,4 +228,4 @@ bool HardwareInterface::CheckJointInterfaces(const hardware_interface::Component
 }
 }  // namespace kuka_rsi_driver
 
-PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)

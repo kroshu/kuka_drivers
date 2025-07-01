@@ -449,4 +449,4 @@ bool HardwareInterface::ChangeCycleTime()
 
 }  // namespace kuka_rsi_driver
 
-PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::HardwareInterface, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
