@@ -1,32 +1,32 @@
-# KSS driver (RSI)
+## KSS driver (RSI)
 
 This guide provides instructions for setting up and using a ROS 2 driver to control KUKA robots running on **KUKA System Software (KSS)**. The driver supports two configurations:
 
 - [RSI-only driver](#rsi-only-driver): Utilizes the **Robot Sensor Interface (RSI)** option package for direct robot control
 - [EKI + RSI driver](#eki--rsi-driver): Combines the **Ethernet KRL Interface (EKI)** with RSI to enable runtime configuration
 
-## RSI-only driver
+### RSI-only driver
 
 This section is for users who want to control their KUKA robot using only the RSI option package.
 
-### Driver setup with RSI only
+#### Driver setup with RSI only
 
-#### Client side
+##### Client side
 
 It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
 
 To set up the controller with WorkVisual (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
-##### Client IP configuration
+###### Client IP configuration
 
 - Set a fixed IP in the subnet of the KLI interface for the Windows machine, which is required to connect to WorkVisual and transfer the project
 - Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
 
-#### Controller side
+##### Controller side
 
 These instructions were tested with RSI 4.1.3 (on KSS8.6) and RSI 5.0.2 (on KSS8.7)
 
-##### Controller network configuration
+###### Controller network configuration
 
 Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows interface** of the controller and the **PC with ROS** is connected to the same subnet.
 
@@ -42,7 +42,7 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
       - **Windows interface checkbox** should NOT be checked
 3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
 
-##### Update and upload configuration files
+###### Update and upload configuration files
 
 There are 3 files necessary for RSI that are available in the `krl/KSS` directory:
 
@@ -72,9 +72,9 @@ Method 2:
 4. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in WorkVisual
 5. Deploy the project
 
-### Configuration
+#### Configuration
 
-#### Startup configuration
+##### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
 
@@ -82,26 +82,26 @@ The following configuration files are available in the `config` directory of the
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
-##### IP configuration
+###### IP configuration
 
 The following parameters must be set in the driver configuration file:
 
 - `client_ip`: IP address of the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 - `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 
-#### Runtime parameters
+##### Runtime parameters
 
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 
-#### IP Configuration
+##### IP Configuration
 
 The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
 
-### Usage
+#### Usage
 
-#### Starting the driver
+##### Starting the driver
 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
@@ -129,7 +129,7 @@ The IP address of the client machine must be provided as a launch argument. For 
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
 
-##### Launch arguments
+###### Launch arguments
 
 Both launch files support the following arguments:
 
@@ -148,13 +148,13 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
-#### Stopping external control
+##### Stopping external control
 
 To stop external control, all components have to be deactivated with `ros2 lifecycle set robot_manager deactivate`
 
 BEWARE, that this is a non-realtime process including lifecycle management, so the connection is not terminated immediately, in cases where an abrupt stop is needed, the safety stop of the Teach Pendant should be used!
 
-### Simulation
+#### Simulation
 
 To try out the driver with an open-loop simulation, the driver and the `kuka_rsi_simulator` must be started, (before activation only a "collapsed" robot will be visible in `rviz`):
 
@@ -173,21 +173,21 @@ ros2 lifecycle set robot_manager configure
 ros2 lifecycle set robot_manager activate
 ```
 
-### Known issues and limitations
+#### Known issues and limitations
 
 - There are currently heap allocations in the control loop (hardware interface `read()` and `write()` functions), therefore the driver is not real-time safe
 - In case of an error on the controller side, the driver is not deactivated
 - Cartesian position control mode and I/O-s not yet supported
 
-## EKI + RSI driver
+### EKI + RSI driver
 
 This section explains how to configure and use the driver when both EKI and RSI are available on the KUKA controller.
 
-### Setting up the EKI + RSI driver
+#### Setting up the EKI + RSI driver
 
 To set up the driver for use with both EKI and RSI, follow the instructions in the guide posted in the SDK repository: [External control setup for KSS with EKI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_eki_setup.md)
 
-### Compiling the EKI + RSI driver
+#### Compiling the EKI + RSI driver
 
 Both variants of the KSS driver share the same class name, so the desired implementation must be selected at compile time. By default, the package builds the RSI-only version. To enable the EKI + RSI variant, set the following environment variable **before building** the package:
 
@@ -195,7 +195,7 @@ Both variants of the KSS driver share the same class name, so the desired implem
 export USE_EKI=ON
 ```
 
-### Launching the EKI + RSI driver
+#### Launching the EKI + RSI driver
 
 To start the KUKA RSI driver, use one of the provided launch files:
 
