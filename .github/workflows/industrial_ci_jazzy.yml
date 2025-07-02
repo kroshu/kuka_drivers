@@ -35,7 +35,7 @@ jobs:
       TEST_COVERAGE: true
       UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#master'
       ROS_DISTRO: jazzy
-      CCACHE_DIR: /github/home/.ccache  # Directory for ccache (and how we enable ccache in industrial_ci)
+      CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
       BRANCH: ${{ github.event.ref }}
       PR_BRANCH: ${{ github.event.pull_request.head.ref }}
@@ -43,7 +43,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
       DEBUG_BASH: true
-      USE_EKI: ON  # Enables EKI server support for compiling the kuka_kss_rsi_driver
+      USE_EKI: ON
     runs-on: ubuntu-24.04
     steps:
       - name: Reset ANALYZER for scheduled and push runs
