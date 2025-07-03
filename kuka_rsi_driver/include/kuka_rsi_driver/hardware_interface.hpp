@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
-#define KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -29,15 +29,15 @@
 
 #include "hardware_interface/system_interface.hpp"
 
-#include "kuka_kss_rsi_driver/rsi_command.hpp"
-#include "kuka_kss_rsi_driver/rsi_state.hpp"
-#include "kuka_kss_rsi_driver/udp_server.hpp"
-#include "kuka_kss_rsi_driver/visibility_control.h"
+#include "kuka_rsi_driver/rsi_command.hpp"
+#include "kuka_rsi_driver/rsi_state.hpp"
+#include "kuka_rsi_driver/udp_server.hpp"
+#include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-namespace kuka_kss_rsi_driver
+namespace kuka_rsi_driver
 {
 
 class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
@@ -45,25 +45,25 @@ class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  KUKA_KSS_RSI_DRIVER_PUBLIC
+  KUKA_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
@@ -89,6 +89,6 @@ private:
   static constexpr double R2D = 180 / M_PI;
   static constexpr double D2R = M_PI / 180;
 };
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
 
-#endif  // KUKA_KSS_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_

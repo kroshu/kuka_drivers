@@ -31,13 +31,13 @@ from ament_index_python.packages import get_package_share_directory
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    test_config_dir = get_package_share_directory("kuka_kss_rsi_driver") + "/test/config/"
+    test_config_dir = get_package_share_directory("kuka_rsi_driver") + "/test/config/"
     return launch.LaunchDescription(
         [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_kss_rsi_driver"),
+                        get_package_share_directory("kuka_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
@@ -51,7 +51,7 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_kss_rsi_driver"),
+                        get_package_share_directory("kuka_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]

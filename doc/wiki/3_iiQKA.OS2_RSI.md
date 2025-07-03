@@ -1,39 +1,50 @@
-## KSS driver (RSI)
+## iiQka driver (RSI)
 
 ### Setup
 
 #### Client side
 It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
 
-To set up the controller with WorkVisual (which is necessary if RSI is not yet installed), a Windows machine is also required.
+To set up the controller with iiQWorks.Sim (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
 ##### Client IP configuration
-- Set a fixed IP in the subnet of the KLI interface for the Windows machine, which is required to connect to WorkVisual and transfer the project
-- Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
+- Use the KRC's built in DHCP server (KSI) to connect to the windows machine (in this case leave the subnet settings as default) or set a fixed IP in the subnet of the KLI interface. This is required to connect to iiQWorks.Sim and transfer the project to the KRC
+- Set a fixed IP in the subnet of the KLI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
-These instructions were tested with RSI 4.1.3 (on KSS8.6) and RSI 5.0.2 (on KSS8.7)
+These instructions were tested with RSI 6.0.0 (on iiQKA.OS2)
 
 ##### Controller network configuration
 
-Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows interface** of the controller and the **PC with ROS** is connected to the same subnet.
+RSI can only communicate via the KLI network. Make sure that the controller network and the **PC with ROS** is connected to the same subnet.
 
-1. Log in as **Expert** or **Administrator** on the teach pad and navigate to **Network configuration** (**Start-up > Network configuration > Activate advanced configuration**).
-   There should already be an interface checked out as the **Windows interface**.
-   - **Windows interface checkbox** should be checked.
-2. Add a new network for RSI:
-  - Press the **Advanced** button and **New interface**.
-  - Select **Mixed IP address** and keep the default settings:
-    - **Receiving task: Target subnet**
-    - **Real-time receiving Task: UDP**
-  - Set the IP address to a different subnet then the **KLI interface**.
-    - **Default gateway**: leave it empty
-    - **Windows interface checkbox** should NOT be checked
+1. Log in as **Expert**, **Safety Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
 
-3. Reboot the controller with a cold restart (**Shutdown > Check *Force cold start* and *Reload files* > Reboot control PC**).
+2. Change network settings:
+    - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
+    - Set the **IP address** and the **Subnet mask** to the chosen address
+
+3. After pressing **Apply** the new network address should be configured.
+
+##### RSI configuration
+Configure your project in iiQWorks.Sim with the following steps:
+
+1. Add the desired RSI version (6.0.0 or above) to iiQWorks.Sim
+    - Download RSI option package from the **Software Repository** in **iiQworks.Cockpit**
+    - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
+    - By clicking on the **plus sign** add the downloaded option package from your file system (it should be a **.kop** file).
+
+2. After adding the desired robot from the eCatalog by dragging it to the layout configure the option packages to use.
+    - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
+
+3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface**, there are two menu options available:
+    - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
+    - The second is a list of ethernet configuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
+
+4. Under the **Program** page the KRL program files are available
 
 ##### Update and upload configuration files
-There are 3 files necessary for RSI that are available in the `krl/KSS` directory:
+There are 3 files necessary for RSI that are available in the `krl/iiQKA_OS2` directory:
 
 - `ros_rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
@@ -41,25 +52,21 @@ There are 3 files necessary for RSI that are available in the `krl/KSS` director
 
 - `ros_rsi.src`: This contains the KRL program that starts external control. The program contains a movement to the (0, -90, 90, 0, 0, 0) position, as the first motion instruction in a KRL program must define an unambiguous starting position. The goal position might be modified if necessary, the other parts of the program should be left unchanged.
 - `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
-  - For older RSI versions (<=4.0.3), the context can only be defined in 3 different files: `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi`, these can be found under `krl/deprecated`. In this case, these 3 files should be copied to the controller instead of the `ros_rsi.rsix`.
+  - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
+  - For older RSI versions (<=4.0.3), the context can only be defined in 3 different files: `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi`, these can be found under `krl/KSS/deprecated`. In this case, these 3 files should be copied to the controller instead of the `ros_rsi.rsix`.
 
-There are two options to upload these files to the controller:
+Upload files to the controller:
 
-Method 1:
-1. Copy the files to a USB-stick.
-2. Plug it into the teach pad or controller.
-3. Log in as **Expert** or **Administrator** on the controller.
-4. Copy the `ros_rsi.src` file to `KRC:\R1\Program`.
-5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface`.
-
-Method 2:
-1. Connect to the KRC with WorkVisual
-2. Log in as **Expert** or **Administrator** on the controller.
-4. Copy the `ros_rsi.src` file to `KRC:\R1\Program` in WorkVisual
-5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in WorkVisual
-6. Deploy the project
+1. Connect to the KRC with iiQWorks.Sim
+2. Log in as **Expert** or **Administrator** on the controller and change the operation mode to **T1**.
+4. Import the `ros_rsi.src` file to `Program` folder under **Program** page in iiQWorks.Sim.
+5. Import the `ros_rsi.rsix` file under **Context** field in the **Home** page.
+6. Import the `ros_rsi_ethernet.xml` file under **Ethernet configurations** field in the **Home** page.
+6. Move to the **Configuration** page and deploy the configuration.
 
 ### Configuration
+
+Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS.
 
 #### Startup configuration
 
@@ -100,7 +107,7 @@ The IP address of the client machine must be provided as a launch argument. For 
     ros2 lifecycle set robot_manager activate
     ```
    - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
-3. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
+3. In the **Programming** menu, under the **Navigator** tab start the `Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
