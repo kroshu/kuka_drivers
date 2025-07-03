@@ -30,11 +30,10 @@ def use_eki():
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    mode = LaunchConfiguration("mode")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
     controller_ip = LaunchConfiguration("controller_ip")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -63,8 +62,8 @@ def launch_setup(context, *args, **kwargs):
                 ]
             ),
             " ",
-            "use_fake_hardware:=",
-            use_fake_hardware,
+            "mode:=",
+            mode,
             " ",
             "client_port:=",
             client_port,
@@ -184,7 +183,7 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
-    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
