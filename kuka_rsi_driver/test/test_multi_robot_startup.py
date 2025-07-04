@@ -19,12 +19,11 @@ import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
-
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions.include_launch_description import IncludeLaunchDescription
-from ament_index_python.packages import get_package_share_directory
 
 
 # Launch 2 drivers with different namespaces
@@ -46,6 +45,7 @@ def generate_test_description():
                     "namespace": "test1",
                     "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "driver_version": "rsi_only",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -61,6 +61,7 @@ def generate_test_description():
                     "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
                     "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
                     "x": "2",
+                    "driver_version": "eki_rsi",
                 }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
