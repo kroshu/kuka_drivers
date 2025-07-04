@@ -42,6 +42,15 @@ static constexpr char CONTROL_MODE[] = "control_mode";
 static constexpr char RECEIVE_MULTIPLIER[] = "receive_multiplier";
 static constexpr char SEND_PERIOD[] = "send_period_ms";
 
+/* KSS interface constants */
+static constexpr char CYCLE_TIME[] = "cycle_time";
+static constexpr char DRIVES_POWERED[] = "drives_powered";
+static constexpr char EMERGENCY_STOP[] = "emergency_stop";
+static constexpr char GUARD_STOP[] = "guard_stop";
+static constexpr char IN_MOTION[] = "in_motion";
+static constexpr char MOTION_POSSIBLE[] = "motion_possible";
+static constexpr char ROBOT_STOPPED[] = "robot_stopped";
+
 /* FRI state interfaces */
 static constexpr char SESSION_STATE[] = "session_state";
 static constexpr char CONNECTION_QUALITY[] = "connection_quality";
