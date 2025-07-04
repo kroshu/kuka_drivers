@@ -33,7 +33,6 @@ def generate_test_description():
     test_config_dir = get_package_share_directory("kuka_rsi_driver") + "/test/config/"
     return launch.LaunchDescription(
         [
-            launch.actions.SetEnvironmentVariable("USE_EKI", "ON"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
@@ -46,6 +45,7 @@ def generate_test_description():
                     "namespace": "test1",
                     "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
                     "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "driver_version": "rsi_only",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -61,6 +61,7 @@ def generate_test_description():
                     "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
                     "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
                     "x": "2",
+                    "driver_version": "eki_rsi",
                 }.items(),
             ),
             launch_testing.actions.ReadyToTest(),

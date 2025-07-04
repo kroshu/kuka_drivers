@@ -43,7 +43,6 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
       DEBUG_BASH: true
-      USE_EKI: ON
     runs-on: ubuntu-24.04
     steps:
       - name: Reset ANALYZER for scheduled and push runs

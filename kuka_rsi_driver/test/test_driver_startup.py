@@ -32,7 +32,6 @@ from launch.launch_description_sources.python_launch_description_source import (
 def generate_test_description():
     return launch.LaunchDescription(
         [
-            launch.actions.SetEnvironmentVariable("USE_EKI", "ON"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
@@ -40,7 +39,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "driver_version": "eki_rsi",
+                }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
         ]
