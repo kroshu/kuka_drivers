@@ -143,6 +143,7 @@ Both launch files support the following arguments:
 - `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `mode` is set to 'mock')
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
+- `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
@@ -191,14 +192,6 @@ This section explains how to configure and use the driver when both EKI and RSI 
 
 To set up the driver for use with both EKI and RSI, follow the instructions in the guide posted in the SDK repository: [External control setup for KSS with EKI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_eki_setup.md)
 
-#### Compiling the EKI + RSI driver
-
-Both variants of the KSS driver share the same class name, so the desired implementation must be selected at compile time. By default, the package builds the RSI-only version. To enable the EKI + RSI variant, set the following environment variable **before building** the package:
-
-```bash
-export USE_EKI=ON
-```
-
 #### Launching the EKI + RSI driver
 
 To start the KUKA RSI driver, use one of the provided launch files:
@@ -211,11 +204,12 @@ Regardless of the launch file you choose, the following arguments must be specif
 - `robot_family`: Defines the family of the robot (e.g., agilus)
 - `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified)
 - `controller_ip`: The IP address of the **KUKA Line Interface (KLI)**
+- `driver_version`: Set this parameter to `eki_rsi`. If not set the plain RSI driver will be used.
 
 For instance, to launch the driver for a KR 10 R1100-2 robot from the Agilus family, one could use the following command:
 
 ```bash
-ros2 launch kuka_rsi_driver startup.launch.py robot_family:=agilus robot_model:=kr10_r1100_2 controller_ip:=172.31.1.147
+ros2 launch kuka_rsi_driver startup.launch.py robot_family:=agilus robot_model:=kr10_r1100_2 controller_ip:=172.31.1.147 driver_version:=eki_rsi
 ```
 
 All other launch arguments described in the [Launch arguments](#launch-arguments) section are supported and applicable to this variant of the driver as well.

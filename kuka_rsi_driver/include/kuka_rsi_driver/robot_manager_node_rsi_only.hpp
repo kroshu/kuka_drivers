@@ -32,11 +32,11 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 
 namespace kuka_rsi_driver
 {
-class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
+class RobotManagerNodeRsi : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
-  RobotManagerNode();
-  ~RobotManagerNode() = default;
+  RobotManagerNodeRsi();
+  ~RobotManagerNodeRsi() = default;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 

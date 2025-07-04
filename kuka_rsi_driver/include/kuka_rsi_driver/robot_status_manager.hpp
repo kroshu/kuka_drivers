@@ -75,6 +75,8 @@ public:
            static_cast<uint8_t>(kuka::external::control::OperationMode::EXT);
   }
 
+  bool DrivesPowered() { return static_cast<bool>(drives_powered_); }
+
 private:
   double control_mode_ = 0.0;
   double cycle_time_ = 0.0;
@@ -111,6 +113,12 @@ public:
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     return status_interfaces_.IsOperationModeExt();
+  }
+
+  bool DrivesPowered()
+  {
+    std::lock_guard<std::mutex> lck{status_mtx_};
+    return status_interfaces_.DrivesPowered();
   }
 
 private:

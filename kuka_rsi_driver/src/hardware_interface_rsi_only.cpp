@@ -41,8 +41,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     }
   }
 
-  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
-
   first_write_done_ = false;
   is_active_ = false;
   msg_received_ = false;
@@ -141,7 +139,6 @@ bool KukaRSIHardwareInterface::SetupRobot()
   kuka::external::control::kss::Configuration config;
   config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.dof = info_.joints.size();
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);

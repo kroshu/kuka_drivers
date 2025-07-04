@@ -25,8 +25,8 @@ namespace kuka_rsi_driver
 class EventObserver : public kuka::external::control::EventHandler
 {
 public:
-  explicit EventObserver(KukaRSIHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
+  explicit EventObserver(KukaEkiRsiHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
@@ -57,14 +57,14 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  KukaRSIHardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
 };
 
 class EventHandlerExtension : public kuka::external::control::kss::eki::IEventHandlerExtension
 {
 public:
-  explicit EventHandlerExtension(KukaRSIHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaRSIHardwareInterface")), hw_interface_(hw_interface)
+  explicit EventHandlerExtension(KukaEkiRsiHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
@@ -77,13 +77,13 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  KukaRSIHardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
 };
 
 class StatusUpdateHandler : public kuka::external::control::kss::eki::IStatusUpdateHandler
 {
 public:
-  StatusUpdateHandler(KukaRSIHardwareInterface * hw_interface, StatusManager * status_manager)
+  StatusUpdateHandler(KukaEkiRsiHardwareInterface * hw_interface, StatusManager * status_manager)
   : hw_interface_{hw_interface}, status_manager_{status_manager}, first_update_{true}
   {
   }
@@ -102,7 +102,7 @@ public:
   }
 
 private:
-  KukaRSIHardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
   StatusManager * status_manager_;
   bool first_update_;
 };

@@ -36,13 +36,13 @@ using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
-class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
+class KukaEkiRsiHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
-  : SystemInterface(), logger_(rclcpp::get_logger("KukaRSIHardwareInterface"))
+  KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
+  : SystemInterface(), logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface"))
   {
   }
 
@@ -90,8 +90,6 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL bool ConnectToController();
 
-  KUKA_RSI_DRIVER_LOCAL bool ShouldWriteJointCommands() const;
-
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_RSI_DRIVER_LOCAL void Write();
@@ -99,9 +97,9 @@ private:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
-  KUKA_RSI_DRIVER_LOCAL bool ChangeDriveState();
+  KUKA_RSI_DRIVER_LOCAL void ChangeDriveState();
 
-  KUKA_RSI_DRIVER_LOCAL bool ChangeCycleTime();
+  KUKA_RSI_DRIVER_LOCAL void ChangeCycleTime();
 
   const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
