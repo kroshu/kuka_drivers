@@ -122,12 +122,10 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (!is_active_ || !msg_received_ || !first_write_done_)
+  if (is_active_ && msg_received_ && first_write_done_)
   {
-    return return_type::OK;
+    Write();
   }
-
-  Write();
 
   return return_type::OK;
 }

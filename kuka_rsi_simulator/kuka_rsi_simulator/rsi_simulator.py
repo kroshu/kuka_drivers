@@ -42,7 +42,7 @@ def create_rsi_xml_rob(act_joint_pos, timeout_count, ipoc):
     )
     ET.SubElement(root, "Delay", {"D": str(timeout_count)})
     ET.SubElement(root, "IPOC").text = str(ipoc)
-    return ET.tostring(root)
+    return ET.tostring(root, encoding="utf-8", method="xml").replace(b' />', b'/>')
 
 
 def parse_rsi_xml_sen(data):
@@ -101,6 +101,7 @@ class RSISimulator(Node):
             sys.exit()
         try:
             msg = create_rsi_xml_rob(self.act_joint_pos, self.timeout_count, self.ipoc)
+            self.get_logger().info(f"{self.node_name_}: Sending RSI message: {msg}")
             self.rsi_act_pub_.publish(msg)
             self.socket_.sendto(msg, (self.rsi_ip_address_, self.rsi_port_address_))
             recv_msg, _ = self.socket_.recvfrom(1024)
