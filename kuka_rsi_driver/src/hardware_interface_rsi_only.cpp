@@ -317,7 +317,7 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 
   return true;
 }
-void HardwareInterface::CopyGPIOStatesToCommands()
+void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
   auto & gpio = info_.gpios[0];
   for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
