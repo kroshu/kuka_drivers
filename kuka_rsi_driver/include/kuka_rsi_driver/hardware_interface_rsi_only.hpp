@@ -76,7 +76,7 @@ private:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
-  KUKA_KSS_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
+  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
   const rclcpp::Logger logger_;
 
