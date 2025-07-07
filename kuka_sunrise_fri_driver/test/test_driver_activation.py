@@ -42,7 +42,7 @@ def generate_test_description():
                     ]
                 ),
                 launch_arguments={
-                    "use_fake_hardware": "true",
+                    "mode": "mock",
                 }.items(),
             ),
             launch.actions.TimerAction(

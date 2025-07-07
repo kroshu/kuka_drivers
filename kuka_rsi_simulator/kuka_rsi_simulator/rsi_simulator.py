@@ -42,7 +42,7 @@ def create_rsi_xml_rob(act_joint_pos, timeout_count, ipoc):
     )
     ET.SubElement(root, "Delay", {"D": str(timeout_count)})
     ET.SubElement(root, "IPOC").text = str(ipoc)
-    return ET.tostring(root)
+    return ET.tostring(root, encoding="utf-8", method="xml").replace(b" />", b"/>")
 
 
 def parse_rsi_xml_sen(data):

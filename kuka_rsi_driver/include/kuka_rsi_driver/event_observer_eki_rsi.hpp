@@ -25,8 +25,8 @@ namespace kuka_rsi_driver
 class EventObserver : public kuka::external::control::EventHandler
 {
 public:
-  explicit EventObserver(HardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("HardwareInterface")), hw_interface_(hw_interface)
+  explicit EventObserver(KukaEkiRsiHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
@@ -57,14 +57,14 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  HardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
 };
 
 class EventHandlerExtension : public kuka::external::control::kss::eki::IEventHandlerExtension
 {
 public:
-  explicit EventHandlerExtension(HardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("HardwareInterface")), hw_interface_(hw_interface)
+  explicit EventHandlerExtension(KukaEkiRsiHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
 
@@ -77,13 +77,13 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  HardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
 };
 
 class StatusUpdateHandler : public kuka::external::control::kss::eki::IStatusUpdateHandler
 {
 public:
-  StatusUpdateHandler(HardwareInterface * hw_interface, StatusManager * status_manager)
+  StatusUpdateHandler(KukaEkiRsiHardwareInterface * hw_interface, StatusManager * status_manager)
   : hw_interface_{hw_interface}, status_manager_{status_manager}, first_update_{true}
   {
   }
@@ -94,14 +94,15 @@ public:
     if (first_update_)
     {
       hw_interface_->initialize_command_interfaces(
-        static_cast<kuka_drivers_core::ControlMode>(update.control_mode_), update.cycle_time_);
+        static_cast<kuka_drivers_core::ControlMode>(update.control_mode_), update.cycle_time_,
+        update.drives_powered_);
       first_update_ = false;
     }
     status_manager_->SetStatusInterfaces(update);
   }
 
 private:
-  HardwareInterface * hw_interface_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
   StatusManager * status_manager_;
   bool first_update_;
 };

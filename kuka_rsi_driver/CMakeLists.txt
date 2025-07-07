@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(kuka_rsi_driver)
 
-# Toggle the EKI server based on the USE_EKI environment variable
-set(USE_EKI OFF)
-if("$ENV{USE_EKI}" STREQUAL "ON")
-  set(USE_EKI ON)
-endif()
-
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -31,16 +25,8 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
-if(USE_EKI)
-  set(HW_IF_SOURCE src/hardware_interface_eki_rsi.cpp)
-  set(ROBOT_MANAGER_SOURCE src/robot_manager_node_eki_rsi.cpp)
-else()
-  set(HW_IF_SOURCE src/hardware_interface_rsi_only.cpp)
-  set(ROBOT_MANAGER_SOURCE src/robot_manager_node_rsi_only.cpp)
-endif()
-
 # Create the library
-add_library(${PROJECT_NAME} SHARED ${HW_IF_SOURCE})
+add_library(${PROJECT_NAME} SHARED src/hardware_interface_eki_rsi.cpp src/hardware_interface_rsi_only.cpp)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -51,14 +37,20 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNC
 ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
 target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
-add_executable(robot_manager_node ${ROBOT_MANAGER_SOURCE})
-ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers)
+add_executable(robot_manager_node_eki_rsi src/robot_manager_node_eki_rsi.cpp)
+ament_target_dependencies(robot_manager_node_eki_rsi std_msgs kuka_drivers_core controller_manager_msgs)
+target_link_libraries(robot_manager_node_eki_rsi kuka_drivers_core::communication_helpers)
+pluginlib_export_plugin_description_file(hardware_interface eki_rsi_hardware_interface.xml)
 
-pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
+add_executable(robot_manager_node_rsi_only src/robot_manager_node_rsi_only.cpp)
+ament_target_dependencies(robot_manager_node_rsi_only std_msgs kuka_drivers_core controller_manager_msgs)
+target_link_libraries(robot_manager_node_rsi_only kuka_drivers_core::communication_helpers)
+pluginlib_export_plugin_description_file(hardware_interface rsi_hardware_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} robot_manager_node
-  DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS ${PROJECT_NAME} robot_manager_node_eki_rsi robot_manager_node_rsi_only
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)

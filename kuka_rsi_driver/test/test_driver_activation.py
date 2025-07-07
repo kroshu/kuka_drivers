@@ -39,7 +39,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "driver_version": "rsi_only",
+                }.items(),
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -75,7 +78,6 @@ def generate_test_description():
 
 class TestDriverActivation(unittest.TestCase):
     def test_read_stdout(self, proc_output):
-        return  # This test would require an EKI server, which we don't have
         # Check for successful initialization
         proc_output.assertWaitFor("Robot initialized", timeout=5)
         proc_output.assertWaitFor(

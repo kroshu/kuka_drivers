@@ -22,7 +22,7 @@
 
 namespace kuka_rsi_driver
 {
-CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
   {
@@ -73,7 +73,7 @@ CallbackReturn HardwareInterface::on_init(const hardware_interface::HardwareInfo
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> HardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -91,7 +91,8 @@ std::vector<hardware_interface::StateInterface> HardwareInterface::export_state_
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> HardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface>
+KukaRSIHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -110,13 +111,13 @@ std::vector<hardware_interface::CommandInterface> HardwareInterface::export_comm
   return command_interfaces;
 }
 
-CallbackReturn HardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   const bool setup_success = SetupRobot();
   return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
-CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   stop_requested_ = false;
 
@@ -136,20 +137,20 @@ CallbackReturn HardwareInterface::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   stop_requested_ = true;
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
 {
   robot_ptr_.reset();
   return CallbackReturn::SUCCESS;
 }
 
-return_type HardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   if (!is_active_)
   {
@@ -161,26 +162,23 @@ return_type HardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration
   return return_type::OK;
 }
 
-return_type HardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (!is_active_ || !msg_received_ || !first_write_done_)
+  if (is_active_ && msg_received_ && first_write_done_)
   {
-    return return_type::OK;
+    Write();
   }
-
-  Write();
 
   return return_type::OK;
 }
 
-bool HardwareInterface::SetupRobot()
+bool KukaRSIHardwareInterface::SetupRobot()
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");
 
   kuka::external::control::kss::Configuration config;
   config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  config.client_ip_address = info_.hardware_parameters["client_ip"];
   config.dof = info_.joints.size();
   config.gpio_command_size = info_.gpios[0].command_interfaces.size();
   config.gpio_state_size = info_.gpios[0].state_interfaces.size();
@@ -199,7 +197,7 @@ bool HardwareInterface::SetupRobot()
   return true;
 }
 
-void HardwareInterface::Read(const int64_t request_timeout)
+void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
 {
   std::chrono::milliseconds timeout(request_timeout);
   const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
@@ -238,7 +236,7 @@ void HardwareInterface::Read(const int64_t request_timeout)
   }
 }
 
-void HardwareInterface::Write()
+void KukaRSIHardwareInterface::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
@@ -266,7 +264,8 @@ void HardwareInterface::Write()
   }
 }
 
-bool HardwareInterface::CheckJointInterfaces(const hardware_interface::ComponentInfo & joint) const
+bool KukaRSIHardwareInterface::CheckJointInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
 {
   if (joint.command_interfaces.size() != 1)
   {
@@ -311,6 +310,7 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
   }
   return;
 }
-}  // namespace kuka_kss_rsi_driver
+}  // namespace kuka_rsi_driver
+
 PLUGINLIB_EXPORT_CLASS(
-  kuka_kss_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+  kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
