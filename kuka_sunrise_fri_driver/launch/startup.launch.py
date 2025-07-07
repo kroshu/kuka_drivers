@@ -23,7 +23,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    mode = LaunchConfiguration("mode")
     controller_ip = LaunchConfiguration("controller_ip")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
@@ -67,8 +67,8 @@ def launch_setup(context, *args, **kwargs):
             "client_port:=",
             client_port,
             " ",
-            "use_fake_hardware:=",
-            use_fake_hardware,
+            "mode:=",
+            mode,
             " ",
             "prefix:=",
             tf_prefix,
@@ -192,7 +192,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="30200"))
-    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))

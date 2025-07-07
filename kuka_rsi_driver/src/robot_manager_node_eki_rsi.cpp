@@ -26,7 +26,8 @@ using lifecycle_msgs::msg::State;
 
 namespace kuka_rsi_driver
 {
-RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
+RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
+: kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -76,7 +77,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & robot_model) { return OnRobotModelChangeRequest(robot_model); });
 }
 
-CallbackReturn RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
@@ -118,7 +119,7 @@ CallbackReturn RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
@@ -154,7 +155,7 @@ CallbackReturn RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
   terminate_ = false;
@@ -191,7 +192,7 @@ CallbackReturn RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerNodeEkiRsi::on_deactivate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
@@ -227,7 +228,8 @@ CallbackReturn RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message)
+void RobotManagerNodeEkiRsi::EventSubscriptionCallback(
+  const std_msgs::msg::UInt8::SharedPtr message)
 {
   const auto logger = get_logger();
 
@@ -263,7 +265,7 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
   }
 }
 
-bool RobotManagerNode::OnControlModeChangeRequest(const int control_mode)
+bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
 {
   const auto logger = get_logger();
 
@@ -335,7 +337,7 @@ bool RobotManagerNode::OnControlModeChangeRequest(const int control_mode)
   return true;
 }
 
-bool RobotManagerNode::OnRobotModelChangeRequest(const std::string & robot_model)
+bool RobotManagerNodeEkiRsi::OnRobotModelChangeRequest(const std::string & robot_model)
 {
   auto ns = std::string(get_namespace());
   ns.erase(ns.begin());
@@ -355,7 +357,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rsi_driver::RobotManagerNode>();
+  auto node = std::make_shared<kuka_rsi_driver::RobotManagerNodeEkiRsi>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<library path="kuka_rsi_driver">
+  <class type="kuka_rsi_driver::KukaEkiRsiHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>ros2_control hardware interface for EKI and RSI-controlled robots</description>
+  </class>
+</library>

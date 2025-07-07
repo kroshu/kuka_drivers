@@ -79,6 +79,7 @@ controller_interface::return_type FRIConfigurationController::update(
   {
     return controller_interface::return_type::ERROR;
   }
+
   return controller_interface::return_type::OK;
 }
 
