@@ -185,8 +185,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
   for (auto && gpio_command : info_.gpios[0].command_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "name: %s, data_type: %s, enable_limits: %s, min: %s, max: %s",
-      gpio_command.name.c_str(), gpio_command.data_type.c_str(),
+      logger_, "name: %s, data_type: %s, initial_value: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
       gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
       gpio_command.max.c_str());
 
@@ -205,8 +205,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
   for (auto && gpio_state : info_.gpios[0].state_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "name: %s, data_type: %s, enable_limits: %s, min: %s, max: %s",
-      gpio_state.name.c_str(), gpio_state.data_type.c_str(),
+      logger_, "name: %s, data_type: %s, initial_value: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
       gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
 
     kuka::external::control::kss::GPIOConfiguration gpio_config;
