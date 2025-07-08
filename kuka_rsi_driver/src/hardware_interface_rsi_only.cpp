@@ -180,8 +180,45 @@ bool KukaRSIHardwareInterface::SetupRobot()
   config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
   config.dof = info_.joints.size();
-  config.gpio_command_size = info_.gpios[0].command_interfaces.size();
-  config.gpio_state_size = info_.gpios[0].state_interfaces.size();
+  RCLCPP_INFO(logger_, "GPIO command params:");
+  // TODO: read data type from InterfaceInfo data type
+  for (auto && gpio_command : info_.gpios[0].command_interfaces)
+  {
+    RCLCPP_INFO(
+      logger_, "name: %s, data_type: %s, initial_value: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
+      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
+      gpio_command.max.c_str());
+
+    kuka::external::control::kss::GPIOConfiguration gpio_config;
+    // TODO (Komaromi): Add initial_value, size and parameters
+    gpio_config.name = gpio_command.name;
+    gpio_config.value_type = gpio_command.data_type;
+    gpio_config.enable_limits = gpio_command.enable_limits;
+    gpio_config.min_value = gpio_command.min;
+    gpio_config.max_value = gpio_command.max;
+
+    config.gpio_command_configs.emplace_back(gpio_config);
+  }
+
+  RCLCPP_INFO(logger_, "GPIO state params:");
+  for (auto && gpio_state : info_.gpios[0].state_interfaces)
+  {
+    RCLCPP_INFO(
+      logger_, "name: %s, data_type: %s, initial_value: %s, enable_limits: %s, min: %s, max: %s",
+      gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
+      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
+
+    kuka::external::control::kss::GPIOConfiguration gpio_config;
+    // TODO (Komaromi): Add initial_value, size, and parameters
+    gpio_config.name = gpio_state.name;
+    gpio_config.value_type = gpio_state.data_type;
+    gpio_config.enable_limits = gpio_state.enable_limits;
+    gpio_config.min_value = gpio_state.min;
+    gpio_config.max_value = gpio_state.max;
+
+    config.gpio_state_configs.emplace_back(gpio_config);
+  }
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
 
@@ -213,24 +250,17 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
-      switch (gpio_values.at(i)->GetGPIOConfig()->GetValueType())
+      auto value = gpio_values.at(i)->GetValue();
+      if (value.has_value())
       {
-        case kuka::external::control::GPIOValueType::BOOL_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetBoolValue());
-          break;
-        case kuka::external::control::GPIOValueType::DOUBLE_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetDoubleValue());
-          break;
-        case kuka::external::control::GPIOValueType::RAW_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetRawValue());
-          break;
-        case kuka::external::control::GPIOValueType::LONG_VALUE:
-          hw_gpio_states_[i] = static_cast<double>(gpio_values[i]->GetLongValue());
-          break;
-        default:
-          RCLCPP_ERROR(
-            rclcpp::get_logger("KukaEACHardwareInterface"),
-            "No signal value type found. (Should be dead code)");
+        hw_gpio_states_[i] = value.value();
+      }
+      else
+      {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
+          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
       }
     }
   }
@@ -295,20 +325,18 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 }
 void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
-  for (auto && motion_state_gpio : robot_ptr_->GetLastMotionState().GetGPIOValues())
+  auto & gpio = info_.gpios[0];
+  for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
   {
-    for (auto && control_signal_gpio : robot_ptr_->GetControlSignal().GetGPIOValues())
+    for (size_t j = 0; j < gpio.command_interfaces.size(); j++)
     {
-      if (
-        motion_state_gpio->GetGPIOConfig()->GetName() ==
-        control_signal_gpio->GetGPIOConfig()->GetName())
+      if (gpio.state_interfaces[i].name == gpio.command_interfaces[j].name)
       {
-        hw_gpio_commands_[control_signal_gpio->GetGPIOConfig()->GetGPIOId()] =
-          hw_gpio_states_[motion_state_gpio->GetGPIOConfig()->GetGPIOId()];
+        hw_gpio_commands_[j] = hw_gpio_states_[i];
+        break;
       }
     }
   }
-  return;
 }
 }  // namespace kuka_rsi_driver
 
