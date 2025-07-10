@@ -25,10 +25,9 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    mode = LaunchConfiguration("mode")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -57,8 +56,8 @@ def launch_setup(context, *args, **kwargs):
                 ]
             ),
             " ",
-            "use_fake_hardware:=",
-            use_fake_hardware,
+            "mode:=",
+            mode,
             " ",
             "client_port:=",
             client_port,
@@ -96,9 +95,7 @@ def launch_setup(context, *args, **kwargs):
     robot_description = {"robot_description": robot_description_content}
 
     # The driver config contains only parameters that can be changed after startup
-    driver_config = (
-        get_package_share_directory("kuka_kss_rsi_driver") + "/config/driver_config.yaml"
-    )
+    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
@@ -120,7 +117,7 @@ def launch_setup(context, *args, **kwargs):
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
         namespace=ns,
-        package="kuka_kss_rsi_driver",
+        package="kuka_rsi_driver",
         executable="robot_manager_node",
         parameters=[driver_config, {"robot_model": robot_model}],
     )
@@ -165,7 +162,7 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
-    launch_arguments.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
@@ -179,14 +176,14 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config",
-            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/ros2_controller_config.yaml",
         )
     )
     launch_arguments.append(
         DeclareLaunchArgument(
             "jtc_config",
-            default_value=get_package_share_directory("kuka_kss_rsi_driver")
+            default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/joint_trajectory_controller_config.yaml",
         )
     )

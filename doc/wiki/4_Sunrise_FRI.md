@@ -3,12 +3,12 @@
 ### Setup
 
 #### Client side
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime)).
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
 - Set a fixed IP in the subnet of the controller for the real-time machine.
 
 #### Controller side
 
-- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench
+- Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench. The driver only supports Sunrise 1.X.
 
 ### Configuration
 
@@ -21,7 +21,7 @@ The following configuration files are available in the `config` directory of the
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
 ##### IP configuration
-The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
+The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments). Please note that currently the driver only works using the KLI interface of the robot controller, KONI is not yet supported.
 
 #### Runtime parameters
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
@@ -61,15 +61,15 @@ On successful activation the brakes of the robot will be released and external c
 ##### Launch arguments
 
 Both launch files support the following argument:
-- `controller_ip`: IP address of the robot controller
+- `controller_ip`: KLI IP address of the robot controller
 - `client_ip`: IP address of the client PC
 - `client_port`: port of the client machine (default: 30200)
 - `robot_model`: defines which LBR iiwa robot to use. Available options: `lbr_iiwa14_r820` (default)
-- `use_fake_hardware`: if true, the `KukaMockHardwareInterface` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaFRIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `use_fake_hardware` is true)
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `mode` is set to 'mock')
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_sunrise_fri_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
@@ -79,6 +79,7 @@ Both launch files support the following argument:
 The `startup_with_rviz.launch.py` additionally contains one argument:
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
+**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#modes).
 
 #### Stopping external control
 
