@@ -54,7 +54,8 @@ install(
 
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
-  add_launch_test(test/test_driver_startup.py)
+  add_launch_test(test/test_driver_startup_rsi_only.py)
+  add_launch_test(test/test_driver_startup_eki_rsi.py)
   add_launch_test(test/test_driver_activation.py)
   add_launch_test(test/test_multi_robot_startup.py)
 endif()

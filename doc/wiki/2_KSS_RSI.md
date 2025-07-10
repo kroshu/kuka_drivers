@@ -180,7 +180,6 @@ ros2 lifecycle set robot_manager activate
 
 #### Known issues and limitations
 
-- There are currently heap allocations in the control loop (hardware interface `read()` and `write()` functions), therefore the driver is not real-time safe
 - In case of an error on the controller side, the driver is not deactivated
 - Cartesian position control mode and I/O-s not yet supported
 
