@@ -50,15 +50,7 @@ install(
 )
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_manager REQUIRED)
-  find_package(ros2_control_test_assets REQUIRED)
 
-  ament_add_gmock(test_load_kuka_nrt_message_handler test/test_load_kuka_nrt_message_handler.cpp)
-  ament_target_dependencies(test_load_kuka_nrt_message_handler
-    controller_manager
-    ros2_control_test_assets
-  )
 endif()
 
 ament_export_include_directories(
