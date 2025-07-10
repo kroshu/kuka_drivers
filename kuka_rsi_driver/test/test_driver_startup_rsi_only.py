@@ -15,7 +15,6 @@
 import unittest
 
 import launch
-import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
@@ -26,11 +25,10 @@ from launch.launch_description_sources.python_launch_description_source import (
 )
 
 
-# Launch 2 drivers with different namespaces
+# Launch all of the robot visualisation launch files one by one
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    test_config_dir = get_package_share_directory("kuka_rsi_driver") + "/test/config/"
     return launch.LaunchDescription(
         [
             IncludeLaunchDescription(
@@ -42,26 +40,7 @@ def generate_test_description():
                     ]
                 ),
                 launch_arguments={
-                    "namespace": "test1",
-                    "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
                     "driver_version": "rsi_only",
-                }.items(),
-            ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    [
-                        get_package_share_directory("kuka_rsi_driver"),
-                        "/launch/",
-                        "startup.launch.py",
-                    ]
-                ),
-                launch_arguments={
-                    "namespace": "test2",
-                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
-                    "x": "2",
-                    "driver_version": "eki_rsi",
                 }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
@@ -69,20 +48,14 @@ def generate_test_description():
     )
 
 
-class TestMultiStartup(unittest.TestCase):
+class TestDriverStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        proc_output.assertWaitFor("Robot initialized", timeout=20)
+        proc_output.assertWaitFor("Robot initialized", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'test1_kr6_r700_sixx'", timeout=20
-        )
-        proc_output.assertWaitFor(
-            "Successful initialization of hardware 'test2_kr6_r700_sixx'", timeout=20
+            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor(
-            "Setting component 'test1_kr6_r700_sixx' to 'unconfigured' state.", timeout=20
-        )
-        proc_output.assertWaitFor(
-            "Setting component 'test2_kr6_r700_sixx' to 'unconfigured' state.", timeout=20
+            "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
         )

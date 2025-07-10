@@ -12,26 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
-#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
+#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
 
-#include <chrono>
-#include <cmath>
 #include <memory>
-#include <mutex>
-#include <string>
 #include <vector>
 
-#include "pluginlib/class_list_macros.hpp"
+#include "hardware_interface/system_interface.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "hardware_interface/system_interface.hpp"
-
-#include "kuka_rsi_driver/rsi_command.hpp"
-#include "kuka_rsi_driver/rsi_state.hpp"
-#include "kuka_rsi_driver/udp_server.hpp"
+#include "kuka/external-control-sdk/kss/robot.h"
+#include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -45,6 +38,11 @@ class KukaRSIHardwareInterface : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
+  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
+  : SystemInterface(), logger_{rclcpp::get_logger("KukaRSIHardwareInterface")}
+  {
+  }
+
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
@@ -54,41 +52,44 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  KUKA_RSI_DRIVER_PUBLIC
-  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+
+  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+
+  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+
+  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-
-  KUKA_RSI_DRIVER_PUBLIC
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
-  bool stop_flag_ = false;
-  bool is_active_ = false;
-  std::string rsi_ip_address_ = "";
-  int rsi_port_ = 0;
+  KUKA_RSI_DRIVER_LOCAL bool SetupRobot();
 
-  std::vector<double> hw_commands_;
+  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
+
+  KUKA_RSI_DRIVER_LOCAL void Write();
+
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
+  const rclcpp::Logger logger_;
+
+  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
+
   std::vector<double> hw_states_;
+  std::vector<double> hw_commands_;
 
-  // RSI related joint positions
-  std::vector<double> initial_joint_pos_;
-  std::vector<double> joint_pos_correction_deg_;
+  bool first_write_done_;
+  bool is_active_;
+  bool msg_received_;
+  bool stop_requested_;
 
-  uint64_t ipoc_ = 0;
-  RSIState rsi_state_;
-  RSICommand rsi_command_;
-  std::unique_ptr<UDPServer> server_;
-  std::string in_buffer_;
-  std::string out_buffer_;
-
-  static constexpr double R2D = 180 / M_PI;
-  static constexpr double D2R = M_PI / 180;
+  static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_HPP_
+#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
