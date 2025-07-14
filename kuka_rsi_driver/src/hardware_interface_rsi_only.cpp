@@ -124,7 +124,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
-  //CopyGPIOStatesToCommands();
+  CopyGPIOStatesToCommands();
 
   Write();
 
