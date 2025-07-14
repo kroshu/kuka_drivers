@@ -55,9 +55,9 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
     return CallbackReturn::ERROR;
   }
   // TODO (Komaromi): Somehow check how many IOs are in the interfaces. RSI can receive and send
-  // 8192 bits, but its not equal with 8192 IOs.
+  // 8192 bits, but its not equal with 8192 IOs. But the ethernet object can only have 64 entries.
   // TODO (Komaormi): Maybe better to check the configured IO-s robot_ptr->Setup here and then go
-  // throught the IO-s and check the name an size
+  // through the IO-s and check the name an size
   // TODO (Komaromi): For that the construction of control signal have to be changed.
 
   hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
