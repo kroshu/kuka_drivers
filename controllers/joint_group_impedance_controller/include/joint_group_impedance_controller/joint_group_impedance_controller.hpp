@@ -22,7 +22,7 @@
 #include "forward_command_controller/multi_interface_forward_command_controller.hpp"
 
 #include "joint_group_impedance_controller/visibility_control.h"
-#include <joint_group_impedance_controller/joint_group_impedance_controller_parameters.hpp>
+#include "joint_group_impedance_controller/joint_group_impedance_controller_parameters.hpp"
 
 namespace kuka_controllers
 {
