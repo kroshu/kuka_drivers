@@ -45,6 +45,23 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
     }
   }
 
+  // Check gpio components size
+  if (info_.gpios.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "expecting exactly 1 gpio component");
+    return CallbackReturn::ERROR;
+  }
+  auto & gpio = info_.gpios[0];
+  // Check gpio component name
+  if (gpio.name != hardware_interface::IO_PREFIX)
+  {
+    RCLCPP_FATAL(logger_, "expecting gpio component called 'GPIO' first");
+    return CallbackReturn::ERROR;
+  }
+
+  hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
+  hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
+
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
   cycle_time_command_ = 0.0;
@@ -70,6 +87,12 @@ KukaEkiRsiHardwareInterface::export_state_interfaces()
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
   }
 
+  for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
+  {
+    state_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
+  }
+
   state_interfaces.emplace_back(
     hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
 
@@ -87,6 +110,13 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
   {
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+  }
+
+  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
+  {
+    command_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
+      &hw_gpio_commands_[i]);
   }
 
   command_interfaces.emplace_back(
@@ -162,6 +192,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5 * READ_TIMEOUT_MS);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  CopyGPIOStatesToCommands();
   Write();
 
   msg_received_ = false;
@@ -291,6 +322,16 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   config.dof = info_.joints.size();
 
+  for (auto && gpio_command : info_.gpios[0].command_interfaces)
+  {
+    config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
+  }
+
+  for (auto && gpio_state : info_.gpios[0].state_interfaces)
+  {
+    config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
+  }
+
   robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
 
   auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
@@ -335,7 +376,25 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
   {
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
+    const auto & gpio_values = req_message.GetGPIOValues();
+
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+    // Save IO states
+    for (size_t i = 0; i < hw_gpio_states_.size(); i++)
+    {
+      auto value = gpio_values.at(i)->GetValue();
+      if (value.has_value())
+      {
+        hw_gpio_states_[i] = value.value();
+      }
+      else
+      {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
+          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
+      }
+    }
   }
 
   std::lock_guard<std::mutex> lk(event_mutex_);
@@ -347,6 +406,7 @@ void KukaEkiRsiHardwareInterface::Write()
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+  control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
 
   const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
   const bool control_mode_change_requested = control_mode != prev_control_mode_;
@@ -439,6 +499,94 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
   }
 }
 
+void KukaEkiRsiHardwareInterface::CopyGPIOStatesToCommands()
+{
+  auto & gpio = info_.gpios[0];
+  for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
+  {
+    for (size_t j = 0; j < gpio.command_interfaces.size(); j++)
+    {
+      if (gpio.state_interfaces[i].name == gpio.command_interfaces[j].name)
+      {
+        hw_gpio_commands_[j] = hw_gpio_states_[i];
+        break;
+      }
+    }
+  }
+}
+
+kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::ParseGPIOConfig(
+  hardware_interface::InterfaceInfo & info)
+{
+  kuka::external::control::kss::GPIOConfiguration gpio_config;
+  gpio_config.name = info.name;
+  gpio_config.enable_limits = info.enable_limits;
+  if (info.data_type == "BOOLEAN")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::BOOLEAN;
+  }
+  else if (info.data_type == "ANALOG")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::ANALOG;
+  }
+  else if (info.data_type == "DIGITAL")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::DIGITAL;
+  }
+  else
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::UNSPECIFIED;
+  }
+
+  if (!info.initial_value.empty())
+  {
+    try
+    {
+      gpio_config.initial_value = std::stod(info.initial_value);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.initial_value = 0.0;  // If initial_value is not a valid number, set to 0.0
+    }
+  }
+  else
+  {
+    gpio_config.initial_value = 0.0;  // If initial_value is empty, set to 0.0
+  }
+  if (!info.min.empty())
+  {
+    try
+    {
+      gpio_config.min_value = std::stod(info.min);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.enable_limits = false;  // If min_value is not a valid number, disable limits
+    }
+  }
+  else
+  {
+    gpio_config.enable_limits = false;  // If min_value is empty, disable limits
+  }
+  if (!info.max.empty())
+  {
+    try
+    {
+      gpio_config.max_value = std::stod(info.max);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.enable_limits = false;  // If max_value is not a valid number, disable limits
+    }
+  }
+  else
+  {
+    gpio_config.enable_limits = false;  // If max_value is empty, disable limits
+  }
+}
 }  // namespace kuka_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(

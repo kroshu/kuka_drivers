@@ -97,6 +97,11 @@ private:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
+  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
+
+  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
+    hardware_interface::InterfaceInfo & info);
+
   KUKA_RSI_DRIVER_LOCAL void ChangeDriveState();
 
   KUKA_RSI_DRIVER_LOCAL void ChangeCycleTime();
@@ -106,7 +111,9 @@ private:
   StatusManager status_manager_;
 
   std::vector<double> hw_states_;
+  std::vector<double> hw_gpio_states_;
   std::vector<double> hw_commands_;
+  std::vector<double> hw_gpio_commands_;
 
   double hw_control_mode_command_;
   double server_state_;

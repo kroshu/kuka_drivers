@@ -325,6 +325,7 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
     }
   }
 }
+
 kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseGPIOConfig(
   hardware_interface::InterfaceInfo & info)
 {
