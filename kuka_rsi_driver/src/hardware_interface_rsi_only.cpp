@@ -17,6 +17,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
+#include "hardware_interface_rsi_only.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_only.hpp"
 
@@ -190,15 +191,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
       gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
       gpio_command.max.c_str());
 
-    kuka::external::control::kss::GPIOConfiguration gpio_config;
-    // TODO (Komaromi): Add initial_value, size and parameters
-    gpio_config.name = gpio_command.name;
-    gpio_config.value_type = gpio_command.data_type;
-    gpio_config.enable_limits = gpio_command.enable_limits;
-    gpio_config.min_value = gpio_command.min;
-    gpio_config.max_value = gpio_command.max;
-
-    config.gpio_command_configs.emplace_back(gpio_config);
+    // TODO (Komaromi): Add size and parameters
+    config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
 
   RCLCPP_INFO(logger_, "GPIO state params:");
@@ -209,15 +203,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
       gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
       gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
 
-    kuka::external::control::kss::GPIOConfiguration gpio_config;
-    // TODO (Komaromi): Add initial_value, size, and parameters
-    gpio_config.name = gpio_state.name;
-    gpio_config.value_type = gpio_state.data_type;
-    gpio_config.enable_limits = gpio_state.enable_limits;
-    gpio_config.min_value = gpio_state.min;
-    gpio_config.max_value = gpio_state.max;
-
-    config.gpio_state_configs.emplace_back(gpio_config);
+    // TODO (Komaromi): Add size, and parameters
+    config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
   }
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
@@ -336,6 +323,78 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
         break;
       }
     }
+  }
+}
+kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseGPIOConfig(
+  hardware_interface::InterfaceInfo & info)
+{
+  kuka::external::control::kss::GPIOConfiguration gpio_config;
+  gpio_config.name = info.name;
+  gpio_config.enable_limits = info.enable_limits;
+  if (info.data_type == "BOOLEAN")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::BOOLEAN;
+  }
+  else if (info.data_type == "ANALOG")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::ANALOG;
+  }
+  else if (info.data_type == "DIGITAL")
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::DIGITAL;
+  }
+  else
+  {
+    gpio_config.value_type = kuka::external::control::GPIOValueType::UNSPECIFIED;
+  }
+
+  if (!info.initial_value.empty())
+  {
+    try
+    {
+      gpio_config.initial_value = std::stod(info.initial_value);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.initial_value = 0.0;  // If initial_value is not a valid number, set to 0.0
+    }
+  }
+  else
+  {
+    gpio_config.initial_value = 0.0;  // If initial_value is empty, set to 0.0
+  }
+  if (!info.min.empty())
+  {
+    try
+    {
+      gpio_config.min_value = std::stod(info.min);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.enable_limits = false;  // If min_value is not a valid number, disable limits
+    }
+  }
+  else
+  {
+    gpio_config.enable_limits = false;  // If min_value is empty, disable limits
+  }
+  if (!info.max.empty())
+  {
+    try
+    {
+      gpio_config.max_value = std::stod(info.max);
+    }
+    catch (const std::exception & ex)
+    {
+      RCLCPP_WARN(logger_, ex.what());
+      gpio_config.enable_limits = false;  // If max_value is not a valid number, disable limits
+    }
+  }
+  else
+  {
+    gpio_config.enable_limits = false;  // If max_value is empty, disable limits
   }
 }
 }  // namespace kuka_rsi_driver

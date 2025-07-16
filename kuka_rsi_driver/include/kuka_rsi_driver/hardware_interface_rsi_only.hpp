@@ -78,6 +78,8 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
+  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(hardware_interface::InterfaceInfo & info);
+
   const rclcpp::Logger logger_;
 
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
