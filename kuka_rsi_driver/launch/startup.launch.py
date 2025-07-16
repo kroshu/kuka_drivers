@@ -14,11 +14,15 @@
 
 
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
-from launch_ros.actions import Node, LifecycleNode
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
+from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -26,8 +30,11 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
     mode = LaunchConfiguration("mode")
+    use_gpio = LaunchConfiguration("use_gpio")
+    driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
+    controller_ip = LaunchConfiguration("controller_ip")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -38,10 +45,21 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    gpio_config = LaunchConfiguration("gpio_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
+
+    if not controller_config.perform(context):
+        rel_path_to_config_file = (
+            "/config/ros2_controller_config_rsi_only.yaml"
+            if driver_version.perform(context) == "rsi_only"
+            else "/config/ros2_controller_config_eki_rsi.yaml"
+        )
+        controller_config = (
+            get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
+        )
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -59,11 +77,20 @@ def launch_setup(context, *args, **kwargs):
             "mode:=",
             mode,
             " ",
+            "use_gpio:=",
+            use_gpio,
+            " ",
+            "driver_version:=",
+            driver_version,
+            " ",
             "client_port:=",
             client_port,
             " ",
             "client_ip:=",
             client_ip,
+            " ",
+            "controller_ip:=",
+            controller_ip,
             " ",
             "prefix:=",
             tf_prefix,
@@ -117,7 +144,11 @@ def launch_setup(context, *args, **kwargs):
         name=["robot_manager"],
         namespace=ns,
         package="kuka_rsi_driver",
-        executable="robot_manager_node",
+        executable=(
+            "robot_manager_node_rsi_only"
+            if driver_version.perform(context) == "rsi_only"
+            else "robot_manager_node_eki_rsi"
+        ),
         parameters=[driver_config, {"robot_model": robot_model}],
     )
     robot_state_publisher = Node(
@@ -150,7 +181,13 @@ def launch_setup(context, *args, **kwargs):
     controllers = {
         "joint_state_broadcaster": None,
         "joint_trajectory_controller": jtc_config,
+        "gpio_controller": gpio_config,
     }
+
+    if driver_version.perform(context) == "eki_rsi":
+        controllers["control_mode_handler"] = None
+        controllers["event_broadcaster"] = None
+        controllers["nrt_message_handler"] = None
 
     controller_spawners = [
         controller_spawner(name, param_file) for name, param_file in controllers.items()
@@ -170,9 +207,19 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
+    launch_arguments.append(DeclareLaunchArgument("use_gpio", default_value="true"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "driver_version",
+            default_value="rsi_only",
+            description="Select the driver version to use",
+            choices=["rsi_only", "eki_rsi"],
+        )
+    )
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
-    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
+    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
@@ -180,13 +227,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "controller_config",
-            default_value=get_package_share_directory("kuka_rsi_driver")
-            + "/config/ros2_controller_config.yaml",
-        )
-    )
+    launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(
             "jtc_config",
@@ -194,4 +235,12 @@ def generate_launch_description():
             + "/config/joint_trajectory_controller_config.yaml",
         )
     )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "gpio_config",
+            default_value=get_package_share_directory("kuka_rsi_driver")
+            + "/config/gpio_controller_config.yaml",
+        )
+    )
+
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
