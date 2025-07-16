@@ -174,6 +174,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   // Activate RT controller(s)
   auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
   deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+  deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
     change_controller_state_client_, deactivate_controllers, {});
   if (!controller_activation_successful)
@@ -209,6 +210,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_deactivate(const rclcpp_lifecycle::Sta
   // Deactivation should also succeed if some controllers are not active
   auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
   deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+  deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
 
   auto controller_request = std::make_shared<SwitchController::Request>();
   controller_request->strictness = SwitchController::Request::BEST_EFFORT;
