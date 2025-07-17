@@ -172,10 +172,10 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
-  auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
-  deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+  auto activate_controllers = controller_handler_.GetControllersForMode(control_mode_);
+  activate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, deactivate_controllers, {});
+    change_controller_state_client_, activate_controllers, {});
   if (!controller_activation_successful)
   {
     RCLCPP_ERROR(logger, "Could not activate RT controllers");
