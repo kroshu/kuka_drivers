@@ -1,4 +1,4 @@
-# Copyright 2024 Aron Svastits
+# Copyright 2025 KUKA Hungaria Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
 import unittest
 
 import launch
-import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
-
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions.include_launch_description import IncludeLaunchDescription
-from ament_index_python.packages import get_package_share_directory
 
 
 # Launch all of the robot visualisation launch files one by one
@@ -40,7 +38,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "driver_version": "eki_rsi",
+                }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
         ]
