@@ -56,7 +56,7 @@ InterfaceConfig NrtMessageHandler::state_interface_configuration() const
 CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
   // Drive state
-  drive_state_ = 1.0;
+  drive_state_ = 0.0;
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
     "~/drive_state", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });

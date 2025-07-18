@@ -56,6 +56,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   is_active_ = false;
   msg_received_ = false;
   prev_drives_enabled_ = false;
+  drives_command_sent_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -411,20 +412,26 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
 
 void KukaEkiRsiHardwareInterface::ChangeDriveState()
 {
-  const bool drives_enabled = drives_enabled_command_ == 1.0;
-  if (prev_drives_enabled_ != drives_enabled)
+  bool drives_enabled = drives_enabled_command_ == 1.0;
+
+  if (!drives_command_sent_ && drives_enabled && !status_manager_.DrivesPowered())
   {
-    if (drives_enabled)
-    {
-      RCLCPP_INFO(logger_, "Turning on drives");
-      robot_ptr_->TurnOnDrives();
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "Turning off drives");
-      robot_ptr_->TurnOffDrives();
-    }
-    prev_drives_enabled_ = drives_enabled;
+    RCLCPP_INFO(logger_, "Turning on drives");
+    robot_ptr_->TurnOnDrives();
+    drives_command_sent_ = true;
+    prev_drives_enabled_ = true;
+  }
+  else if (!drives_command_sent_ && !drives_enabled && status_manager_.DrivesPowered())
+  {
+    RCLCPP_INFO(logger_, "Turning off drives");
+    robot_ptr_->TurnOffDrives();
+    drives_command_sent_ = true;
+    prev_drives_enabled_ = false;
+  }
+
+  if (drives_command_sent_ && prev_drives_enabled_ == status_manager_.DrivesPowered())
+  {
+    drives_command_sent_ = false;
   }
 }
 

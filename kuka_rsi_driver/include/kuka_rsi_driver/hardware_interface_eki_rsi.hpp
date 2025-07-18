@@ -129,6 +129,7 @@ private:
   bool is_active_;
   bool msg_received_;
   bool prev_drives_enabled_;
+  bool drives_command_sent_;
   std::atomic<bool> stop_requested_{false};
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
