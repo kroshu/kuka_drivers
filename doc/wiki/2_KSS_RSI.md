@@ -44,15 +44,20 @@ Windows runs behind the SmartHMI on the teach pad. Make sure that the **Windows 
 
 ###### Update and upload configuration files
 
-There are 3 files necessary for RSI that are available in the `krl/KSS` directory:
+Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in the `kuka_external_control_sdk/kss/krl` directory:
 
-- `ros_rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
+- `SensorInterface/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
   - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
+- `SensorInterface/ros_joint_pos.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
+- `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
+- `Program/RSI/rsi_joint_pos_4ms.src` and `Program/RSI/rsi_joint_pos_12ms.src`: These contain KRL programs that start external control. You may choose what cycle time RSI should use (4 ms or 12 ms).
 
-- `ros_rsi.src`: This contains the KRL program that starts external control. The program contains a movement to the (0, -90, 90, 0, 0, 0) position, as the first motion instruction in a KRL program must define an unambiguous starting position. The goal position might be modified if necessary, the other parts of the program should be left unchanged.
-- `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
-  - For older RSI versions (<=4.0.3), the context can only be defined in 3 different files: `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi`, these can be found under `krl/deprecated`. In this case, these 3 files should be copied to the controller instead of the `ros_rsi.rsix`.
+If you are using an older version of RSI (i.e., <=4.0.3), you should instead use the following files:
+
+- `SensorInterface/rsi_ethernet.xml` should be used as described above.
+- Instead of the `ros_joint_pos.rsix` RSI context file, one should copy the `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi` files from the `krl/SensorInterface/deprecate/` directory.
+- Instead of the `Program/RSI/rsi_joint_pos_4ms.src` and `Program/RSI/rsi_joint_pos_12ms.src` files, one should use the `Program/RSI/deprecated/ros_rsi.src` file.
 
 There are two options to upload these files to the controller:
 
@@ -61,14 +66,14 @@ Method 1:
 1. Copy the files to a USB-stick.
 2. Plug it into the teach pad or controller.
 3. Log in as **Expert** or **Administrator** on the controller.
-4. Copy the `ros_rsi.src` file to `KRC:\R1\Program`.
+4. Copy the `rsi_joint_pos_4ms.src`/`rsi_joint_pos_12ms.src` file(s) to `KRC:\R1\Program`.
 5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface`.
 
 Method 2:
 
 1. Connect to the KRC with WorkVisual
 2. Log in as **Expert** or **Administrator** on the controller.
-3. Copy the `ros_rsi.src` file to `KRC:\R1\Program` in WorkVisual
+3. Copy the `rsi_joint_pos_4ms.src`/`rsi_joint_pos_12ms.src` file(s) to `KRC:\R1\Program` in WorkVisual
 4. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in WorkVisual
 5. Deploy the project
 
@@ -86,8 +91,8 @@ The following configuration files are available in the `config` directory of the
 
 The following parameters must be set in the driver configuration file:
 
-- `client_ip`: IP address of the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
-- `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
+- `client_ip`: IP address of the client machine, should be identical to the one set in `rsi_ethernet.xml`
+- `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `rsi_ethernet.xml`
 
 ##### Runtime parameters
 
@@ -124,7 +129,7 @@ The IP address of the client machine must be provided as a launch argument. For 
 
     - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
 
-3. Start the `KRC:\R1\Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
+3. Start the `KRC:\R1\Program\rsi_joint_pos_4ms.src`/`KRC:\R1\Program\rsi_joint_pos_12ms.src` program on the controller and execute the line of `RSI_MOVECORR()`
     - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
@@ -221,3 +226,7 @@ Once the driver is launched, one can use the standard ROS 2 lifecycle transition
 - `ros2 lifecycle set /robot_manager cleanup`: Terminates the connection to the robot controller
 
 The integration of EKI not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers. For more details, refer to the [Controllers](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers) wiki page.
+
+#### Notes
+
+By default, the EKI + RSI driver disables the robot drives. If an issue occurs on the controller side that results in the drives being turned off, you may need to restart the ROS 2 driver after acknowledging the corresponding messages.
