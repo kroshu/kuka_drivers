@@ -47,6 +47,9 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
+  auto it = info_.hardware_parameters.find("verify_robot_model");
+  verify_robot_model_ = (it != info_.hardware_parameters.end() && it->second == "true");
+
   cycle_time_command_ = 0.0;
   drives_enabled_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
@@ -104,25 +107,33 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  const bool connection_successful = ConnectToController();
+  if (!ConnectToController())
+  {
+    return CallbackReturn::ERROR;
+  }
 
   // Wait for the response to arrive from the controller
   std::unique_lock<std::mutex> lk{init_mtx_};
   init_cv_.wait(lk, [this] { return init_report_.sequence_complete; });
 
-  if (!init_report_.ok)
+  if (verify_robot_model_)
   {
-    RCLCPP_ERROR(
-      logger_, "The driver is incompatible with the current hardware and software setup: %s",
-      init_report_.reason.c_str());
-    robot_ptr_.reset();
+    if (!init_report_.ok)
+    {
+      RCLCPP_ERROR(
+        logger_, "The driver is incompatible with the current hardware and software setup: %s",
+        init_report_.reason.c_str());
+      robot_ptr_.reset();
+      return CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
   }
   else
   {
-    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+    RCLCPP_INFO(logger_, "Robot model verification is disabled, proceeding with the connection.");
   }
 
-  return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)

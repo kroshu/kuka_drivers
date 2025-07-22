@@ -209,6 +209,7 @@ Regardless of the launch file you choose, the following arguments must be specif
 - `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified)
 - `controller_ip`: The IP address of the **KUKA Line Interface (KLI)**
 - `driver_version`: Set this parameter to `eki_rsi`. If not set the plain RSI driver will be used.
+- `verify_robot_model`: If set to `true`, the driver will verify that the robot model the launch arguments match the configuration reported by the controller.
 
 For instance, to launch the driver for a KR 10 R1100-2 robot from the Agilus family, one could use the following command:
 
