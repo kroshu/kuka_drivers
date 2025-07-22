@@ -16,6 +16,7 @@
 #define KUKA_NRT_MESSAGE_HANDLER__KUKA_NRT_MESSAGE_HANDLER_HPP_
 
 #include <array>
+#include <atomic>
 #include <utility>
 #include <vector>
 
@@ -67,15 +68,16 @@ private:
   KUKA_NRT_MESSAGE_HANDLER_LOCAL void RsiCycleTimeChangedCallback(
     const std_msgs::msg::UInt8::SharedPtr msg);
 
-  /* Drive state */
+  // Drive state
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_state_subscription_;
-  double drive_state_;
+  std::atomic<double> drive_state_;
+  std::atomic<bool> drive_state_command_received_;
 
-  /* Cycle time */
+  // Cycle time
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr cycle_time_subscription_;
-  double cycle_time_;
+  std::atomic<double> cycle_time_;
 
-  /* Status */
+  // Status
   class Status
   {
   public:
@@ -114,6 +116,7 @@ private:
   Status status_;
 
   static constexpr std::chrono::milliseconds STATUS_PUBLISH_INTERVAL{1'000};
+  static constexpr int WARN_THROTTLE_DURATION_MS = 1000;
 };
 
 }  // namespace kuka_controllers

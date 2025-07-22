@@ -56,13 +56,18 @@ InterfaceConfig NrtMessageHandler::state_interface_configuration() const
 CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
   // Drive state
-  drive_state_ = 0.0;
+  drive_state_.store(0.0);
+  drive_state_command_received_.store(false);
   drive_state_subscription_ = get_node()->create_subscription<std_msgs::msg::Bool>(
     "~/drive_state", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::Bool::SharedPtr msg) { drive_state_ = msg->data ? 1.0 : 0.0; });
+    [this](const std_msgs::msg::Bool::SharedPtr msg)
+    {
+      drive_state_.store(msg->data ? 1.0 : 0.0);
+      drive_state_command_received_.store(true);
+    });
 
   // RSI cycle time
-  cycle_time_ = static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_12MS);
+  cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_12MS));
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
     std::bind(&NrtMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
@@ -87,8 +92,39 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 
 ReturnType NrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  bool drive_state_set = command_interfaces_[0].set_value(drive_state_);
-  bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_);
+  bool drive_state_set = true;
+  if (drive_state_command_received_.load())
+  {
+    drive_state_set = command_interfaces_[0].set_value(drive_state_.load());
+    if (drive_state_set)
+    {
+      drive_state_command_received_.store(false);
+    }
+    else
+    {
+      RCLCPP_WARN_THROTTLE(
+        get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
+        "Failed to set drive state command interface");
+    }
+  }
+  else
+  {
+    double current_drive_state =
+      command_interfaces_[0].get_optional().value_or(drive_state_.load());
+    if (current_drive_state != drive_state_.load())
+    {
+      drive_state_.store(current_drive_state);
+    }
+  }
+
+  bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_.load());
+  if (!cycle_time_set)
+  {
+    RCLCPP_WARN_THROTTLE(
+      get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
+      "Failed to set cycle time command interface");
+  }
+
   status_ = state_interfaces_;
   return drive_state_set && cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
 }
@@ -99,7 +135,7 @@ void NrtMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::
     msg->data == kuka_driver_interfaces::msg::KssStatus::RSI_4MS ||
     msg->data == kuka_driver_interfaces::msg::KssStatus::RSI_12MS)
   {
-    cycle_time_ = static_cast<double>(msg->data);
+    cycle_time_.store(static_cast<double>(msg->data));
   }
   else
   {

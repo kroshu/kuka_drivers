@@ -104,8 +104,8 @@ The `kuka_nrt_message_handler` controller provides several non-real-time capabil
   `guard_stop`      | `true`/`false`                           | Indicates whether the guard stop is active
   `in_motion`       | `true`/`false`                           | Shows whether the robot is moving
   `motion_possible` | `true`/`false`                           | Indicates whether motion is possible
-  `operation_mode`  | `1` (T1), `2` (T2), `3` (AUT), `4` (EXT) | Represent the robot's current operation mode
-  `robot_stopped`   | `true`/`false`                           | Signals whether there is a message that required the robot to stop
+  `operation_mode`  | `1` (T1), `2` (T2), `3` (AUT), `4` (EXT) | Represents the robot's current operation mode
+  `robot_stopped`   | `true`/`false`                           | Signals whether the robot stopped
 
   ```shell
   ros2 topic echo /nrt_message_handler/status

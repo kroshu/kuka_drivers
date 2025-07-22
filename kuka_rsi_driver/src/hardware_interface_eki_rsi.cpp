@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <regex>
+#include <thread>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -155,8 +156,24 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 
   if (!status_manager_.DrivesPowered())
   {
-    RCLCPP_ERROR(logger_, "Drives not powered. Power on the drives to activate.");
-    return CallbackReturn::FAILURE;
+    RCLCPP_INFO(logger_, "Drives not powered. Automatically turning on drives for activation.");
+    drives_enabled_command_ = 1.0;
+    ChangeDriveState();
+
+    // Wait for drives to be powered up
+    auto start_time = std::chrono::steady_clock::now();
+    constexpr auto timeout = std::chrono::seconds(10);
+    while (!status_manager_.DrivesPowered())
+    {
+      if (std::chrono::steady_clock::now() - start_time > timeout)
+      {
+        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power on. Check robot state.");
+        return CallbackReturn::FAILURE;
+      }
+      status_manager_.UpdateStateInterfaces();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    RCLCPP_INFO(logger_, "Drives successfully powered on.");
   }
 
   const auto control_mode =
@@ -455,6 +472,7 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 
   if (prev_cycle_time_ != cycle_time)
   {
+    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", cycle_time);
     robot_ptr_->SetCycleTime(cycle_time);
     prev_cycle_time_ = cycle_time;
   }
