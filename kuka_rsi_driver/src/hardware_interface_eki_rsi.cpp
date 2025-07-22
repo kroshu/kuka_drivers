@@ -52,7 +52,8 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   std::string verify_value = (it != info_.hardware_parameters.end()) ? it->second : "";
   std::transform(verify_value.begin(), verify_value.end(), verify_value.begin(), ::tolower);
   verify_robot_model_ = (it != info_.hardware_parameters.end() && verify_value == "true");
-  RCLCPP_INFO(logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
+  RCLCPP_INFO(
+    logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
 
   cycle_time_command_ = 0.0;
   drives_enabled_command_ = 0.0;
@@ -472,7 +473,7 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 
   if (prev_cycle_time_ != cycle_time)
   {
-    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", cycle_time);
+    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
     robot_ptr_->SetCycleTime(cycle_time);
     prev_cycle_time_ = cycle_time;
   }
