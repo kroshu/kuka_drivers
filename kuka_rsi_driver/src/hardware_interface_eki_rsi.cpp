@@ -586,6 +586,7 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
   {
     gpio_config.enable_limits = false;  // If max_value is empty, disable limits
   }
+  return gpio_config;
 }
 }  // namespace kuka_rsi_driver
 

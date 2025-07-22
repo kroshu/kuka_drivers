@@ -17,7 +17,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
-#include "hardware_interface_rsi_only.hpp"
+//#include "hardware_interface_rsi_only.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_only.hpp"
 
@@ -397,6 +397,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
   {
     gpio_config.enable_limits = false;  // If max_value is empty, disable limits
   }
+  return gpio_config;
 }
 }  // namespace kuka_rsi_driver
 
