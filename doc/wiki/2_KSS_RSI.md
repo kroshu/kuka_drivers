@@ -56,7 +56,7 @@ Several files required for RSI can be found in the [`kuka-external-control-sdk`]
 If you are using an older version of RSI (i.e., <=4.0.3), you should instead use the following files:
 
 - `SensorInterface/rsi_ethernet.xml` should be used as described above.
-- Instead of the `ros_joint_pos.rsix` RSI context file, one should copy the `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi` files from the `krl/SensorInterface/deprecate/` directory.
+- Instead of the `ros_joint_pos.rsix` RSI context file, one should copy the `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi` files from the `krl/SensorInterface/deprecated/` directory.
 - Instead of the `Program/RSI/rsi_joint_pos_4ms.src` and `Program/RSI/rsi_joint_pos_12ms.src` files, one should use the `Program/RSI/deprecated/ros_rsi.src` file.
 
 There are two options to upload these files to the controller:
