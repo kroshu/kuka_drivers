@@ -49,15 +49,11 @@ Several files required for RSI can be found in the [`kuka-external-control-sdk`]
 - `SensorInterface/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
   - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
-- `SensorInterface/ros_joint_pos.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
+- `SensorInterface/rsi_joint_pos.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
 - `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
 - `Program/RSI/rsi_joint_pos_4ms.src` and `Program/RSI/rsi_joint_pos_12ms.src`: These contain KRL programs that start external control. You may choose what cycle time RSI should use (4 ms or 12 ms).
 
-If you are using an older version of RSI (i.e., <=4.0.3), you should instead use the following files:
-
-- `SensorInterface/rsi_ethernet.xml` should be used as described above.
-- Instead of the `ros_joint_pos.rsix` RSI context file, one should copy the `ros_rsi.rsi.xml`, `ros_rsi.rsi.diagram` and `ros_rsi.rsi` files from the `krl/SensorInterface/deprecated/` directory.
-- Instead of the `Program/RSI/rsi_joint_pos_4ms.src` and `Program/RSI/rsi_joint_pos_12ms.src` files, one should use the `Program/RSI/deprecated/ros_rsi.src` file.
+If you are using an older version of RSI (i.e., <=4.0.3), the RSI context must be defined using three separate files&mdash;`rsi_joint_pos.rsi`, `rsi_joint_pos.rsi.diagram` and `rsi_joint_pos.rsi.xml`&mdash;instead of a single `.rsix` file. These files can be found in the `kuka_external_control_sdk/kss/krl/SensorInterface/deprecated` directory of the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository. Use these files in place of the `rsi_joint_pos.rsix` context file mentioned above.
 
 There are two options to upload these files to the controller:
 
