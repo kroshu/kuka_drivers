@@ -71,7 +71,7 @@ Hybrid Controllers group together related functionalities that are intended to b
 
 ### 4.1. `kuka_kss_message_handler`
 
-The `kuka_kss_message_handler` controller provides several non-real-time capabilities:
+The `kuka_kss_message_handler` controller only works for the EKI + RSI driver. It provides several non-real-time capabilities:
 
 - __Toggle Robot Drives__
 
