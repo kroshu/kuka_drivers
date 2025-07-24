@@ -145,6 +145,7 @@ Both launch files support the following arguments:
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
+- `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
@@ -205,7 +206,6 @@ Regardless of the launch file you choose, the following arguments must be specif
 - `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified)
 - `controller_ip`: The IP address of the **KUKA Line Interface (KLI)**
 - `driver_version`: Set this parameter to `eki_rsi`. If not set the plain RSI driver will be used.
-- `verify_robot_model`: If set to `true`, the driver will verify that the robot model the launch arguments match the configuration reported by the controller.
 
 For instance, to launch the driver for a KR 10 R1100-2 robot from the Agilus family, one could use the following command:
 
