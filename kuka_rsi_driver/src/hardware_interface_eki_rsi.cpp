@@ -49,9 +49,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
   auto it = info_.hardware_parameters.find("verify_robot_model");
-  std::string verify_value = (it != info_.hardware_parameters.end()) ? it->second : "";
-  std::transform(verify_value.begin(), verify_value.end(), verify_value.begin(), ::tolower);
-  verify_robot_model_ = (it != info_.hardware_parameters.end() && verify_value == "true");
+  verify_robot_model_ = (it != info_.hardware_parameters.end() && it->second == "True");
   RCLCPP_INFO(
     logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
 
