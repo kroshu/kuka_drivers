@@ -17,12 +17,12 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_nrt_message_handler/kuka_nrt_message_handler.hpp"
+#include "kuka_kss_message_handler/kuka_kss_message_handler.hpp"
 
 namespace kuka_controllers
 {
 
-InterfaceConfig NrtMessageHandler::command_interface_configuration() const
+InterfaceConfig KssMessageHandler::command_interface_configuration() const
 {
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -33,7 +33,7 @@ InterfaceConfig NrtMessageHandler::command_interface_configuration() const
   return config;
 }
 
-InterfaceConfig NrtMessageHandler::state_interface_configuration() const
+InterfaceConfig KssMessageHandler::state_interface_configuration() const
 {
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -53,7 +53,7 @@ InterfaceConfig NrtMessageHandler::state_interface_configuration() const
   return config;
 }
 
-CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
   // Drive state
   drive_state_.store(0.0);
@@ -70,7 +70,7 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_12MS));
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
-    std::bind(&NrtMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
+    std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
 
   // Status
   status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatus>(
@@ -90,7 +90,7 @@ CallbackReturn NrtMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-ReturnType NrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
+ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
   bool drive_state_set = true;
   if (drive_state_command_received_.load())
@@ -129,7 +129,7 @@ ReturnType NrtMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
   return drive_state_set && cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
 }
 
-void NrtMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::SharedPtr msg)
 {
   if (
     msg->data == kuka_driver_interfaces::msg::KssStatus::RSI_4MS ||
@@ -144,7 +144,7 @@ void NrtMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::
   }
 }
 
-NrtMessageHandler::Status & NrtMessageHandler::Status::operator=(
+KssMessageHandler::Status & KssMessageHandler::Status::operator=(
   const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces)
 {
   for (const auto & [value_ptr, idx] : UINT8_MAPPINGS)
@@ -165,4 +165,4 @@ NrtMessageHandler::Status & NrtMessageHandler::Status::operator=(
 }  // namespace kuka_controllers
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_controllers::NrtMessageHandler, controller_interface::ControllerInterface)
+  kuka_controllers::KssMessageHandler, controller_interface::ControllerInterface)

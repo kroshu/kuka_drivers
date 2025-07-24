@@ -69,16 +69,16 @@ __Required Parameters__: None
 
 Hybrid Controllers group together related functionalities that are intended to be used in combination. Currently, there is a single Hybrid Controller that handles non-real-time messages. It effectively combines the roles of a Broadcaster and a Configuration Controller.
 
-### 4.1. `kuka_nrt_message_handler`
+### 4.1. `kuka_kss_message_handler`
 
-The `kuka_nrt_message_handler` controller provides several non-real-time capabilities:
+The `kuka_kss_message_handler` controller provides several non-real-time capabilities:
 
 - __Toggle Robot Drives__
 
   Publish a `std_msgs::msg::Bool` message to `~/drive_state` to control the drive state:
 
   ```shell
-  ros2 topic pub /nrt_message_handler/drive_state std_msgs/msg/Bool "{data: false}" --once
+  ros2 topic pub /kss_message_handler/drive_state std_msgs/msg/Bool "{data: false}" --once
   ```
 
 - __Set RSI Cycle Time__
@@ -88,7 +88,7 @@ The `kuka_nrt_message_handler` controller provides several non-real-time capabil
   - 2 &rarr; 12 ms
 
   ```shell
-  ros2 topic pub /nrt_message_handler/cycle_time std_msgs/msg/UInt8 "{data: 1}" --once
+  ros2 topic pub /kss_message_handler/cycle_time std_msgs/msg/UInt8 "{data: 1}" --once
   ```
 
 - __Monitor Robot Status__
@@ -108,7 +108,7 @@ The `kuka_nrt_message_handler` controller provides several non-real-time capabil
   `robot_stopped`   | `true`/`false`                           | Signals whether the robot stopped
 
   ```shell
-  ros2 topic echo /nrt_message_handler/status
+  ros2 topic echo /kss_message_handler/status
   ```
 
 __Note:__ These features are available only when the driver is in the __configured__ state. However, status updates are still published in the __active__ state. These updates are only sent if the EKI driver has an idle cycle, meaning no other messages are being transmitted at that moment; this applies to both the configured and the active states.

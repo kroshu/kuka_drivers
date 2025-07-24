@@ -185,7 +185,7 @@ def launch_setup(context, *args, **kwargs):
     if driver_version.perform(context) == "eki_rsi":
         controllers["control_mode_handler"] = None
         controllers["event_broadcaster"] = None
-        controllers["nrt_message_handler"] = None
+        controllers["kss_message_handler"] = None
 
     controller_spawners = [
         controller_spawner(name, param_file) for name, param_file in controllers.items()
