@@ -79,14 +79,11 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
     STATUS_PUBLISH_INTERVAL,
     [this]
     {
-      if (status_.StatusChanged())
-      {
-        status_.UpdateMessage();
-        status_publisher_->publish(status_.GetMessage());
-      }
+      status_.UpdateMessage();
+      status_publisher_->publish(status_.GetMessage());
     });
 
-  RCLCPP_INFO(get_node()->get_logger(), "Non-real time message handler configured");
+  RCLCPP_INFO(get_node()->get_logger(), "KSS message handler configured");
   return CallbackReturn::SUCCESS;
 }
 
