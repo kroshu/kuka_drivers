@@ -157,20 +157,22 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
   {
     RCLCPP_INFO(logger_, "Drives not powered. Automatically turning on drives for activation.");
     drives_enabled_command_ = 1.0;
+    drives_command_sent_ = false;
     ChangeDriveState();
 
     // Wait for drives to be powered up
     auto start_time = std::chrono::steady_clock::now();
-    constexpr auto timeout = std::chrono::seconds(10);
     while (!status_manager_.DrivesPowered())
     {
-      if (std::chrono::steady_clock::now() - start_time > timeout)
+      if (
+        std::chrono::steady_clock::now() - start_time >
+        KukaEkiRsiHardwareInterface::DRIVES_POWERED_TIMEOUT)
       {
         RCLCPP_ERROR(logger_, "Timeout waiting for drives to power on. Check robot state.");
         return CallbackReturn::FAILURE;
       }
       status_manager_.UpdateStateInterfaces();
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
     }
     RCLCPP_INFO(logger_, "Drives successfully powered on.");
   }
