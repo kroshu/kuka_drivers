@@ -373,7 +373,7 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
   }
   else if (!status_manager_.DrivesPowered())
   {
-    RCLCPP_WARN(logger_, "Drives are not powered!");
+    RCLCPP_ERROR(logger_, "Drives are not powered!");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
