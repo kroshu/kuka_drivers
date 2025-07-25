@@ -223,7 +223,3 @@ Once the driver is launched, one can use the standard ROS 2 lifecycle transition
 - `ros2 lifecycle set /robot_manager cleanup`: Terminates the connection to the robot controller
 
 The integration of EKI not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers. For more details, refer to the [Controllers](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers) wiki page.
-
-#### Notes
-
-By default, the EKI + RSI driver disables the robot drives. If an issue occurs on the controller side that results in the drives being turned off, you may need to restart the ROS 2 driver after acknowledging the corresponding messages.

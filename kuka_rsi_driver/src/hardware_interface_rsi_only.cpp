@@ -122,7 +122,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && msg_received_ && first_write_done_)
+  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_)
   {
     Write();
   }
@@ -155,15 +155,19 @@ bool KukaRSIHardwareInterface::SetupRobot()
 
 void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
 {
-  std::chrono::milliseconds timeout(request_timeout);
-  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
-
+  auto motion_state_status =
+    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+  }
+  else
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
+    on_deactivate(get_lifecycle_state());
   }
 }
 
@@ -176,11 +180,18 @@ void KukaRSIHardwareInterface::Write()
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
   {
-    RCLCPP_INFO(logger_, "Sending stop signal");
+    if (msg_received_)
+    {
+      RCLCPP_INFO(logger_, "Sending stop signal");
+      send_reply_status = robot_ptr_->StopControlling();
+    }
+    else
+    {
+      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
+    }
     first_write_done_ = false;
     is_active_ = false;
     msg_received_ = false;
-    send_reply_status = robot_ptr_->StopControlling();
   }
   else
   {

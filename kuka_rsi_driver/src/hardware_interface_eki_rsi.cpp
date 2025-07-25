@@ -147,6 +147,12 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::S
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  if (status_manager_.IsEmergencyStopActive())
+  {
+    RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
+    return CallbackReturn::FAILURE;
+  }
+
   if (!status_manager_.IsKrcInExtMode())
   {
     RCLCPP_ERROR(logger_, "KRC not in EXT. Switch to EXT to activate.");
@@ -228,7 +234,7 @@ return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp
 
 return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_)
+  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_ && prev_drives_enabled_)
   {
     Write();
   }
@@ -360,15 +366,30 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
 
 void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 {
-  std::chrono::milliseconds timeout(request_timeout);
-  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
+  if (status_manager_.IsEmergencyStopActive())
+  {
+    RCLCPP_ERROR(logger_, "Emergency stop detected!");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
+  else if (!status_manager_.DrivesPowered())
+  {
+    RCLCPP_WARN(logger_, "Drives are not powered!");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
 
+  auto motion_state_status =
+    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+  }
+  else
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive motion state: %s", motion_state_status.message);
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
   std::lock_guard<std::mutex> lk(event_mutex_);
@@ -386,11 +407,20 @@ void KukaEkiRsiHardwareInterface::Write()
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
   {
-    RCLCPP_INFO(logger_, "Sending stop signal");
+    if (msg_received_)
+    {
+      RCLCPP_INFO(logger_, "Sending stop signal");
+      send_reply_status = robot_ptr_->StopControlling();
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+      robot_ptr_->CancelRsiProgram();
+      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
+    }
     is_active_ = false;
     first_write_done_ = false;
     msg_received_ = false;
-    send_reply_status = robot_ptr_->StopControlling();
   }
   else if (control_mode_change_requested)
   {
