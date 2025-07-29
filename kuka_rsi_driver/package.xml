@@ -12,18 +12,22 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>kuka_drivers_core</depend>
-  <depend>hardware_interface</depend>
-  <depend>pluginlib</depend>
   <depend>controller_manager_msgs</depend>
+  <depend>hardware_interface</depend>
+  <depend>kuka_external_control_sdk</depend>
+  <depend>kuka_drivers_core</depend>
+  <depend>pluginlib</depend>
   <depend>std_msgs</depend>
 
   <depend>tinyxml_vendor</depend>
 
-  <exec_depend>ros2_control</exec_depend>
   <exec_depend>joint_trajectory_controller</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>kuka_control_mode_handler</exec_depend>
+  <exec_depend>kuka_kss_message_handler</exec_depend>
+  <exec_depend>kuka_event_broadcaster</exec_depend>
   <exec_depend>kuka_robot_descriptions</exec_depend>
+  <exec_depend>ros2_control</exec_depend>
 
   <test_depend>kuka_rsi_simulator</test_depend>
   <test_depend>ros2lifecycle</test_depend>

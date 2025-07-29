@@ -1,4 +1,4 @@
-// Copyright 2023 Aron Svastits
+// Copyright 2025 KUKA Hungaria Kft.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
-#define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_EKI_RSI_HPP_
+#define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_EKI_RSI_HPP_
 
 #include <map>
 #include <memory>
@@ -25,18 +25,21 @@
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 
+#include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-namespace kuka_rsi
+namespace kuka_rsi_driver
 {
-class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
+class RobotManagerNodeEkiRsi : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
-  RobotManagerNode();
-  ~RobotManagerNode() = default;
+  RobotManagerNodeEkiRsi();
+  ~RobotManagerNodeEkiRsi() = default;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -47,20 +50,39 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
 private:
-  bool onRobotModelChangeRequest(const std::string & robot_model);
+  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
+
+  bool OnControlModeChangeRequest(const int control_mode);
+
+  bool OnRobotModelChangeRequest(const std::string & robot_model);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-
   std::string robot_model_;
-  std::string position_controller_name_;
+
+  kuka_drivers_core::ControllerHandler controller_handler_;
+  kuka_drivers_core::ControlMode control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+
+  std::atomic<bool> terminate_{false};
+
+  std::condition_variable control_mode_cv_;
+  std::mutex control_mode_cv_m_;
+  bool control_mode_change_finished_ = false;
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
-};
-}  // namespace kuka_rsi
 
-#endif  // KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+  rclcpp::CallbackGroup::SharedPtr event_callback_group_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+
+  static constexpr std::uint32_t SWITCH_RESPONSE_TIMEOUT_MS = 5'000;
+  static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
+};
+}  // namespace kuka_rsi_driver
+
+#endif  // KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_EKI_RSI_HPP_

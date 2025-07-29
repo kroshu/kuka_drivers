@@ -19,12 +19,11 @@ import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
-
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions.include_launch_description import IncludeLaunchDescription
-from ament_index_python.packages import get_package_share_directory
 
 
 # Launch driver startup
@@ -40,7 +39,10 @@ def generate_test_description():
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "driver_version": "rsi_only",
+                }.items(),
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
