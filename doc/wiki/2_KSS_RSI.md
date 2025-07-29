@@ -107,13 +107,13 @@ The IP address of the client machine must be provided as a launch argument. For 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
     ```bash
-    ros2 launch kuka_rsi_driver startup.launch.py client_ip:=0.0.0.0
+    ros2 launch kuka_rsi_driver startup.launch.py
     ```
 
     - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_rsi_driver/config/joint_trajectory_controller_config.yaml))
-
+    - There is no need to set the Client IP, since the driver automatically listens on the `0.0.0.0` address.
     - After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
 2. Configure and activate all components the driver:
@@ -134,7 +134,6 @@ On successful activation the brakes of the robot will be released and external c
 
 Both launch files support the following arguments:
 
-- `client_ip`: IP address of the client machine
 - `client_port`: port of the client machine (default: 59152)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
