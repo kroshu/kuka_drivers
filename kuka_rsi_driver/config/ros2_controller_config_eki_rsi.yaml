@@ -10,7 +10,7 @@ controller_manager:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
-    nrt_message_handler:
-      type: kuka_controllers/NrtMessageHandler
+    kss_message_handler:
+      type: kuka_controllers/KssMessageHandler
     gpio_controller:
       type: gpio_controllers/GpioCommandController

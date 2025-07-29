@@ -42,6 +42,7 @@ def launch_setup(context, *args, **kwargs):
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
     roundtrip_time = LaunchConfiguration("roundtrip_time")
+    verify_robot_model = LaunchConfiguration("verify_robot_model")
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
@@ -115,6 +116,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "roundtrip_time:=",
             roundtrip_time,
+            " ",
+            "verify_robot_model:=",
+            verify_robot_model,
         ],
         on_stderr="capture",
     )
@@ -187,7 +191,7 @@ def launch_setup(context, *args, **kwargs):
     if driver_version.perform(context) == "eki_rsi":
         controllers["control_mode_handler"] = None
         controllers["event_broadcaster"] = None
-        controllers["nrt_message_handler"] = None
+        controllers["kss_message_handler"] = None
 
     controller_spawners = [
         controller_spawner(name, param_file) for name, param_file in controllers.items()
@@ -227,6 +231,11 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "verify_robot_model", default_value="true", choices=["true", "false"]
+        )
+    )
     launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(

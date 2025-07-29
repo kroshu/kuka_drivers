@@ -80,7 +80,8 @@ private:
   rclcpp::CallbackGroup::SharedPtr event_callback_group_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 
-  static constexpr std::uint32_t SWITCH_RESPONSE_TIMEOUT_MS = 2'000;
+  static constexpr std::uint32_t SWITCH_RESPONSE_TIMEOUT_MS = 5'000;
+  static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
 };
 }  // namespace kuka_rsi_driver
 

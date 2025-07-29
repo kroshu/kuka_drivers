@@ -17,7 +17,6 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
-//#include "hardware_interface_rsi_only.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_only.hpp"
 
@@ -33,10 +32,10 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
 
-  // Checking joint config structure
   for (const auto & joint : info_.joints)
   {
-    if (!CheckJointInterfaces(joint))
+    bool interfaces_ok = CheckJointInterfaces(joint);
+    if (!interfaces_ok)
     {
       return CallbackReturn::ERROR;
     }
@@ -165,7 +164,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && msg_received_ && first_write_done_)
+  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_)
   {
     Write();
   }
@@ -223,9 +222,8 @@ bool KukaRSIHardwareInterface::SetupRobot()
 
 void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
 {
-  std::chrono::milliseconds timeout(request_timeout);
-  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
-
+  auto motion_state_status =
+    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
@@ -251,6 +249,11 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
       }
     }
   }
+  else
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
+    on_deactivate(get_lifecycle_state());
+  }
 }
 
 void KukaRSIHardwareInterface::Write()
@@ -263,11 +266,18 @@ void KukaRSIHardwareInterface::Write()
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
   {
-    RCLCPP_INFO(logger_, "Sending stop signal");
+    if (msg_received_)
+    {
+      RCLCPP_INFO(logger_, "Sending stop signal");
+      send_reply_status = robot_ptr_->StopControlling();
+    }
+    else
+    {
+      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
+    }
     first_write_done_ = false;
     is_active_ = false;
     msg_received_ = false;
-    send_reply_status = robot_ptr_->StopControlling();
   }
   else
   {

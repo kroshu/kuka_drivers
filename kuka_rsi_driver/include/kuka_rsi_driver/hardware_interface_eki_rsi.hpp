@@ -136,10 +136,14 @@ private:
   bool is_active_;
   bool msg_received_;
   bool prev_drives_enabled_;
+  bool drives_command_sent_;
+  bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
+  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
+  static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_rsi_driver

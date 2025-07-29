@@ -98,7 +98,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::Stat
   // Activate control mode handler and event broadcaster controllers
   std::vector<std::string> controllers_to_activate{
     kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::NRT_MESSAGE_HANDLER,
+    kuka_drivers_core::KSS_MESSAGE_HANDLER,
     kuka_drivers_core::EVENT_BROADCASTER,
   };
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
@@ -126,7 +126,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State 
   // Deactivate control mode handler and event broadcaster
   std::vector<std::string> controllers_to_deactivate{
     kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::NRT_MESSAGE_HANDLER,
+    kuka_drivers_core::KSS_MESSAGE_HANDLER,
     kuka_drivers_core::EVENT_BROADCASTER,
   };
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
@@ -162,7 +162,8 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
 
   // Activate hardware interface
   const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
-    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_ACTIVE, 10'000);
+    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_ACTIVE,
+    RobotManagerNodeEkiRsi::HARDWARE_ACTIVATION_TIMEOUT_MS);
   if (!hw_state_change_successful)
   {
     RCLCPP_ERROR(logger, "Could not activate hardware interface");
@@ -172,11 +173,12 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
   // Activate RT controller(s)
-  auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
-  deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
-  deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  auto activate_controllers = controller_handler_.GetControllersForMode(control_mode_);
+  activate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
+  activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, deactivate_controllers, {});
+    change_controller_state_client_, activate_controllers, {});
   if (!controller_activation_successful)
   {
     RCLCPP_ERROR(logger, "Could not activate RT controllers");

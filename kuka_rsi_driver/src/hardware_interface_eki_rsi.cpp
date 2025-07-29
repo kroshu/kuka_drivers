@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <regex>
+#include <thread>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -64,6 +65,11 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
+  auto it = info_.hardware_parameters.find("verify_robot_model");
+  verify_robot_model_ = (it != info_.hardware_parameters.end() && it->second == "True");
+  RCLCPP_INFO(
+    logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
+
   cycle_time_command_ = 0.0;
   drives_enabled_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
@@ -73,6 +79,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   is_active_ = false;
   msg_received_ = false;
   prev_drives_enabled_ = false;
+  drives_command_sent_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -133,25 +140,33 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  const bool connection_successful = ConnectToController();
+  if (!ConnectToController())
+  {
+    return CallbackReturn::ERROR;
+  }
 
   // Wait for the response to arrive from the controller
   std::unique_lock<std::mutex> lk{init_mtx_};
   init_cv_.wait(lk, [this] { return init_report_.sequence_complete; });
 
-  if (!init_report_.ok)
+  if (verify_robot_model_)
   {
-    RCLCPP_ERROR(
-      logger_, "The driver is incompatible with the current hardware and software setup: %s",
-      init_report_.reason.c_str());
-    robot_ptr_.reset();
+    if (!init_report_.ok)
+    {
+      RCLCPP_ERROR(
+        logger_, "The driver is incompatible with the current hardware and software setup: %s",
+        init_report_.reason.c_str());
+      robot_ptr_.reset();
+      return CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
   }
   else
   {
-    RCLCPP_INFO(logger_, "The driver is compatible with the current hardware and software setup");
+    RCLCPP_INFO(logger_, "Robot model verification is disabled, proceeding with the connection.");
   }
 
-  return connection_successful && init_report_.ok ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
@@ -162,6 +177,12 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::S
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  if (status_manager_.IsEmergencyStopActive())
+  {
+    RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
+    return CallbackReturn::FAILURE;
+  }
+
   if (!status_manager_.IsKrcInExtMode())
   {
     RCLCPP_ERROR(logger_, "KRC not in EXT. Switch to EXT to activate.");
@@ -170,8 +191,26 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 
   if (!status_manager_.DrivesPowered())
   {
-    RCLCPP_ERROR(logger_, "Drives not powered. Power on the drives to activate.");
-    return CallbackReturn::FAILURE;
+    RCLCPP_INFO(logger_, "Drives not powered. Automatically turning on drives for activation.");
+    drives_enabled_command_ = 1.0;
+    drives_command_sent_ = false;
+    ChangeDriveState();
+
+    // Wait for drives to be powered up
+    auto start_time = std::chrono::steady_clock::now();
+    while (!status_manager_.DrivesPowered())
+    {
+      if (
+        std::chrono::steady_clock::now() - start_time >
+        KukaEkiRsiHardwareInterface::DRIVES_POWERED_TIMEOUT)
+      {
+        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power on. Check robot state.");
+        return CallbackReturn::FAILURE;
+      }
+      status_manager_.UpdateStateInterfaces();
+      std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
+    }
+    RCLCPP_INFO(logger_, "Drives successfully powered on.");
   }
 
   const auto control_mode =
@@ -226,7 +265,7 @@ return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp
 
 return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && msg_received_ && first_write_done_ && prev_drives_enabled_)
+  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_ && prev_drives_enabled_)
   {
     Write();
   }
@@ -368,9 +407,19 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
 
 void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 {
-  std::chrono::milliseconds timeout(request_timeout);
-  const auto motion_state_status = robot_ptr_->ReceiveMotionState(timeout);
+  if (status_manager_.IsEmergencyStopActive())
+  {
+    RCLCPP_ERROR(logger_, "Emergency stop detected!");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
+  else if (!status_manager_.DrivesPowered())
+  {
+    RCLCPP_ERROR(logger_, "Drives are not powered!");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
 
+  auto motion_state_status =
+    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
@@ -413,11 +462,20 @@ void KukaEkiRsiHardwareInterface::Write()
   kuka::external::control::Status send_reply_status;
   if (stop_requested_)
   {
-    RCLCPP_INFO(logger_, "Sending stop signal");
+    if (msg_received_)
+    {
+      RCLCPP_INFO(logger_, "Sending stop signal");
+      send_reply_status = robot_ptr_->StopControlling();
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+      robot_ptr_->CancelRsiProgram();
+      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
+    }
     is_active_ = false;
     first_write_done_ = false;
     msg_received_ = false;
-    send_reply_status = robot_ptr_->StopControlling();
   }
   else if (control_mode_change_requested)
   {
@@ -471,20 +529,26 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
 
 void KukaEkiRsiHardwareInterface::ChangeDriveState()
 {
-  const bool drives_enabled = drives_enabled_command_ == 1.0;
-  if (prev_drives_enabled_ != drives_enabled)
+  bool drives_enabled = drives_enabled_command_ == 1.0;
+
+  if (!drives_command_sent_ && drives_enabled && !status_manager_.DrivesPowered())
   {
-    if (drives_enabled)
-    {
-      RCLCPP_INFO(logger_, "Turning on drives");
-      robot_ptr_->TurnOnDrives();
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "Turning off drives");
-      robot_ptr_->TurnOffDrives();
-    }
-    prev_drives_enabled_ = drives_enabled;
+    RCLCPP_INFO(logger_, "Turning on drives");
+    robot_ptr_->TurnOnDrives();
+    drives_command_sent_ = true;
+    prev_drives_enabled_ = true;
+  }
+  else if (!drives_command_sent_ && !drives_enabled && status_manager_.DrivesPowered())
+  {
+    RCLCPP_INFO(logger_, "Turning off drives");
+    robot_ptr_->TurnOffDrives();
+    drives_command_sent_ = true;
+    prev_drives_enabled_ = false;
+  }
+
+  if (drives_command_sent_ && prev_drives_enabled_ == status_manager_.DrivesPowered())
+  {
+    drives_command_sent_ = false;
   }
 }
 
@@ -494,6 +558,7 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 
   if (prev_cycle_time_ != cycle_time)
   {
+    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
     robot_ptr_->SetCycleTime(cycle_time);
     prev_cycle_time_ = cycle_time;
   }

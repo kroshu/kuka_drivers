@@ -77,6 +77,8 @@ public:
 
   bool DrivesPowered() { return static_cast<bool>(drives_powered_); }
 
+  bool IsEmergencyStopActive() { return static_cast<bool>(emergency_stop_); }
+
 private:
   double control_mode_ = 0.0;
   double cycle_time_ = 0.0;
@@ -119,6 +121,12 @@ public:
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     return status_interfaces_.DrivesPowered();
+  }
+
+  bool IsEmergencyStopActive()
+  {
+    std::lock_guard<std::mutex> lck{status_mtx_};
+    return status_interfaces_.IsEmergencyStopActive();
   }
 
 private:

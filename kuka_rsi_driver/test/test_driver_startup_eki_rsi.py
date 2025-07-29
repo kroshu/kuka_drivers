@@ -1,4 +1,4 @@
-# Copyright 2024 Aron Svastits
+# Copyright 2025 KUKA Hungaria Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 import unittest
 
 import launch
-import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
