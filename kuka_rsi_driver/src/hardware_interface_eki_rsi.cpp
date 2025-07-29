@@ -390,7 +390,7 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
       else
       {
         RCLCPP_ERROR(
-          rclcpp::get_logger("KukaEACHardwareInterface"),
+          rclcpp::get_logger("KukaRSIHardwareInterface"),
           "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
           gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
       }
