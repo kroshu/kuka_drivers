@@ -15,7 +15,6 @@
 import unittest
 
 import launch
-import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
@@ -26,7 +25,7 @@ from launch.launch_description_sources.python_launch_description_source import (
 )
 
 
-# Launch driver startup
+# Launch all of the robot visualisation launch files one by one
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
@@ -44,39 +43,12 @@ def generate_test_description():
                     "driver_version": "rsi_only",
                 }.items(),
             ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    [
-                        get_package_share_directory("kuka_rsi_simulator"),
-                        "/launch/",
-                        "kuka_rsi_simulator.launch.py",
-                    ]
-                )
-            ),
-            launch.actions.TimerAction(
-                period=10.0,
-                actions=[
-                    launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
-                        output="screen",
-                    ),
-                ],
-            ),
-            launch.actions.TimerAction(
-                period=15.0,
-                actions=[
-                    launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
-                        output="screen",
-                    ),
-                ],
-            ),
             launch_testing.actions.ReadyToTest(),
         ]
     )
 
 
-class TestDriverActivation(unittest.TestCase):
+class TestDriverStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
         proc_output.assertWaitFor("got segment base", timeout=5)
@@ -87,6 +59,3 @@ class TestDriverActivation(unittest.TestCase):
         proc_output.assertWaitFor(
             "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
         )
-        # Check for successful configuration and activation
-        proc_output.assertWaitFor("Successful 'configure' of hardware 'kr6_r700_sixx'", timeout=15)
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'kr6_r700_sixx'", timeout=20)

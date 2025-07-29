@@ -16,22 +16,23 @@
 #include "communication_helpers/service_tools.hpp"
 
 #include "kuka_drivers_core/controller_names.hpp"
-#include "kuka_rsi_driver/robot_manager_node.hpp"
+#include "kuka_rsi_driver/robot_manager_node_rsi_only.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
 
-namespace kuka_rsi
+namespace kuka_rsi_driver
 {
-RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
+RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
-    "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
-  change_controller_state_client_ = this->create_client<SwitchController>(
-    "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
+    "controller_manager/set_hardware_component_state", qos, cbg_);
+  change_controller_state_client_ =
+    this->create_client<SwitchController>("controller_manager/switch_controller", qos, cbg_);
 
   auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
   is_configured_qos.best_effort();
@@ -55,7 +56,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
 {
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -72,7 +73,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Clean up hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -94,7 +95,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 
 // TODO(Svastits): rollback in case of failures
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_activate(const rclcpp_lifecycle::State &)
 {
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -120,7 +121,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -145,7 +146,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+bool RobotManagerNodeRsi::onRobotModelChangeRequest(const std::string & robot_model)
 {
   auto ns = std::string(this->get_namespace());
   // Remove '/' from namespace (even empty namespace contains one '/')
@@ -159,7 +160,7 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   robot_model_ = ns + robot_model;
   return true;
 }
-}  // namespace kuka_rsi
+}  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])
 {
@@ -167,7 +168,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rsi::RobotManagerNode>();
+  auto node = std::make_shared<kuka_rsi_driver::RobotManagerNodeRsi>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();
