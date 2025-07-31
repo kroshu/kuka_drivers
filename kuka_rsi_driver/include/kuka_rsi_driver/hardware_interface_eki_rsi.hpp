@@ -100,7 +100,7 @@ private:
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
-    hardware_interface::InterfaceInfo & info);
+    const hardware_interface::InterfaceInfo & info);
 
   KUKA_RSI_DRIVER_LOCAL void ChangeDriveState();
 

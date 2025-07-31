@@ -361,13 +361,25 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   config.dof = info_.joints.size();
 
-  for (auto && gpio_command : info_.gpios[0].command_interfaces)
+  RCLCPP_INFO(logger_, "Configured GPIO commands:");
+  for (const auto & gpio_command : info_.gpios[0].command_interfaces)
   {
+    RCLCPP_INFO(
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
+      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
+      gpio_command.max.c_str());
+
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
 
-  for (auto && gpio_state : info_.gpios[0].state_interfaces)
+  RCLCPP_INFO(logger_, "Configured GPIO states:");
+  for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
+    logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
+      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
+
     config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
   }
 
@@ -566,7 +578,7 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 
 void KukaEkiRsiHardwareInterface::CopyGPIOStatesToCommands()
 {
-  auto & gpio = info_.gpios[0];
+  const auto & gpio = info_.gpios[0];
   for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
   {
     for (size_t j = 0; j < gpio.command_interfaces.size(); j++)
@@ -581,20 +593,21 @@ void KukaEkiRsiHardwareInterface::CopyGPIOStatesToCommands()
 }
 
 kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::ParseGPIOConfig(
-  hardware_interface::InterfaceInfo & info)
+  const hardware_interface::InterfaceInfo & info)
 {
   kuka::external::control::kss::GPIOConfiguration gpio_config;
   gpio_config.name = info.name;
   gpio_config.enable_limits = info.enable_limits;
-  if (info.data_type == "BOOLEAN")
+  if (info.data_type == "BOOLEAN" || info.data_type == "bool")
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::BOOLEAN;
   }
-  else if (info.data_type == "ANALOG")
+  else if (info.data_type == "ANALOG" || info.data_type == "double")
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::ANALOG;
   }
-  else if (info.data_type == "DIGITAL")
+  else if (
+    info.data_type == "DIGITAL" || info.data_type == "int")
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::DIGITAL;
   }
@@ -611,12 +624,14 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
     }
     catch (const std::exception & ex)
     {
-      RCLCPP_WARN(logger_, ex.what());
+      RCLCPP_WARN(
+        logger_, "Initial_value is not valid number, it is set to 0. Exeption: %s", ex.what());
       gpio_config.initial_value = 0.0;  // If initial_value is not a valid number, set to 0.0
     }
   }
   else
   {
+    // TODO (Komaromi): Should this be set to 0?
     gpio_config.initial_value = 0.0;  // If initial_value is empty, set to 0.0
   }
   if (!info.min.empty())
@@ -627,7 +642,8 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
     }
     catch (const std::exception & ex)
     {
-      RCLCPP_WARN(logger_, ex.what());
+      RCLCPP_WARN(
+        logger_, "Min_value is not valid number, limits not used. Exeption: %s", ex.what());
       gpio_config.enable_limits = false;  // If min_value is not a valid number, disable limits
     }
   }
@@ -643,7 +659,8 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
     }
     catch (const std::exception & ex)
     {
-      RCLCPP_WARN(logger_, ex.what());
+      RCLCPP_WARN(
+        logger_, "Max_value is not valid number, limits not used. Exeption: %s", ex.what());
       gpio_config.enable_limits = false;  // If max_value is not a valid number, disable limits
     }
   }
