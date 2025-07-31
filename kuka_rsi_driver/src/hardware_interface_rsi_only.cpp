@@ -382,7 +382,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
     catch (const std::exception & ex)
     {
       RCLCPP_WARN(
-        logger_, "Initial_value is not valid number, it is set to 0. Exeption: %s", ex.what());
+        logger_, "Initial_value is not valid number, it is set to 0. Exception: %s", ex.what());
       gpio_config.initial_value = 0.0;  // If initial_value is not a valid number, set to 0.0
     }
   }
@@ -400,7 +400,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
     catch (const std::exception & ex)
     {
       RCLCPP_WARN(
-        logger_, "Min_value is not valid number, limits not used. Exeption: %s", ex.what());
+        logger_, "Min_value is not valid number, limits not used. Exception: %s", ex.what());
       gpio_config.enable_limits = false;  // If min_value is not a valid number, disable limits
     }
   }
@@ -417,7 +417,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
     catch (const std::exception & ex)
     {
       RCLCPP_WARN(
-        logger_, "Max_value is not valid number, limits not used. Exeption: %s", ex.what());
+        logger_, "Max_value is not valid number, limits not used. Exception: %s", ex.what());
       gpio_config.enable_limits = false;  // If max_value is not a valid number, disable limits
     }
   }
