@@ -90,6 +90,8 @@ private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_gpio_commands_;
 
+  std::vector<int> gpio_states_to_commands_map_;
+
   bool first_write_done_;
   bool is_active_;
   bool msg_received_;

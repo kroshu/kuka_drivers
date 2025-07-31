@@ -376,7 +376,8 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   RCLCPP_INFO(logger_, "Configured GPIO states:");
   for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
-    logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+    RCLCPP_INFO(
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
       gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
       gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
 
@@ -606,8 +607,7 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::ANALOG;
   }
-  else if (
-    info.data_type == "DIGITAL" || info.data_type == "int")
+  else if (info.data_type == "DIGITAL" || info.data_type == "int")
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::DIGITAL;
   }

@@ -51,13 +51,31 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   // Check gpio component name
   if (gpio.name != hardware_interface::IO_PREFIX)
   {
-    RCLCPP_FATAL(logger_, "expecting gpio component called 'GPIO' first");
+    RCLCPP_FATAL(logger_, "expecting gpio component called \"gpio\" first");
     return CallbackReturn::ERROR;
   }
   // TODO (Komaromi): Somehow check how many IOs are in the interfaces. RSI can receive and send
   // 8192 bits, but its not equal with 8192 IOs. But the ethernet object can only have 64 entries.
   // TODO (Komaromi): Maybe better to check the configured IO-s robot_ptr->Setup here and then go
   // through the IO-s and check the name an size
+
+  // Save the mapping of GPIO states to commands
+  for (const auto & command_interface : gpio.command_interfaces)
+  {
+    // Find the corresponding state interface for each command interface connect them by there name
+    auto it = std::find_if(
+      gpio.state_interfaces.begin(), gpio.state_interfaces.end(),
+      [&command_interface](const hardware_interface::InterfaceInfo & state_interface)
+      { return state_interface.name == command_interface.name; });
+    if (it != gpio.state_interfaces.end())
+    {
+      gpio_states_to_commands_map_.push_back(std::distance(gpio.state_interfaces.begin(), it));
+    }
+    else
+    {
+      gpio_states_to_commands_map_.push_back(-1);  // Not found, use -1 as a placeholder
+    }
+  }
 
   hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
   hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
@@ -321,15 +339,11 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
   const auto & gpio = info_.gpios[0];
-  for (size_t i = 0; i < gpio.state_interfaces.size(); i++)
+  for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
   {
-    for (size_t j = 0; j < gpio.command_interfaces.size(); j++)
+    if (gpio_states_to_commands_map_[i])
     {
-      if (gpio.state_interfaces[i].name == gpio.command_interfaces[j].name)
-      {
-        hw_gpio_commands_[j] = hw_gpio_states_[i];
-        break;
-      }
+      hw_gpio_commands_[i] = hw_gpio_states_[gpio_states_to_commands_map_[i]];
     }
   }
 }
