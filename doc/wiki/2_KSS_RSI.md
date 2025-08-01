@@ -96,9 +96,22 @@ The parameters in the driver configuration file can be also changed during runti
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 
-##### IP Configuration
+##### IO Configuration
 
-The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
+TODO:
+ - general description about gpios
+   - gpio types, input output
+   - inputs and outputs ided by there name
+   - Same name makes it a connected input and output
+ - RSI Visual entries - Is this needed or just refer to RSI manual?
+   - how to edit
+   - options on mapping them
+   - index connection with ethernet file
+   - refer to the RSI manual
+ - xml file
+   - how to extend them to the user needs
+ - xacro file extension
+ - yaml file extension
 
 #### Usage
 
