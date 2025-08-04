@@ -113,6 +113,8 @@ TODO:
  - xacro file extension
  - yaml file extension
 
+The KSS robot system supports the usage of input and outputs to control of a grippers or a conveyor belts or read sensor inputs. The RSI system also supports to control these IO-s in a real-time manner. The IO-s are defined from the robot controller's point of view, so an `input` can only have state interfaces in the ROS Control and an `output` can have both state and command interfaces. In the KSS robot system IO-s can be configured with different types, according to there size and representation. The RSI group the IO-s into three groups: `BOOLEAN`, `DIGITAL` and `ANALOG`. Therefore the Robot dirver also uses these types.
+
 #### Usage
 
 ##### Starting the driver
