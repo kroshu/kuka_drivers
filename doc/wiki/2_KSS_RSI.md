@@ -105,7 +105,7 @@ The RSI group the IO-s into three groups:
 - `DOUBLE`: the IO-s can store decimal numbers represented in floating-point format.
 - `LONG`: the IO-s can be set only to whole numbers in a 64 bit representation.
 
-Generaly the only add a few constrain at naming the IO-s:
+Generally the only add a few constrain at naming the IO-s:
 
 - The name of the IO-s are unique keys.
 - The name of the IO-s have to be unique threw the state and command interfaces as well.
@@ -115,17 +115,17 @@ Generaly the only add a few constrain at naming the IO-s:
 
 To configure the controller side three addition files available in the `kuka_external_control_sdk/kss/krl` directory:
 
-1. The `SensorInterface/rsi_gpio_joint_position.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refere to the RSI manual from KUKA Xpert.
+1. The `SensorInterface/rsi_gpio_joint_position.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refer to the RSI manual from KUKA Xpert.
    - The file can be edited via the RSI Visual in WorkVisual
-   - All IO-s should be connected to the inputs or outputs of the Etherenet RSI object
+   - All IO-s should be connected to the inputs or outputs of the Ethernet RSI object
 2. To run the gpio example a `Program/gpio_example.src` file has been added.
-3. The Etherenet RSI object in the `SensorInterface/rsi_gpio_joint_position.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
+3. The Ethernet RSI object in the `SensorInterface/rsi_gpio_joint_position.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
    - The `SensorInterface/rsi_gpio_ethernet.xml` file's `<SEND>` object contains all parameters that is sent to the client.
-   - The files's `<REVEIVE>` object contains all the parameters which are received from the client.
+   - The files's `<RECEIVE>` object contains all the parameters which are received from the client.
    - To add a new IO element the following parameters have to be set:
      - `TAG`: Contains the earlier mentioned unique key. The tags format is the following: `GPIO.UniqueKey`, **it has to start with `GPIO` following a `.` then the `key`**.
      - `TYPE`: The type can be one from the earlier mentioned three: `BOOL`, `DOUBLE` and `LONG`.
-     - `INDX`: This has to be set according where you configured the IO object in the RSI Visual on the Etherenet object. This is the only parameter which connects the xml file entries to the one in the rsix file.
+     - `INDX`: This has to be set according where you configured the IO object in the RSI Visual on the Ethernet object. This is the only parameter which connects the xml file entries to the one in the rsix file.
      - `HOLDON`: This only used in the `<RECEIVE>` object. Sets the behavior of the object output on missed packets.
        - `0`: The output is reset.
        - `1`: The most recent valid value to arrive remains at the output.
@@ -148,7 +148,7 @@ To configure the client side, there is two configuration files have to be filled
      - `limits`: If enabled additional limit checking is used. (Defaults to `true`)
      - `min`: Minimum value for the limit checking. (If not used or misused `limits` are set to `false`)
      - `max`: Maximum value for the limit checking. (If not used or misused `limits` are set to `false`)
-     - `initial_value`: Initial value for the interface. Mostly usable for outputs without state interface, because in every other usecase the initial value is overriden durring the first cycle.
+     - `initial_value`: Initial value for the interface. Mostly usable for outputs without state interface, because in every other usecase the initial value is overridden during the first cycle.
    - One state and command interface usage with all parameters set:
 
       ```xml
@@ -162,14 +162,14 @@ To configure the client side, there is two configuration files have to be filled
         <param name="min">0.0</param>
         <param name="max">100.0</param>
         <param name="initial_value">50.0</param>
-      </state_interface>  
+      </state_interface>
       ```
 
 2. The `kuka_rsi_driver/config/gpio_controller_config.yaml` is the configuration file of the controller used for the IO-s.
    - For an IO controller the [GpioCommandController](https://control.ros.org/master/doc/ros2_controllers/gpio_controllers/doc/userdoc.html) from ROS Control is used.
    - In the controller requires a configuration file which describes the available state and command interfaces.
    - The `gpios` filed contains a list of available gpio type interface groups. Currently only one gpio group is supported and its name has to be `gpio`.
-   - Additionaly the file contains a list for the available state and command interfaces.
+   - Additionally the file contains a list for the available state and command interfaces.
      - These have to be listed grouped, this explained more in the linked controller description.
      - Make sure to use the same names when listing interfaces just like before.
 
