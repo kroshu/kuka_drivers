@@ -340,7 +340,7 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
   for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
   {
-    if (gpio_states_to_commands_map_[i])
+    if (gpio_states_to_commands_map_[i] != -1)
     {
       hw_gpio_commands_[i] = hw_gpio_states_[gpio_states_to_commands_map_[i]];
     }
