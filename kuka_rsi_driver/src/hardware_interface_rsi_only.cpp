@@ -425,6 +425,14 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
   {
     gpio_config.enable_limits = false;  // If max_value is empty, disable limits
   }
+  if (gpio_config.enable_limits && (gpio_config.min_value > gpio_config.max_value))
+  {
+    RCLCPP_WARN(
+      logger_, "Min value is greater than max value, limits not used. Min: %f, Max: %f",
+      gpio_config.min_value, gpio_config.max_value);
+    gpio_config.enable_limits = false;  // If min_value is greater than or equal to max_value,
+                                        // disable limits
+  }
   return gpio_config;
 }
 }  // namespace kuka_rsi_driver
