@@ -3,25 +3,25 @@
   <xacro:macro name="gpio_config">
     <gpio name="gpio">
       <!-- Example on how to fill GPIO fields-->
-      <!-- <command_interface name="01" data_type="BOOLEAN">
+      <!-- <command_interface name="01" data_type="BOOL">
         <limits enable="false"/>
         <param name="initial_value">INIT_VAL</param>
       </command_interface>
-      <command_interface name="03" data_type="double">
+      <command_interface name="03" data_type="DOUBLE">
         <limits enable="true"/>
         <param name="min">MIN_VAL</param>
         <param name="max">MAX_VAL</param>
       </command_interface>
 
-      <state_interface name="01" data_type="BOOLEAN">
+      <state_interface name="01" data_type="BOOL">
         <limits enable="false"/>
         <param name="initial_value">INIT_VAL</param>
       </state_interface>
-      <state_interface name="02" data_type="BOOLEAN">
+      <state_interface name="02" data_type="BOOL">
         <limits enable="false"/>
         <param name="initial_value">INIT_VAL</param>
       </state_interface>
-      <state_interface name="03" data_type="double">
+      <state_interface name="03" data_type="DOUBLE">
         <limits enable="true"/>
         <param name="min">MIN_VAL</param>
         <param name="max">MAX_VAL</param>

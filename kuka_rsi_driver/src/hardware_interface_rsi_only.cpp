@@ -356,17 +356,17 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
   gpio_config.enable_limits = info.enable_limits;
   // TODO (komaromi): This might not work from Kilted kaiju onward the get_optional function in the
   // handle since it is only accepting double and bool
-  if (info.data_type == "BOOLEAN" || info.data_type == "bool")
+  if (info.data_type == "BOOL" || info.data_type == "bool")
   {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::BOOLEAN;
+    gpio_config.value_type = kuka::external::control::GPIOValueType::BOOL;
   }
-  else if (info.data_type == "ANALOG" || info.data_type == "double")
+  else if (info.data_type == "DOUBLE" || info.data_type == "double")
   {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::ANALOG;
+    gpio_config.value_type = kuka::external::control::GPIOValueType::DOUBLE;
   }
-  else if (info.data_type == "DIGITAL" || info.data_type == "int")
+  else if (info.data_type == "LONG")
   {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::DIGITAL;
+    gpio_config.value_type = kuka::external::control::GPIOValueType::LONG;
   }
   else
   {
