@@ -98,22 +98,80 @@ The parameters in the driver configuration file can be also changed during runti
 
 ##### IO Configuration
 
-TODO:
- - general description about gpios
-   - gpio types, input output
-   - inputs and outputs ided by there name
-   - Same name makes it a connected input and output
- - RSI Visual entries - Is this needed or just refer to RSI manual?
-   - how to edit
-   - options on mapping them
-   - index connection with ethernet file
-   - refer to the RSI manual
- - xml file
-   - how to extend them to the user needs
- - xacro file extension
- - yaml file extension
+The KSS robot system supports the usage of input and outputs to control of a grippers or a conveyor belts or read sensor inputs. The RSI system also supports to control these IO-s in a real-time manner. The IO-s are defined from the robot controller's point of view, so an `input` can only have state interfaces in the ROS Control and an `output` can have both state and command interfaces. In the KSS robot system IO-s can be configured with different types, according to there size and representation.
+The RSI group the IO-s into three groups:
 
-The KSS robot system supports the usage of input and outputs to control of a grippers or a conveyor belts or read sensor inputs. The RSI system also supports to control these IO-s in a real-time manner. The IO-s are defined from the robot controller's point of view, so an `input` can only have state interfaces in the ROS Control and an `output` can have both state and command interfaces. In the KSS robot system IO-s can be configured with different types, according to there size and representation. The RSI group the IO-s into three groups: `BOOLEAN`, `DIGITAL` and `ANALOG`. Therefore the Robot dirver also uses these types.
+- `BOOL`: the IO-s acts as two state signals, they can be set to `true` or `false`.
+- `DOUBLE`: the IO-s can store decimal numbers represented in floating-point format.
+- `LONG`: the IO-s can be set only to whole numbers in a 64 bit representation.
+
+Generaly the only add a few constrain at naming the IO-s:
+
+- The name of the IO-s are unique keys.
+- The name of the IO-s have to be unique threw the state and command interfaces as well.
+- The `outputs` can have state and command interfaces, therefore if these interfaces are configured to the same naming they are connected. The system will handle them as reading an `output`'s state and then writing on the `output`.
+
+###### Controller side configuration
+
+To configure the controller side three addition files available in the `kuka_external_control_sdk/kss/krl` directory:
+
+1. The `SensorInterface/rsi_gpio_joint_position.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refere to the RSI manual from KUKA Xpert.
+   - The file can be edited via the RSI Visual in WorkVisual
+   - All IO-s should be connected to the inputs or outputs of the Etherenet RSI object
+2. To run the gpio example a `Program/gpio_example.src` file has been added.
+3. The Etherenet RSI object in the `SensorInterface/rsi_gpio_joint_position.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
+   - The `SensorInterface/rsi_gpio_ethernet.xml` file's `<SEND>` object contains all parameters that is sent to the client.
+   - The files's `<REVEIVE>` object contains all the parameters which are received from the client.
+   - To add a new IO element the following parameters have to be set:
+     - `TAG`: Contains the earlier mentioned unique key. The tags format is the following: `GPIO.UniqueKey`, **it has to start with `GPIO` following a `.` then the `key`**.
+     - `TYPE`: The type can be one from the earlier mentioned three: `BOOL`, `DOUBLE` and `LONG`.
+     - `INDX`: This has to be set according where you configured the IO object in the RSI Visual on the Etherenet object. This is the only parameter which connects the xml file entries to the one in the rsix file.
+     - `HOLDON`: This only used in the `<RECEIVE>` object. Sets the behavior of the object output on missed packets.
+       - `0`: The output is reset.
+       - `1`: The most recent valid value to arrive remains at the output.
+   - One possible IO element can be configured like the following:
+
+      ```xml
+      <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
+      ```
+
+###### Client side configuration
+
+To configure the client side, there is two configuration files have to be filled out.
+
+1. The `kuka_rsi_driver/config/gpio_config.xacro` is an extension for the robots urfd and contains a `gpio` tag as part of the ROS Control parameters.
+   - The the gpio object must be called `gpio`
+   - The state and command interfaces have to be configured according to the example visible in the file.
+   - For every interface there are multiple additional parameters available:
+     - `name`: The already mentioned unique key.
+     - `data_type`: Data type of the interface. Can be set to the same three type as in the RSI: `BOOL`, `DOUBLE` and `LONG`.
+     - `limits`: If enabled additional limit checking is used. (Defaults to `true`)
+     - `min`: Minimum value for the limit checking. (If not used or misused `limits` are set to `false`)
+     - `max`: Maximum value for the limit checking. (If not used or misused `limits` are set to `false`)
+     - `initial_value`: Initial value for the interface. Mostly usable for outputs without state interface, because in every other usecase the initial value is overriden durring the first cycle.
+   - One state and command interface usage with all parameters set:
+
+      ```xml
+      <command_interface name="OUTPUT_01" data_type="DOUBLE">
+        <limits enable="true"/>
+        <param name="min">0.0</param>
+        <param name="max">100.0</param>
+      </command_interface>
+      <state_interface name="OUTPUT_01" data_type="DOUBLE">
+        <limits enable="true"/>
+        <param name="min">0.0</param>
+        <param name="max">100.0</param>
+        <param name="initial_value">50.0</param>
+      </state_interface>  
+      ```
+
+2. The `kuka_rsi_driver/config/gpio_controller_config.yaml` is the configuration file of the controller used for the IO-s.
+   - For an IO controller the [GpioCommandController](https://control.ros.org/master/doc/ros2_controllers/gpio_controllers/doc/userdoc.html) from ROS Control is used.
+   - In the controller requires a configuration file which describes the available state and command interfaces.
+   - The `gpios` filed contains a list of available gpio type interface groups. Currently only one gpio group is supported and its name has to be `gpio`.
+   - Additionaly the file contains a list for the available state and command interfaces.
+     - These have to be listed grouped, this explained more in the linked controller description.
+     - Make sure to use the same names when listing interfaces just like before.
 
 #### Usage
 
