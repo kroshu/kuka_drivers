@@ -115,6 +115,8 @@ private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_gpio_commands_;
 
+  std::vector<int> gpio_states_to_commands_map_;
+
   double hw_control_mode_command_;
   double server_state_;
   double drives_enabled_command_;

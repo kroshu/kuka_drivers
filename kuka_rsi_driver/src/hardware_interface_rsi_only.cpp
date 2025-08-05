@@ -338,7 +338,6 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 }
 void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
 {
-  const auto & gpio = info_.gpios[0];
   for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
   {
     if (gpio_states_to_commands_map_[i])
