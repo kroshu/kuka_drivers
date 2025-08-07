@@ -115,11 +115,11 @@ Generally the only add a few constrain at naming the IO-s:
 
 To configure the controller side three addition files available in the `kuka_external_control_sdk/kss/krl` directory:
 
-1. The `SensorInterface/rsi_gpio_joint_position.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refer to the RSI manual from KUKA Xpert.
+1. The `SensorInterface/rsi_gpio_joint_pos.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refer to the RSI manual from KUKA Xpert.
    - The file can be edited via the RSI Visual in WorkVisual
    - All IO-s should be connected to the inputs or outputs of the Ethernet RSI object
-2. To run the gpio example a `Program/gpio_example.src` file has been added.
-3. The Ethernet RSI object in the `SensorInterface/rsi_gpio_joint_position.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
+2. To run the gpio example a `Program/rsi_gpio_example.src` file has been added.
+3. The Ethernet RSI object in the `SensorInterface/rsi_gpio_joint_pos.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
    - The `SensorInterface/rsi_gpio_ethernet.xml` file's `<SEND>` object contains all parameters that is sent to the client.
    - The files's `<RECEIVE>` object contains all the parameters which are received from the client.
    - To add a new IO element the following parameters have to be set:

@@ -117,10 +117,10 @@ Generally the only add a few constrain at naming the IO-s:
 
 To configure the controller side two addition files available in the `kuka_external_control_sdk/iiqka_os2/krl/SensorInterface` directory:
 
-1. The `rsi_gpio_joint_position.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refer to the RSI manual from KUKA Xpert.
+1. The `rsi_gpio_joint_pos.rsix` file offers an example on how to set up the different IO-s. For detailed instructions please refer to the RSI manual from KUKA Xpert.
    - The file can be edited via the RSI Visual in WorkVisual
    - All IO-s should be connected to the inputs or outputs of the Ethernet RSI object
-2. To run the gpio example a gpio_example.src file has been added.
+2. To run the gpio example a `rsi_gpio_example.src` file has been added.
 
 Since the iiQKA.OS2 and KSS systems uses the same messages the ethernet objects `xml` file can be found in the `kuka_external_control_sdk/kss/krl/SensorInterface` directory:
 
