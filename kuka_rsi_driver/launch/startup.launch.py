@@ -211,7 +211,11 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
-    launch_arguments.append(DeclareLaunchArgument("use_gpio", default_value="true"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "use_gpio", default_value="true", choices=["true", "false"]
+        )
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "driver_version",
