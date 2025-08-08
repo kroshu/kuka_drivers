@@ -149,7 +149,7 @@ To configure the client side, two configuration files need to be completed:
      - `limits`: Enables additional limit checking (defaults to `true`).
      - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
-     - `initial_value`: Initial value of the interface. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
+     - `initial_value`: Initial value of the interface. The value must be in a number format fo every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
    - An example with both state and command interfaces with all parameters:
 
       ```xml
