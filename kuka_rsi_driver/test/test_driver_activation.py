@@ -42,6 +42,7 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "driver_version": "rsi_only",
+                    "use_gpio": "false",
                 }.items(),
             ),
             IncludeLaunchDescription(
