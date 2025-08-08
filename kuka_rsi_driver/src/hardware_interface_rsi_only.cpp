@@ -62,7 +62,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   // Save the mapping of GPIO states to commands
   for (const auto & command_interface : gpio.command_interfaces)
   {
-    // Find the corresponding state interface for each command interface connect them by there name
+    // Find the corresponding state interface for each command interface and connect them based on their names
     auto it = std::find_if(
       gpio.state_interfaces.begin(), gpio.state_interfaces.end(),
       [&command_interface](const hardware_interface::InterfaceInfo & state_interface)
@@ -259,7 +259,7 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
       else
       {
         RCLCPP_ERROR(
-          rclcpp::get_logger("KukaEACHardwareInterface"),
+          logger_,
           "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
           gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
       }
