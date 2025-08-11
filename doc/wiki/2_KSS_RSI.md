@@ -49,7 +49,7 @@ Several files required for RSI can be found in the [`kuka-external-control-sdk`]
 - `Config/User/Common/SensorInterface/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
   - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
   - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
-- `Config/User/Common/SensorInterface/rsi_joint_pos.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
+- `Config/User/Common/SensorInterface/rsi_joint_pos.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add GPIO handling ([See further discussion on this here](#io-configuration)), or to add filtering behaviour, but that is not recommended and should be implemented on the client side instead.
 - `KRC/R1/Program/RSI/rsi_helper.dat` and `KRC/R1/Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
 - `KRC/R1/Program/RSI/rsi_joint_pos_4ms.src` and `KRC/R1/Program/RSI/rsi_joint_pos_12ms.src`: These contain KRL programs that start external control. You may choose what cycle time RSI should use (4 ms or 12 ms).
 

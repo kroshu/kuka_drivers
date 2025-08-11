@@ -49,29 +49,28 @@ Configure your project in iiQWorks.Sim with the following steps:
 
 ##### Update and upload configuration files
 
-Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in
+Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
 
-- the `kuka_external_control_sdk/iiqka_os2/krl/SensorInterface` directory:
-  - `ros_rsi.src`: This contains the KRL program that starts external control. The program contains a movement to the (0, -90, 90, 0, 0, 0) position, as the first motion instruction in a KRL program must define an unambiguous starting position. The goal position might be modified if necessary, the other parts of the program should be left unchanged.
-  - `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
-    - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
-- and the `kuka_external_control_sdk/kss/krl/SensorInterface` directory, since the iiQKA.OS2 driver uses the same messages as the older KSS system:
-  - `rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
-    - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
-    - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
+- `Program/RSI/rsi_joint_pos.src`: This contains the KRL program that starts external control with 4 ms cycle time.
+- `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
+- `RobotSensorInterface/Context/ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add GPIO handling ([See further discussion on this here](#io-configuration)), or to add filtering behaviour, but that is not recommended and should be implemented on the client side instead.
+  - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
+- `RobotSensorInterface/Ethernet_configuration/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
+  - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
+  - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
 
 Upload files to the controller:
 
 1. Connect to the KRC with iiQWorks.Sim
 2. Log in as **Expert** or **Administrator** on the controller and change the operation mode to **T1**.
-3. Import the `ros_rsi.src` file to `Program` folder under **Program** page in iiQWorks.Sim.
-4. Import the `ros_rsi.rsix` file under **Context** field in the **Home** page.
+3. Import the `rsi_joint_pos.src`, `rsi_helper.dat` and `rsi_helper.src` files to `Program` folder under **Program** page in iiQWorks.Sim.
+4. Import the `rsi_joint_pos.rsix` file under **Context** field in the **Home** page.
 5. Import the `rsi_ethernet.xml` file under **Ethernet configurations** field in the **Home** page.
 6. Move to the **Configuration** page and deploy the configuration.
 
 ### Configuration
 
-Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS.
+Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS, therefor they use the same [SDK implementation](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/kss).
 
 #### Startup configuration
 
@@ -116,16 +115,13 @@ Generally, only a few constraints are imposed on naming the I/Os:
 
 ###### Controller side configuration
 
-To configure the controller side, two additional files are available in the `kuka_external_control_sdk/iiqka_os2/krl/SensorInterface` directory:
+To configure the controller side, two additional files are available in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
 
-1. The `rsi_gpio_joint_pos.rsix` file offers an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
+1. The `RobotSensorInterface/Context/rsi_gpio_joint_pos.rsix` file offers an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
    - The file can be edited via RSI Visual in iiQWorks.Sim.
    - All I/Os should be connected to the inputs or outputs of the Ethernet RSI object.
-2. To run the GPIO example, a `rsi_gpio_example.src` file has been added.
 
-Since both iiQKA.OS2 and KSS systems uses the same message format, the Ethernet object's `xml` file can be found in the `kuka_external_control_sdk/kss/krl/SensorInterface` directory:
-
-1. The Ethernet RSI object requires the `rsi_gpio_ethernet.xml` configuration file.
+2. The Ethernet RSI object requires the `RobotSensorInterface/Ethernet_configuration/rsi_gpio_ethernet.xml` configuration file.
    - The `<SEND>` object contains all parameters that are sent to the client.
    - The `<RECEIVE>` object contains all the parameters that are received from the client.
    - To add a new I/O element the following parameters must be set:
@@ -140,6 +136,8 @@ Since both iiQKA.OS2 and KSS systems uses the same message format, the Ethernet 
       ```xml
       <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
       ```
+
+3. To run the GPIO example, a `Program/RSI/rsi_gpio_example.src` file has been added.
 
 ###### Client side configuration
 
