@@ -153,7 +153,7 @@ def launch_setup(context, *args, **kwargs):
             if driver_version.perform(context) == "rsi_only"
             else "robot_manager_node_eki_rsi"
         ),
-        parameters=[driver_config, {"robot_model": robot_model}],
+        parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -184,9 +184,11 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-        "joint_trajectory_controller": jtc_config,
-        "gpio_controller": gpio_config,
+        "joint_trajectory_controller": jtc_config
     }
+
+    if use_gpio.perform(context) == "true":
+        controllers["gpio_controller"] = gpio_config
 
     if driver_version.perform(context) == "eki_rsi":
         controllers["control_mode_handler"] = None

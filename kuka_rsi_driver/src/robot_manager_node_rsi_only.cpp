@@ -45,6 +45,10 @@ RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 
+  this->registerStaticParameter<std::string>(
+    "use_gpio", "false", kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const std::string & use_gpio) { return this->onUseGpioChangeRequest(use_gpio); });
+
   this->registerParameter<std::string>(
     "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
     kuka_drivers_core::ParameterSetAccessRights{true, false},
@@ -106,11 +110,16 @@ RobotManagerNodeRsi::on_activate(const rclcpp_lifecycle::State &)
   }
 
   // Activate RT controller(s)
-  if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_,
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::GPIO_CONTROLLER,
-         this->position_controller_name_},
-        {}))
+  std::vector<std::string> activate_controllers = {
+    kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
+  if (use_gpio_)
+  {
+    activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
+  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
+    change_controller_state_client_, activate_controllers, {});
+  if (!controller_activation_successful)
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     // TODO(Svastits): this can be removed if rollback is implemented properly
@@ -135,10 +144,24 @@ RobotManagerNodeRsi::on_deactivate(const rclcpp_lifecycle::State &)
 
   // Stop RT controllers
   // With best effort strictness, deactivation succeeds if specific controller is not active
+  std::vector<std::string> deactivate_controllers = {
+    kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
+  if (use_gpio_)
+  {
+    deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
+  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
+    change_controller_state_client_, deactivate_controllers, {});
+  if (!controller_activation_successful)
+  {
+    RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
+    this->on_deactivate(get_current_state());
+    return FAILURE;
+  }
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {},
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, kuka_drivers_core::GPIO_CONTROLLER,
-         this->position_controller_name_},
+        change_controller_state_client_, {}, deactivate_controllers,
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
@@ -161,6 +184,24 @@ bool RobotManagerNodeRsi::onRobotModelChangeRequest(const std::string & robot_mo
     ns += "_";
   }
   robot_model_ = ns + robot_model;
+  return true;
+}
+
+bool RobotManagerNodeRsi::onUseGpioChangeRequest(const std::string & use_gpio)
+{
+  if (use_gpio == "true")
+  {
+    use_gpio_ = true;
+  }
+  else if (use_gpio == "false")
+  {
+    use_gpio_ = false;
+  }
+  else
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid value for 'use_gpio': %s", use_gpio.c_str());
+    return false;
+  }
   return true;
 }
 }  // namespace kuka_rsi_driver

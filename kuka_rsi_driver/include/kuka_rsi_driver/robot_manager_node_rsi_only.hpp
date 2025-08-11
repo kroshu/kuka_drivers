@@ -48,6 +48,7 @@ public:
 
 private:
   bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onUseGpioChangeRequest(const std::string & use_gpio);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -56,6 +57,7 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
 
   std::string robot_model_;
+  bool use_gpio_ = false;
   std::string position_controller_name_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;

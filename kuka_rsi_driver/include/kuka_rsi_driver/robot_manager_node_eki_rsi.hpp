@@ -56,12 +56,15 @@ private:
 
   bool OnRobotModelChangeRequest(const std::string & robot_model);
 
+  bool onUseGpioChangeRequest(const std::string & use_gpio);
+
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   std::string robot_model_;
+  bool use_gpio_ = false;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
   kuka_drivers_core::ControlMode control_mode_ =
