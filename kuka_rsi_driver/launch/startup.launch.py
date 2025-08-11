@@ -182,8 +182,7 @@ def launch_setup(context, *args, **kwargs):
 
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controllers = {
-        "joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config}
+    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config}
 
     if use_gpio.perform(context) == "true":
         controllers["gpio_controller"] = gpio_config
