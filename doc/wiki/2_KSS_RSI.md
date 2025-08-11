@@ -150,6 +150,7 @@ To configure the client side, two configuration files need to be completed:
      - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `initial_value`: Initial value of the interface. The value must be in a number format for every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
+   - To setup the prvided example uncomment the constructed interfaces in the `gpio_config.xacro` config file
    - An example with both state and command interfaces with all parameters:
 
       ```xml
