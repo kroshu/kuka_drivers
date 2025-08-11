@@ -76,9 +76,13 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
     "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model) { return OnRobotModelChangeRequest(robot_model); });
 
-  this->registerStaticParameter<std::string>(
-    "use_gpio", "false", kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const std::string & use_gpio) { return this->onUseGpioChangeRequest(use_gpio); });
+  this->registerStaticParameter<bool>(
+    "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const bool use_gpio)
+    {
+      use_gpio_ = use_gpio;
+      return true;
+    });
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
@@ -358,23 +362,6 @@ bool RobotManagerNodeEkiRsi::OnRobotModelChangeRequest(const std::string & robot
   return true;
 }
 
-bool RobotManagerNodeEkiRsi::onUseGpioChangeRequest(const std::string & use_gpio)
-{
-  if (use_gpio == "true")
-  {
-    use_gpio_ = true;
-  }
-  else if (use_gpio == "false")
-  {
-    use_gpio_ = false;
-  }
-  else
-  {
-    RCLCPP_ERROR(get_logger(), "Invalid value for 'use_gpio': %s", use_gpio.c_str());
-    return false;
-  }
-  return true;
-}
 }  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])

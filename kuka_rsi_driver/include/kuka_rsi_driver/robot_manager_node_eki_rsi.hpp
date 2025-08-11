@@ -56,8 +56,6 @@ private:
 
   bool OnRobotModelChangeRequest(const std::string & robot_model);
 
-  bool onUseGpioChangeRequest(const std::string & use_gpio);
-
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr

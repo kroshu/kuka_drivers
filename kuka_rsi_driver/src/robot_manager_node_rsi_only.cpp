@@ -45,9 +45,13 @@ RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 
-  this->registerStaticParameter<std::string>(
-    "use_gpio", "false", kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const std::string & use_gpio) { return this->onUseGpioChangeRequest(use_gpio); });
+  this->registerStaticParameter<bool>(
+    "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const bool use_gpio)
+    {
+      use_gpio_ = use_gpio;
+      return true;
+    });
 
   this->registerParameter<std::string>(
     "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
@@ -187,23 +191,6 @@ bool RobotManagerNodeRsi::onRobotModelChangeRequest(const std::string & robot_mo
   return true;
 }
 
-bool RobotManagerNodeRsi::onUseGpioChangeRequest(const std::string & use_gpio)
-{
-  if (use_gpio == "true")
-  {
-    use_gpio_ = true;
-  }
-  else if (use_gpio == "false")
-  {
-    use_gpio_ = false;
-  }
-  else
-  {
-    RCLCPP_ERROR(get_logger(), "Invalid value for 'use_gpio': %s", use_gpio.c_str());
-    return false;
-  }
-  return true;
-}
 }  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])
