@@ -76,12 +76,21 @@ private:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
+  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
+
+  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
+    const hardware_interface::InterfaceInfo & info);
+
   const rclcpp::Logger logger_;
 
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 
   std::vector<double> hw_states_;
+  std::vector<double> hw_gpio_states_;
   std::vector<double> hw_commands_;
+  std::vector<double> hw_gpio_commands_;
+
+  std::vector<int> gpio_states_to_commands_map_;
 
   bool first_write_done_;
   bool is_active_;
