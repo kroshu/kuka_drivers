@@ -228,8 +228,6 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
 
-**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
-
 #### Stopping external control
 
 To stop external control, all components have to be deactivated with `ros2 lifecycle set robot_manager deactivate`
