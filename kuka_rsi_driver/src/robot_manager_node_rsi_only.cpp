@@ -31,8 +31,8 @@ RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("
 
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
-  change_controller_state_client_ =
-    this->create_client<SwitchController>("controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
+  change_controller_state_client_ = this->create_client<SwitchController>(
+    "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
 
   auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
   is_configured_qos.best_effort();
