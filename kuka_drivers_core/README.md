@@ -40,7 +40,7 @@ The `changeHardwareState()` can change the state of one hardware component and h
 
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
 - hardware_name` [std::string]: name of the hardware component
-- `state` [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
+- `state` [uint8_t of [enum](https://docs.ros.org/en/jazzy/p/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
 - `timeout_ms` [int] (default: 1000): timeout for the response
 
 The method returns whether the transition was successful.
