@@ -1,23 +1,23 @@
-## iiQka driver (RSI)
+# iiQka driver (RSI)
 
-### Setup
+## Setup
 
-#### Client side
+### Client side
 
 It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
 
 To set up the controller with iiQWorks.Sim (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
-##### Client IP configuration
+#### Client IP configuration
 
 - Use the KRC's built in DHCP server (KSI) to connect to the windows machine (in this case leave the subnet settings as default) or set a fixed IP in the subnet of the KLI interface. This is required to connect to iiQWorks.Sim and transfer the project to the KRC
 - Set a fixed IP in the subnet of the KLI interface for the real-time machine, which is required to send commands via the RSI interface.
 
-#### Controller side
+### Controller side
 
 These instructions were tested with RSI 6.0.0 (on iiQKA.OS2)
 
-##### Controller network configuration
+#### Controller network configuration
 
 RSI can only communicate via the KLI network. Make sure that the controller network and the **PC with ROS** is connected to the same subnet.
 
@@ -29,7 +29,7 @@ RSI can only communicate via the KLI network. Make sure that the controller netw
 
 3. After pressing **Apply** the new network address should be configured.
 
-##### RSI configuration
+#### RSI configuration
 
 Configure your project in iiQWorks.Sim with the following steps:
 
@@ -47,33 +47,32 @@ Configure your project in iiQWorks.Sim with the following steps:
 
 4. Under the **Program** page the KRL program files are available
 
-##### Update and upload configuration files
+#### Update and upload configuration files
 
-Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in
+Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
 
-- the `kuka_external_control_sdk/iiqka_os2/krl/SensorInterface` directory:
-  - `ros_rsi.src`: This contains the KRL program that starts external control. The program contains a movement to the (0, -90, 90, 0, 0, 0) position, as the first motion instruction in a KRL program must define an unambiguous starting position. The goal position might be modified if necessary, the other parts of the program should be left unchanged.
-  - `ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add filtering behaviour, but this is not recommended and should be implemented on the client side instead.
-    - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
-- and the `kuka_external_control_sdk/kss/krl/SensorInterface` directory, since the iiQKA.OS2 driver uses the same messages as the older KSS system:
-  - `rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
-    - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
-    - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
+- `Program/RSI/rsi_joint_pos.src`: This contains the KRL program that starts external control with 4 ms cycle time.
+- `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
+- `RobotSensorInterface/Context/ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add GPIO handling ([See further documentation on this here](#io-configuration)), or to add filtering behaviour, but that is not recommended and should be implemented on the client side instead.
+  - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
+- `RobotSensorInterface/Ethernet_configuration/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
+  - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
+  - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
 
 Upload files to the controller:
 
 1. Connect to the KRC with iiQWorks.Sim
 2. Log in as **Expert** or **Administrator** on the controller and change the operation mode to **T1**.
-3. Import the `ros_rsi.src` file to `Program` folder under **Program** page in iiQWorks.Sim.
-4. Import the `ros_rsi.rsix` file under **Context** field in the **Home** page.
+3. Import the `rsi_joint_pos.src`, `rsi_helper.dat` and `rsi_helper.src` files to `Program` folder under **Program** page in iiQWorks.Sim.
+4. Import the `rsi_joint_pos.rsix` file under **Context** field in the **Home** page.
 5. Import the `rsi_ethernet.xml` file under **Ethernet configurations** field in the **Home** page.
 6. Move to the **Configuration** page and deploy the configuration.
 
-### Configuration
+## Configuration
 
-Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS.
+Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS, as they use the same [SDK implementation](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/kss).
 
-#### Startup configuration
+### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
 
@@ -81,24 +80,24 @@ The following configuration files are available in the `config` directory of the
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
-##### IP configuration
+#### IP configuration
 
 The following parameters must be set in the driver configuration file:
 
 - `client_ip`: IP address of the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 - `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 
-#### Runtime parameters
+### Runtime parameters
 
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 
-#### IP Configuration
+### IP Configuration
 
 The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
 
-##### I/O configuration
+#### I/O configuration
 
 The iiQKA.OS2 robot system supports the use of inputs and outputs to control grippers, conveyor belts, or to read sensor data. The RSI system also supports controlling these I/Os in real time. The I/Os are defined from the robot controller’s point of view: an `input` can only have state interfaces in ROS Control, while an `output` can have both state and command interfaces. In the iiQKA.OS2 robot system, I/Os can be configured with different types according to their size and representation.
 
@@ -114,18 +113,15 @@ Generally, only a few constraints are imposed on naming the I/Os:
 - The names must be unique across both the state and command interfaces.
 - Since `outputs` can have both state and command interfaces, if these interfaces are configured with the same name, they are considered connected. In this case, the system will handle them by first reading the state of the `output`, then writing to it via the command interface.
 
-###### Controller side configuration
+##### Controller side configuration
 
-To configure the controller side, two additional files are available in the `kuka_external_control_sdk/iiqka_os2/krl/SensorInterface` directory:
+To configure the controller side, two additional files are available in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
 
-1. The `rsi_gpio_joint_pos.rsix` file offers an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
+1. The `RobotSensorInterface/Context/rsi_gpio_joint_pos.rsix` file offers an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
    - The file can be edited via RSI Visual in iiQWorks.Sim.
    - All I/Os should be connected to the inputs or outputs of the Ethernet RSI object.
-2. To run the GPIO example, a `rsi_gpio_example.src` file has been added.
 
-Since both iiQKA.OS2 and KSS systems uses the same message format, the Ethernet object's `xml` file can be found in the `kuka_external_control_sdk/kss/krl/SensorInterface` directory:
-
-1. The Ethernet RSI object requires the `rsi_gpio_ethernet.xml` configuration file.
+2. The Ethernet RSI object requires the `RobotSensorInterface/Ethernet_configuration/rsi_gpio_ethernet.xml` configuration file.
    - The `<SEND>` object contains all parameters that are sent to the client.
    - The `<RECEIVE>` object contains all the parameters that are received from the client.
    - To add a new I/O element the following parameters must be set:
@@ -141,7 +137,9 @@ Since both iiQKA.OS2 and KSS systems uses the same message format, the Ethernet 
       <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
       ```
 
-###### Client side configuration
+3. To run the GPIO example, a `Program/RSI/rsi_gpio_example.src` file has been added.
+
+##### Client side configuration
 
 To configure the client side, two configuration files need to be completed:
 
@@ -179,9 +177,9 @@ To configure the client side, two configuration files need to be completed:
      - These must be listed in groups, as explained in the linked controller documentation.
      - Ensure that the interface names match those defined earlier.
 
-### Usage
+## Usage
 
-#### Starting the driver
+### Starting the driver
 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
@@ -208,7 +206,7 @@ To configure the client side, two configuration files need to be completed:
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
 
-##### Launch arguments
+#### Launch arguments
 
 Both launch files support the following arguments:
 
@@ -229,13 +227,13 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
 
-#### Stopping external control
+### Stopping external control
 
 To stop external control, all components have to be deactivated with `ros2 lifecycle set robot_manager deactivate`
 
 BEWARE, that this is a non-realtime process including lifecycle management, so the connection is not terminated immediately, in cases where an abrupt stop is needed, the safety stop of the Teach Pendant should be used!
 
-### Simulation
+## Simulation
 
 To try out the driver with an open-loop simulation, the driver and the `kuka_rsi_simulator` must be started, (before activation only a "collapsed" robot will be visible in `rviz`):
 
@@ -254,7 +252,7 @@ ros2 lifecycle set robot_manager configure
 ros2 lifecycle set robot_manager activate
 ```
 
-### Known issues and limitations
+## Known issues and limitations
 
 - In case of an error on the controller side, the driver is not deactivated
 - Cartesian position control mode and I/O-s not yet supported

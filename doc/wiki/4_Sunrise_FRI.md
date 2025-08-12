@@ -1,30 +1,35 @@
-## Sunrise driver (FRI)
+# Sunrise driver (FRI)
 
-### Setup
+## Setup
 
-#### Client side
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
+### Client side
+
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch [can be found here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
 - Set a fixed IP in the subnet of the controller for the real-time machine.
 
-#### Controller side
+### Controller side
 
 - Upload the robot application under `robot_application/src` to the controller using Sunrise Workbench. The driver only supports Sunrise 1.X.
 
-### Configuration
+## Configuration
 
-#### Startup configuration
+### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
+
 - `driver_config.yaml`: : contains runtime parameters of the `robot_manager` node
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 - `gpio_config.xacro`: contains the I/O setup of the system, but this was not tested yet
 
-##### IP configuration
+#### IP configuration
+
 The IP address of robot controller must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments). Please note that currently the driver only works using the KLI interface of the robot controller, KONI is not yet supported.
 
-#### Runtime parameters
+### Runtime parameters
+
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
+
 - `send_period_ms` (integer): this parameter defines the send rate in milliseconds (with which the controller sends robot state updates). It must be between 1 and 10 for control and can be only changed in `inactive` and `configuring` states.
 - `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`send_period_ms` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
 - `control_mode`: The enum value of the control mode should be given, which updates the `ControlMode` and `ClientCommandMode` parameters of FRI. It cannot be changed in active state.
@@ -32,35 +37,41 @@ The parameters in the driver configuration file can be also changed during runti
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `torque_controller_name`: The name of the controller (string) that controls the `effort` interface of the robot. It can't be changed in active state.
 
-### Usage
+## Usage
 
-#### Starting the driver
+### Starting the driver
 
 1. On the controller, start the uploaded robot application (ROS2_Control).
 2. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run
-```
-ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0 client_ip:=0.0.0.0
-```
-This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
-- `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-- `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
-- [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
-- [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
-- `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
-- `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
-- [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
-- `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
-3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
+
+    ```bash
+    ros2 launch kuka_sunrise_fri_driver startup.launch.py controller_ip:=0.0.0.0 client_ip:=0.0.0.0
     ```
+
+    This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
+
+    - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
+    - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+    - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
+    - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
+    - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
+    - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
+    - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
+    - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
+
+3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
+
+    ```bash
     ros2 lifecycle set robot_manager configure
     ros2 lifecycle set robot_manager activate
     ```
+
 On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
 
-
-##### Launch arguments
+#### Launch arguments
 
 Both launch files support the following argument:
+
 - `controller_ip`: KLI IP address of the robot controller
 - `client_ip`: IP address of the client PC
 - `client_port`: port of the client machine (default: 30200)
@@ -76,20 +87,19 @@ Both launch files support the following argument:
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
 - `etb_config`: the location of the configuration file for the `external_torque_broadcaster` (defaults to `kuka_sunrise_fri_driver/config/external_torque_broadcaster._config.yaml`)
 
-
 The `startup_with_rviz.launch.py` additionally contains one argument:
+
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
 
-#### Stopping external control
+### Stopping external control
 
 To stop external control, all components have to be deactivated with `ros2 lifecycle set robot_manager deactivate`
 
 BEWARE, that this is a non-realtime process including lifecycle management, so the connection is not terminated immediately, in cases where an abrupt stop is needed, the safety stop of the Teach Pendant should be used! (This will also deactivate all components to allow reactivation without a restart.)
 
-
-### Known issues and limitations
+## Known issues and limitations
 
 - I/O control was not tested
 - Cartesian modes are not yet supported
