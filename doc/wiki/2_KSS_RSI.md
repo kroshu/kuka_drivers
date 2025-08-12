@@ -168,7 +168,7 @@ To configure the client side, two configuration files need to be completed:
       ```
 
 2. The `kuka_rsi_driver/config/gpio_controller_config.yaml` file defines the configuration for the I/O controller.
-   - For I/O control, the [GpioCommandController](https://control.ros.org/master/doc/ros2_controllers/gpio_controllers/doc/userdoc.html) from ROS Control is used.
+   - For I/O control, the [GpioCommandController](https://control.ros.org/humble/doc/ros2_controllers/gpio_controllers/doc/userdoc.html) from ROS Control is used.
    - The controller requires a configuration file that describes the available state and command interfaces.
    - The `gpios` field contains a list of available GPIO interface groups. Currently, only one group is supported, and it **must** be named `gpio`.
    - Additionally, the file contains lists of available state and command interfaces:
