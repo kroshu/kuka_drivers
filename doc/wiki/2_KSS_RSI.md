@@ -276,7 +276,7 @@ To start the KUKA RSI driver, use one of the provided launch files:
 Regardless of the launch file you choose, the following arguments must be specified:
 
 - `robot_family`: Defines the family of the robot (e.g., agilus)
-- `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified)
+- `robot_model`: Specifies the exact robot model. A list of supported models and their corresponding families is available in the `kuka_robot_descriptions` [README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-is-verified)
 - `controller_ip`: The IP address of the **KUKA Line Interface (KLI)**
 - `driver_version`: Set this parameter to `eki_rsi`. If not set the plain RSI driver will be used.
 
