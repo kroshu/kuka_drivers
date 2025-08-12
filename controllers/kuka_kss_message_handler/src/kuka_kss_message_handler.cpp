@@ -89,41 +89,20 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 
 ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  bool drive_state_set = true;
   if (drive_state_command_received_.load())
   {
-    drive_state_set = command_interfaces_[0].set_value(drive_state_.load());
-    if (drive_state_set)
-    {
-      drive_state_command_received_.store(false);
-    }
-    else
-    {
-      RCLCPP_WARN_THROTTLE(
-        get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
-        "Failed to set drive state command interface");
-    }
+    command_interfaces_[0].set_value(drive_state_.load());
+    drive_state_command_received_.store(false);
   }
   else
   {
-    double current_drive_state =
-      command_interfaces_[0].get_optional().value_or(drive_state_.load());
-    if (current_drive_state != drive_state_.load())
-    {
-      drive_state_.store(current_drive_state);
-    }
+    drive_state_.store(command_interfaces_[0].get_value());
   }
 
-  bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_.load());
-  if (!cycle_time_set)
-  {
-    RCLCPP_WARN_THROTTLE(
-      get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
-      "Failed to set cycle time command interface");
-  }
+  command_interfaces_[1].set_value(cycle_time_.load());
 
   status_ = state_interfaces_;
-  return drive_state_set && cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
+  return ReturnType::OK;
 }
 
 void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::SharedPtr msg)
@@ -146,14 +125,12 @@ KssMessageHandler::Status & KssMessageHandler::Status::operator=(
 {
   for (const auto & [value_ptr, idx] : UINT8_MAPPINGS)
   {
-    *value_ptr = static_cast<uint8_t>(
-      state_interfaces[idx].get_optional().value_or(static_cast<double>(*value_ptr)));
+    *value_ptr = static_cast<uint8_t>(state_interfaces[idx].get_value());
   }
 
   for (const auto & [value_ptr, idx] : BOOL_MAPPINGS)
   {
-    *value_ptr = static_cast<bool>(
-      state_interfaces[idx].get_optional().value_or(static_cast<double>(*value_ptr)));
+    *value_ptr = static_cast<bool>(state_interfaces[idx].get_value());
   }
 
   return *this;
