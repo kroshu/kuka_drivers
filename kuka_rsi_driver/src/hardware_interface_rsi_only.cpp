@@ -264,6 +264,11 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
       }
     }
   }
+  else
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
+    on_deactivate(lifecycle_state_);
+  }
 }
 
 void KukaRSIHardwareInterface::Write()
