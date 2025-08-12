@@ -16,13 +16,8 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-)
-from launch_ros.actions import LifecycleNode, Node
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch_ros.actions import Node, LifecycleNode
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -138,6 +133,7 @@ def launch_setup(context, *args, **kwargs):
             robot_description,
             controller_config,
             jtc_config,
+            gpio_config,
             {
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
@@ -177,19 +173,15 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config}
+    controller_names = ["joint_state_broadcaster", "joint_trajectory_controller"]
 
     if use_gpio.perform(context) == "true":
-        controllers["gpio_controller"] = gpio_config
+        controller_names.append("gpio_controller")
 
     if driver_version.perform(context) == "eki_rsi":
-        controllers["control_mode_handler"] = None
-        controllers["event_broadcaster"] = None
-        controllers["kss_message_handler"] = None
-
-    controller_spawners = [
-        controller_spawner(name, param_file) for name, param_file in controllers.items()
-    ]
+        controller_names.append("control_mode_handler")
+        controller_names.append("event_broadcaster")
+        controller_names.append("kss_message_handler")
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
 
