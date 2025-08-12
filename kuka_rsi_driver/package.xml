@@ -6,7 +6,9 @@
   <description>A ROS2 hardware interface for use with KUKA RSI</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
-  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <maintainer email="sanyi.komaromi@gmail.com">Sandor Komaromi</maintainer>
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Matyas Pasztor</maintainer>
+  <maintainer email="pepo.tamas@gmail.com">Tamas Pepo</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
