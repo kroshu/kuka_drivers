@@ -3,13 +3,15 @@
 This package contains two libraries that implement the common functionalities of the 3 kuka drivers to reduce code duplications and make the code more maintainable.
 
 ## Wrapper methods for specific services
+
 The `kuka_drivers_core::communication_helpers` is a header-only library providing wrapper methods for commonly used features.
 
-#### Synchronous service calls
+### Synchronous service calls
 
 `rclcpp` does not provide synchronous service calls, this is implemented in the [`service_tools.hpp`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/communication_helpers/service_tools.hpp)
 
 It provides the `sendRequest()` endpoint with following arguments:
+
 - client [ClientT]: the initialized service client
 - request [RequestT]: the filled request with appropriate type
 - service_timeout_ms [int] (default: 2000): timeout for service discovery
@@ -18,6 +20,7 @@ It provides the `sendRequest()` endpoint with following arguments:
 The method returns the service response (as a shared pointer).
 
 Example for calling the `ListControllers` service of the `controller_manager`:
+
 ```C++
 rclcpp::Client<controller_manager_msgs::srv::ListControllers>::SharedPtr get_controllers_client_;
 auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::Request>();
@@ -27,13 +30,14 @@ auto request = std::make_shared<controller_manager_msgs::srv::ListControllers::R
 auto response =  kuka_drivers_core::sendRequest<controller_manager_msgs::srv::ListControllers::Response>(get_controllers_client_, request, 0, 1000);
 ```
 
-#### `ros2_control` state handling
+### `ros2_control` state handling
 
 The library also contains the [`ros2_control_tools.hpp`](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/communication_helpers/ros2_control_tools.hpp) header, which implements wrapper methods for modifying the states of controllers and hardware components.
 
 **Endpoints:**
 
 The `changeHardwareState()` can change the state of one hardware component and has the following arguments:
+
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr]: initialized client
 - hardware_name` [std::string]: name of the hardware component
 - `state` [uint8_t of [enum](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/State.html)]: desired state after state change (only one transition is possible with one call)
@@ -42,6 +46,7 @@ The `changeHardwareState()` can change the state of one hardware component and h
 The method returns whether the transition was successful.
 
 The `changeControllerState()` can change the state of more controllers and has the following arguments:
+
 - `client` [rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr]: initialized client
 - `activate_controllers` [std::vector\<std::string\>]: names of the controllers to activate
 - `deactivate_controllers` [std::vector\<std::string\>]: names of the controllers to deactivate
@@ -49,8 +54,8 @@ The `changeControllerState()` can change the state of more controllers and has t
 
 The method returns whether the transitions were successful.
 
-
 Examples:
+
 ```C++
 rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr change_hardware_state_client_;
 rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr change_controller_state_client_;
@@ -76,6 +81,7 @@ The base classes provide a wrapper method for parameter registration, which make
 This is done with the help of the `ParameterHandler` class, which includes a `ParameterBase` and a template `Parameter<T>` nested class for this purpose.
 
 Improvements:
+
 - The `add_on_set_parameters_callback()` is called in both of the constructors to register the callback for parameter change requests. This makes sure that the initial values of the parameters are synced from the parameter server.
 - The parameter type is enforced automatically.
 - The registered callback has access over all of the registered parameters, therefore the parameter server and the node is always in sync
@@ -84,26 +90,28 @@ Improvements:
 - There is a different endpoint for static parameters, which cannot be changed after initialization.
 
 The `Parameter<T>` class supports the following parameter types (identical to the types supported by `rclcpp::Parameter`):
- - bool
- - int64_t (or type satisfying `std::is_integral` except bool)
- - double (or type satisfying `std::is_floating_point`)
- - std::string
- - std::vector\<uint8_t\>
- - std::vector\<bool\>
- - std::vector\<int64_t\>
- - std::vector\<double\>
- - std::vector\<std::string\>
 
+- bool
+- int64_t (or type satisfying `std::is_integral` except bool)
+- double (or type satisfying `std::is_floating_point`)
+- std::string
+- std::vector\<uint8_t\>
+- std::vector\<bool\>
+- std::vector\<int64_t\>
+- std::vector\<double\>
+- std::vector\<std::string\>
 
 The nodes provide the `registerParameter()` and `registerStaticParameter()` endpoints with the following arguments:
- - `name` [std::string]: name of the parameter
- - `value` [T]: default value of the parameter
- - `rights` [ParameterSetAccessRights]: structure defining whether modifying the parameter value is allowed in `inactive` and `active` states (only for `ROS2BaseLCNode`, value changes are always allowed in `unconfigured` state)
- - `on_change_callback` [std::function<bool(const T &)>]: the callback to call when determining the validity of a parameter change request
+
+- `name` [std::string]: name of the parameter
+- `value` [T]: default value of the parameter
+- `rights` [ParameterSetAccessRights]: structure defining whether modifying the parameter value is allowed in `inactive` and `active` states (only for `ROS2BaseLCNode`, value changes are always allowed in `unconfigured` state)
+- `on_change_callback` [std::function<bool(const T &)>]: the callback to call when determining the validity of a parameter change request
 
 Both methods register a parameter with the given `name` and `type`, and the `on_change_callback` is called if a parameter change is requested to check validity. In case of the `registerStaticParameter()`, the callback always returns false after initializing the value.
 
 Example code for registering an integer parameter for both base nodes (`onRateChangeRequest()` checks the validity of the requested rate and returns a boolean):
+
 ```C++
   // For class derived from ROS2BaseLCNode
   registerParameter<int>(
