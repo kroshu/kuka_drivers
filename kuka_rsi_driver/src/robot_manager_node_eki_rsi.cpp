@@ -188,9 +188,8 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
     activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
   }
 
-  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, activate_controllers, {});
-  if (!controller_activation_successful)
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, activate_controllers, {}))
   {
     RCLCPP_ERROR(logger, "Could not activate RT controllers");
     this->on_deactivate(get_current_state());
