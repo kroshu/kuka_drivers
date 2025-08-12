@@ -36,10 +36,10 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
   event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
-    "controller_manager/set_hardware_component_state", qos, cbg_);
+    "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
 
   change_controller_state_client_ =
-    this->create_client<SwitchController>("controller_manager/switch_controller", qos, cbg_);
+    this->create_client<SwitchController>("controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
 
   auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
   is_configured_qos.best_effort();

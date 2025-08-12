@@ -384,10 +384,9 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Min: %s, Max: %s",
       gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
-      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
-      gpio_command.max.c_str());
+      gpio_command.min.c_str(), gpio_command.max.c_str());
 
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
@@ -396,9 +395,9 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Min: %s, Max: %s",
       gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
-      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
+      gpio_state.min.c_str(), gpio_state.max.c_str());
 
     config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
   }
@@ -611,7 +610,7 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
 {
   kuka::external::control::kss::GPIOConfiguration gpio_config;
   gpio_config.name = info.name;
-  gpio_config.enable_limits = info.enable_limits;
+  gpio_config.enable_limits = true;
   if (info.data_type == "BOOL" || info.data_type == "bool")
   {
     gpio_config.value_type = kuka::external::control::GPIOValueType::BOOL;
