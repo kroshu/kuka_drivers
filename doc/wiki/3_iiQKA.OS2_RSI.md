@@ -211,7 +211,7 @@ On successful activation the brakes of the robot will be released and external c
 Both launch files support the following arguments:
 
 - `client_port`: port of the client machine (default: 59152)
-- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
+- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `use_gpio`: if set to `false` the usage of I/Os are disabled (defaults to `true`).
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
