@@ -121,6 +121,12 @@ RobotManagerNodeRsi::on_activate(const rclcpp_lifecycle::State &)
     activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
   }
 
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, activate_controllers, {}))
+  {
+    activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
     change_controller_state_client_, activate_controllers, {});
   if (!controller_activation_successful)
@@ -147,6 +153,13 @@ RobotManagerNodeRsi::on_deactivate(const rclcpp_lifecycle::State &)
   }
 
   // Stop RT controllers
+  std::vector<std::string> deactivate_controllers = {
+    kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
+  if (use_gpio_)
+  {
+    deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
   // With best effort strictness, deactivation succeeds if specific controller is not active
   std::vector<std::string> deactivate_controllers = {
     kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
@@ -169,6 +182,7 @@ RobotManagerNodeRsi::on_deactivate(const rclcpp_lifecycle::State &)
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
     return ERROR;
   }
 
