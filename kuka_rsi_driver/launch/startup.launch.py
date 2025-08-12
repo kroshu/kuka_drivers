@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
     mode = LaunchConfiguration("mode")
+    use_gpio = LaunchConfiguration("use_gpio")
     driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
@@ -45,6 +46,7 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    gpio_config = LaunchConfiguration("gpio_config")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -75,6 +77,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "mode:=",
             mode,
+            " ",
+            "use_gpio:=",
+            use_gpio,
             " ",
             "driver_version:=",
             driver_version,
@@ -149,7 +154,7 @@ def launch_setup(context, *args, **kwargs):
             if driver_version.perform(context) == "rsi_only"
             else "robot_manager_node_eki_rsi"
         ),
-        parameters=[driver_config, {"robot_model": robot_model}],
+        parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -172,10 +177,10 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controllers = {
-        "joint_state_broadcaster": None,
-        "joint_trajectory_controller": jtc_config,
-    }
+    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config}
+
+    if use_gpio.perform(context) == "true":
+        controllers["gpio_controller"] = gpio_config
 
     if driver_version.perform(context) == "eki_rsi":
         controllers["control_mode_handler"] = None
@@ -202,6 +207,9 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
+    launch_arguments.append(
+        DeclareLaunchArgument("use_gpio", default_value="true", choices=["true", "false"])
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "driver_version",
@@ -232,6 +240,13 @@ def generate_launch_description():
             "jtc_config",
             default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "gpio_config",
+            default_value=get_package_share_directory("kuka_rsi_driver")
+            + "/config/gpio_controller_config.yaml",
         )
     )
 

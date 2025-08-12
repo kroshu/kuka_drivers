@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="gpio_config">
+    <gpio name="gpio">
+      <!-- Example on how to fill GPIO fields, used by the example configuration-->
+      <!-- <command_interface name="01" data_type="BOOL">
+        <limits enable="false"/>
+        <param name="initial_value">0.0</param>
+      </command_interface>
+
+      <state_interface name="01" data_type="BOOL">
+        <limits enable="false"/>
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="02" data_type="BOOL">
+        <limits enable="false"/>
+        <param name="initial_value">0.0</param>
+      </state_interface> -->
+    </gpio>
+  </xacro:macro>
+</robot>

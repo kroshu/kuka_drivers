@@ -12,3 +12,5 @@ controller_manager:
       type: kuka_controllers/EventBroadcaster
     kss_message_handler:
       type: kuka_controllers/KssMessageHandler
+    gpio_controller:
+      type: gpio_controllers/GpioCommandController
