@@ -32,7 +32,7 @@ Broadcasters receive the state interfaces of a hardware and publish it to a ROS2
 
 ### 2.1. `fri_state_broadcaster`
 
-The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state` topic, using the custom [FRIState](https://github.com/kroshu/kuka_drivers/blob/master/kuka_driver_interfaces/msg/FRIState.msg) message.
+The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state` topic, using the custom [FRIState](https://github.com/kroshu/kuka_drivers/blob/humble/kuka_driver_interfaces/msg/FRIState.msg) message.
 
 __Required Parameters__: None
 
@@ -55,7 +55,7 @@ Hardware interfaces do not support parameters that can be changed in runtime. To
 ### 3.1. `kuka_control_mode_handler`
 
 The `ControlModeHandler` can update the `control_mode` command interface of a hardware. It listens on the `~/control_mode` topic and makes control mode changes possible without having to reactivate the driver.
-The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
+The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/humble/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
 
 __Required Parameters__: None
 
