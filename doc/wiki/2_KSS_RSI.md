@@ -96,9 +96,84 @@ The parameters in the driver configuration file can be also changed during runti
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 
-##### IP Configuration
+##### I/O configuration
 
-The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
+The KSS robot system supports the use of inputs and outputs to control grippers, conveyor belts, or to read sensor data. The RSI system also supports controlling these I/Os in real time. The I/Os are defined from the robot controller’s point of view: an `input` can only have state interfaces in ROS Control, while an `output` can have both state and command interfaces. In the KSS robot system, I/Os can be configured with different types according to their size and representation.
+
+RSI groups the I/Os into three categories:
+
+- `BOOL`: The I/Os act as two-state signals and can be set to `true` or `false`.
+- `DOUBLE`: The I/Os can store decimal numbers represented in floating-point format.
+- `LONG`: The I/Os can store whole numbers using a 64-bit integer representation.
+
+Generally, only a few constraints are imposed on naming the I/Os:
+
+- The names of the I/Os must be unique keys.
+- The names must be unique across both the state and command interfaces.
+- Since `outputs` can have both state and command interfaces, if these interfaces are configured with the same name, they are considered connected. In this case, the system will handle them by first reading the state of the `output`, then writing to it via the command interface.
+
+###### Controller side configuration
+
+To configure the controller side, three addition files are available in the `kuka_external_control_sdk/kss/krl` directory:
+
+1. The `SensorInterface/rsi_gpio_joint_pos.rsix` file provides an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
+   - The file can be edited via the RSI Visual in WorkVisual.
+   - All I/Os should be connected to the inputs or outputs of the Ethernet RSI object.
+2. To run the GPIO example, a `Program/rsi_gpio_example.src` file has been added.
+3. The Ethernet RSI object in the `SensorInterface/rsi_gpio_joint_pos.rsix` requires the `SensorInterface/rsi_gpio_ethernet.xml` configuration file.
+   - The `<SEND>` object contains all parameters that are sent to the client.
+   - The `<RECEIVE>` object contains all the parameters that are received from the client.
+   - To add a new I/O element the following parameters must be set:
+     - `TAG`: Contains the aforementioned unique key. The tag format is: `GPIO.UniqueKey`. It must start with `GPIO`, followed by a `.`, and then the `key`.
+     - `TYPE`: The type can be one of the following: `BOOL`, `DOUBLE`, or `LONG`.
+     - `INDX`: This must match the configuration of the I/O object in RSI Visual for the Ethernet object. This is the only parameter that connects the XML file entries to those in the `.rsix` file.
+     - `HOLDON`: This is only used in the `<RECEIVE>` object. It sets the behavior of the output when packets are missed:
+       - `0`: The output is reset.
+       - `1`: The most recent valid value remains at the output.
+   - A sample configuration for one I/O element:
+
+      ```xml
+      <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
+      ```
+
+###### Client side configuration
+
+To configure the client side, two configuration files need to be completed:
+
+1. The `kuka_rsi_driver/config/gpio_config.xacro` file is an extension to the robot's URDF and contains a `<gpio>` tag as part of the ROS Control parameters.
+   - The GPIO object must be called `gpio`.
+   - The state and command interfaces must be configured according to the example provided in the file.
+   - For each interface, several additional parameters are available:
+     - `name`: The previously mentioned unique key.
+     - `data_type`: The data type of the interface. Must be one of the three supported by RSI: `BOOL`, `DOUBLE`, or `LONG`.
+     - `limits`: Enables additional limit checking (defaults to `true`).
+     - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
+     - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
+     - `initial_value`: Initial value of the interface. The value must be in a number format for every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
+   - To setup the prvided example uncomment the constructed interfaces in the `gpio_config.xacro` config file
+   - An example with both state and command interfaces with all parameters:
+
+      ```xml
+      <command_interface name="OUTPUT_01" data_type="DOUBLE">
+        <limits enable="true"/>
+        <param name="min">0.0</param>
+        <param name="max">100.0</param>
+      </command_interface>
+      <state_interface name="OUTPUT_01" data_type="DOUBLE">
+        <limits enable="true"/>
+        <param name="min">0.0</param>
+        <param name="max">100.0</param>
+        <param name="initial_value">50.0</param>
+      </state_interface>
+      ```
+
+2. The `kuka_rsi_driver/config/gpio_controller_config.yaml` file defines the configuration for the I/O controller.
+   - For I/O control, the [GpioCommandController](https://control.ros.org/master/doc/ros2_controllers/gpio_controllers/doc/userdoc.html) from ROS Control is used.
+   - The controller requires a configuration file that describes the available state and command interfaces.
+   - The `gpios` field contains a list of available GPIO interface groups. Currently, only one group is supported, and it **must** be named `gpio`.
+   - Additionally, the file contains lists of available state and command interfaces:
+     - These must be listed in groups, as explained in the linked controller documentation.
+     - Ensure that the interface names match those defined earlier.
 
 #### Usage
 
@@ -107,13 +182,13 @@ The IP address of the client machine must be provided as a launch argument. For 
 1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
 
     ```bash
-    ros2 launch kuka_rsi_driver startup.launch.py client_ip:=0.0.0.0
+    ros2 launch kuka_rsi_driver startup.launch.py
     ```
 
     - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_rsi_driver/config/joint_trajectory_controller_config.yaml))
-
+    - There is no need to set the Client IP, since the driver automatically listens on the `0.0.0.0` address.
     - After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
 2. Configure and activate all components the driver:
@@ -134,10 +209,10 @@ On successful activation the brakes of the robot will be released and external c
 
 Both launch files support the following arguments:
 
-- `client_ip`: IP address of the client machine
 - `client_port`: port of the client machine (default: 59152)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
+- `use_gpio`: if set to `false` the usage of I/Os are disabled (defaults to `true`).
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
@@ -145,7 +220,7 @@ Both launch files support the following arguments:
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
-- `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`)
+- `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 

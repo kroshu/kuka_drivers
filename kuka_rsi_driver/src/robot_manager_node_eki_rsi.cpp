@@ -32,19 +32,19 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
 
-  cbg_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  event_callback_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-  change_hardware_state_client_ = create_client<SetHardwareComponentState>(
+  change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos, cbg_);
 
   change_controller_state_client_ =
-    create_client<SwitchController>("controller_manager/switch_controller", qos, cbg_);
+    this->create_client<SwitchController>("controller_manager/switch_controller", qos, cbg_);
 
   auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
   is_configured_qos.best_effort();
   is_configured_pub_ =
-    create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
+    this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
 
   control_mode_pub_ = create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
@@ -58,7 +58,7 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
     sub_options);
 
   // Register parameters
-  registerParameter<std::string>(
+  this->registerParameter<std::string>(
     "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
     kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const std::string & controller_name)
@@ -67,14 +67,22 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
         kuka_drivers_core::ControllerType::JOINT_POSITION_CONTROLLER_TYPE, controller_name);
     });
 
-  registerParameter<int>(
+  this->registerParameter<int>(
     "control_mode", static_cast<int>(kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL),
     kuka_drivers_core::ParameterSetAccessRights{true, true},
     [this](int control_mode) { return OnControlModeChangeRequest(control_mode); });
 
-  registerStaticParameter<std::string>(
+  this->registerStaticParameter<std::string>(
     "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string & robot_model) { return OnRobotModelChangeRequest(robot_model); });
+
+  this->registerStaticParameter<bool>(
+    "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const bool use_gpio)
+    {
+      use_gpio_ = use_gpio;
+      return true;
+    });
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
@@ -175,12 +183,16 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   // Activate RT controller(s)
   auto activate_controllers = controller_handler_.GetControllersForMode(control_mode_);
   activate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
-  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, activate_controllers, {});
-  if (!controller_activation_successful)
+  if (use_gpio_)
+  {
+    activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, activate_controllers, {}))
   {
     RCLCPP_ERROR(logger, "Could not activate RT controllers");
-    on_deactivate(get_current_state());
+    this->on_deactivate(get_current_state());
     return FAILURE;
   }
 
@@ -210,18 +222,16 @@ CallbackReturn RobotManagerNodeEkiRsi::on_deactivate(const rclcpp_lifecycle::Sta
   // Deactivation should also succeed if some controllers are not active
   auto deactivate_controllers = controller_handler_.GetControllersForMode(control_mode_);
   deactivate_controllers.push_back(kuka_drivers_core::JOINT_STATE_BROADCASTER);
-
-  auto controller_request = std::make_shared<SwitchController::Request>();
-  controller_request->strictness = SwitchController::Request::BEST_EFFORT;
-  controller_request->deactivate_controllers = deactivate_controllers;
-  controller_request->timeout.sec = 5;
-
-  auto controller_response = kuka_drivers_core::sendRequest<SwitchController::Response>(
-    change_controller_state_client_, controller_request, 0, SWITCH_RESPONSE_TIMEOUT_MS);
-
-  if (!controller_response || !controller_response->ok)
+  if (use_gpio_)
   {
-    RCLCPP_ERROR(logger, "Could not stop controllers");
+    deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
+  if (!kuka_drivers_core::changeControllerState(
+        change_controller_state_client_, {}, deactivate_controllers,
+        SwitchController::Request::BEST_EFFORT))
+  {
+    RCLCPP_ERROR(get_logger(), "Could not stop controllers");
     return ERROR;
   }
 
@@ -350,6 +360,7 @@ bool RobotManagerNodeEkiRsi::OnRobotModelChangeRequest(const std::string & robot
   robot_model_ = ns + robot_model;
   return true;
 }
+
 }  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])
