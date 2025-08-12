@@ -146,21 +146,18 @@ To configure the client side, two configuration files need to be completed:
    - For each interface, several additional parameters are available:
      - `name`: The previously mentioned unique key.
      - `data_type`: The data type of the interface. Must be one of the three supported by RSI: `BOOL`, `DOUBLE`, or `LONG`.
-     - `limits`: Enables additional limit checking (defaults to `true`).
-     - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
-     - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
+     - `min`: Minimum value for limit checking. (If not set or used incorrectly, it disables the limit check.)
+     - `max`: Maximum value for limit checking. (If not set or used incorrectly, it disables the limit check.)
      - `initial_value`: Initial value of the interface. The value must be in a number format for every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
    - To setup the prvided example uncomment the constructed interfaces in the `gpio_config.xacro` config file
    - An example with both state and command interfaces with all parameters:
 
       ```xml
       <command_interface name="OUTPUT_01" data_type="DOUBLE">
-        <limits enable="true"/>
         <param name="min">0.0</param>
         <param name="max">100.0</param>
       </command_interface>
       <state_interface name="OUTPUT_01" data_type="DOUBLE">
-        <limits enable="true"/>
         <param name="min">0.0</param>
         <param name="max">100.0</param>
         <param name="initial_value">50.0</param>
