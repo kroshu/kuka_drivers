@@ -51,13 +51,13 @@ The parameters in the driver configuration file can be also changed during runti
     This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
 
     - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
-    - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
-    - [`fri_configuration_controller`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_configuration_controller) (no configuration file)
-    - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#fri_state_broadcaster) (no configuration file)
-    - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
-    - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
-    - [`control_mode_handler`](https://github.com/kroshu/kuka_controllers?tab=readme-ov-file#control_mode_handler) (no configuration file)
-    - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
+    - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml))
+    - [`fri_configuration_controller`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#32-fri_configuration_controller) (no configuration file)
+    - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#21-fri_state_broadcaster) (no configuration file)
+    - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
+    - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
+    - [`control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#31-kuka_control_mode_handler) (no configuration file)
+    - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
 
 3. After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
 
@@ -80,7 +80,7 @@ Both launch files support the following argument:
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `mode` is set to 'mock')
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `mode` is set to 'mock')
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_sunrise_fri_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
