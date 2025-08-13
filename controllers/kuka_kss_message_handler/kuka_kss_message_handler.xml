@@ -1,0 +1,10 @@
+<library path="kuka_kss_message_handler">
+  <class name="kuka_controllers/KssMessageHandler"
+    type="kuka_controllers::KssMessageHandler"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller can be used for sending and receiving non-real time message to and from
+      KUKA robots running KSS.
+    </description>
+  </class>
+</library>

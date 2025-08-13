@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
-#define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
+#define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
 
 #include <map>
 #include <memory>
@@ -30,13 +30,13 @@
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-namespace kuka_rsi
+namespace kuka_rsi_driver
 {
-class RobotManagerNode : public kuka_drivers_core::ROS2BaseLCNode
+class RobotManagerNodeRsi : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
-  RobotManagerNode();
-  ~RobotManagerNode() = default;
+  RobotManagerNodeRsi();
+  ~RobotManagerNodeRsi() = default;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -56,11 +56,12 @@ private:
   rclcpp::CallbackGroup::SharedPtr cbg_;
 
   std::string robot_model_;
+  bool use_gpio_ = false;
   std::string position_controller_name_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 };
-}  // namespace kuka_rsi
+}  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_HPP_
+#endif  // KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_

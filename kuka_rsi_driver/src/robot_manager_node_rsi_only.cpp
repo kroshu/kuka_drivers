@@ -16,18 +16,19 @@
 #include "communication_helpers/service_tools.hpp"
 
 #include "kuka_drivers_core/controller_names.hpp"
-#include "kuka_rsi_driver/robot_manager_node.hpp"
+#include "kuka_rsi_driver/robot_manager_node_rsi_only.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
 
-namespace kuka_rsi
+namespace kuka_rsi_driver
 {
-RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
+RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
   cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
     "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
   change_controller_state_client_ = this->create_client<SwitchController>(
@@ -44,6 +45,14 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & robot_model)
     { return this->onRobotModelChangeRequest(robot_model); });
 
+  this->registerStaticParameter<bool>(
+    "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const bool use_gpio)
+    {
+      use_gpio_ = use_gpio;
+      return true;
+    });
+
   this->registerParameter<std::string>(
     "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
     kuka_drivers_core::ParameterSetAccessRights{true, false},
@@ -55,7 +64,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
 {
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -72,7 +81,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Clean up hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -94,7 +103,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 
 // TODO(Svastits): rollback in case of failures
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_activate(const rclcpp_lifecycle::State &)
 {
   // Activate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -105,9 +114,15 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   }
 
   // Activate RT controller(s)
+  std::vector<std::string> activate_controllers = {
+    kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
+  if (use_gpio_)
+  {
+    activate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_,
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_}, {}))
+        change_controller_state_client_, activate_controllers, {}))
   {
     RCLCPP_ERROR(get_logger(), "Could not activate RT controllers");
     // TODO(Svastits): this can be removed if rollback is implemented properly
@@ -120,7 +135,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
+RobotManagerNodeRsi::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -131,13 +146,20 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   }
 
   // Stop RT controllers
+  std::vector<std::string> deactivate_controllers = {
+    kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_};
+  if (use_gpio_)
+  {
+    deactivate_controllers.push_back(kuka_drivers_core::GPIO_CONTROLLER);
+  }
+
   // With best effort strictness, deactivation succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
-        change_controller_state_client_, {},
-        {kuka_drivers_core::JOINT_STATE_BROADCASTER, this->position_controller_name_},
+        change_controller_state_client_, {}, deactivate_controllers,
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
+    // TODO(Svastits): this can be removed if rollback is implemented properly
     return ERROR;
   }
 
@@ -145,7 +167,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+bool RobotManagerNodeRsi::onRobotModelChangeRequest(const std::string & robot_model)
 {
   auto ns = std::string(this->get_namespace());
   // Remove '/' from namespace (even empty namespace contains one '/')
@@ -159,7 +181,8 @@ bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model
   robot_model_ = ns + robot_model;
   return true;
 }
-}  // namespace kuka_rsi
+
+}  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])
 {
@@ -167,7 +190,7 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rsi::RobotManagerNode>();
+  auto node = std::make_shared<kuka_rsi_driver::RobotManagerNodeRsi>();
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();
