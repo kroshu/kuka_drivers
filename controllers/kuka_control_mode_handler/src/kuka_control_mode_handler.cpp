@@ -48,7 +48,7 @@ controller_interface::CallbackReturn ControlModeHandler::on_configure(
     "~/control_mode", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::UInt32::SharedPtr msg)
     {
-      control_mode_ = kuka_drivers_core::ControlMode(msg->data);
+      control_mode_.store(kuka_drivers_core::ControlMode(msg->data));
       RCLCPP_INFO(get_node()->get_logger(), "Control mode changed to %u", msg->data);
     });
   RCLCPP_INFO(get_node()->get_logger(), "Control mode handler configured");
@@ -58,7 +58,7 @@ controller_interface::CallbackReturn ControlModeHandler::on_configure(
 controller_interface::CallbackReturn ControlModeHandler::on_activate(
   const rclcpp_lifecycle::State &)
 {
-  if (control_mode_ <= kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED)
+  if (control_mode_.load() <= kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED)
   {
     throw std::runtime_error("Control mode unspecified");
   }
@@ -75,7 +75,7 @@ controller_interface::CallbackReturn ControlModeHandler::on_deactivate(
 controller_interface::return_type ControlModeHandler::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  command_interfaces_[0].set_value(static_cast<double>(control_mode_));
+  command_interfaces_[0].set_value(static_cast<double>(control_mode_.load()));
   return controller_interface::return_type::OK;
 }
 
