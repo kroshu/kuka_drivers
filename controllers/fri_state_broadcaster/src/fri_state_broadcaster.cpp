@@ -136,7 +136,7 @@ controller_interface::return_type FRIStateBroadcaster::update(
   {
     state_msg_.overlay_type = overlay_type;  // Update session state if it has changed
   }
-  
+
   auto tracking_performance = static_cast<int32_t>(
     state_interfaces_[8].get_optional().value_or(state_msg_.tracking_performance));
   if (tracking_performance != state_msg_.tracking_performance)
