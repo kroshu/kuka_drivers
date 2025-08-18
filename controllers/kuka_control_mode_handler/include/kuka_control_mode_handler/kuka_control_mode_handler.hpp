@@ -15,6 +15,7 @@
 #ifndef KUKA_CONTROL_MODE_HANDLER__KUKA_CONTROL_MODE_HANDLER_HPP_
 #define KUKA_CONTROL_MODE_HANDLER__KUKA_CONTROL_MODE_HANDLER_HPP_
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,10 +29,8 @@
 
 #include "kuka_control_mode_handler/visibility_control.h"
 
-namespace kuka_controllers
-{
-class ControlModeHandler : public controller_interface::ControllerInterface
-{
+namespace kuka_controllers {
+class ControlModeHandler : public controller_interface::ControllerInterface {
 public:
   KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::InterfaceConfiguration
   command_interface_configuration() const override;
@@ -39,24 +38,26 @@ public:
   KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::InterfaceConfiguration
   state_interface_configuration() const override;
 
-  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::return_type update(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::return_type
+  update(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn on_configure(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn
+  on_configure(const rclcpp_lifecycle::State &previous_state) override;
 
-  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn on_activate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State &previous_state) override;
 
-  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn on_deactivate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
 
-  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn on_init() override;
+  KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn
+  on_init() override;
 
 private:
-  rclcpp::Subscription<std_msgs::msg::UInt32>::SharedPtr control_mode_subscriber_;
-  kuka_drivers_core::ControlMode control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+  rclcpp::Subscription<std_msgs::msg::UInt32>::SharedPtr
+      control_mode_subscriber_;
+  std::atomic<kuka_drivers_core::ControlMode> control_mode_ =
+      kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
 };
-}  // namespace kuka_controllers
-#endif  // KUKA_CONTROL_MODE_HANDLER__KUKA_CONTROL_MODE_HANDLER_HPP_
+} // namespace kuka_controllers
+#endif // KUKA_CONTROL_MODE_HANDLER__KUKA_CONTROL_MODE_HANDLER_HPP_
