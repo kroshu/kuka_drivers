@@ -7,4 +7,4 @@ repositories:
   kuka-external-control-sdk:
     type: git
     url: https://github.com/kroshu/kuka-external-control-sdk.git
-    version: humble
+    version: master
