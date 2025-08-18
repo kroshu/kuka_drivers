@@ -74,8 +74,7 @@ public:
     }
 
     RCLCPP_INFO(LOGGER, "Start planning");
-    double fraction =
-      move_group_interface_->computeCartesianPath(waypoints, 0.005, trajectory);
+    double fraction = move_group_interface_->computeCartesianPath(waypoints, 0.005, trajectory);
     RCLCPP_INFO(LOGGER, "Planning done!");
 
     if (fraction < 1)

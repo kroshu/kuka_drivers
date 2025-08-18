@@ -60,8 +60,8 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  auto current_event = static_cast<uint8_t>(
-    state_interfaces_[0].get_optional().value_or(last_event_));
+  auto current_event =
+    static_cast<uint8_t>(state_interfaces_[0].get_optional().value_or(last_event_));
   if (current_event != last_event_)
   {
     event_msg_.data = current_event;

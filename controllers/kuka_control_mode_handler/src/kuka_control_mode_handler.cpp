@@ -75,9 +75,9 @@ controller_interface::CallbackReturn ControlModeHandler::on_deactivate(
 controller_interface::return_type ControlModeHandler::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  return command_interfaces_[0].set_value(static_cast<double>(control_mode_.load())) ? 
-         controller_interface::return_type::OK :
-         controller_interface::return_type::ERROR;
+  return command_interfaces_[0].set_value(static_cast<double>(control_mode_.load()))
+           ? controller_interface::return_type::OK
+           : controller_interface::return_type::ERROR;
 }
 
 }  // namespace kuka_controllers
