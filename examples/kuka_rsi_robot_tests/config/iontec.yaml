@@ -1,0 +1,22 @@
+ robot_manager_client:
+    ros__parameters:
+       home_pos: [0.0, -2.3911, 2.6529, 0.0, 1.308, 0.0]
+       times: [6, 12, 6, 10, 10, 10, 10, 5, 5, 5, 5, 10, 5, 5, 10, 5]
+       position_names: ["joint1_plus", "joint1_minus", "home", "joint2_plus", "home", "joint3_minus", "home", "joint4_plus", "joint4_minus", "home", "joint5_plus", "joint5_minus", "home", "joint6_plus", "joint6_minus", "home"]
+       joint_positions:
+          home: [0.0, -2.3911, 2.6529, 0.0, 1.308, 0.0]
+          joint1_plus: [0.4, -2.3911, 2.6529, 0.0, 1.308, 0.0]
+          joint1_minus: [-0.4, -2.3911, 2.6529, 0.0, 1.308, 0.0]
+          # joint2 only moving in one direction since we are at the limit
+          joint2_plus: [0.0, -1.9911, 2.6529, 0.0, 1.308, 0.0]
+              # joint3 only moving in one direction since we are at the limit
+          joint3_minus: [0.0, -2.3911, 2.2529, 0.0, 1.308, 0.0]
+              # joint4
+          joint4_plus: [0.0, -2.3911, 2.6529, 0.4, 1.308, 0.0]
+          joint4_minus: [0.0, -2.3911, 2.6529, -0.4, 1.308, 0.0]
+              # joint5
+          joint5_plus: [0.0, -2.3911, 2.6529, 0.0, 1.708, 0.0]
+          joint5_minus: [0.0, -2.3911, 2.6529, 0.0, 0.908, 0.0]
+              # joint6
+          joint6_plus: [0.0, -2.3911, 2.6529, 0.0, 1.308, 0.4]
+          joint6_minus: [0.0, -2.3911, 2.6529, 0.0, 1.308, -0.4]
