@@ -475,6 +475,11 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
       }
     }
   }
+  else
+  {
+    RCLCPP_ERROR(logger_, "Failed to receive motion state: %s", motion_state_status.message);
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
 
   std::lock_guard<std::mutex> lk(event_mutex_);
   server_state_ = static_cast<double>(last_event_);
