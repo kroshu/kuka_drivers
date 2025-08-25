@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(kuka_sunrise_fri_driver)
 
-# Default to C99
+# C11 needed for nanopb
 if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
+  set(CMAKE_C_STANDARD 11)
 endif()
 
 # C++17 needed for string_view
