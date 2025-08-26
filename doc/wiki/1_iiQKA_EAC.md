@@ -6,9 +6,9 @@
 
 Tested configurations:
 
-| Controller | Robot   | iiQKA.OS2 Version | RSI Version |
-|------------|---------|-------------------|-------------|
-| &ndash;    | &ndash; | &ndash;           | &ndash;     |
+| Controller | Robot           | iiQKA.OS1 Version | EAC Version |
+|------------|-----------------|-------------------|-------------|
+| KR C5      | LBR iisy 3 R760 | 1.2.14            | 1.0.3       |
 
 ### Client side
 
