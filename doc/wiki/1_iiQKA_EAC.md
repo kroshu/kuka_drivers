@@ -2,6 +2,14 @@
 
 ## Setup
 
+### Test setup
+
+Tested configurations:
+
+| Controller | Robot           | iiQKA.OS1 Version | EAC Version |
+|------------|-----------------|-------------------|-------------|
+| KR C5      | LBR iisy 3 R760 | 1.2.14            | 1.0.3       |
+
 ### Client side
 
 - It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).

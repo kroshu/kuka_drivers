@@ -9,6 +9,17 @@ This guide provides instructions for setting up and using a ROS 2 driver to cont
 
 This section is for users who want to control their KUKA robot using only the RSI option package.
 
+### Test setup for the RSI-only driver
+
+Tested configurations:
+
+| Controller | Robot                | KSS Version | RSI Version |
+|------------|----------------------|-------------|-------------|
+| KR C4 OPS  | &ndash;              | 8.6.11      | 4.1.3       |
+| KR C5 OPS  | &ndash;              | 8.7.5       | 5.0.2       |
+| KR C5      | KR 120 R2700-2 Dummy | 8.7.5       | 5.0.2       |
+| KR C5      | KR 6 R900-2          | 8.7.5       | 5.0.2       |
+
 ### Driver setup with RSI only
 
 #### Client side
@@ -23,8 +34,6 @@ To set up the controller with WorkVisual (which is necessary if RSI is not yet i
 - Set a fixed IP in the subnet of the RSI interface for the real-time machine, which is required to send commands via the RSI interface.
 
 #### Controller side
-
-These instructions were tested with RSI 4.1.3 (on KSS8.6) and RSI 5.0.2 (on KSS8.7)
 
 ##### Controller network configuration
 
@@ -258,6 +267,17 @@ ros2 lifecycle set robot_manager activate
 ## EKI + RSI driver
 
 This section explains how to configure and use the driver when both EKI and RSI are available on the KUKA controller.
+
+### Test setup for the EKI + RSI driver
+
+Tested configurations:
+
+| Controller | Robot                | KSS Version | EthernetKRL Version | RSI Version |
+|------------|----------------------|-------------|---------------------|-------------|
+| KR C4 OPS  | &ndash;              | 8.6.11      | 3.1.4               | 4.1.3       |
+| KR C5 OPS  | &ndash;              | 8.7.5       | 3.2.5               | 5.0.2       |
+| KR C5      | KR 120 R2700-2 Dummy | 8.7.5       | 3.2.5               | 5.0.2       |
+| KR C5      | KR 6 R900-2          | 8.7.5       | 3.2.5               | 5.0.2       |
 
 ### Setting up the EKI + RSI driver
 
