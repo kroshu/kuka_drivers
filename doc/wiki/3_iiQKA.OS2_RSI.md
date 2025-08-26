@@ -2,6 +2,15 @@
 
 ## Setup
 
+### Test setup
+
+Tested configurations:
+
+| Controller | Robot              | iiQKA.OS2 Version | RSI Version |
+|------------|--------------------|-------------------|-------------|
+| KR C5 OPS  | &ndash;            | 9.1.0             | 6.1.2       |
+| KR C5      | KR 16 R1610-2      | 9.1.0             | 6.1.2       |
+
 ### Client side
 
 It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
