@@ -23,8 +23,8 @@
 
 #include "communication_helpers/service_tools.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
-#include "moveit/move_group_interface/move_group_interface.h"
-#include "moveit/planning_scene_interface/planning_scene_interface.h"
+#include "moveit/move_group_interface/move_group_interface.hpp"
+#include "moveit/planning_scene_interface/planning_scene_interface.hpp"
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "moveit_msgs/msg/motion_sequence_item.hpp"
 #include "moveit_msgs/srv/get_motion_sequence.hpp"
@@ -92,8 +92,7 @@ public:
     }
 
     RCLCPP_INFO(LOGGER, "Start planning");
-    double fraction =
-      move_group_interface_->computeCartesianPath(waypoints, 0.005, 0.0, trajectory);
+    double fraction = move_group_interface_->computeCartesianPath(waypoints, 0.005, trajectory);
     RCLCPP_INFO(LOGGER, "Planning done!");
 
     if (fraction < 1)

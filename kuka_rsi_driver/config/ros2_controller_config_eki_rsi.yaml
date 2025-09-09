@@ -1,0 +1,16 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 250  # Hz
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    control_mode_handler:
+      type: kuka_controllers/ControlModeHandler
+    event_broadcaster:
+      type: kuka_controllers/EventBroadcaster
+    kss_message_handler:
+      type: kuka_controllers/KssMessageHandler
+    gpio_controller:
+      type: gpio_controllers/GpioCommandController

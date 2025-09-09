@@ -5,7 +5,9 @@
   <description>ROS2 drivers for KUKA robots</description>
   <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
   <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
-  <maintainer email="szitanics@gmail.com">Mark Szitanics</maintainer>
+  <maintainer email="sanyi.komaromi@gmail.com">Sandor Komaromi</maintainer>
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Matyas Pasztor</maintainer>
+  <maintainer email="pepo.tamas@gmail.com">Tamas Pepo</maintainer>
   <license>Apache-2.0</license>
 
   <url type="bugtracker">https://github.com/kroshu/kuka_drivers/issues</url>
@@ -17,7 +19,7 @@
   <exec_depend>kuka_driver_interfaces</exec_depend>
   <exec_depend>kuka_drivers_core</exec_depend>
   <exec_depend>kuka_iiqka_eac_driver</exec_depend>
-  <exec_depend>kuka_kss_rsi_driver</exec_depend>
+  <exec_depend>kuka_rsi_driver</exec_depend>
   <exec_depend>kuka_rsi_simulator</exec_depend>
   <exec_depend>kuka_sunrise_fri_driver</exec_depend>
   <!-- Controllers metapackage -->
