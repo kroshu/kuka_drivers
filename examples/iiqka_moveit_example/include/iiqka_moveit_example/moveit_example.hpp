@@ -165,7 +165,12 @@ public:
     planning_scene_diff_publisher_->publish(planning_scene);
   }
 
-  void addRobotPlatform()
+  void addRobotPlatform() {
+    addRobotPlatform(
+      geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.5).y(0.5).z(1.2));
+  }
+
+  void addRobotPlatform(const geometry_msgs::msg::Vector3 & size)
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
@@ -173,16 +178,16 @@ public:
     shape_msgs::msg::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[primitive.BOX_X] = 0.5;
-    primitive.dimensions[primitive.BOX_Y] = 0.5;
-    primitive.dimensions[primitive.BOX_Z] = 1.2;
+    primitive.dimensions[primitive.BOX_X] = size.x;
+    primitive.dimensions[primitive.BOX_Y] = size.y;
+    primitive.dimensions[primitive.BOX_Z] = size.z;
 
     // Define a pose for the box (specified relative to frame_id).
     geometry_msgs::msg::Pose stand_pose1;
     stand_pose1.orientation.w = 1.0;
     stand_pose1.position.x = 0.0;
     stand_pose1.position.y = 0.0;
-    stand_pose1.position.z = -0.6;
+    stand_pose1.position.z = -size.z/2;
 
     collision_object.primitives.push_back(primitive);
     collision_object.primitive_poses.push_back(stand_pose1);
@@ -192,11 +197,11 @@ public:
   }
 
   void addCollisionBox(
-    const geometry_msgs::msg::Vector3 & position, const geometry_msgs::msg::Vector3 & size)
+    const geometry_msgs::msg::Vector3 & position, const geometry_msgs::msg::Vector3 & size, const std::string & id = "collision_box")
   {
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group_interface_->getPlanningFrame();
-    collision_object.id = "collision_box";
+    collision_object.id = id;
     shape_msgs::msg::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
