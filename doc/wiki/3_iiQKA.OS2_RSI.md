@@ -264,4 +264,4 @@ ros2 lifecycle set robot_manager activate
 ## Known issues and limitations
 
 - In case of an error on the controller side, the driver is not deactivated
-- Cartesian position control mode and I/O-s not yet supported
+- Cartesian position control mode not yet supported
