@@ -200,7 +200,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
-        DeclareLaunchArgument("use_gpio", default_value="true", choices=["true", "false"])
+        DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
     )
     launch_arguments.append(
         DeclareLaunchArgument(
