@@ -2,8 +2,8 @@
 Changelog for package fri_state_broadcaster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-10-03)
+------------------
 * Update version and maintainers
 * Contributors: Komáromi Sándor
 

@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_kss_message_handler</name>
-  <version>0.9.2</version>
+  <version>1.0.0</version>
   <description>Non-real time message handler for KSS KUKA robots</description>
   
   <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Matyas Pasztor</maintainer>

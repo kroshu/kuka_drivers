@@ -2,8 +2,8 @@
 Changelog for package kuka_sunrise_fri_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-10-03)
+------------------
 * Add Gazebo support
 * Bugfixes
   * Fix sunrise activation

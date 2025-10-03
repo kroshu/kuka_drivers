@@ -2,8 +2,8 @@
 Changelog for package kuka_rsi_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-10-03)
+------------------
 * Redesign RSI communication to make it real-time safe
 * Add EKI wrapper for starting RSI
 * Add IO support

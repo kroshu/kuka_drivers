@@ -2,8 +2,8 @@
 Changelog for package kuka_control_mode_handler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-10-03)
+------------------
 * Smaller bugfixes
 * Update version and maintainers
 * Contributors: Komáromi Sándor

@@ -2,8 +2,8 @@
 Changelog for package joint_group_impedance_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-10-03)
+------------------
 * Smaller bugfixes
 * Update version and maintainers
 * Contributors: Komáromi Sándor
