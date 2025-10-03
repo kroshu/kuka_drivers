@@ -2,6 +2,12 @@
 Changelog for package kuka_iiqka_eac_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add Gazebo support
+* Smaller bugfixes
+* Contributors: Komáromi Sándor, Kristof Pasztor, Áron Svastits, Levente Nas, Kristófi Mihály
+
 0.9.2 (2024-07-10)
 ------------------
 * Fix GCC warning causing unstable build

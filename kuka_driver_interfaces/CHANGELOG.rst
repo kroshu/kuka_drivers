@@ -2,6 +2,11 @@
 Changelog for package kuka_driver_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update version and maintainers
+* Contributors: Komáromi Sándor
+
 0.9.2 (2024-07-10)
 ------------------
 * Fix GCC warning causing unstable build
