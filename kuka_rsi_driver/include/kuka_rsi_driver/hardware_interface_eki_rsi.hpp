@@ -97,8 +97,6 @@ private:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
-  KUKA_RSI_DRIVER_LOCAL bool SaveCycleTime(const int update_rate);
-
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
@@ -130,13 +128,11 @@ private:
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
-  RsiCycleTime cycle_time_ = RsiCycleTime::UNSPECIFIED;
+  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
-
-  const std::array<int, 2> supported_cycle_times_ms_ = {4, 12};
 
   bool first_write_done_;
   bool is_active_;
@@ -151,7 +147,6 @@ private:
   static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
-  static constexpr std::int64_t CYCLE_TIME_TOLERANCE_MS = 0.2;
 };
 }  // namespace kuka_rsi_driver
 

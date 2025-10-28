@@ -34,23 +34,13 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
     return CallbackReturn::ERROR;
   }
 
-  if (!SaveCycleTime(info.rw_rate))
-  {
-    RCLCPP_ERROR(
-      logger_, "The Specified update rate %d Hz is not supported by the RSI protocol.",
-      info.rw_rate);
-    return CallbackReturn::ERROR;
-  }
-  RCLCPP_INFO(
-    logger_, "Cycle time set to %d ms",
-    supported_cycle_times_ms_[static_cast<int>(cycle_time_) - 1]);
-
   hw_states_.resize(info_.joints.size(), 0.0);
   hw_commands_.resize(info_.joints.size(), 0.0);
 
   for (const auto & joint : info_.joints)
   {
-    if (!CheckJointInterfaces(joint))
+    bool interfaces_ok = CheckJointInterfaces(joint);
+    if (!interfaces_ok)
     {
       return CallbackReturn::ERROR;
     }
@@ -375,7 +365,7 @@ void KukaEkiRsiHardwareInterface::initialize_command_interfaces(
   kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
 {
   prev_control_mode_ = control_mode;
-  // prev_cycle_time_ = cycle_time;
+  prev_cycle_time_ = cycle_time;
   prev_drives_enabled_ = drives_powered;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
@@ -573,25 +563,6 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
   return true;
 }
 
-bool KukaEkiRsiHardwareInterface::SaveCycleTime(const int update_rate)
-{
-  double cycle_time_ms = 1.0 / static_cast<double>(update_rate) * 1000.0;
-  RCLCPP_INFO(
-    logger_, "Requested cycle time: %.3f ms, update rate: %d", cycle_time_ms, update_rate);
-
-  for (uint8_t i = 0; i < supported_cycle_times_ms_.size(); i++)
-  {
-    if (std::abs(cycle_time_ms - supported_cycle_times_ms_[i]) < CYCLE_TIME_TOLERANCE_MS)
-    {
-      cycle_time_ = static_cast<RsiCycleTime>(i + 1);
-      RCLCPP_INFO(logger_, "Selected cycle time: %d ms", supported_cycle_times_ms_[i]);
-      return true;
-    }
-  }
-  cycle_time_ = RsiCycleTime::UNSPECIFIED;
-  return false;
-}
-
 void KukaEkiRsiHardwareInterface::ChangeDriveState()
 {
   bool drives_enabled = drives_enabled_command_ == 1.0;
@@ -621,12 +592,12 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
 
-  // if (prev_cycle_time_ != cycle_time)
-  // {
-  //   RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
-  //   robot_ptr_->SetCycleTime(cycle_time);
-  //   prev_cycle_time_ = cycle_time;
-  // }
+  if (prev_cycle_time_ != cycle_time)
+  {
+    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
+    robot_ptr_->SetCycleTime(cycle_time);
+    prev_cycle_time_ = cycle_time;
+  }
 }
 
 void KukaEkiRsiHardwareInterface::CopyGPIOStatesToCommands()
