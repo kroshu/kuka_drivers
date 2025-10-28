@@ -210,10 +210,8 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 
   if (!status_manager_.DrivesPowered())
   {
-    RCLCPP_INFO(logger_, "Drives not powered. Automatically turning on drives for activation.");
-    drives_enabled_command_ = 1.0;
-    drives_command_sent_ = false;
-    ChangeDriveState();
+    RCLCPP_INFO(logger_, "Turning on drives");
+    robot_ptr_->TurnOnDrives();
 
     // Wait for drives to be powered up
     auto start_time = std::chrono::steady_clock::now();
@@ -229,7 +227,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
       status_manager_.UpdateStateInterfaces();
       std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
     }
-    RCLCPP_INFO(logger_, "Drives successfully powered on.");
+    RCLCPP_INFO(logger_, "Drives successfully powered on");
   }
 
   const auto control_mode =
@@ -241,6 +239,8 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     RCLCPP_ERROR(logger_, "Starting external control failed: %s", control_status.message);
     return CallbackReturn::FAILURE;
   }
+
+  ChangeCycleTime();
 
   prev_control_mode_ = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
 
@@ -254,7 +254,6 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
   Write();
 
   msg_received_ = false;
-  first_write_done_ = true;
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
@@ -265,6 +264,29 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   set_stop_flag();
+  Write();
+
+  if (status_manager_.DrivesPowered())
+  {
+    RCLCPP_INFO(logger_, "Turning off drives");
+    robot_ptr_->TurnOffDrives();
+
+    // Wait for drives to be powered up
+    auto start_time = std::chrono::steady_clock::now();
+    while (status_manager_.DrivesPowered())
+    {
+      if (
+        std::chrono::steady_clock::now() - start_time >
+        KukaEkiRsiHardwareInterface::DRIVES_POWERED_TIMEOUT)
+      {
+        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power off. Check robot state.");
+        return CallbackReturn::FAILURE;
+      }
+      status_manager_.UpdateStateInterfaces();
+      std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
+    }
+    RCLCPP_INFO(logger_, "Drives successfully powered off");
+  }
   return CallbackReturn::SUCCESS;
 }
 
@@ -284,14 +306,9 @@ return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp
 
 return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_ && prev_drives_enabled_)
+  if (is_active_ && msg_received_)
   {
     Write();
-  }
-  else if (!is_active_)
-  {
-    ChangeDriveState();
-    ChangeCycleTime();
   }
 
   return return_type::OK;
@@ -362,14 +379,12 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
 }
 
 void KukaEkiRsiHardwareInterface::initialize_command_interfaces(
-  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
+  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
 {
   prev_control_mode_ = control_mode;
   prev_cycle_time_ = cycle_time;
-  prev_drives_enabled_ = drives_powered;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
-  drives_enabled_command_ = drives_powered ? 1.0 : 0.0;
 }
 
 bool KukaEkiRsiHardwareInterface::ConnectToController()
@@ -510,7 +525,6 @@ void KukaEkiRsiHardwareInterface::Write()
       send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
     }
     is_active_ = false;
-    first_write_done_ = false;
     msg_received_ = false;
   }
   else if (control_mode_change_requested)
@@ -563,31 +577,6 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
   return true;
 }
 
-void KukaEkiRsiHardwareInterface::ChangeDriveState()
-{
-  bool drives_enabled = drives_enabled_command_ == 1.0;
-
-  if (!drives_command_sent_ && drives_enabled && !status_manager_.DrivesPowered())
-  {
-    RCLCPP_INFO(logger_, "Turning on drives");
-    robot_ptr_->TurnOnDrives();
-    drives_command_sent_ = true;
-    prev_drives_enabled_ = true;
-  }
-  else if (!drives_command_sent_ && !drives_enabled && status_manager_.DrivesPowered())
-  {
-    RCLCPP_INFO(logger_, "Turning off drives");
-    robot_ptr_->TurnOffDrives();
-    drives_command_sent_ = true;
-    prev_drives_enabled_ = false;
-  }
-
-  if (drives_command_sent_ && prev_drives_enabled_ == status_manager_.DrivesPowered())
-  {
-    drives_command_sent_ = false;
-  }
-}
-
 void KukaEkiRsiHardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
@@ -596,6 +585,12 @@ void KukaEkiRsiHardwareInterface::ChangeCycleTime()
   {
     RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
     robot_ptr_->SetCycleTime(cycle_time);
+    // TODO (Komaromi): Cycle time change also takes time change should be implemented similarly as in drive state change
+    // while (status_manager_.CycleTime() != cycle_time)
+    // {
+    //   /* code */
+    // }
+    
     prev_cycle_time_ = cycle_time;
   }
 }

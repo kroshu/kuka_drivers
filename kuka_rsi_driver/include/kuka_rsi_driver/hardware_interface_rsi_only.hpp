@@ -45,6 +45,10 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  // TODO: On init should be changed to this
+  // KUKA_RSI_DRIVER_PUBLIC
+  // CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams & params)
+  // override;
 
   KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
