@@ -58,7 +58,7 @@ def parse_rsi_xml_sen(data):
 
 
 class RSISimulator(Node):
-    cycle_time = 0.04
+    cycle_time = 0.004
     act_joint_pos = np.array([0, -90, 90, 0, 90, 0]).astype(np.float64)
     initial_joint_pos = act_joint_pos.copy()
     des_joint_correction_absolute = np.zeros(6)
