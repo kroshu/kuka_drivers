@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 250  # Hz
+    update_rate: 250 # [Hz] - Set 250 Hz for 4 ms or 83 Hz for 12 ms cycle time
 
     defaults:
       allow_controller_activation_with_inactive_hardware: true

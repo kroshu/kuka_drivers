@@ -576,15 +576,14 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
 bool KukaEkiRsiHardwareInterface::SaveCycleTime(const int update_rate)
 {
   double cycle_time_ms = 1.0 / static_cast<double>(update_rate) * 1000.0;
-  RCLCPP_INFO(
-    logger_, "Requested cycle time: %.3f ms, update rate: %d", cycle_time_ms, update_rate);
 
   for (uint8_t i = 0; i < supported_cycle_times_ms_.size(); i++)
   {
-    if (std::abs(cycle_time_ms - supported_cycle_times_ms_[i]) < CYCLE_TIME_TOLERANCE_MS)
+    if (
+      std::abs(cycle_time_ms - static_cast<double>(supported_cycle_times_ms_[i])) <
+      CYCLE_TIME_TOLERANCE_MS)
     {
       cycle_time_ = static_cast<RsiCycleTime>(i + 1);
-      RCLCPP_INFO(logger_, "Selected cycle time: %d ms", supported_cycle_times_ms_[i]);
       return true;
     }
   }

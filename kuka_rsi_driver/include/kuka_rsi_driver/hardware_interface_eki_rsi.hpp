@@ -151,7 +151,7 @@ private:
   static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
-  static constexpr std::int64_t CYCLE_TIME_TOLERANCE_MS = 0.2;
+  static constexpr double CYCLE_TIME_TOLERANCE_MS = 0.05;
 };
 }  // namespace kuka_rsi_driver
 
