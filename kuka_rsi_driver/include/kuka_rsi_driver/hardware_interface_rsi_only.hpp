@@ -96,7 +96,6 @@ private:
 
   std::vector<int> gpio_states_to_commands_map_;
 
-  bool first_write_done_;
   bool is_active_;
   bool msg_received_;
   bool stop_requested_;

@@ -83,7 +83,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
 
-  first_write_done_ = false;
   is_active_ = false;
   msg_received_ = false;
   stop_requested_ = false;
@@ -147,7 +146,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   Write();
 
   msg_received_ = false;
-  first_write_done_ = true;
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
@@ -158,6 +156,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   stop_requested_ = true;
+  Write();
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
 }
@@ -182,7 +181,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_)
+  if (is_active_ && msg_received_)
   {
     Write();
   }
@@ -291,7 +290,6 @@ void KukaRSIHardwareInterface::Write()
     {
       send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
     }
-    first_write_done_ = false;
     is_active_ = false;
     msg_received_ = false;
   }
