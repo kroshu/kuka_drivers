@@ -58,7 +58,6 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
-
   // Status
   status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatus>(
     "~/status", rclcpp::SystemDefaultsQoS());
@@ -76,7 +75,7 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 
 ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  bool cycle_time_set = command_interfaces_[1].set_value(cycle_time_.load());
+  bool cycle_time_set = command_interfaces_[0].set_value(cycle_time_.load());
   if (!cycle_time_set)
   {
     RCLCPP_WARN_THROTTLE(
@@ -97,9 +96,11 @@ void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::
     cycle_time_.store(static_cast<double>(msg->data));
     RCLCPP_INFO(
       get_node()->get_logger(),
-      "RSI cycle time has changed to '%hhu', "
+      "RSI cycle time has changed to %s, "
       "this will be sent to the KUKA controller durring activation",
-      msg->data);
+      msg->data == 2   ? "12 ms"
+      : msg->data == 1 ? "4 ms"
+                       : "UNSPECIFIED");
   }
   else
   {
