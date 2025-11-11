@@ -81,7 +81,7 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
   hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
-  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
+  RCLCPP_INFO(logger_, "Client port: %s", info_.hardware_parameters["client_port"].c_str());
 
   first_write_done_ = false;
   is_active_ = false;
@@ -197,6 +197,9 @@ bool KukaRSIHardwareInterface::SetupRobot()
   kuka::external::control::kss::Configuration config;
   config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
+  config.client_port = static_cast<unsigned long>(
+    std::stoul(info_.hardware_parameters["client_port"])
+  );
   config.dof = info_.joints.size();
   RCLCPP_INFO(logger_, "Configured GPIO commands:");
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)

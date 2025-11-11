@@ -83,6 +83,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
+  RCLCPP_INFO(logger_, "Client port: %s", info_.hardware_parameters["client_port"].c_str());
 
   auto it = info_.hardware_parameters.find("verify_robot_model");
   verify_robot_model_ = (it != info_.hardware_parameters.end() && it->second == "True");
@@ -378,6 +379,9 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
 
   kuka::external::control::kss::Configuration config;
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  config.client_port = static_cast<unsigned long>(
+      std::stoul(info_.hardware_parameters["client_port"])
+  );
   config.dof = info_.joints.size();
 
   RCLCPP_INFO(logger_, "Configured GPIO commands:");
