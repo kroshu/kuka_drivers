@@ -26,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
     robot_family = LaunchConfiguration("robot_family")
     mode = LaunchConfiguration("mode")
     use_gpio = LaunchConfiguration("use_gpio")
+    use_ext_axes = LaunchConfiguration("use_ext_axes")
     driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
@@ -76,6 +77,9 @@ def launch_setup(context, *args, **kwargs):
             "use_gpio:=",
             use_gpio,
             " ",
+            "use_ext_axes:=",
+            use_ext_axes,
+            " ",
             "driver_version:=",
             driver_version,
             " ",
@@ -122,6 +126,9 @@ def launch_setup(context, *args, **kwargs):
 
     # The driver config contains only parameters that can be changed after startup
     driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
+
+    if use_ext_axes.perform(context) == "true":
+        jtc_config = get_package_share_directory("kuka_rsi_driver") + "/config/joint_trajectory_controller_config_extax.yaml"
 
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
@@ -201,6 +208,9 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument("use_ext_axes", default_value="false", choices=["true", "false"])
     )
     launch_arguments.append(
         DeclareLaunchArgument(
