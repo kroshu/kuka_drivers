@@ -131,9 +131,6 @@ def launch_setup(context, *args, **kwargs):
     # The driver config contains only parameters that can be changed after startup
     driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
 
-    if use_ext_axes.perform(context) == "true":
-        jtc_config = get_package_share_directory("kuka_rsi_driver") + "/config/joint_trajectory_controller_config_extax.yaml"
-
     controller_manager_node = ns.perform(context) + "/controller_manager"
 
     control_node = Node(
