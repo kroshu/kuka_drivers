@@ -58,9 +58,11 @@ def launch_setup(context, *args, **kwargs):
             get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
         )
 
-    package_name = ("ext_axis_examples"
-            if use_ext_axes.perform(context)
-            else f"kuka_{robot_family.perform(context)}_support")
+    package_name = (
+        "ext_axis_examples"
+        if use_ext_axes.perform(context)
+        else f"kuka_{robot_family.perform(context)}_support"
+    )
 
     # Get URDF via xacro
     robot_description_content = Command(
