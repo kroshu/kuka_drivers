@@ -64,7 +64,7 @@ Source workspace.
 source ~/ros2_ws/install/setup.bash
 ```
 
-*Note: as the kuka_external_control_sdk package also exists outside of ROS2 and only a simple package.xml is provided to make it ROS2-compatible, the following warnings are expected and normal after sourcing:*
+*Note: as the `kuka_external_control_sdk` package is designed to work also outside of the ROS2 ecosystem, and is simply wrapped with a `package.xml` to simplify the setup, the following warnings are expected and can be ignored after sourcing:*
 ```
 not found: "<WS>/install/kuka_external_control_sdk/share/kuka_external_control_sdk/local_setup.bash"
 not found: "<WS>/install/kuka_external_control_sdk_examples/share/kuka_external_control_sdk_examples/local_setup.bash"
