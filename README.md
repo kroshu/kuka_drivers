@@ -64,6 +64,12 @@ Source workspace.
 source ~/ros2_ws/install/setup.bash
 ```
 
+*Note: as the kuka_external_control_sdk package also exists outside of ROS2 and only a simple package.xml is provided to make it ROS2-compatible, the following warnings are expected and normal after sourcing:*
+```
+not found: "<WS>/install/kuka_external_control_sdk/share/kuka_external_control_sdk/local_setup.bash"
+not found: "<WS>/install/kuka_external_control_sdk_examples/share/kuka_external_control_sdk_examples/local_setup.bash"
+```
+
 ## Getting Started
 
 Documentation of this project can be found on the repository's [Wiki](https://github.com/kroshu/kuka_drivers/wiki) page.
