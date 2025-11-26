@@ -218,10 +218,12 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Deactivating hardware interface");
+  RCLCPP_INFO(
+    rclcpp::get_logger("KukaEACHardwareInterface"),
+    "Deactivating hardware interface by sending stop signal");
 
-  // TODO: mutex for read
-  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Sending stop signal");
+  // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
+  // but resource manager handles locking (resources_lock_), so is not necessary here
   robot_ptr_->StopControlling();
 
   return CallbackReturn::SUCCESS;

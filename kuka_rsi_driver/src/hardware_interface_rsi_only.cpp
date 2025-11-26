@@ -152,11 +152,13 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  // TODO: mutex for read
   // If control is active, send stop signal
   if (msg_received_)
   {
-    RCLCPP_INFO(logger_, "Sending stop signal");
+    RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
+
+    // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
+    // but resource manager handles locking (resources_lock_), so is not necessary here
     robot_ptr_->StopControlling();
   }
 
