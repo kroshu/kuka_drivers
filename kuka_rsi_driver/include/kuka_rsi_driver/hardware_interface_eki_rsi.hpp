@@ -102,7 +102,7 @@ private:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
-  KUKA_RSI_DRIVER_LOCAL void ChangeCycleTime();
+  KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
   const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;

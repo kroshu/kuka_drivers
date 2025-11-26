@@ -223,6 +223,9 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     RCLCPP_INFO(logger_, "Drives successfully powered on");
   }
 
+  // Set control mode and cycle time before sending Start request
+  ChangeCycleTime();
+
   const auto control_mode =
     static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
 
@@ -232,8 +235,6 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     RCLCPP_ERROR(logger_, "Starting external control failed: %s", control_status.message);
     return CallbackReturn::FAILURE;
   }
-
-  ChangeCycleTime();
 
   prev_control_mode_ = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
 
@@ -287,6 +288,8 @@ return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp
 {
   status_manager_.UpdateStateInterfaces();
 
+  // The first packet is received at activation, Read() should not be called before
+  // Add short sleep to avoid RT thread eating CPU
   if (!is_active_)
   {
     std::this_thread::sleep_for(IDLE_SLEEP_DURATION);
@@ -299,10 +302,13 @@ return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp
 
 return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && msg_received_)
+  // If control is not started or a request is missed, do not send back anything
+  if (!msg_received_)
   {
-    Write();
+    return return_type::OK;
   }
+
+  Write(); 
 
   return return_type::OK;
 }
@@ -570,22 +576,19 @@ bool KukaEkiRsiHardwareInterface::CheckJointInterfaces(
   return true;
 }
 
-void KukaEkiRsiHardwareInterface::ChangeCycleTime()
+kuka::external::control::Status KukaEkiRsiHardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
 
   if (prev_cycle_time_ != cycle_time)
   {
     RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
-    robot_ptr_->SetCycleTime(cycle_time);
-    // TODO (Komaromi): Cycle time change also takes time change should be implemented similarly as in drive state change
-    // while (status_manager_.CycleTime() != cycle_time)
-    // {
-    //   /* code */
-    // }
-    
+    return robot_ptr_->SetCycleTime(cycle_time);
+
     prev_cycle_time_ = cycle_time;
   }
+
+  return kuka::external::control::Status(kuka::external::control::ReturnCode::OK);
 }
 
 void KukaEkiRsiHardwareInterface::CopyGPIOStatesToCommands()
