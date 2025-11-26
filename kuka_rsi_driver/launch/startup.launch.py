@@ -26,7 +26,6 @@ def launch_setup(context, *args, **kwargs):
     robot_family = LaunchConfiguration("robot_family")
     mode = LaunchConfiguration("mode")
     use_gpio = LaunchConfiguration("use_gpio")
-    use_ext_axes = LaunchConfiguration("use_ext_axes")
     driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
@@ -58,12 +57,6 @@ def launch_setup(context, *args, **kwargs):
             get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
         )
 
-    package_name = (
-        "ext_axis_examples"
-        if use_ext_axes.perform(context)
-        else f"kuka_{robot_family.perform(context)}_support"
-    )
-
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -71,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare(package_name),
+                    FindPackageShare(f"kuka_{robot_family.perform(context)}_support"),
                     "urdf",
                     robot_model.perform(context) + ".urdf.xacro",
                 ]
@@ -82,9 +75,6 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_gpio:=",
             use_gpio,
-            " ",
-            "use_ext_axes:=",
-            use_ext_axes,
             " ",
             "driver_version:=",
             driver_version,
@@ -211,9 +201,6 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument("use_ext_axes", default_value="false", choices=["true", "false"])
     )
     launch_arguments.append(
         DeclareLaunchArgument(
