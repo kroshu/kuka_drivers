@@ -100,7 +100,6 @@ private:
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
   bool msg_received_;
-  std::atomic<bool> stop_requested_{false};
 };
 }  // namespace kuka_eac
 

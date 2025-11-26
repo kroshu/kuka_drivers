@@ -98,7 +98,6 @@ private:
 
   bool is_active_;
   bool msg_received_;
-  bool stop_requested_;
 
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };

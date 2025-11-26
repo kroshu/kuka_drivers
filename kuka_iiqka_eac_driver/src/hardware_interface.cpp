@@ -212,7 +212,6 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     rclcpp::get_logger("KukaEACHardwareInterface"),
     "External control session started successfully");
 
-  stop_requested_ = false;
   cycle_count_ = 0;
   return CallbackReturn::SUCCESS;
 }
@@ -221,7 +220,9 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 {
   RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Deactivating hardware interface");
 
-  stop_requested_ = true;
+  // TODO: mutex for read
+  RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Sending stop signal");
+  robot_ptr_->StopControlling();
 
   return CallbackReturn::SUCCESS;
 }
@@ -275,13 +276,7 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     hw_damping_commands_.end());
 
   kuka::external::control::Status send_reply;
-  if (stop_requested_)
-  {
-    RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Sending stop signal");
-    send_reply = robot_ptr_->StopControlling();
-  }
-  else if (
-    static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_) != prev_control_mode_)
+  if (static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_) != prev_control_mode_)
   {
     RCLCPP_INFO(rclcpp::get_logger("KukaEACHardwareInterface"), "Requesting control mode switch");
     send_reply = robot_ptr_->SwitchControlMode(

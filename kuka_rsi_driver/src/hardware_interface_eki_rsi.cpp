@@ -238,8 +238,6 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 
   prev_control_mode_ = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
 
-  stop_requested_ = false;
-
   // We must first receive the initial position of the robot
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5 * READ_TIMEOUT_MS);
@@ -257,15 +255,26 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  set_stop_flag();
-  Write();
+  // TODO: read mutex
+  if (msg_received_)
+  {
+    RCLCPP_INFO(logger_, "Sending stop signal");
+    robot_ptr_->StopControlling();
+  }
+  else
+  {
+    RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+    robot_ptr_->CancelRsiProgram();
+  }
+  is_active_ = false;
+  msg_received_ = false;
 
   if (status_manager_.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");
     robot_ptr_->TurnOffDrives();
 
-    // Wait for drives to be powered up
+    // Wait for drives to be powered off
     auto start_time = std::chrono::steady_clock::now();
     while (status_manager_.DrivesPowered())
     {
@@ -308,7 +317,7 @@ return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcp
     return return_type::OK;
   }
 
-  Write(); 
+  Write();
 
   return return_type::OK;
 }
@@ -510,23 +519,7 @@ void KukaEkiRsiHardwareInterface::Write()
   const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
   const bool control_mode_change_requested = control_mode != prev_control_mode_;
   kuka::external::control::Status send_reply_status;
-  if (stop_requested_)
-  {
-    if (msg_received_)
-    {
-      RCLCPP_INFO(logger_, "Sending stop signal");
-      send_reply_status = robot_ptr_->StopControlling();
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
-      robot_ptr_->CancelRsiProgram();
-      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
-    }
-    is_active_ = false;
-    msg_received_ = false;
-  }
-  else if (control_mode_change_requested)
+  if (control_mode_change_requested)
   {
     // TODO(pasztork): Test this branch once other control modes become available.
     RCLCPP_INFO(logger_, "Requesting control mode change");

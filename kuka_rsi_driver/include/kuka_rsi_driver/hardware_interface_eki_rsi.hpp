@@ -73,8 +73,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
-  KUKA_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
-
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(

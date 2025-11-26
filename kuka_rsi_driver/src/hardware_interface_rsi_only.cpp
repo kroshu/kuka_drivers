@@ -85,7 +85,6 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   is_active_ = false;
   msg_received_ = false;
-  stop_requested_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -136,8 +135,6 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = false;
-
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
@@ -155,7 +152,17 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = true;
+  // TODO: mutex for read
+  // If control is active, send stop signal
+  if (msg_received_)
+  {
+    RCLCPP_INFO(logger_, "Sending stop signal");
+    robot_ptr_->StopControlling();
+  }
+
+  is_active_ = false;
+  msg_received_ = false;
+
   Write();
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
@@ -189,7 +196,7 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
     return return_type::OK;
   }
 
-  Write(); 
+  Write();
 
   return return_type::OK;
 }
@@ -283,25 +290,7 @@ void KukaRSIHardwareInterface::Write()
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
 
-  kuka::external::control::Status send_reply_status;
-  if (stop_requested_)
-  {
-    if (msg_received_)
-    {
-      RCLCPP_INFO(logger_, "Sending stop signal");
-      send_reply_status = robot_ptr_->StopControlling();
-    }
-    else
-    {
-      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
-    }
-    is_active_ = false;
-    msg_received_ = false;
-  }
-  else
-  {
-    send_reply_status = robot_ptr_->SendControlSignal();
-  }
+  auto send_reply_status = robot_ptr_->SendControlSignal();
 
   if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
   {
