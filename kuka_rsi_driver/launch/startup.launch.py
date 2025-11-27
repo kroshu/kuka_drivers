@@ -184,14 +184,13 @@ def launch_setup(context, *args, **kwargs):
 
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config}
+    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config, "event_broadcaster": None}
 
     if use_gpio.perform(context) == "true":
         controllers["gpio_controller"] = gpio_config
 
     if driver_version.perform(context) == "eki_rsi":
         controllers["control_mode_handler"] = None
-        controllers["event_broadcaster"] = None
         controllers["kss_message_handler"] = None
 
     controller_spawners = [
