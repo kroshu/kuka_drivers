@@ -144,7 +144,7 @@ def launch_setup(context, *args, **kwargs):
             },
         ],
         # Disable controller manager warnings about roundtrip time violations
-        arguments=['--ros-args', '--log-level', 'controller_manager:=ERROR' ]
+        arguments=["--ros-args", "--log-level", "controller_manager:=ERROR"],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -184,7 +184,11 @@ def launch_setup(context, *args, **kwargs):
 
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controllers = {"joint_state_broadcaster": None, "joint_trajectory_controller": jtc_config, "event_broadcaster": None}
+    controllers = {
+        "joint_state_broadcaster": None,
+        "joint_trajectory_controller": jtc_config,
+        "event_broadcaster": None,
+    }
 
     if use_gpio.perform(context) == "true":
         controllers["gpio_controller"] = gpio_config

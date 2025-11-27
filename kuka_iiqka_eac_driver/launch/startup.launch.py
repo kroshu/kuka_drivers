@@ -120,7 +120,7 @@ def launch_setup(context, *args, **kwargs):
             },
         ],
         # Disable controller manager warnings about roundtrip time violations
-        arguments=['--ros-args', '--log-level', 'controller_manager:=ERROR' ]
+        arguments=["--ros-args", "--log-level", "controller_manager:=ERROR"],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
