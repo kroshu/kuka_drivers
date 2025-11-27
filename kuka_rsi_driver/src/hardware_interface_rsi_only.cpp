@@ -165,7 +165,6 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   is_active_ = false;
   msg_received_ = false;
 
-  Write();
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
 }
