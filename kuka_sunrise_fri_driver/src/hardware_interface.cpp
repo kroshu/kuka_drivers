@@ -195,7 +195,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
         static_cast<int>(receive_multiplier_)))
   {
     RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
-    return hardware_interface::return_type::ERROR;
+    return CallbackReturn::ERROR;
   }
   RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
 
