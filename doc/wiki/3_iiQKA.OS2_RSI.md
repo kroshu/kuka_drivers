@@ -251,7 +251,7 @@ ros2 launch kuka_rsi_driver startup_with_rviz.launch.py
 ```
 
 ```bash
-ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py
+ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py
 ```
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:

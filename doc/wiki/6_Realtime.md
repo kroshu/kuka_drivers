@@ -42,7 +42,7 @@
 7. Install dependencies needed for building the kernel
 
    ```bash
-   sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot debhelper
+   sudo apt install libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf fakeroot debhelper libdw-dev gawk
    ```
 
 ## Kernel configuration
