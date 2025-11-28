@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kr10_r1100_2_with_kl100">
+  <!-- Import urdf file  -->
+  <xacro:include filename="$(find kuka_agilus_support)/urdf/kr10_r1100_2_macro.xacro"/>
+  <xacro:include filename="$(find kuka_agilus_support)/urdf/kr_agilus_ros2_control_macro.xacro"/>
+  <xacro:include filename="$(find kuka_kl_support)/urdf/kl100_macro.xacro"/>
+  <xacro:include filename="$(find kuka_kl_support)/urdf/kl_ros2_control_macro.xacro"/>
+  <!-- Read additional arguments  -->
+  <xacro:arg name="driver_version" default="rsi_only"/>
+  <xacro:arg name="mode" default="hardware"/>
+  <xacro:arg name="use_gpio" default="false"/>
+  <xacro:arg name="roundtrip_time" default="0"/>
+  <xacro:arg name="client_ip" default="0.0.0.0"/>
+  <xacro:arg name="client_port" default="59152"/>
+  <xacro:arg name="controller_ip" default="0.0.0.0"/>
+  <xacro:arg name="verify_robot_model" default="true"/>
+  <xacro:arg name="prefix" default=""/>
+  <xacro:arg name="x" default="0"/>
+  <xacro:arg name="y" default="0"/>
+  <xacro:arg name="z" default="0"/>
+  <xacro:arg name="roll" default="0"/>
+  <xacro:arg name="pitch" default="0"/>
+  <xacro:arg name="yaw" default="0"/>
+  <xacro:kuka_agilus_ros2_control name="$(arg prefix)kr10_r1100_2_with_kl100" driver_version="$(arg driver_version)" client_ip="$(arg client_ip)" client_port="$(arg client_port)" controller_ip="$(arg controller_ip)" prefix="$(arg prefix)" mode="$(arg mode)" use_gpio="$(arg use_gpio)" roundtrip_time="$(arg roundtrip_time)" verify_robot_model="$(arg verify_robot_model)">
+    <ext_axes_ros2_control_joints>
+      <!-- kl ros2 control joints -->
+      <xacro:kuka_kl_ros2_control_joints/>
+    </ext_axes_ros2_control_joints>
+  </xacro:kuka_agilus_ros2_control>
+  <!-- world link -->
+  <link name="world"/>
+  <!-- kl100 links -->
+  <xacro:kl100_links/>
+  <xacro:kuka_kr10_r1100_2_robot prefix="$(arg prefix)" package_name="kuka_agilus_support"/>
+  <!-- kl100 joints -->
+  <xacro:kl100_joints robot_base_link="$(arg prefix)base_link">
+    <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="$(arg roll) $(arg pitch) $(arg yaw)"/>
+  </xacro:kl100_joints>
+</robot>
