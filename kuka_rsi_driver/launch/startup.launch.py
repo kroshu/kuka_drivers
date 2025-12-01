@@ -47,6 +47,8 @@ def launch_setup(context, *args, **kwargs):
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
     gpio_config = LaunchConfiguration("gpio_config")
+    # Controller manager prints a lot of warnings if cycle time is exceeded, which can be suppressed by this argument
+    cm_log_level = LaunchConfiguration("cm_log_level")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -144,7 +146,7 @@ def launch_setup(context, *args, **kwargs):
             },
         ],
         # Disable controller manager warnings about roundtrip time violations
-        arguments=["--ros-args", "--log-level", "controller_manager:=ERROR"],
+        arguments=["--ros-args", "--log-level", f'controller_manager:={cm_log_level.perform(context)}'],
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -237,6 +239,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+    launch_arguments.append(DeclareLaunchArgument("cm_log_level", default_value="ERROR"))
     launch_arguments.append(
         DeclareLaunchArgument(
             "verify_robot_model", default_value="true", choices=["true", "false"]
