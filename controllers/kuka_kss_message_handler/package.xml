@@ -2,9 +2,14 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kuka_kss_message_handler</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>Non-real time message handler for KSS KUKA robots</description>
-  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Pasztor</maintainer>
+  
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Matyas Pasztor</maintainer>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+  <maintainer email="sanyi.komaromi@gmail.com">Sandor Komaromi</maintainer>
+  <maintainer email="pepo.tamas@gmail.com">Tamas Pepo</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
