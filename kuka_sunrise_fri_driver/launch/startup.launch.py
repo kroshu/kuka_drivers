@@ -40,7 +40,8 @@ def launch_setup(context, *args, **kwargs):
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
     etb_config = LaunchConfiguration("etb_config")
-    # Controller manager prints a lot of warnings if cycle time is exceeded, which can be suppressed by this argument
+    # Controller manager prints a lot of warnings if cycle time is exceeded,
+    #  which can be suppressed by this argument
     cm_log_level = LaunchConfiguration("cm_log_level")
     if ns.perform(context) == "":
         tf_prefix = ""
