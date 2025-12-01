@@ -12,5 +12,3 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     gpio_controller:
       type: gpio_controllers/GpioCommandController
-    event_broadcaster:
-      type: kuka_controllers/EventBroadcaster

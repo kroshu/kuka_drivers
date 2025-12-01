@@ -16,7 +16,6 @@
 #include "communication_helpers/service_tools.hpp"
 
 #include "kuka_drivers_core/controller_names.hpp"
-#include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_rsi_driver/robot_manager_node_rsi_only.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
@@ -40,15 +39,6 @@ RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("
 
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
-
-  // Subscribe to event_broadcaster/hardware_event
-  rclcpp::SubscriptionOptions sub_options;
-  event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  sub_options.callback_group = event_callback_group_;
-  event_subscriber_ = create_subscription<std_msgs::msg::UInt8>(
-    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr message) { EventSubscriptionCallback(message); },
-    sub_options);
 
   this->registerStaticParameter<std::string>(
     "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
@@ -84,16 +74,6 @@ RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  // Activate event broadcaster
-  const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, {kuka_drivers_core::EVENT_BROADCASTER}, {});
-  if (!controller_activation_successful)
-  {
-    RCLCPP_ERROR(get_logger(), "Could not activate event broadcaster");
-    on_cleanup(get_current_state());
-    return FAILURE;
-  }
-
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
@@ -103,14 +83,6 @@ RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  // Deactivate event broadcaster
-  const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
-    change_controller_state_client_, {}, {kuka_drivers_core::EVENT_BROADCASTER});
-  if (!controller_deactivation_successful)
-  {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate event broadcaster");
-  }
-
   // Clean up hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_UNCONFIGURED))
@@ -208,28 +180,6 @@ bool RobotManagerNodeRsi::onRobotModelChangeRequest(const std::string & robot_mo
   }
   robot_model_ = ns + robot_model;
   return true;
-}
-
-void RobotManagerNodeRsi::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message)
-{
-  const auto logger = get_logger();
-
-  const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->data);
-  switch (event)
-  {
-    case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(logger, "External control stopped by an error");
-      if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
-      {
-        deactivate();
-      }
-      else if (get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
-      {
-        on_deactivate(get_current_state());
-      }
-    default:
-      break;
-  }
 }
 
 }  // namespace kuka_rsi_driver
