@@ -215,20 +215,17 @@ void RobotManagerNodeRsi::EventSubscriptionCallback(const std_msgs::msg::UInt8::
   const auto logger = get_logger();
 
   const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->data);
-  switch (event)
+  if (event == kuka_drivers_core::HardwareEvent::ERROR)
   {
-    case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(logger, "External control stopped by an error");
-      if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
-      {
-        deactivate();
-      }
-      else if (get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
-      {
-        on_deactivate(get_current_state());
-      }
-    default:
-      break;
+    RCLCPP_INFO(logger, "External control stopped by an error");
+    if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+    {
+      deactivate();
+    }
+    else if (get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
+    {
+      on_deactivate(get_current_state());
+    }
   }
 }
 
