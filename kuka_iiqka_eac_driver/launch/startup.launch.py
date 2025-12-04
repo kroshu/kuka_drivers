@@ -205,7 +205,13 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="2500"))
-    launch_arguments.append(DeclareLaunchArgument("cm_log_level", default_value="ERROR"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cm_log_level",
+            default_value="ERROR",
+            choices=["DEBUG", "INFO", "WARN", "ERROR", "FATAL"]
+        )
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "qos_config",

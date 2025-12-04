@@ -96,7 +96,7 @@ void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::
     cycle_time_.store(static_cast<double>(msg->data));
     RCLCPP_INFO(
       get_node()->get_logger(),
-      "RSI cycle time has changed to %s, "
+      "RSI cycle time changed to %s, "
       "this will be sent to the KUKA controller during activation",
       msg->data == 2   ? "12 ms"
       : msg->data == 1 ? "4 ms"
