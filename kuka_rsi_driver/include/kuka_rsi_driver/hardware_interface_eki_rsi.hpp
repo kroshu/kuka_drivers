@@ -73,12 +73,10 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
-  KUKA_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
-
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
-    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered);
+    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
 private:
   struct InitSequenceReport
@@ -102,9 +100,7 @@ private:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
-  KUKA_RSI_DRIVER_LOCAL void ChangeDriveState();
-
-  KUKA_RSI_DRIVER_LOCAL void ChangeCycleTime();
+  KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
   const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
@@ -119,7 +115,6 @@ private:
 
   double hw_control_mode_command_;
   double server_state_;
-  double drives_enabled_command_;
   double cycle_time_command_;
 
   std::mutex event_mutex_;
@@ -134,11 +129,8 @@ private:
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
 
-  bool first_write_done_;
   bool is_active_;
   bool msg_received_;
-  bool prev_drives_enabled_;
-  bool drives_command_sent_;
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 
