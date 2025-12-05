@@ -17,6 +17,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
+#include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_only.hpp"
 
@@ -86,6 +87,11 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
   is_active_ = false;
   msg_received_ = false;
 
+  // For plain RSI setup, there is no event broadcaster from the server, server events are published
+  // based on HWIF logic to enable reactivation after an error
+  // Locking is taken care of in resource manager (read, write, on_activate, on_deactivate)
+  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -103,6 +109,9 @@ std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterface::export
     state_interfaces.emplace_back(
       hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
   }
+
+  state_interfaces.emplace_back(
+    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
 
   return state_interfaces;
 }
@@ -146,6 +155,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
+  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
 
   return CallbackReturn::SUCCESS;
 }
@@ -280,6 +290,7 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
   else
   {
     RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
+    server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::ERROR);
     on_deactivate(get_lifecycle_state());
   }
 }
