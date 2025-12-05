@@ -68,11 +68,6 @@ private:
   KUKA_KSS_MESSAGE_HANDLER_LOCAL void RsiCycleTimeChangedCallback(
     const std_msgs::msg::UInt8::SharedPtr msg);
 
-  // Drive state
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_state_subscription_;
-  std::atomic<double> drive_state_;
-  std::atomic<bool> drive_state_command_received_;
-
   // Cycle time
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr cycle_time_subscription_;
   std::atomic<double> cycle_time_;

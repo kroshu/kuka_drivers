@@ -43,6 +43,7 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "mode": "mock",
+                    "cm_log_level": "INFO",
                 }.items(),
             ),
             launch.actions.TimerAction(

@@ -71,15 +71,15 @@ Method 1:
 1. Copy the files to a USB-stick.
 2. Plug it into the teach pad or controller.
 3. Log in as **Expert** or **Administrator** on the controller.
-4. Copy the `rsi_joint_pos_4ms.src`/`rsi_joint_pos_12ms.src` file(s) to `KRC:\R1\Program`.
-5. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface`.
+4. Copy the contents of the `krc_setup/kss/KRC/R1/Program` folder to `KRC:\R1\Program`.
+5. Copy the contents of the `krc_setup/kss/Config/User/Common` folder to `C:\KRC\ROBOTER\Config\User\Common`.
 
 Method 2:
 
 1. Connect to the KRC with WorkVisual
 2. Log in as **Expert** or **Administrator** on the controller.
-3. Copy the `rsi_joint_pos_4ms.src`/`rsi_joint_pos_12ms.src` file(s) to `KRC:\R1\Program` in WorkVisual
-4. Copy the rest of the files to `C:\KRC\ROBOTER\Config\User\Common\SensorInterface` in WorkVisual
+3. Copy the contents of the `krc_setup/kss/KRC/R1/Program` folder to `KRC:\R1\Program` in WorkVisual
+4. Copy the contents of the `krc_setup/kss/Config/User/Common` folder to `C:\KRC\ROBOTER\Config\User\Common` in WorkVisual
 5. Deploy the project
 
 ### Configuration
@@ -230,6 +230,7 @@ Both launch files support the following arguments:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
 - `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
+- `cm_log_level` (only jazzy): It is possible to set the `controller_manager`'s log level with this argument, to avoid flooding the log output by warnings about cycle time violations
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
@@ -252,7 +253,7 @@ ros2 launch kuka_rsi_driver startup_with_rviz.launch.py
 ```
 
 ```bash
-ros2 launch kuka_rsi_simulator kuka_rsi_simulator_launch.py
+ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py
 ```
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
