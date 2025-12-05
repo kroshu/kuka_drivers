@@ -248,7 +248,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "cm_log_level",
             default_value="ERROR",
-            choices=["DEBUG", "INFO", "WARN", "ERROR", "FATAL"]
+            choices=["DEBUG", "INFO", "WARN", "ERROR", "FATAL"],
         )
     )
     launch_arguments.append(
