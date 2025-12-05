@@ -230,6 +230,7 @@ Both launch files support the following arguments:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
 - `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
+- `cm_log_level` (only jazzy): It is possible to set the `controller_manager`'s log level with this argument, to avoid flooding the log output by warnings about cycle time violations
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
