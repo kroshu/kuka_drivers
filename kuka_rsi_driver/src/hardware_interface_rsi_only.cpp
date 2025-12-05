@@ -84,10 +84,8 @@ CallbackReturn KukaRSIHardwareInterface::on_init(const hardware_interface::Hardw
 
   RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
 
-  first_write_done_ = false;
   is_active_ = false;
   msg_received_ = false;
-  stop_requested_ = false;
 
   // For plain RSI setup, there is no event broadcaster from the server, server events are published
   // based on HWIF logic to enable reactivation after an error
@@ -146,8 +144,6 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = false;
-
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
@@ -156,7 +152,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   Write();
 
   msg_received_ = false;
-  first_write_done_ = true;
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
@@ -167,7 +162,19 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = true;
+  // If control is active, send stop signal
+  if (msg_received_)
+  {
+    RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
+
+    // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
+    // but resource manager handles locking (resources_lock_), so is not necessary here
+    robot_ptr_->StopControlling();
+  }
+
+  is_active_ = false;
+  msg_received_ = false;
+
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
 }
@@ -180,6 +187,8 @@ CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::Stat
 
 return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  // The first packet is received at activation, Read() should not be called before
+  // Add short sleep to avoid RT thread eating CPU
   if (!is_active_)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -192,10 +201,13 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
 
 return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (is_active_ && (msg_received_ || stop_requested_) && first_write_done_)
+  // If control is not started or a request is missed, do not send back anything
+  if (!msg_received_)
   {
-    Write();
+    return return_type::OK;
   }
+
+  Write();
 
   return return_type::OK;
 }
@@ -290,26 +302,7 @@ void KukaRSIHardwareInterface::Write()
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
 
-  kuka::external::control::Status send_reply_status;
-  if (stop_requested_)
-  {
-    if (msg_received_)
-    {
-      RCLCPP_INFO(logger_, "Sending stop signal");
-      send_reply_status = robot_ptr_->StopControlling();
-    }
-    else
-    {
-      send_reply_status.return_code = kuka::external::control::ReturnCode::OK;
-    }
-    first_write_done_ = false;
-    is_active_ = false;
-    msg_received_ = false;
-  }
-  else
-  {
-    send_reply_status = robot_ptr_->SendControlSignal();
-  }
+  auto send_reply_status = robot_ptr_->SendControlSignal();
 
   if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
   {

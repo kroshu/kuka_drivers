@@ -186,6 +186,19 @@ CallbackReturn KukaFRIHardwareInterface::on_cleanup(const rclcpp_lifecycle::Stat
 
 CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  // FRI config cannot be set during hardware interface configuration, as the controller cannot
+  // modify the cmd interface until the hardware reached the configured state
+  // write() is no longer called in inactive state, so we can only set config during activation
+
+  if (!fri_connection_->setFRIConfig(
+        client_ip_, client_port_, static_cast<int>(send_period_ms_),
+        static_cast<int>(receive_multiplier_)))
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
+    return CallbackReturn::ERROR;
+  }
+  RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
+
   // Set control mode before starting motion - not even the impedance attributes can be changed in
   // active state
   switch (static_cast<kuka_drivers_core::ControlMode>(control_mode_))
@@ -341,29 +354,10 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
 hardware_interface::return_type KukaFRIHardwareInterface::write(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // Client app update and read must be called only if read has been called in current cycle
-  // FRI configuration can be modified only before cyclic communication is started
+  // Make sure to only call client app calls if read has been called before
+  // write() is no longer called before HWIF is activated, so it is not necessary to check for
+  // control started
   if (!active_read_)
-  {
-    if (FRIConfigChanged())
-    {
-      // FRI config cannot be set during hardware interface configuration, as the controller cannot
-      // modify the cmd interface until the hardware reached the configured state
-      if (!fri_connection_->setFRIConfig(
-            client_ip_, client_port_, static_cast<int>(send_period_ms_),
-            static_cast<int>(receive_multiplier_)))
-      {
-        RCLCPP_ERROR(rclcpp::get_logger("KukaFRIHardwareInterface"), "Could not set FRI config");
-        return hardware_interface::return_type::ERROR;
-      }
-      RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Successfully set FRI config");
-    }
-
-    return hardware_interface::return_type::OK;
-  }
-
-  // Make sure to only call client app calls if not called from elsewhere
-  if (!fri_started_ || !control_activated_)
   {
     return hardware_interface::return_type::OK;
   }
@@ -530,23 +524,6 @@ void KukaFRIHardwareInterface::onError()
   last_event_ = kuka_drivers_core::HardwareEvent::ERROR;
   RCLCPP_ERROR(
     rclcpp::get_logger("KukaFRIHardwareInterface"), "External control stopped by an error");
-}
-
-bool KukaFRIHardwareInterface::FRIConfigChanged()
-{
-  // FRI config values are integers and only stored as doubles due to hwif constraints
-  if (
-    prev_period_ == static_cast<int>(send_period_ms_) &&
-    prev_multiplier_ == static_cast<int>(receive_multiplier_))
-  {
-    return false;
-  }
-  else
-  {
-    prev_period_ = static_cast<int>(send_period_ms_);
-    prev_multiplier_ = static_cast<int>(receive_multiplier_);
-    return true;
-  }
 }
 }  // namespace kuka_sunrise_fri_driver
 
