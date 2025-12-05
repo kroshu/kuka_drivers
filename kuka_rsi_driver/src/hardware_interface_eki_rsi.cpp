@@ -578,8 +578,11 @@ kuka::external::control::Status KukaEkiRsiHardwareInterface::ChangeCycleTime()
   if (prev_cycle_time_ != cycle_time)
   {
     RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
-    return robot_ptr_->SetCycleTime(cycle_time);
-
+    auto status = robot_ptr_->SetCycleTime(cycle_time);
+    if (status != kuka::external::control::Status(kuka::external::control::ReturnCode::OK))
+    {
+      return status;
+    }
     prev_cycle_time_ = cycle_time;
   }
 
