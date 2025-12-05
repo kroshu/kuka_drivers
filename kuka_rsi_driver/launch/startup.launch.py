@@ -173,7 +173,7 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = {"joint_state_broadcaster", "joint_trajectory_controller", "event_broadcaster"}
+    controller_names = ["joint_state_broadcaster", "joint_trajectory_controller", "event_broadcaster"]
 
     if use_gpio.perform(context) == "true":
         controller_names.append("gpio_controller")
