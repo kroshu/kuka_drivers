@@ -36,11 +36,18 @@ ament_target_dependencies(moveit_depalletizing_example
   moveit_visual_tools
 )
 
+add_executable(blending_example src/blending_example.cpp)
+ament_target_dependencies(blending_example
+  moveit_ros_planning_interface
+  moveit_visual_tools
+)
+
 install(TARGETS
   moveit_basic_planners_example
   moveit_collision_avoidance_example
   moveit_constrained_planning_example
   moveit_depalletizing_example
+  blending_example
   EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
