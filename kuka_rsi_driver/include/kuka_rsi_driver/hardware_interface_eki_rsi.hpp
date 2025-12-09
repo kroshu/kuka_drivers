@@ -26,7 +26,7 @@
 
 #include "kuka/external-control-sdk/kss/eki/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
-#include "kuka_rsi_driver/robot_status_manager.hpp"
+#include "kuka_rsi_driver/robot_status_manager_eki.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;

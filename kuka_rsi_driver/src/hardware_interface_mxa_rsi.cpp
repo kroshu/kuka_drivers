@@ -21,7 +21,7 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_rsi_driver/event_observer_eki_rsi.hpp"
+#include "kuka_rsi_driver/event_observer_mxa_rsi.hpp"
 #include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
 
 namespace kuka_rsi_driver
@@ -330,54 +330,15 @@ void KukaMxaRsiHardwareInterface::set_server_event(kuka_drivers_core::HardwareEv
   last_event_ = event;
 }
 
-std::string FindRobotModelInUrdfName(const std::string & input)
-{
-  // Regex pattern to match robot model names
-  std::regex pattern(
-    "kr\\d+_r\\d+_[a-z\\d]*", std::regex_constants::ECMAScript | std::regex_constants::icase);
-  std::smatch match;
-  std::string last_match;
-  auto search_start = input.cbegin();
-
-  while (std::regex_search(search_start, input.cend(), match, pattern))
-  {
-    last_match = match.str();
-    search_start = match.suffix().first;
-  }
-
-  // Remove underscores
-  last_match.erase(std::remove(last_match.begin(), last_match.end(), '_'), last_match.end());
-  return last_match;
-}
-
-std::string ProcessKrcReportedRobotName(const std::string & input)
-{
-  std::string trimmed = input.substr(1);
-  std::size_t space_pos = trimmed.find(' ');
-  std::string robot_model = trimmed.substr(0, space_pos);
-  std::transform(robot_model.begin(), robot_model.end(), robot_model.begin(), ::tolower);
-  return robot_model;
-}
-
 void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
-    std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
-    std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
-    if (
-      expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
-    {
-      std::ostringstream oss;
-      oss << "Robot model mismatch detected: expected model '" << expected << "', but found '"
-          << reported << "'";
-      init_report_ = {true, false, oss.str()};
-    }
-    else if (info_.joints.size() != init_data.GetTotalAxisCount())
+    if (info_.joints.size() != init_data.GetTotalAxisCount())
     {
       std::ostringstream oss;
       oss << "Mismatch in axis count: Driver expects " << info_.joints.size()
-          << ", but EKI server reported " << init_data.GetTotalAxisCount();
+          << ", but mxAutomation server reported " << init_data.GetTotalAxisCount();
       init_report_ = {true, false, oss.str()};
     }
     else
@@ -428,7 +389,7 @@ bool KukaMxaRsiHardwareInterface::ConnectToController()
     config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
   }
 
-  robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
+  robot_ptr_ = std::make_unique<kuka::external::control::kss::mxa::Robot>(config);
 
   auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
