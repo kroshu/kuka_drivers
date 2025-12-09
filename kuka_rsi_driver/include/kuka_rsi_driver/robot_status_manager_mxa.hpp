@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_HPP_
-#define KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_HPP_
+#ifndef KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_MXA_HPP_
+#define KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_MXA_HPP_
 
 #include <atomic>
 #include <memory>
@@ -137,4 +137,4 @@ private:
 
 }  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_HPP_
+#endif  // KUKA_RSI_DRIVER__ROBOT_STATUS_MANAGER_MXA_HPP_

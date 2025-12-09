@@ -47,6 +47,9 @@ ament_target_dependencies(robot_manager_node_rsi_only std_msgs kuka_drivers_core
 target_link_libraries(robot_manager_node_rsi_only kuka_drivers_core::communication_helpers)
 pluginlib_export_plugin_description_file(hardware_interface rsi_hardware_interface.xml)
 
+pluginlib_export_plugin_description_file(hardware_interface mxa_rsi_hardware_interface.xml)
+
+
 install(
   TARGETS ${PROJECT_NAME} robot_manager_node_eki_rsi robot_manager_node_rsi_only
   DESTINATION lib/${PROJECT_NAME}

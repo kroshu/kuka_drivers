@@ -22,10 +22,10 @@
 
 namespace kuka_rsi_driver
 {
-class EventObserver : public kuka::external::control::EventHandler
+class EventObserverMxa : public kuka::external::control::EventHandler
 {
 public:
-  explicit EventObserver(KukaMxaRsiHardwareInterface * hw_interface)
+  explicit EventObserverMxa(KukaMxaRsiHardwareInterface * hw_interface)
   : logger_(rclcpp::get_logger("KukaMxaRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
@@ -59,10 +59,10 @@ private:
   KukaMxaRsiHardwareInterface * hw_interface_;
 };
 
-class EventHandlerExtension : public kuka::external::control::kss::mxa::IEventHandlerExtension
+class EventHandlerExtensionMxa : public kuka::external::control::kss::mxa::IEventHandlerExtension
 {
 public:
-  explicit EventHandlerExtension(KukaMxaRsiHardwareInterface * hw_interface)
+  explicit EventHandlerExtensionMxa(KukaMxaRsiHardwareInterface * hw_interface)
   : logger_(rclcpp::get_logger("KukaMxaRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }

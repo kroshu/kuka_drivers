@@ -200,7 +200,7 @@ def launch_setup(context, *args, **kwargs):
     if use_gpio.perform(context) == "true":
         controllers["gpio_controller"] = gpio_config
 
-    if driver_version.perform(context) == "eki_rsi":
+    if driver_version.perform(context) == "eki_rsi" or driver_version.perform(context) == "mxa_rsi":
         controllers["control_mode_handler"] = None
         controllers["kss_message_handler"] = None
 
@@ -230,7 +230,7 @@ def generate_launch_description():
             "driver_version",
             default_value="rsi_only",
             description="Select the driver version to use",
-            choices=["rsi_only", "eki_rsi"],
+            choices=["rsi_only", "eki_rsi", "mxa_rsi"],
         )
     )
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
