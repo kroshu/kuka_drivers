@@ -334,7 +334,9 @@ void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
   if (init_data.GetTotalAxisCount() == 0)
   {
-    RCLCPP_WARN(logger_, "Skipping robot model verification, as it is not suppored for mxA versions below 4.0");
+    RCLCPP_WARN(
+      logger_,
+      "Skipping robot model verification, as it is not suppored for mxA versions below 4.0");
     init_report_ = {true, true, ""};
   }
   else
@@ -366,7 +368,9 @@ void KukaMxaRsiHardwareInterface::initialize_command_interfaces(
 
 bool KukaMxaRsiHardwareInterface::ConnectToController()
 {
-  RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller with IP %s", info_.hardware_parameters["controller_ip"].c_str());
+  RCLCPP_INFO(
+    logger_, "Initiating connection setup to the robot controller with IP %s",
+    info_.hardware_parameters["controller_ip"].c_str());
 
   kuka::external::control::kss::Configuration config;
   config.kli_ip_address = info_.hardware_parameters["controller_ip"];
@@ -397,13 +401,15 @@ bool KukaMxaRsiHardwareInterface::ConnectToController()
 
   robot_ptr_ = std::make_unique<kuka::external::control::kss::mxa::Robot>(config);
 
-  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserverMxa>(this)));
+  auto status =
+    robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserverMxa>(this)));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
   }
 
-  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtensionMxa>(this));
+  status =
+    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtensionMxa>(this));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
