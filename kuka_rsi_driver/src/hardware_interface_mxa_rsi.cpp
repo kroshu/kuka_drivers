@@ -332,6 +332,12 @@ void KukaMxaRsiHardwareInterface::set_server_event(kuka_drivers_core::HardwareEv
 
 void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
+  if (init_data.GetTotalAxisCount() == 0)
+  {
+    RCLCPP_WARN(logger_, "Skipping robot model verification, as it is not suppored for mxA versions below 4.0");
+    init_report_ = {true, true, ""};
+  }
+  else
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
     if (info_.joints.size() != init_data.GetTotalAxisCount())
