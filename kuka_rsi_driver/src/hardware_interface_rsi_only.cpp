@@ -66,33 +66,6 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   return CallbackReturn::SUCCESS;
 }
 
-return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
-{
-  // The first packet is received at activation, Read() should not be called before
-  // Add short sleep to avoid RT thread eating CPU
-  if (!is_active_)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-    return return_type::OK;
-  }
-
-  Read(READ_TIMEOUT_MS);
-  return return_type::OK;
-}
-
-return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
-{
-  // If control is not started or a request is missed, do not send back anything
-  if (!msg_received_)
-  {
-    return return_type::OK;
-  }
-
-  Write();
-
-  return return_type::OK;
-}
-
 bool KukaRSIHardwareInterface::SetupRobot()
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");

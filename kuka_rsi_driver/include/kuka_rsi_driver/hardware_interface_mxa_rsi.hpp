@@ -62,9 +62,6 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
-  KUKA_RSI_DRIVER_PUBLIC
-  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
-
   KUKA_RSI_DRIVER_PUBLIC void mxa_init(const InitializationData &);
 
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(

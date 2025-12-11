@@ -265,33 +265,11 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle
   return CallbackReturn::SUCCESS;
 }
 
-return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time & time, const rclcpp::Duration & duration)
 {
   status_manager_.UpdateStateInterfaces();
 
-  // The first packet is received at activation, Read() should not be called before
-  // Add short sleep to avoid RT thread eating CPU
-  if (!is_active_)
-  {
-    std::this_thread::sleep_for(IDLE_SLEEP_DURATION);
-    return return_type::OK;
-  }
-
-  Read(READ_TIMEOUT_MS);
-  return return_type::OK;
-}
-
-return_type KukaEkiRsiHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
-{
-  // If control is not started or a request is missed, do not send back anything
-  if (!msg_received_)
-  {
-    return return_type::OK;
-  }
-
-  Write();
-
-  return return_type::OK;
+  return KukaRSIHardwareInterfaceBase::read(time, duration);
 }
 
 std::string FindRobotModelInUrdfName(const std::string & input)

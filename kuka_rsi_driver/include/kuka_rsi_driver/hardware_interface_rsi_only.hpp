@@ -48,12 +48,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_RSI_DRIVER_PUBLIC
-  return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
-
-  KUKA_RSI_DRIVER_PUBLIC
-  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
-
 private:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot();
 
