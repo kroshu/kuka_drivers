@@ -99,29 +99,6 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::Ha
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface>
-KukaMxaRsiHardwareInterface::export_state_interfaces()
-{
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
-  }
-
-  for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
-  {
-    state_interfaces.emplace_back(
-      hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
-  }
-
-  state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
-
-  status_manager_.RegisterStateInterfaces(state_interfaces);
-
-  return state_interfaces;
-}
 
 std::vector<hardware_interface::CommandInterface>
 KukaMxaRsiHardwareInterface::export_command_interfaces()

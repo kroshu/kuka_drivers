@@ -19,17 +19,126 @@
 
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_rsi_driver/hardware_interface_rsi_only.hpp"
+#include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
 
 namespace kuka_rsi_driver
 {
-CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterfaceBase::on_init(const hardware_interface::HardwareInfo & info)
+{
+  if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
+  {
+    return CallbackReturn::ERROR;
+  }
+
+  hw_states_.resize(info_.joints.size(), 0.0);
+  hw_commands_.resize(info_.joints.size(), 0.0);
+
+  for (const auto & joint : info_.joints)
+  {
+    bool interfaces_ok = CheckJointInterfaces(joint);
+    if (!interfaces_ok)
+    {
+      return CallbackReturn::ERROR;
+    }
+  }
+
+  // Check gpio components size
+  if (info_.gpios.size() != 1)
+  {
+    RCLCPP_FATAL(logger_, "expecting exactly 1 gpio component");
+    return CallbackReturn::ERROR;
+  }
+  const auto & gpio = info_.gpios[0];
+  // Check gpio component name
+  if (gpio.name != hardware_interface::IO_PREFIX)
+  {
+    RCLCPP_FATAL(logger_, "expecting gpio component called \"gpio\" first");
+    return CallbackReturn::ERROR;
+  }
+
+  // Save the mapping of GPIO states to commands
+  for (const auto & command_interface : gpio.command_interfaces)
+  {
+    // Find the corresponding state interface for each command interface and connect them based on
+    // their names
+    auto it = std::find_if(
+      gpio.state_interfaces.begin(), gpio.state_interfaces.end(),
+      [&command_interface](const hardware_interface::InterfaceInfo & state_interface)
+      { return state_interface.name == command_interface.name; });
+    if (it != gpio.state_interfaces.end())
+    {
+      gpio_states_to_commands_map_.push_back(std::distance(gpio.state_interfaces.begin(), it));
+    }
+    else
+    {
+      gpio_states_to_commands_map_.push_back(-1);  // Not found, use -1 as a placeholder
+    }
+  }
+
+  hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
+  hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
+
+  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
+
+  is_active_ = false;
+  msg_received_ = false;
+
+  // For plain RSI setup, there is no event broadcaster from the server, server events are published
+  // based on HWIF logic to enable reactivation after an error
+  // Locking is taken care of in resource manager (read, write, on_activate, on_deactivate)
+  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
+
+  return CallbackReturn::SUCCESS;
+}
+
+std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterfaceBase::export_state_interfaces()
+{
+  std::vector<hardware_interface::StateInterface> state_interfaces;
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
+  }
+
+  for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
+  {
+    state_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
+  }
+
+  state_interfaces.emplace_back(
+    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+
+  return state_interfaces;
+}
+
+std::vector<hardware_interface::CommandInterface>
+KukaRSIHardwareInterfaceBase::export_command_interfaces()
+{
+  std::vector<hardware_interface::CommandInterface> command_interfaces;
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+  }
+
+  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
+  {
+    command_interfaces.emplace_back(
+      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
+      &hw_gpio_commands_[i]);
+  }
+
+  return command_interfaces;
+}
+
+CallbackReturn KukaRSIHardwareInterfaceBase::on_configure(const rclcpp_lifecycle::State &)
 {
   const bool setup_success = SetupRobot();
   return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterfaceBase::on_activate(const rclcpp_lifecycle::State &)
 {
   Read(10 * READ_TIMEOUT_MS);
 
@@ -47,7 +156,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterfaceBase::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // If control is active, send stop signal
   if (msg_received_)
@@ -66,13 +175,13 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaRSIHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn KukaRSIHardwareInterfaceBase::on_cleanup(const rclcpp_lifecycle::State &)
 {
   robot_ptr_.reset();
   return CallbackReturn::SUCCESS;
 }
 
-return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterfaceBase::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // The first packet is received at activation, Read() should not be called before
   // Add short sleep to avoid RT thread eating CPU
@@ -86,7 +195,7 @@ return_type KukaRSIHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   return return_type::OK;
 }
 
-return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::Duration &)
+return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // If control is not started or a request is missed, do not send back anything
   if (!msg_received_)
@@ -99,7 +208,7 @@ return_type KukaRSIHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   return return_type::OK;
 }
 
-bool KukaRSIHardwareInterface::SetupRobot()
+bool KukaRSIHardwareInterfaceBase::SetupRobot()
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");
 
@@ -146,7 +255,7 @@ bool KukaRSIHardwareInterface::SetupRobot()
   return true;
 }
 
-void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
+void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
 {
   auto motion_state_status =
     robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
@@ -182,7 +291,7 @@ void KukaRSIHardwareInterface::Read(const int64_t request_timeout)
   }
 }
 
-void KukaRSIHardwareInterface::Write()
+void KukaRSIHardwareInterfaceBase::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
@@ -198,7 +307,7 @@ void KukaRSIHardwareInterface::Write()
   }
 }
 
-bool KukaRSIHardwareInterface::CheckJointInterfaces(
+bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
   const hardware_interface::ComponentInfo & joint) const
 {
   if (joint.command_interfaces.size() != 1)
@@ -227,7 +336,7 @@ bool KukaRSIHardwareInterface::CheckJointInterfaces(
 
   return true;
 }
-void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
+void KukaRSIHardwareInterfaceBase::CopyGPIOStatesToCommands()
 {
   for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
   {
@@ -238,7 +347,7 @@ void KukaRSIHardwareInterface::CopyGPIOStatesToCommands()
   }
 }
 
-kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseGPIOConfig(
+kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::ParseGPIOConfig(
   const hardware_interface::InterfaceInfo & info)
 {
   kuka::external::control::kss::GPIOConfiguration gpio_config;
@@ -328,4 +437,4 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterface::ParseG
 }  // namespace kuka_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_rsi_driver::KukaRSIHardwareInterface, hardware_interface::SystemInterface)
+  kuka_rsi_driver::KukaRSIHardwareInterfaceBase, hardware_interface::SystemInterface)

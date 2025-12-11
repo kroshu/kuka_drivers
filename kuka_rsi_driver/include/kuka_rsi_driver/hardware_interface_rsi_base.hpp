@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
-#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
+#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
+#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 
 #include <memory>
 #include <vector>
 
-#include "hardware_interface_rsi_base.hpp"
+#include "hardware_interface/system_interface.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -33,14 +33,28 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 namespace kuka_rsi_driver
 {
 
-class KukaRSIHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfaceBase
+class KukaRSIHardwareInterfaceBase : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterfaceBase)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
+  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterfaceBase()
+  : SystemInterface(), logger_(rclcpp::get_logger("KukaRsiHardwareInterfaceBase"))
   {
   }
+
+  KUKA_RSI_DRIVER_PUBLIC
+  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  // TODO: On init should be changed to this
+  // KUKA_RSI_DRIVER_PUBLIC
+  // CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams & params)
+  // override;
+
+  KUKA_RSI_DRIVER_PUBLIC
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+
+  KUKA_RSI_DRIVER_PUBLIC
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -56,7 +70,7 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
-private:
+protected:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot();
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
@@ -71,10 +85,22 @@ private:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
-  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
+  const rclcpp::Logger logger_;
 
+  std::vector<double> hw_states_;
+  std::vector<double> hw_gpio_states_;
+  std::vector<double> hw_commands_;
+  std::vector<double> hw_gpio_commands_;
 
-  };
+  double server_state_;
+
+  std::vector<int> gpio_states_to_commands_map_;
+
+  bool is_active_;
+  bool msg_received_;
+
+  static constexpr int64_t READ_TIMEOUT_MS = 1'000;
+};
 }  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_
+#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_

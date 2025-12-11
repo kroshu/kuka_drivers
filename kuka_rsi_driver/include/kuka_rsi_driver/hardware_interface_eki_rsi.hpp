@@ -19,14 +19,14 @@
 #include <string>
 #include <vector>
 
-#include "hardware_interface/system_interface.hpp"
+#include "hardware_interface_rsi_base.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "kuka/external-control-sdk/kss/eki/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
-#include "kuka_rsi_driver/robot_status_manager_eki.hpp"
+#include "kuka_rsi_driver/robot_status_manager.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -36,21 +36,17 @@ using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
-class KukaEkiRsiHardwareInterface : public hardware_interface::SystemInterface
+class KukaEkiRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfaceBase
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
 
   KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
-  : SystemInterface(), logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface"))
   {
   }
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo &) override;
-
-  KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
   KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
@@ -102,19 +98,10 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
-  const rclcpp::Logger logger_;
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
   StatusManager status_manager_;
 
-  std::vector<double> hw_states_;
-  std::vector<double> hw_gpio_states_;
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_gpio_commands_;
-
-  std::vector<int> gpio_states_to_commands_map_;
-
   double hw_control_mode_command_;
-  double server_state_;
   double cycle_time_command_;
 
   std::mutex event_mutex_;
@@ -129,8 +116,6 @@ private:
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
 
-  bool is_active_;
-  bool msg_received_;
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 
@@ -138,7 +123,6 @@ private:
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
   static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
-  static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_rsi_driver
 
