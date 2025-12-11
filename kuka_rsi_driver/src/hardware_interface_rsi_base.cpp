@@ -78,8 +78,6 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(const hardware_interface::H
   hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
   hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
-  RCLCPP_INFO(logger_, "Client IP: %s", info_.hardware_parameters["client_ip"].c_str());
-
   is_active_ = false;
   msg_received_ = false;
 
