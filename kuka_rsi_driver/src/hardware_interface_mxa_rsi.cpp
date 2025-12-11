@@ -158,12 +158,6 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaMxaRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
-{
-  robot_ptr_.reset();
-  return CallbackReturn::SUCCESS;
-}
-
 CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
   if (status_manager_.IsEmergencyStopActive())
@@ -301,12 +295,6 @@ return_type KukaMxaRsiHardwareInterface::write(const rclcpp::Time &, const rclcp
   return return_type::OK;
 }
 
-void KukaMxaRsiHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent event)
-{
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  last_event_ = event;
-}
-
 void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
   if (init_data.GetTotalAxisCount() == 0)
@@ -425,40 +413,7 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
-  auto motion_state_status =
-    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
-  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
-  if (msg_received_)
-  {
-    const auto & req_message = robot_ptr_->GetLastMotionState();
-    const auto & positions = req_message.GetMeasuredPositions();
-    const auto & gpio_values = req_message.GetGPIOValues();
-
-    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
-    // Save IO states
-    for (size_t i = 0; i < hw_gpio_states_.size(); i++)
-    {
-      auto value = gpio_values.at(i)->GetValue();
-      if (value.has_value())
-      {
-        hw_gpio_states_[i] = value.value();
-      }
-      else
-      {
-        RCLCPP_ERROR(
-          logger_, "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
-          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
-      }
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(logger_, "Failed to receive motion state: %s", motion_state_status.message);
-    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
-  }
-
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  server_state_ = static_cast<double>(last_event_);
+  KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
 void KukaMxaRsiHardwareInterface::Write()
@@ -491,36 +446,6 @@ void KukaMxaRsiHardwareInterface::Write()
   }
 }
 
-bool KukaMxaRsiHardwareInterface::CheckJointInterfaces(
-  const hardware_interface::ComponentInfo & joint) const
-{
-  if (joint.command_interfaces.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 command interface");
-    return false;
-  }
-
-  if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-  {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION command interface");
-    return false;
-  }
-
-  if (joint.state_interfaces.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 state interface");
-    return false;
-  }
-
-  if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-  {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION state interface");
-    return false;
-  }
-
-  return true;
-}
-
 kuka::external::control::Status KukaMxaRsiHardwareInterface::ChangeCycleTime()
 {
   const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
@@ -537,103 +462,6 @@ kuka::external::control::Status KukaMxaRsiHardwareInterface::ChangeCycleTime()
   }
 
   return kuka::external::control::Status(kuka::external::control::ReturnCode::OK);
-}
-
-void KukaMxaRsiHardwareInterface::CopyGPIOStatesToCommands()
-{
-  for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
-  {
-    if (gpio_states_to_commands_map_[i] != -1)
-    {
-      hw_gpio_commands_[i] = hw_gpio_states_[gpio_states_to_commands_map_[i]];
-    }
-  }
-}
-
-kuka::external::control::kss::GPIOConfiguration KukaMxaRsiHardwareInterface::ParseGPIOConfig(
-  const hardware_interface::InterfaceInfo & info)
-{
-  kuka::external::control::kss::GPIOConfiguration gpio_config;
-  gpio_config.name = info.name;
-  gpio_config.enable_limits = info.enable_limits;
-  if (info.data_type == "BOOL" || info.data_type == "bool")
-  {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::BOOL;
-  }
-  else if (info.data_type == "DOUBLE" || info.data_type == "double")
-  {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::DOUBLE;
-  }
-  else if (info.data_type == "LONG")
-  {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::LONG;
-  }
-  else
-  {
-    gpio_config.value_type = kuka::external::control::GPIOValueType::UNSPECIFIED;
-  }
-
-  if (!info.initial_value.empty())
-  {
-    try
-    {
-      gpio_config.initial_value = std::stod(info.initial_value);
-    }
-    catch (const std::exception & ex)
-    {
-      RCLCPP_WARN(
-        logger_, "Initial_value is not valid number, it is set to 0. Exception: %s", ex.what());
-      gpio_config.initial_value = 0.0;  // If initial_value is not a valid number, set to 0.0
-    }
-  }
-  else
-  {
-    // TODO (Komaromi): Should this be set to 0?
-    gpio_config.initial_value = 0.0;  // If initial_value is empty, set to 0.0
-  }
-  if (!info.min.empty())
-  {
-    try
-    {
-      gpio_config.min_value = std::stod(info.min);
-    }
-    catch (const std::exception & ex)
-    {
-      RCLCPP_WARN(
-        logger_, "Min_value is not valid number, limits not used. Exception: %s", ex.what());
-      gpio_config.enable_limits = false;  // If min_value is not a valid number, disable limits
-    }
-  }
-  else
-  {
-    gpio_config.enable_limits = false;  // If min_value is empty, disable limits
-  }
-  if (!info.max.empty())
-  {
-    try
-    {
-      gpio_config.max_value = std::stod(info.max);
-    }
-    catch (const std::exception & ex)
-    {
-      RCLCPP_WARN(
-        logger_, "Max_value is not valid number, limits not used. Exception: %s", ex.what());
-      gpio_config.enable_limits = false;  // If max_value is not a valid number, disable limits
-    }
-  }
-  else
-  {
-    gpio_config.enable_limits = false;  // If max_value is empty, disable limits
-  }
-  if (gpio_config.enable_limits && (gpio_config.min_value > gpio_config.max_value))
-  {
-    RCLCPP_WARN(
-      logger_, "Min value is greater than max value, limits not used. Min: %f, Max: %f",
-      gpio_config.min_value, gpio_config.max_value);
-    gpio_config.enable_limits = false;  // If min_value is greater than or equal to max_value,
-                                        // disable limits
-  }
-  return gpio_config;
 }
 
 void KukaMxaRsiHardwareInterface::CreateRobotInstance(const kuka::external::control::kss::Configuration& config)

@@ -71,6 +71,8 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
+  KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
+
 protected:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot();
 
@@ -98,6 +100,9 @@ protected:
   std::vector<double> hw_gpio_commands_;
 
   double server_state_;
+  kuka_drivers_core::HardwareEvent last_event_ =
+    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+  std::mutex event_mutex_;
 
   std::vector<int> gpio_states_to_commands_map_;
 

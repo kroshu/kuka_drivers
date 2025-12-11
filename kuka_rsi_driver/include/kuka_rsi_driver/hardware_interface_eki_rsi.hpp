@@ -53,8 +53,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
-
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
@@ -66,8 +64,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
-
-  KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
@@ -88,14 +84,6 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void Write();
 
-  KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
-    const hardware_interface::ComponentInfo & joint) const;
-
-  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
-
-  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
-    const hardware_interface::InterfaceInfo & info);
-
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
@@ -106,12 +94,9 @@ private:
   double hw_control_mode_command_;
   double cycle_time_command_;
 
-  std::mutex event_mutex_;
 
   kuka_drivers_core::ControlMode prev_control_mode_ =
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  kuka_drivers_core::HardwareEvent last_event_ =
-    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
   RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
 
   InitSequenceReport init_report_;

@@ -48,8 +48,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
-
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
@@ -59,17 +57,7 @@ public:
 private:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot();
 
-  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
-
   KUKA_RSI_DRIVER_LOCAL void Write();
-
-  KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
-    const hardware_interface::ComponentInfo & joint) const;
-
-  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
-
-  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
-    const hardware_interface::InterfaceInfo & info);
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
 
