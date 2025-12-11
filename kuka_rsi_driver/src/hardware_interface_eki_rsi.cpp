@@ -121,112 +121,14 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &state)
 {
-  if (status_manager_.IsEmergencyStopActive())
-  {
-    RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
-    return CallbackReturn::FAILURE;
-  }
-
-  if (!status_manager_.IsKrcInExtMode())
-  {
-    RCLCPP_ERROR(logger_, "KRC not in EXT. Switch to EXT to activate.");
-    return CallbackReturn::FAILURE;
-  }
-
-  if (!status_manager_.DrivesPowered())
-  {
-    RCLCPP_INFO(logger_, "Turning on drives");
-    robot_ptr_->TurnOnDrives();
-
-    // Wait for drives to be powered up
-    auto start_time = std::chrono::steady_clock::now();
-    while (!status_manager_.DrivesPowered())
-    {
-      if (
-        std::chrono::steady_clock::now() - start_time >
-        KukaEkiRsiHardwareInterface::DRIVES_POWERED_TIMEOUT)
-      {
-        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power on. Check robot state.");
-        return CallbackReturn::FAILURE;
-      }
-      status_manager_.UpdateStateInterfaces();
-      std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
-    }
-    RCLCPP_INFO(logger_, "Drives successfully powered on");
-  }
-
-  // Set control mode and cycle time before sending Start request
-  ChangeCycleTime();
-
-  const auto control_mode =
-    static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_);
-
-  kuka::external::control::Status control_status = robot_ptr_->StartControlling(control_mode);
-  if (control_status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_ERROR(logger_, "Starting external control failed: %s", control_status.message);
-    return CallbackReturn::FAILURE;
-  }
-
-  prev_control_mode_ = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
-
-  // We must first receive the initial position of the robot
-  // We set a longer timeout, since the first message might not arrive all that fast
-  Read(5 * READ_TIMEOUT_MS);
-  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
-  CopyGPIOStatesToCommands();
-  Write();
-
-  msg_received_ = false;
-  is_active_ = true;
-
-  RCLCPP_INFO(logger_, "Received position data from robot controller!");
-
-  return CallbackReturn::SUCCESS;
+  return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &state)
 {
-  if (msg_received_)
-  {
-    RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
-
-    // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
-    // but resource manager handles locking (resources_lock_), so is not necessary here
-    robot_ptr_->StopControlling();
-  }
-  else
-  {
-    RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
-    robot_ptr_->CancelRsiProgram();
-  }
-  is_active_ = false;
-  msg_received_ = false;
-
-  if (status_manager_.DrivesPowered())
-  {
-    RCLCPP_INFO(logger_, "Turning off drives");
-    robot_ptr_->TurnOffDrives();
-
-    // Wait for drives to be powered off
-    auto start_time = std::chrono::steady_clock::now();
-    while (status_manager_.DrivesPowered())
-    {
-      if (
-        std::chrono::steady_clock::now() - start_time >
-        KukaEkiRsiHardwareInterface::DRIVES_POWERED_TIMEOUT)
-      {
-        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power off. Check robot state.");
-        return CallbackReturn::FAILURE;
-      }
-      status_manager_.UpdateStateInterfaces();
-      std::this_thread::sleep_for(KukaEkiRsiHardwareInterface::DRIVES_POWERED_CHECK_INTERVAL);
-    }
-    RCLCPP_INFO(logger_, "Drives successfully powered off");
-  }
-  return CallbackReturn::SUCCESS;
+  return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
 }
 
 return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time & time, const rclcpp::Duration & duration)
@@ -294,15 +196,6 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   init_cv_.notify_one();
 }
 
-void KukaEkiRsiHardwareInterface::initialize_command_interfaces(
-  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
-{
-  prev_control_mode_ = control_mode;
-  prev_cycle_time_ = cycle_time;
-  hw_control_mode_command_ = static_cast<double>(control_mode);
-  cycle_time_command_ = static_cast<double>(cycle_time);
-}
-
 void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 {
   if (status_manager_.IsEmergencyStopActive())
@@ -321,50 +214,7 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 
 void KukaEkiRsiHardwareInterface::Write()
 {
-  // Write values to hardware interface
-  auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
-  control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
-
-  const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
-  const bool control_mode_change_requested = control_mode != prev_control_mode_;
-  kuka::external::control::Status send_reply_status;
-  if (control_mode_change_requested)
-  {
-    // TODO(pasztork): Test this branch once other control modes become available.
-    RCLCPP_INFO(logger_, "Requesting control mode change");
-    send_reply_status = robot_ptr_->SwitchControlMode(
-      static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
-    prev_control_mode_ = control_mode;
-  }
-  else
-  {
-    send_reply_status = robot_ptr_->SendControlSignal();
-  }
-
-  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
-    throw std::runtime_error("Error sending reply");
-  }
-}
-
-kuka::external::control::Status KukaEkiRsiHardwareInterface::ChangeCycleTime()
-{
-  const RsiCycleTime cycle_time = static_cast<RsiCycleTime>(cycle_time_command_);
-
-  if (prev_cycle_time_ != cycle_time)
-  {
-    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
-    auto status = robot_ptr_->SetCycleTime(cycle_time);
-    if (status.return_code != kuka::external::control::ReturnCode::OK)
-    {
-      return status;
-    }
-    prev_cycle_time_ = cycle_time;
-  }
-
-  return kuka::external::control::Status(kuka::external::control::ReturnCode::OK);
+  KukaRSIHardwareInterfaceBase::extended_write();
 }
 
 void KukaEkiRsiHardwareInterface::CreateRobotInstance(const kuka::external::control::kss::Configuration& config)

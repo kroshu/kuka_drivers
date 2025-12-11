@@ -26,7 +26,6 @@
 
 #include "kuka/external-control-sdk/kss/mxa/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
-#include "kuka_rsi_driver/robot_status_manager.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -75,18 +74,13 @@ private:
     std::string reason = "";
   };
 
-  KUKA_RSI_DRIVER_LOCAL bool ConnectToController();
-
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_RSI_DRIVER_LOCAL void Write() override;
 
-  KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
-
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
 
   std::unique_ptr<kuka::external::control::kss::mxa::Robot> robot_ptr_;
-  StatusManager status_manager_;
 
   double hw_control_mode_command_;
   double cycle_time_command_;
@@ -106,10 +100,7 @@ private:
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 
-  static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
-  static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
-  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
-  static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
+
 };
 }  // namespace kuka_rsi_driver
 

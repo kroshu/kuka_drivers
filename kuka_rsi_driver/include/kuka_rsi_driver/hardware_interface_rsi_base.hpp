@@ -23,13 +23,15 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/external-control-sdk/common/irobot.h"
+#include "kuka_rsi_driver/robot_status_manager.hpp"
+#include "kuka/external-control-sdk/kss/rsi/robot_interface.h"
 #include "kuka/external-control-sdk/kss/configuration.h"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
@@ -84,9 +86,18 @@ protected:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
+  // Methods common for EKI and MXA version
+  CallbackReturn extended_activation(const rclcpp_lifecycle::State &);
+  CallbackReturn extended_deactivation(const rclcpp_lifecycle::State &);
+  void extended_write();
+  void initialize_command_interfaces( kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
+
+  kuka::external::control::Status ChangeCycleTime();
+
+
   const rclcpp::Logger logger_;
 
-  std::unique_ptr<kuka::external::control::IRobot> robot_ptr_;
+  std::unique_ptr<kuka::external::control::kss::rsi::Robot> robot_ptr_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_gpio_states_;
@@ -103,6 +114,21 @@ protected:
   bool is_active_;
   bool msg_received_;
 
+
+  // EKI-MXA common variables
+  StatusManager status_manager_;
+  
+  double hw_control_mode_command_;
+  double cycle_time_command_;
+
+  kuka_drivers_core::ControlMode prev_control_mode_ =
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
+
+  static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
+  static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
+  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
+  static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_rsi_driver
