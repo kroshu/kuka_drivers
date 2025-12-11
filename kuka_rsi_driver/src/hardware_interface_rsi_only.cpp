@@ -25,7 +25,10 @@ namespace kuka_rsi_driver
 {
 CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  const bool setup_success = SetupRobot();
+  kuka::external::control::kss::Configuration rsi_config;
+  rsi_config.installed_interface =
+    kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
+  const bool setup_success = SetupRobot(rsi_config);
   return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
@@ -64,53 +67,6 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
-}
-
-bool KukaRSIHardwareInterface::SetupRobot()
-{
-  RCLCPP_INFO(logger_, "Initiating network setup...");
-
-  kuka::external::control::kss::Configuration config;
-  config.installed_interface =
-    kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  config.dof = info_.joints.size();
-  RCLCPP_INFO(logger_, "Configured GPIO commands:");
-  for (const auto & gpio_command : info_.gpios[0].command_interfaces)
-  {
-    RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
-      gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
-      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
-      gpio_command.max.c_str());
-
-    // TODO (Komaromi): Add size and parameters
-    config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
-  }
-
-  RCLCPP_INFO(logger_, "Configured GPIO states:");
-  for (const auto & gpio_state : info_.gpios[0].state_interfaces)
-  {
-    RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
-      gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
-      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
-
-    // TODO (Komaromi): Add size, and parameters
-    config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
-  }
-
-  robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
-
-  const auto setup = robot_ptr_->Setup();
-  if (setup.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Setup failed: %s", setup.message);
-    return false;
-  }
-
-  RCLCPP_INFO(logger_, "Network setup successful!");
-
-  return true;
 }
 
 void KukaRSIHardwareInterface::Write()

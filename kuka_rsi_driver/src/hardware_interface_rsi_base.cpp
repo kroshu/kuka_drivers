@@ -132,12 +132,6 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
   return command_interfaces;
 }
 
-CallbackReturn KukaRSIHardwareInterfaceBase::on_configure(const rclcpp_lifecycle::State &)
-{
-  const bool setup_success = SetupRobot();
-  return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
-}
-
 CallbackReturn KukaRSIHardwareInterfaceBase::on_activate(const rclcpp_lifecycle::State &)
 {
   Read(10 * READ_TIMEOUT_MS);
@@ -208,13 +202,10 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   return return_type::OK;
 }
 
-bool KukaRSIHardwareInterfaceBase::SetupRobot()
+bool KukaRSIHardwareInterfaceBase::SetupRobot(kuka::external::control::kss::Configuration& config)
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");
 
-  kuka::external::control::kss::Configuration config;
-  config.installed_interface =
-    kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
   config.dof = info_.joints.size();
   RCLCPP_INFO(logger_, "Configured GPIO commands:");
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)

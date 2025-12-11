@@ -128,8 +128,30 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  if (!ConnectToController())
+  kuka::external::control::kss::Configuration eki_config;
+  eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];;
+  if (!SetupRobot(eki_config))
   {
+    return CallbackReturn::ERROR;
+  }
+
+  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
+  }
+
+  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
+  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
+  }
+
+  status = robot_ptr_->RegisterStatusResponseHandler(
+    std::make_unique<StatusUpdateHandler>(this, &status_manager_));
+  if (status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
     return CallbackReturn::ERROR;
   }
 
@@ -339,71 +361,6 @@ void KukaEkiRsiHardwareInterface::initialize_command_interfaces(
   cycle_time_command_ = static_cast<double>(cycle_time);
 }
 
-bool KukaEkiRsiHardwareInterface::ConnectToController()
-{
-  RCLCPP_INFO(logger_, "Initiating connection setup to the robot controller...");
-
-  kuka::external::control::kss::Configuration config;
-  config.kli_ip_address = info_.hardware_parameters["controller_ip"];
-  config.dof = info_.joints.size();
-
-  RCLCPP_INFO(logger_, "Configured GPIO commands:");
-  for (const auto & gpio_command : info_.gpios[0].command_interfaces)
-  {
-    RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
-      gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
-      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
-      gpio_command.max.c_str());
-
-    config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
-  }
-
-  RCLCPP_INFO(logger_, "Configured GPIO states:");
-  for (const auto & gpio_state : info_.gpios[0].state_interfaces)
-  {
-    RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
-      gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
-      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
-
-    config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
-  }
-
-  robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
-
-  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
-  }
-
-  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
-  }
-
-  status = robot_ptr_->Setup();
-  if (status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Setup failed: %s", status.message);
-    return false;
-  }
-
-  status = robot_ptr_->RegisterStatusResponseHandler(
-    std::make_unique<StatusUpdateHandler>(this, &status_manager_));
-  if (status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
-    return false;
-  }
-
-  RCLCPP_INFO(logger_, "Successfully established connection to the robot controller!");
-
-  return true;
-}
-
 void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 {
   if (status_manager_.IsEmergencyStopActive())
@@ -417,40 +374,7 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
-  auto motion_state_status =
-    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
-  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
-  if (msg_received_)
-  {
-    const auto & req_message = robot_ptr_->GetLastMotionState();
-    const auto & positions = req_message.GetMeasuredPositions();
-    const auto & gpio_values = req_message.GetGPIOValues();
-
-    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
-    // Save IO states
-    for (size_t i = 0; i < hw_gpio_states_.size(); i++)
-    {
-      auto value = gpio_values.at(i)->GetValue();
-      if (value.has_value())
-      {
-        hw_gpio_states_[i] = value.value();
-      }
-      else
-      {
-        RCLCPP_ERROR(
-          logger_, "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
-          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
-      }
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(logger_, "Failed to receive motion state: %s", motion_state_status.message);
-    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
-  }
-
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  server_state_ = static_cast<double>(last_event_);
+  KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
 void KukaEkiRsiHardwareInterface::Write()
