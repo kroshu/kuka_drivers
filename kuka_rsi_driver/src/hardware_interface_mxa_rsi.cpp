@@ -336,7 +336,7 @@ void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
   {
     RCLCPP_WARN(
       logger_,
-      "Skipping robot model verification, as it is not suppored for mxA versions below 4.0");
+      "Skipping robot model verification, as it is not supported for mxA versions below 4.0");
     init_report_ = {true, true, ""};
   }
   else
