@@ -130,43 +130,6 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
   return command_interfaces;
 }
 
-CallbackReturn KukaRSIHardwareInterfaceBase::on_activate(const rclcpp_lifecycle::State &)
-{
-  Read(10 * READ_TIMEOUT_MS);
-
-  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
-  CopyGPIOStatesToCommands();
-
-  Write();
-
-  msg_received_ = false;
-  is_active_ = true;
-
-  RCLCPP_INFO(logger_, "Received position data from robot controller!");
-  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
-
-  return CallbackReturn::SUCCESS;
-}
-
-CallbackReturn KukaRSIHardwareInterfaceBase::on_deactivate(const rclcpp_lifecycle::State &)
-{
-  // If control is active, send stop signal
-  if (msg_received_)
-  {
-    RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
-
-    // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
-    // but resource manager handles locking (resources_lock_), so is not necessary here
-    robot_ptr_->StopControlling();
-  }
-
-  is_active_ = false;
-  msg_received_ = false;
-
-  RCLCPP_INFO(logger_, "Stop requested!");
-  return CallbackReturn::SUCCESS;
-}
-
 CallbackReturn KukaRSIHardwareInterfaceBase::on_cleanup(const rclcpp_lifecycle::State &)
 {
   robot_ptr_.reset();
@@ -289,22 +252,6 @@ void KukaRSIHardwareInterfaceBase::set_server_event(kuka_drivers_core::HardwareE
 {
   std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
-}
-
-void KukaRSIHardwareInterfaceBase::Write()
-{
-  // Write values to hardware interface
-  auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
-  control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
-
-  auto send_reply_status = robot_ptr_->SendControlSignal();
-
-  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
-    throw std::runtime_error("Error sending reply");
-  }
 }
 
 bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(

@@ -57,10 +57,6 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
-
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
-
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
 
   KUKA_RSI_DRIVER_PUBLIC
@@ -76,7 +72,7 @@ protected:
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
-  KUKA_RSI_DRIVER_LOCAL void Write();
+  virtual KUKA_RSI_DRIVER_LOCAL void Write() = 0;
 
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;

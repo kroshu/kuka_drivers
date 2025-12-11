@@ -79,7 +79,7 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
-  KUKA_RSI_DRIVER_LOCAL void Write();
+  KUKA_RSI_DRIVER_LOCAL void Write() override;
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
