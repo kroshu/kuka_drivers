@@ -635,6 +635,12 @@ kuka::external::control::kss::GPIOConfiguration KukaMxaRsiHardwareInterface::Par
   }
   return gpio_config;
 }
+
+void KukaMxaRsiHardwareInterface::CreateRobotInstance(const kuka::external::control::kss::Configuration& config)
+{
+  robot_ptr_ = std::make_unique<kuka::external::control::kss::mxa::Robot>(config);
+}
+
 }  // namespace kuka_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(

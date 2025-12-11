@@ -23,7 +23,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/external-control-sdk/kss/robot.h"
+#include "kuka/external-control-sdk/common/irobot.h"
+#include "kuka/external-control-sdk/kss/configuration.h"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
@@ -82,10 +83,14 @@ protected:
 
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
+  virtual KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) = 0;
+
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
   const rclcpp::Logger logger_;
+
+  std::unique_ptr<kuka::external::control::IRobot> robot_ptr_;
 
   std::vector<double> hw_states_;
   std::vector<double> hw_gpio_states_;

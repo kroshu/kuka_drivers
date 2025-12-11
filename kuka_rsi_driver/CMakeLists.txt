@@ -26,7 +26,7 @@ find_package(std_msgs REQUIRED)
 include_directories(include)
 
 # Create the library
-add_library(${PROJECT_NAME} SHARED src/hardware_interface_eki_rsi.cpp src/hardware_interface_rsi_only.cpp src/hardware_interface_mxa_rsi.cpp)
+add_library(${PROJECT_NAME} SHARED src/hardware_interface_rsi_base.cpp src/hardware_interface_eki_rsi.cpp src/hardware_interface_rsi_only.cpp src/hardware_interface_mxa_rsi.cpp)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

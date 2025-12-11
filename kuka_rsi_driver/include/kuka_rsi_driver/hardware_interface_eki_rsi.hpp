@@ -98,6 +98,8 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::Status ChangeCycleTime();
 
+  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
+
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
   StatusManager status_manager_;
 

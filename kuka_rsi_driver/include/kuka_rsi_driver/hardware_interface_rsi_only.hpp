@@ -71,6 +71,8 @@ private:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
+  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
+
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 
 
