@@ -34,53 +34,10 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::Ha
     return CallbackReturn::ERROR;
   }
 
-  hw_states_.resize(info_.joints.size(), 0.0);
-  hw_commands_.resize(info_.joints.size(), 0.0);
-
-  for (const auto & joint : info_.joints)
+  if (KukaRSIHardwareInterfaceBase::on_init(info) != CallbackReturn::SUCCESS)
   {
-    bool interfaces_ok = CheckJointInterfaces(joint);
-    if (!interfaces_ok)
-    {
-      return CallbackReturn::ERROR;
-    }
-  }
-
-  // Check gpio components size
-  if (info_.gpios.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "expecting exactly 1 gpio component");
     return CallbackReturn::ERROR;
   }
-  const auto & gpio = info_.gpios[0];
-  // Check gpio component name
-  if (gpio.name != hardware_interface::IO_PREFIX)
-  {
-    RCLCPP_FATAL(logger_, "expecting gpio component called \"gpio\" first");
-    return CallbackReturn::ERROR;
-  }
-
-  // Save the mapping of GPIO states to commands
-  for (const auto & command_interface : gpio.command_interfaces)
-  {
-    // Find the corresponding state interface for each command interface and connect them based on
-    // their names
-    auto it = std::find_if(
-      gpio.state_interfaces.begin(), gpio.state_interfaces.end(),
-      [&command_interface](const hardware_interface::InterfaceInfo & state_interface)
-      { return state_interface.name == command_interface.name; });
-    if (it != gpio.state_interfaces.end())
-    {
-      gpio_states_to_commands_map_.push_back(std::distance(gpio.state_interfaces.begin(), it));
-    }
-    else
-    {
-      gpio_states_to_commands_map_.push_back(-1);  // Not found, use -1 as a placeholder
-    }
-  }
-
-  hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
-  hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
@@ -91,10 +48,6 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::Ha
 
   cycle_time_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
-  server_state_ = 0.0;
-
-  is_active_ = false;
-  msg_received_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -105,18 +58,7 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
-  }
-
-  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
-      &hw_gpio_commands_[i]);
-  }
+  command_interfaces = KukaRSIHardwareInterfaceBase::export_command_interfaces();
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);

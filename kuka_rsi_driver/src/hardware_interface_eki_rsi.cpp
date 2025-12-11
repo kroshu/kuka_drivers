@@ -57,18 +57,7 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
-  }
-
-  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
-      &hw_gpio_commands_[i]);
-  }
+  command_interfaces = KukaRSIHardwareInterfaceBase::export_command_interfaces();
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
