@@ -26,9 +26,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "kuka/external-control-sdk/kss/mxa/client.h"
-#include "kuka/external-control-sdk/kss/mxa/extension.h"
-#include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
+#include "kuka/external-control-sdk/kss/status_update.h"
 
 namespace kuka_rsi_driver
 {
@@ -36,7 +34,7 @@ namespace kuka_rsi_driver
 class StatusInterfaces
 {
 public:
-  StatusInterfaces & operator=(const kuka::external::control::kss::mxa::StatusUpdate & update)
+  StatusInterfaces & operator=(const kuka::external::control::kss::StatusUpdate & update)
   {
     control_mode_ = static_cast<double>(update.control_mode_);
     cycle_time_ = static_cast<double>(update.cycle_time_);
@@ -99,7 +97,7 @@ public:
     status_interfaces_.RegisterStateInterfaces(state_interfaces);
   }
 
-  void SetStatusInterfaces(const kuka::external::control::kss::mxa::StatusUpdate & update)
+  void SetStatusInterfaces(const kuka::external::control::kss::StatusUpdate & update)
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     actual_status_interfaces_ = update;

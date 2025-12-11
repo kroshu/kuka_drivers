@@ -79,7 +79,7 @@ private:
   KukaMxaRsiHardwareInterface * hw_interface_;
 };
 
-class StatusUpdateHandler : public kuka::external::control::kss::mxa::IStatusUpdateHandler
+class StatusUpdateHandler : public kuka::external::control::kss::IStatusUpdateHandler
 {
 public:
   StatusUpdateHandler(KukaMxaRsiHardwareInterface * hw_interface, StatusManager * status_manager)
@@ -88,7 +88,7 @@ public:
   }
 
   void OnStatusUpdateReceived(
-    const kuka::external::control::kss::mxa::StatusUpdate & update) override
+    const kuka::external::control::kss::StatusUpdate & update) override
   {
     if (first_update_)
     {
