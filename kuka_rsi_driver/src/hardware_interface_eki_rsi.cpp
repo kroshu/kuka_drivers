@@ -71,7 +71,8 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   kuka::external::control::kss::Configuration eki_config;
-  eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];;
+  eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  ;
   if (!SetupRobot(eki_config))
   {
     return CallbackReturn::ERROR;
@@ -121,17 +122,18 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &state)
+CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &state)
+CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
 }
 
-return_type KukaEkiRsiHardwareInterface::read(const rclcpp::Time & time, const rclcpp::Duration & duration)
+return_type KukaEkiRsiHardwareInterface::read(
+  const rclcpp::Time & time, const rclcpp::Duration & duration)
 {
   status_manager_.UpdateStateInterfaces();
 
@@ -212,12 +214,10 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
   KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
-void KukaEkiRsiHardwareInterface::Write()
-{
-  KukaRSIHardwareInterfaceBase::extended_write();
-}
+void KukaEkiRsiHardwareInterface::Write() { KukaRSIHardwareInterfaceBase::extended_write(); }
 
-void KukaEkiRsiHardwareInterface::CreateRobotInstance(const kuka::external::control::kss::Configuration& config)
+void KukaEkiRsiHardwareInterface::CreateRobotInstance(
+  const kuka::external::control::kss::Configuration & config)
 {
   robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
 }

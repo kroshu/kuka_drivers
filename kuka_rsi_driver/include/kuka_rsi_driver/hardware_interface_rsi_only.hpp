@@ -38,9 +38,7 @@ class KukaRSIHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfac
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface()
-  {
-  }
+  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterface() {}
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -51,12 +49,11 @@ public:
 private:
   KUKA_RSI_DRIVER_LOCAL void Write() override;
 
-  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
+  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
+    const kuka::external::control::kss::Configuration &) override;
 
   std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
-
-
-  };
+};
 }  // namespace kuka_rsi_driver
 
 #endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_ONLY_HPP_

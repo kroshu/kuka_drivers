@@ -24,7 +24,7 @@ using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_rsi_driver
 {
-RobotManagerNodeRsi::RobotManagerNodeRsi(){}
+RobotManagerNodeRsi::RobotManagerNodeRsi() {}
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
@@ -39,7 +39,7 @@ RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
   // Deactivate event broadcaster
   std::vector<std::string> controllers_to_deactivate{kuka_drivers_core::EVENT_BROADCASTER};
- 
+
   return RobotManagerBase::on_cleanup(controllers_to_deactivate);
 }
 

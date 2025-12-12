@@ -43,8 +43,6 @@ private:
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_ = false;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
-
-
 };
 }  // namespace kuka_rsi_driver
 

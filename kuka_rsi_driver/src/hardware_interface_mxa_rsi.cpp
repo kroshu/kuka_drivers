@@ -52,7 +52,6 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::Ha
   return CallbackReturn::SUCCESS;
 }
 
-
 std::vector<hardware_interface::CommandInterface>
 KukaMxaRsiHardwareInterface::export_command_interfaces()
 {
@@ -72,19 +71,22 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
 CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   kuka::external::control::kss::Configuration mxa_config;
-  mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];;
+  mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  ;
   if (!SetupRobot(mxa_config))
   {
     return CallbackReturn::ERROR;
   }
 
-  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserverMxa>(this)));
+  auto status =
+    robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserverMxa>(this)));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
   }
 
-  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtensionMxa>(this));
+  status =
+    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtensionMxa>(this));
   if (status.return_code == kuka::external::control::ReturnCode::ERROR)
   {
     RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
@@ -122,17 +124,18 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &state)
+CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
-CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &state)
+CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
 }
 
-return_type KukaMxaRsiHardwareInterface::read(const rclcpp::Time & time, const rclcpp::Duration & duration)
+return_type KukaMxaRsiHardwareInterface::read(
+  const rclcpp::Time & time, const rclcpp::Duration & duration)
 {
   status_manager_.UpdateStateInterfaces();
 
@@ -182,13 +185,10 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
   KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
-void KukaMxaRsiHardwareInterface::Write()
-{
-  KukaRSIHardwareInterfaceBase::extended_write();
-}
+void KukaMxaRsiHardwareInterface::Write() { KukaRSIHardwareInterfaceBase::extended_write(); }
 
-
-void KukaMxaRsiHardwareInterface::CreateRobotInstance(const kuka::external::control::kss::Configuration& config)
+void KukaMxaRsiHardwareInterface::CreateRobotInstance(
+  const kuka::external::control::kss::Configuration & config)
 {
   robot_ptr_ = std::make_unique<kuka::external::control::kss::mxa::Robot>(config);
 }

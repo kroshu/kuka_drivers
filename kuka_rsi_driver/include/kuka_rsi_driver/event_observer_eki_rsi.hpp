@@ -87,8 +87,7 @@ public:
   {
   }
 
-  void OnStatusUpdateReceived(
-    const kuka::external::control::kss::StatusUpdate & update) override
+  void OnStatusUpdateReceived(const kuka::external::control::kss::StatusUpdate & update) override
   {
     if (first_update_)
     {

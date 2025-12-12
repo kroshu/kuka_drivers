@@ -23,10 +23,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka_rsi_driver/robot_status_manager.hpp"
-#include "kuka/external-control-sdk/kss/rsi/robot_interface.h"
 #include "kuka/external-control-sdk/kss/configuration.h"
+#include "kuka/external-control-sdk/kss/rsi/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
+#include "kuka_rsi_driver/robot_status_manager.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
@@ -70,7 +70,7 @@ public:
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
 protected:
-  KUKA_RSI_DRIVER_LOCAL bool SetupRobot(kuka::external::control::kss::Configuration& config);
+  KUKA_RSI_DRIVER_LOCAL bool SetupRobot(kuka::external::control::kss::Configuration & config);
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
@@ -81,7 +81,8 @@ protected:
 
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
-  virtual KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) = 0;
+  virtual KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
+    const kuka::external::control::kss::Configuration &) = 0;
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
@@ -90,10 +91,10 @@ protected:
   CallbackReturn extended_activation(const rclcpp_lifecycle::State &);
   CallbackReturn extended_deactivation(const rclcpp_lifecycle::State &);
   void extended_write();
-  void initialize_command_interfaces( kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
+  void initialize_command_interfaces(
+    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
   kuka::external::control::Status ChangeCycleTime();
-
 
   const rclcpp::Logger logger_;
 
@@ -114,10 +115,9 @@ protected:
   bool is_active_;
   bool msg_received_;
 
-
   // EKI-MXA common variables
   StatusManager status_manager_;
-  
+
   double hw_control_mode_command_;
   double cycle_time_command_;
 

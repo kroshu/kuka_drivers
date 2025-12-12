@@ -81,7 +81,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::on_configure(const std::vector<std::string> &controllers_to_activate)
+RobotManagerBase::on_configure(const std::vector<std::string> & controllers_to_activate)
 {
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -108,7 +108,7 @@ RobotManagerBase::on_configure(const std::vector<std::string> &controllers_to_ac
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::on_cleanup(const std::vector<std::string> &controllers_to_deactivate)
+RobotManagerBase::on_cleanup(const std::vector<std::string> & controllers_to_deactivate)
 {
   // Deactivate configuration controllers/broadcaster
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
@@ -269,7 +269,8 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
 
   if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
-    RCLCPP_ERROR(logger, "Changing control mode during active control is not supported by plain RSI driver");
+    RCLCPP_ERROR(
+      logger, "Changing control mode during active control is not supported by plain RSI driver");
     return false;
   }
 

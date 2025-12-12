@@ -40,9 +40,7 @@ class KukaEkiRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInter
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
-  {
-  }
+  KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface() {}
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo &) override;
@@ -78,7 +76,8 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void Write() override;
 
-  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(const kuka::external::control::kss::Configuration&) override;
+  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
+    const kuka::external::control::kss::Configuration &) override;
 
   std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
 

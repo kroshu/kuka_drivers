@@ -59,7 +59,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State 
     kuka_drivers_core::KSS_MESSAGE_HANDLER,
     kuka_drivers_core::EVENT_BROADCASTER,
   };
- 
+
   return RobotManagerBase::on_cleanup(controllers_to_deactivate);
 }
 
@@ -171,7 +171,6 @@ bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
 
   return true;
 }
-
 
 }  // namespace kuka_rsi_driver
 

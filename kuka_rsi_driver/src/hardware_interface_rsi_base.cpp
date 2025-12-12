@@ -89,7 +89,8 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(const hardware_interface::H
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> KukaRSIHardwareInterfaceBase::export_state_interfaces()
+std::vector<hardware_interface::StateInterface>
+KukaRSIHardwareInterfaceBase::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -163,7 +164,7 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   return return_type::OK;
 }
 
-bool KukaRSIHardwareInterfaceBase::SetupRobot(kuka::external::control::kss::Configuration& config)
+bool KukaRSIHardwareInterfaceBase::SetupRobot(kuka::external::control::kss::Configuration & config)
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");
 
@@ -492,7 +493,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
 
 void KukaRSIHardwareInterfaceBase::extended_write()
 {
-    // Write values to hardware interface
+  // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
@@ -546,6 +547,5 @@ void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
 }
-
 
 }  // namespace kuka_rsi_driver
