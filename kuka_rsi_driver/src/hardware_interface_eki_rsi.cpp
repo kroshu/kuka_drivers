@@ -24,6 +24,8 @@
 #include "kuka_rsi_driver/event_observer_eki_rsi.hpp"
 #include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
 
+#include "kuka/external-control-sdk/kss/eki/initialization_data.h"
+
 namespace kuka_rsi_driver
 {
 
@@ -186,7 +188,8 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
     std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
-    std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
+    const kuka::external::control::kss::eki::EKIInitializationData* eki_init_data = dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData*>(&init_data);
+    std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);
     if (
       expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
     {

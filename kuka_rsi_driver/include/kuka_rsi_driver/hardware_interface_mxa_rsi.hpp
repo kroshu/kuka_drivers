@@ -30,7 +30,7 @@
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-using InitializationData = kuka::external::control::kss::mxa::InitializationData;
+using InitializationData = kuka::external::control::kss::InitializationData;
 using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
@@ -74,8 +74,6 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
     const kuka::external::control::kss::Configuration &) override;
-
-  std::unique_ptr<kuka::external::control::kss::mxa::Robot> robot_ptr_;
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;

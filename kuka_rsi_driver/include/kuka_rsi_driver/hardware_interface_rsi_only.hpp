@@ -51,8 +51,6 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
     const kuka::external::control::kss::Configuration &) override;
-
-  std::unique_ptr<kuka::external::control::kss::Robot> robot_ptr_;
 };
 }  // namespace kuka_rsi_driver
 

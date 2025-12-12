@@ -59,7 +59,7 @@ private:
   KukaMxaRsiHardwareInterface * hw_interface_;
 };
 
-class EventHandlerExtensionMxa : public kuka::external::control::kss::mxa::IEventHandlerExtension
+class EventHandlerExtensionMxa : public kuka::external::control::kss::IEventHandlerExtension
 {
 public:
   explicit EventHandlerExtensionMxa(KukaMxaRsiHardwareInterface * hw_interface)
@@ -67,7 +67,7 @@ public:
   {
   }
 
-  void OnConnected(const kuka::external::control::kss::mxa::InitializationData & init_data) override
+  void OnConnected(const kuka::external::control::kss::InitializationData & init_data) override
   {
     hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::COMMAND_ACCEPTED);
     RCLCPP_INFO(logger_, "Client successfully established a connection to the mxAutomation server");
