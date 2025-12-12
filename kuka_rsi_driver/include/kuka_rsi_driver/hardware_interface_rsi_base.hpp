@@ -87,6 +87,14 @@ protected:
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
 
+
+  struct InitSequenceReport
+  {
+    bool sequence_complete = false;
+    bool ok = false;
+    std::string reason = "";
+  };
+
   // Methods common for EKI and MXA version
   CallbackReturn extended_activation(const rclcpp_lifecycle::State &);
   CallbackReturn extended_deactivation(const rclcpp_lifecycle::State &);

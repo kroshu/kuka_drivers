@@ -68,13 +68,6 @@ public:
     kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
 private:
-  struct InitSequenceReport
-  {
-    bool sequence_complete = false;
-    bool ok = false;
-    std::string reason = "";
-  };
-
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_RSI_DRIVER_LOCAL void Write() override;

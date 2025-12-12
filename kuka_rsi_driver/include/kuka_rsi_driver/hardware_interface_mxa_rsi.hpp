@@ -68,13 +68,6 @@ public:
     kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
 private:
-  struct InitSequenceReport
-  {
-    bool sequence_complete = false;
-    bool ok = false;
-    std::string reason = "";
-  };
-
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   KUKA_RSI_DRIVER_LOCAL void Write() override;
@@ -83,17 +76,6 @@ private:
     const kuka::external::control::kss::Configuration &) override;
 
   std::unique_ptr<kuka::external::control::kss::mxa::Robot> robot_ptr_;
-
-  double hw_control_mode_command_;
-  double cycle_time_command_;
-
-  std::mutex event_mutex_;
-
-  kuka_drivers_core::ControlMode prev_control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  kuka_drivers_core::HardwareEvent last_event_ =
-    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
-  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;
