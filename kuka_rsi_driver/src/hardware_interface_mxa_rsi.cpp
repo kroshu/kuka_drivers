@@ -68,6 +68,18 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
   return command_interfaces;
 }
 
+std::vector<hardware_interface::StateInterface>
+KukaMxaRsiHardwareInterface::export_state_interfaces()
+{
+  std::vector<hardware_interface::StateInterface> state_interfaces;
+
+  state_interfaces = KukaRSIHardwareInterfaceBase::export_state_interfaces();
+
+  status_manager_.RegisterStateInterfaces(state_interfaces);
+
+  return state_interfaces;
+}
+
 CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   kuka::external::control::kss::Configuration mxa_config;
