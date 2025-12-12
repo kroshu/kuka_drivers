@@ -37,21 +37,24 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNC
 ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
 target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
+# Shared library for robot_manager_base
+add_library(robot_manager_base STATIC src/robot_manager_base.cpp)
+ament_target_dependencies(robot_manager_base std_msgs kuka_drivers_core controller_manager_msgs)
+target_link_libraries(robot_manager_base kuka_drivers_core::communication_helpers)
+
 add_executable(robot_manager_node_eki_rsi src/robot_manager_node_eki_rsi.cpp)
-ament_target_dependencies(robot_manager_node_eki_rsi std_msgs kuka_drivers_core controller_manager_msgs)
-target_link_libraries(robot_manager_node_eki_rsi kuka_drivers_core::communication_helpers)
-pluginlib_export_plugin_description_file(hardware_interface eki_rsi_hardware_interface.xml)
+target_link_libraries(robot_manager_node_eki_rsi PRIVATE robot_manager_base)
 
 add_executable(robot_manager_node_rsi_only src/robot_manager_node_rsi_only.cpp)
-ament_target_dependencies(robot_manager_node_rsi_only std_msgs kuka_drivers_core controller_manager_msgs)
-target_link_libraries(robot_manager_node_rsi_only kuka_drivers_core::communication_helpers)
-pluginlib_export_plugin_description_file(hardware_interface rsi_hardware_interface.xml)
+target_link_libraries(robot_manager_node_rsi_only PRIVATE robot_manager_base)
 
+pluginlib_export_plugin_description_file(hardware_interface eki_rsi_hardware_interface.xml)
+pluginlib_export_plugin_description_file(hardware_interface rsi_hardware_interface.xml)
 pluginlib_export_plugin_description_file(hardware_interface mxa_rsi_hardware_interface.xml)
 
 
 install(
-  TARGETS ${PROJECT_NAME} robot_manager_node_eki_rsi robot_manager_node_rsi_only
+  TARGETS ${PROJECT_NAME} robot_manager_base robot_manager_node_eki_rsi robot_manager_node_rsi_only
   DESTINATION lib/${PROJECT_NAME}
 )
 
