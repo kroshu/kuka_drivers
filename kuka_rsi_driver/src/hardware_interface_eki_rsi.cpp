@@ -21,7 +21,7 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_rsi_driver/event_observer_eki_rsi.hpp"
+#include "kuka_rsi_driver/event_observers.hpp"
 #include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
 
 #include "kuka/external-control-sdk/kss/eki/initialization_data.h"
@@ -89,7 +89,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   ;
   if (!SetupRobot(
         eki_config, std::make_unique<EventObserver>(this),
-        std::make_unique<EventHandlerExtension>(this)))
+        std::make_unique<EkiEventHandlerExtension>(this)))
   {
     return CallbackReturn::ERROR;
   }

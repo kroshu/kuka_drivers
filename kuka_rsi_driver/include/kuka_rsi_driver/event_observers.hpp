@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__EVENT_OBSERVER_MXA_RSI_HPP_
-#define KUKA_RSI_DRIVER__EVENT_OBSERVER_MXA_RSI_HPP_
+#ifndef KUKA_RSI_DRIVER__EVENT_OBSERVERS_HPP_
+#define KUKA_RSI_DRIVER__EVENT_OBSERVERS_HPP_
 
 #include <string>
 
 #include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
 #include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
+#include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
 
 namespace kuka_rsi_driver
 {
-class EventObserverMxa : public kuka::external::control::EventHandler
+class EventObserver : public kuka::external::control::EventHandler
 {
 public:
-  explicit EventObserverMxa(KukaMxaRsiHardwareInterface * hw_interface)
-  : logger_(rclcpp::get_logger("KukaMxaRsiHardwareInterface")), hw_interface_(hw_interface)
+  explicit EventObserver(KukaRSIHardwareInterfaceBase * hw_interface)
+  : logger_(rclcpp::get_logger("KukaRSIHardwareInterfaceBase")), hw_interface_(hw_interface)
   {
   }
 
@@ -56,13 +58,13 @@ public:
 
 private:
   const rclcpp::Logger logger_;
-  KukaMxaRsiHardwareInterface * hw_interface_;
+  KukaRSIHardwareInterfaceBase * hw_interface_;
 };
 
-class EventHandlerExtensionMxa : public kuka::external::control::kss::IEventHandlerExtension
+class MxaEventHandlerExtension : public kuka::external::control::kss::IEventHandlerExtension
 {
 public:
-  explicit EventHandlerExtensionMxa(KukaMxaRsiHardwareInterface * hw_interface)
+  explicit MxaEventHandlerExtension(KukaMxaRsiHardwareInterface * hw_interface)
   : logger_(rclcpp::get_logger("KukaMxaRsiHardwareInterface")), hw_interface_(hw_interface)
   {
   }
@@ -79,25 +81,51 @@ private:
   KukaMxaRsiHardwareInterface * hw_interface_;
 };
 
+class EkiEventHandlerExtension : public kuka::external::control::kss::IEventHandlerExtension
+{
+public:
+  explicit EkiEventHandlerExtension(KukaEkiRsiHardwareInterface * hw_interface)
+  : logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface")), hw_interface_(hw_interface)
+  {
+  }
+
+  void OnConnected(const kuka::external::control::kss::InitializationData & init_data) override
+  {
+    hw_interface_->set_server_event(kuka_drivers_core::HardwareEvent::COMMAND_ACCEPTED);
+    RCLCPP_INFO(logger_, "Client successfully established a connection to the EKI server");
+    hw_interface_->eki_init(init_data);
+  }
+
+private:
+  const rclcpp::Logger logger_;
+  KukaEkiRsiHardwareInterface * hw_interface_;
+};
+
 class StatusUpdateHandler : public kuka::external::control::kss::IStatusUpdateHandler
 {
 public:
-  StatusUpdateHandler(KukaMxaRsiHardwareInterface * hw_interface, StatusManager * status_manager)
+  StatusUpdateHandler(KukaRSIHardwareInterfaceBase * hw_interface, StatusManager * status_manager)
   : hw_interface_{hw_interface}, status_manager_{status_manager}, first_update_{true}
   {
   }
 
   void OnStatusUpdateReceived(const kuka::external::control::kss::StatusUpdate & update) override
   {
+    if (first_update_)
+    {
+      hw_interface_->initialize_command_interfaces(
+        static_cast<kuka_drivers_core::ControlMode>(update.control_mode_), update.cycle_time_);
+      first_update_ = false;
+    }
     status_manager_->SetStatusInterfaces(update);
   }
 
 private:
-  KukaMxaRsiHardwareInterface * hw_interface_;
+  KukaRSIHardwareInterfaceBase * hw_interface_;
   StatusManager * status_manager_;
   bool first_update_;
 };
 
 }  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__EVENT_OBSERVER_MXA_RSI_HPP_
+#endif  // KUKA_RSI_DRIVER__EVENT_OBSERVERS_HPP_

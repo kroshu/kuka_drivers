@@ -21,7 +21,7 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_rsi_driver/event_observer_mxa_rsi.hpp"
+#include "kuka_rsi_driver/event_observers.hpp"
 #include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
 
 namespace kuka_rsi_driver
@@ -94,8 +94,8 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   RCLCPP_INFO(logger_, "Client port: %d", mxa_config.client_port);
 
   if (!SetupRobot(
-        mxa_config, std::make_unique<EventObserverMxa>(this),
-        std::make_unique<EventHandlerExtensionMxa>(this)))
+        mxa_config, std::make_unique<EventObserver>(this),
+        std::make_unique<MxaEventHandlerExtension>(this)))
   {
     return CallbackReturn::ERROR;
   }
