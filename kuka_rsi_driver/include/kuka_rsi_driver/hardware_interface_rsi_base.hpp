@@ -46,6 +46,8 @@ public:
   {
   }
 
+  virtual KUKA_RSI_DRIVER_PUBLIC ~KukaRSIHardwareInterfaceBase() = default;
+
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
   // TODO: On init should be changed to this
