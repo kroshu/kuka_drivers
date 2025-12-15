@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
         rel_path_to_config_file = (
             "/config/ros2_controller_config_rsi_only.yaml"
             if driver_version.perform(context) == "rsi_only"
-            else "/config/ros2_controller_config_eki_rsi.yaml"
+            else "/config/ros2_controller_config_extended.yaml"
         )
         controller_config = (
             get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
@@ -160,7 +160,7 @@ def launch_setup(context, *args, **kwargs):
         executable=(
             "robot_manager_node_rsi_only"
             if driver_version.perform(context) == "rsi_only"
-            else "robot_manager_node_eki_rsi"
+            else "robot_manager_node_extended"
         ),
         parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
     )

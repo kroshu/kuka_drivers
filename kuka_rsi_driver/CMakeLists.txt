@@ -42,8 +42,8 @@ add_library(robot_manager_base STATIC src/robot_manager_base.cpp)
 ament_target_dependencies(robot_manager_base std_msgs kuka_drivers_core controller_manager_msgs)
 target_link_libraries(robot_manager_base kuka_drivers_core::communication_helpers)
 
-add_executable(robot_manager_node_eki_rsi src/robot_manager_node_eki_rsi.cpp)
-target_link_libraries(robot_manager_node_eki_rsi PRIVATE robot_manager_base)
+add_executable(robot_manager_node_extended src/robot_manager_node_extended.cpp)
+target_link_libraries(robot_manager_node_extended PRIVATE robot_manager_base)
 
 add_executable(robot_manager_node_rsi_only src/robot_manager_node_rsi_only.cpp)
 target_link_libraries(robot_manager_node_rsi_only PRIVATE robot_manager_base)
@@ -54,7 +54,7 @@ pluginlib_export_plugin_description_file(hardware_interface mxa_rsi_hardware_int
 
 
 install(
-  TARGETS ${PROJECT_NAME} robot_manager_base robot_manager_node_eki_rsi robot_manager_node_rsi_only
+  TARGETS ${PROJECT_NAME} robot_manager_base robot_manager_node_extended robot_manager_node_rsi_only
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -62,6 +62,7 @@ if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup_rsi_only.py)
   add_launch_test(test/test_driver_startup_eki_rsi.py)
+  add_launch_test(test/test_driver_startup_mxa_rsi.py)
   add_launch_test(test/test_driver_activation.py)
   add_launch_test(test/test_multi_robot_startup.py)
 endif()

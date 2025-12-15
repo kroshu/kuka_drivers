@@ -38,7 +38,7 @@ class RobotManagerBase : public kuka_drivers_core::ROS2BaseLCNode
 {
 public:
   RobotManagerBase();
-  ~RobotManagerBase() = default;
+  virtual ~RobotManagerBase() = default;
 
   CallbackReturn on_configure(const std::vector<std::string> & controllers_to_activate);
 

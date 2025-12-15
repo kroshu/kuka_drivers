@@ -18,7 +18,7 @@
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_rsi_driver/robot_manager_node_eki_rsi.hpp"
+#include "kuka_rsi_driver/robot_manager_node_extended.hpp"
 
 using controller_manager_msgs::srv::SetHardwareComponentState;
 using controller_manager_msgs::srv::SwitchController;
