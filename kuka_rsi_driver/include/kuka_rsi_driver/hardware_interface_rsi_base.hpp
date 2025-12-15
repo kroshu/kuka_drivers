@@ -77,7 +77,7 @@ protected:
     std::unique_ptr<kuka::external::control::EventHandler> event_handler,
     std::unique_ptr<kuka::external::control::kss::IEventHandlerExtension> extension);
 
-  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
+  virtual KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
   virtual KUKA_RSI_DRIVER_LOCAL void Write() = 0;
 

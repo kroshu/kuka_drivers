@@ -65,7 +65,7 @@ public:
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
 private:
-  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
+  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
 
   KUKA_RSI_DRIVER_LOCAL void Write() override;
 
