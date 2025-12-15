@@ -164,7 +164,10 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   return return_type::OK;
 }
 
-bool KukaRSIHardwareInterfaceBase::SetupRobot(kuka::external::control::kss::Configuration & config)
+bool KukaRSIHardwareInterfaceBase::SetupRobot(
+  kuka::external::control::kss::Configuration & config,
+  std::unique_ptr<kuka::external::control::EventHandler> event_handler,
+  std::unique_ptr<kuka::external::control::kss::IEventHandlerExtension> extension)
 {
   RCLCPP_INFO(logger_, "Initiating network setup...");
 
@@ -195,8 +198,24 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(kuka::external::control::kss::Conf
   }
 
   CreateRobotInstance(config);
-  // robot_ptr_ = std::make_unique<kuka::external::control::kss::Robot>(config);
 
+  if (event_handler != nullptr)
+  {
+    auto status = robot_ptr_->RegisterEventHandler(std::move(event_handler));
+    if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+    {
+      RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
+    }
+  }
+
+  if (extension != nullptr)
+  {
+    auto status = robot_ptr_->RegisterEventHandlerExtension(std::move(extension));
+    if (status.return_code == kuka::external::control::ReturnCode::ERROR)
+    {
+      RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
+    }
+  }
   const auto setup = robot_ptr_->Setup();
   if (setup.return_code != kuka::external::control::ReturnCode::OK)
   {

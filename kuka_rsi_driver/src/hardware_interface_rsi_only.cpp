@@ -28,7 +28,7 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   kuka::external::control::kss::Configuration rsi_config;
   rsi_config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  const bool setup_success = SetupRobot(rsi_config);
+  const bool setup_success = SetupRobot(rsi_config, nullptr, nullptr);
   return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
@@ -45,7 +45,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
-  server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
+  set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
 
   return CallbackReturn::SUCCESS;
 }

@@ -70,7 +70,10 @@ public:
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
 
 protected:
-  KUKA_RSI_DRIVER_LOCAL bool SetupRobot(kuka::external::control::kss::Configuration & config);
+  KUKA_RSI_DRIVER_LOCAL bool SetupRobot(
+    kuka::external::control::kss::Configuration & config,
+    std::unique_ptr<kuka::external::control::EventHandler> event_handler,
+    std::unique_ptr<kuka::external::control::kss::IEventHandlerExtension> extension);
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
@@ -86,7 +89,6 @@ protected:
 
   KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
     const hardware_interface::InterfaceInfo & info);
-
 
   struct InitSequenceReport
   {

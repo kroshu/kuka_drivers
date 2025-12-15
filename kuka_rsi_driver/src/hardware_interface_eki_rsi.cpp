@@ -87,24 +87,14 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   kuka::external::control::kss::Configuration eki_config;
   eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   ;
-  if (!SetupRobot(eki_config))
+  if (!SetupRobot(
+        eki_config, std::make_unique<EventObserver>(this),
+        std::make_unique<EventHandlerExtension>(this)))
   {
     return CallbackReturn::ERROR;
   }
 
-  auto status = robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserver>(this)));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
-  }
-
-  status = robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtension>(this));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
-  }
-
-  status = robot_ptr_->RegisterStatusResponseHandler(
+  auto status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &status_manager_));
   if (status.return_code != kuka::external::control::ReturnCode::OK)
   {
@@ -188,7 +178,8 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
     std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
-    const kuka::external::control::kss::eki::EKIInitializationData* eki_init_data = dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData*>(&init_data);
+    const kuka::external::control::kss::eki::EKIInitializationData * eki_init_data =
+      dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData *>(&init_data);
     std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);
     if (
       expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)

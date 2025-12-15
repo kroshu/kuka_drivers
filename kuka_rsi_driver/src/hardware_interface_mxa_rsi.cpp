@@ -85,27 +85,15 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   kuka::external::control::kss::Configuration mxa_config;
   mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
-  
-  if (!SetupRobot(mxa_config))
+
+  if (!SetupRobot(
+        mxa_config, std::make_unique<EventObserverMxa>(this),
+        std::make_unique<EventHandlerExtensionMxa>(this)))
   {
     return CallbackReturn::ERROR;
   }
 
-  auto status =
-    robot_ptr_->RegisterEventHandler(std::move(std::make_unique<EventObserverMxa>(this)));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_ERROR(logger_, "Creating event observer failed: %s", status.message);
-  }
-
-  status =
-    robot_ptr_->RegisterEventHandlerExtension(std::make_unique<EventHandlerExtensionMxa>(this));
-  if (status.return_code == kuka::external::control::ReturnCode::ERROR)
-  {
-    RCLCPP_INFO(logger_, "Creating event handler extension failed: %s", status.message);
-  }
-
-  status = robot_ptr_->RegisterStatusResponseHandler(
+  auto status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &status_manager_));
   if (status.return_code != kuka::external::control::ReturnCode::OK)
   {
