@@ -260,8 +260,6 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
   {
     RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
-    // TODO(XXX): check if deactivation is needed for plain RSI
-    // on_deactivate(get_lifecycle_state());
   }
 
   std::lock_guard<std::mutex> lk(event_mutex_);

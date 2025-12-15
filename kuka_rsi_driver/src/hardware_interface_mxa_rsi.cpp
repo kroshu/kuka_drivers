@@ -85,6 +85,9 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   kuka::external::control::kss::Configuration mxa_config;
   mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
+  mxa_config.mxa_client_port = std::stoi(info_.hardware_parameters["mxa_client_port"]);
+
+  RCLCPP_INFO(logger_, "Client port: %d", mxa_config.client_port);
 
   if (!SetupRobot(
         mxa_config, std::make_unique<EventObserverMxa>(this),
@@ -180,6 +183,13 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
   else if (!status_manager_.DrivesPowered())
   {
     RCLCPP_ERROR(logger_, "Drives are not powered!");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
+  else if (
+    !status_manager_.IsMotionPossible() &&
+    this->get_lifecycle_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  {
+    RCLCPP_ERROR(logger_, "Motion is not possible");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
