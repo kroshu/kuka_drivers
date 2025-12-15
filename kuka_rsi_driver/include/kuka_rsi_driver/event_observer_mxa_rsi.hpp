@@ -89,12 +89,6 @@ public:
 
   void OnStatusUpdateReceived(const kuka::external::control::kss::StatusUpdate & update) override
   {
-    if (first_update_)
-    {
-      hw_interface_->initialize_command_interfaces(
-        static_cast<kuka_drivers_core::ControlMode>(update.control_mode_), update.cycle_time_);
-      first_update_ = false;
-    }
     status_manager_->SetStatusInterfaces(update);
   }
 

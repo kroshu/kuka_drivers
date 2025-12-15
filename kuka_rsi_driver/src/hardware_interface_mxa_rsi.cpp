@@ -82,6 +82,10 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
+  // mxA server does not store control mode / cycle time, initialize with default
+  initialize_command_interfaces(
+    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS);
+
   kuka::external::control::kss::Configuration mxa_config;
   mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
   mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
