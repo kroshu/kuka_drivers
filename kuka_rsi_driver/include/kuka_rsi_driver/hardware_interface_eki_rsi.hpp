@@ -64,9 +64,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
-  KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
-    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
-
 private:
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
