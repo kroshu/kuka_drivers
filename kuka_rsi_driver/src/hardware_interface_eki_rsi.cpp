@@ -174,11 +174,13 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
     std::lock_guard<std::mutex> lk{init_mtx_};
     std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
 
-    const auto* eki_init_data = dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData*>(&init_data);
-    if (!eki_init_data) {
-        init_report_ = {true, false, "Unexpected initialization data type for EKI"};
-        init_cv_.notify_one();
-        return;
+    const auto * eki_init_data =
+      dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData *>(&init_data);
+    if (!eki_init_data)
+    {
+      init_report_ = {true, false, "Unexpected initialization data type for EKI"};
+      init_cv_.notify_one();
+      return;
     }
 
     std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);

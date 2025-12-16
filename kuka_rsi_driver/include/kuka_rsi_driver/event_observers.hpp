@@ -18,9 +18,9 @@
 #include <string>
 
 #include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
-#include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
 #include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
+#include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
+#include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
 
 namespace kuka_rsi_driver
 {
