@@ -195,8 +195,6 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
   KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
-void KukaMxaRsiHardwareInterface::Write() { KukaRSIHardwareInterfaceBase::extended_write(); }
-
 void KukaMxaRsiHardwareInterface::CreateRobotInstance(
   const kuka::external::control::kss::Configuration & config)
 {

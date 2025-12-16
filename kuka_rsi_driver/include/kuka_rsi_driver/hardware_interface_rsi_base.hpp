@@ -81,7 +81,7 @@ protected:
 
   virtual KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
 
-  virtual KUKA_RSI_DRIVER_LOCAL void Write() = 0;
+  KUKA_RSI_DRIVER_LOCAL void Write();
 
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
@@ -104,7 +104,6 @@ protected:
   // Methods common for EKI and MXA version
   CallbackReturn extended_activation(const rclcpp_lifecycle::State &);
   CallbackReturn extended_deactivation(const rclcpp_lifecycle::State &);
-  void extended_write();
   kuka::external::control::Status ChangeCycleTime();
 
   const rclcpp::Logger logger_;

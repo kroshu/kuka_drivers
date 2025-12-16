@@ -50,8 +50,6 @@ public:
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
 private:
-  KUKA_RSI_DRIVER_LOCAL void Write() override;
-
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
     const kuka::external::control::kss::Configuration &) override;
 };

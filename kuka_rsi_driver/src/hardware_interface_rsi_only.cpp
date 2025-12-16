@@ -69,22 +69,6 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   return CallbackReturn::SUCCESS;
 }
 
-void KukaRSIHardwareInterface::Write()
-{
-  // Write values to hardware interface
-  auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
-  control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
-
-  auto send_reply_status = robot_ptr_->SendControlSignal();
-
-  if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
-  {
-    RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
-    throw std::runtime_error("Error sending reply");
-  }
-}
-
 void KukaRSIHardwareInterface::CreateRobotInstance(
   const kuka::external::control::kss::Configuration & config)
 {

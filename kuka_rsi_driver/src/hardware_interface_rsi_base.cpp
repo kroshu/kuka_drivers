@@ -508,7 +508,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   return CallbackReturn::SUCCESS;
 }
 
-void KukaRSIHardwareInterfaceBase::extended_write()
+void KukaRSIHardwareInterfaceBase::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
