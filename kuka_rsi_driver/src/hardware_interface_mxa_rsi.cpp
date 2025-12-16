@@ -91,7 +91,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
   mxa_config.mxa_client_port = std::stoi(info_.hardware_parameters["mxa_client_port"]);
 
-  RCLCPP_INFO(logger_, "Client port: %d", mxa_config.client_port);
+  RCLCPP_INFO(logger_, "mxAutomation client port: %d", mxa_config.client_port);
 
   if (!SetupRobot(
         mxa_config, std::make_unique<EventObserver>(this),
