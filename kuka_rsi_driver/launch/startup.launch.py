@@ -173,14 +173,17 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = ["joint_state_broadcaster", "joint_trajectory_controller"]
+    controller_names = [
+        "joint_state_broadcaster",
+        "joint_trajectory_controller",
+        "event_broadcaster",
+    ]
 
     if use_gpio.perform(context) == "true":
         controller_names.append("gpio_controller")
 
     if driver_version.perform(context) == "eki_rsi":
         controller_names.append("control_mode_handler")
-        controller_names.append("event_broadcaster")
         controller_names.append("kss_message_handler")
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
