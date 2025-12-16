@@ -515,21 +515,7 @@ void KukaRSIHardwareInterfaceBase::extended_write()
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
 
-  const auto control_mode = static_cast<kuka_drivers_core::ControlMode>(hw_control_mode_command_);
-  const bool control_mode_change_requested = control_mode != prev_control_mode_;
-  kuka::external::control::Status send_reply_status;
-  if (control_mode_change_requested)
-  {
-    // TODO(pasztork): Test this branch once other control modes become available.
-    RCLCPP_INFO(logger_, "Requesting control mode change");
-    send_reply_status = robot_ptr_->SwitchControlMode(
-      static_cast<kuka::external::control::ControlMode>(hw_control_mode_command_));
-    prev_control_mode_ = control_mode;
-  }
-  else
-  {
-    send_reply_status = robot_ptr_->SendControlSignal();
-  }
+  auto send_reply_status = robot_ptr_->SendControlSignal();
 
   if (send_reply_status.return_code != kuka::external::control::ReturnCode::OK)
   {

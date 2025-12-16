@@ -40,7 +40,10 @@ class KukaMxaRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInter
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaMxaRsiHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaMxaRsiHardwareInterface() {}
+  KUKA_RSI_DRIVER_PUBLIC KukaMxaRsiHardwareInterface()
+  : KukaRSIHardwareInterfaceBase("KukaMxaRsiHardwareInterface")
+  {
+  }
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo &) override;

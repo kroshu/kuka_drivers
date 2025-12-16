@@ -41,8 +41,8 @@ class KukaRSIHardwareInterfaceBase : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaRSIHardwareInterfaceBase)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterfaceBase()
-  : SystemInterface(), logger_(rclcpp::get_logger("KukaRsiHardwareInterfaceBase"))
+  KUKA_RSI_DRIVER_PUBLIC KukaRSIHardwareInterfaceBase(const std::string & logger_name)
+  : SystemInterface(), logger_(rclcpp::get_logger(logger_name))
   {
   }
 
