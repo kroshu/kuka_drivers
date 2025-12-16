@@ -41,26 +41,12 @@ CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::Stat
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);
 
-  // Activate control mode handler and event broadcaster controllers
-  std::vector<std::string> controllers_to_activate{
-    kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::KSS_MESSAGE_HANDLER,
-    kuka_drivers_core::EVENT_BROADCASTER,
-  };
-
-  return RobotManagerBase::on_configure(controllers_to_activate);
+  return RobotManagerBase::on_configure(configuration_controllers_);
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  // Deactivate control mode handler and event broadcaster
-  std::vector<std::string> controllers_to_deactivate{
-    kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::KSS_MESSAGE_HANDLER,
-    kuka_drivers_core::EVENT_BROADCASTER,
-  };
-
-  return RobotManagerBase::on_cleanup(controllers_to_deactivate);
+  return RobotManagerBase::on_cleanup(configuration_controllers_);
 }
 
 void RobotManagerNodeEkiRsi::EventSubscriptionCallback(

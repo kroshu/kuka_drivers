@@ -43,6 +43,12 @@ private:
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_ = false;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
+
+  const std::vector<std::string> configuration_controllers_ = {
+    kuka_drivers_core::CONTROL_MODE_HANDLER,
+    kuka_drivers_core::KSS_MESSAGE_HANDLER,
+    kuka_drivers_core::EVENT_BROADCASTER,
+  };
 };
 }  // namespace kuka_rsi_driver
 
