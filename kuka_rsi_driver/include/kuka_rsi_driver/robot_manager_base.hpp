@@ -40,9 +40,9 @@ public:
   RobotManagerBase();
   virtual ~RobotManagerBase() = default;
 
-  CallbackReturn configure(const std::vector<std::string> & controllers_to_activate);
+  CallbackReturn configure_driver(const std::vector<std::string> & controllers_to_activate);
 
-  CallbackReturn cleanup(const std::vector<std::string> & controllers_to_deactivate);
+  CallbackReturn cleanup_driver(const std::vector<std::string> & controllers_to_deactivate);
 
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
@@ -76,6 +76,7 @@ protected:
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
+  static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;
 };
 }  // namespace kuka_rsi_driver
 

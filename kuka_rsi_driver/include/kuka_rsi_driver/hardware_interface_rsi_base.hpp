@@ -137,7 +137,7 @@ protected:
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
-  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
+  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{3};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 };

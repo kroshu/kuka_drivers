@@ -81,7 +81,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::configure(const std::vector<std::string> & controllers_to_activate)
+RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_to_activate)
 {
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -107,8 +107,8 @@ RobotManagerBase::configure(const std::vector<std::string> & controllers_to_acti
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotManagerBase::cleanup(
-  const std::vector<std::string> & controllers_to_deactivate)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotManagerBase::cleanup_driver(const std::vector<std::string> & controllers_to_deactivate)
 {
   // Deactivate configuration controllers/broadcaster
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
@@ -184,9 +184,9 @@ CallbackReturn RobotManagerBase::on_deactivate(const rclcpp_lifecycle::State &)
   const auto logger = get_logger();
 
   // Deactivate hardware interface
-  bool deactivation_successful = kuka_drivers_core::changeHardwareState(
-    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE);
-  if (!deactivation_successful)
+  if (!kuka_drivers_core::changeHardwareState(
+        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE,
+        RobotManagerBase::HARDWARE_DEACTIVATION_TIMEOUT_MS))
   {
     RCLCPP_ERROR(logger, "Could not deactivate hardware interface");
     return ERROR;

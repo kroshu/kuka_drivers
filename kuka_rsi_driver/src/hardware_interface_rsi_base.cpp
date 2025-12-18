@@ -498,7 +498,9 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
         KukaRSIHardwareInterfaceBase::DRIVES_POWERED_TIMEOUT)
       {
         RCLCPP_ERROR(logger_, "Timeout waiting for drives to power off. Check robot state.");
-        return CallbackReturn::FAILURE;
+        // Return success, as drives off signal is not received in Office mode for iiQKA.OS2
+        status_manager_.UpdateStateInterfaces();
+        return CallbackReturn::SUCCESS;
       }
       status_manager_.UpdateStateInterfaces();
       std::this_thread::sleep_for(KukaRSIHardwareInterfaceBase::DRIVES_POWERED_CHECK_INTERVAL);
