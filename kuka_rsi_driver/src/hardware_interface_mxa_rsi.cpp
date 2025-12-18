@@ -22,14 +22,12 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_rsi_driver/event_observers.hpp"
-#include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
-
-#include "kuka/external-control-sdk/kss/eki/initialization_data.h"
+#include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
 
 namespace kuka_rsi_driver
 {
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (KukaRSIHardwareInterfaceBase::on_init(info) != CallbackReturn::SUCCESS)
   {
@@ -50,7 +48,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
 }
 
 std::vector<hardware_interface::CommandInterface>
-KukaEkiRsiHardwareInterface::export_command_interfaces()
+KukaMxaRsiHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -66,7 +64,7 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 }
 
 std::vector<hardware_interface::StateInterface>
-KukaEkiRsiHardwareInterface::export_state_interfaces()
+KukaMxaRsiHardwareInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
@@ -77,14 +75,22 @@ KukaEkiRsiHardwareInterface::export_state_interfaces()
   return state_interfaces;
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  kuka::external::control::kss::Configuration eki_config;
-  eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
-  ;
+  // mxA server does not store control mode / cycle time, initialize with default
+  initialize_command_interfaces(
+    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS);
+
+  kuka::external::control::kss::Configuration mxa_config;
+  mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
+  mxa_config.mxa_client_port = std::stoi(info_.hardware_parameters["mxa_client_port"]);
+
+  RCLCPP_INFO(logger_, "mxAutomation client port: %d", mxa_config.client_port);
+
   if (!SetupRobot(
-        eki_config, std::make_unique<EventObserver>(this),
-        std::make_unique<EkiEventHandlerExtension>(this)))
+        mxa_config, std::make_unique<EventObserver>(this),
+        std::make_unique<MxaEventHandlerExtension>(this)))
   {
     return CallbackReturn::ERROR;
   }
@@ -121,17 +127,17 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
+CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
+CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
 }
 
-return_type KukaEkiRsiHardwareInterface::read(
+return_type KukaMxaRsiHardwareInterface::read(
   const rclcpp::Time & time, const rclcpp::Duration & duration)
 {
   status_manager_.UpdateStateInterfaces();
@@ -139,64 +145,23 @@ return_type KukaEkiRsiHardwareInterface::read(
   return KukaRSIHardwareInterfaceBase::read(time, duration);
 }
 
-std::string FindRobotModelInUrdfName(const std::string & input)
+void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
-  // Regex pattern to match robot model names
-  std::regex pattern(
-    "kr\\d+_r\\d+_[a-z\\d]*", std::regex_constants::ECMAScript | std::regex_constants::icase);
-  std::smatch match;
-  std::string last_match;
-  auto search_start = input.cbegin();
-
-  while (std::regex_search(search_start, input.cend(), match, pattern))
+  if (init_data.GetTotalAxisCount() == 0)
   {
-    last_match = match.str();
-    search_start = match.suffix().first;
+    RCLCPP_WARN(
+      logger_,
+      "Skipping robot model verification, as it is not supported for mxA versions below 4.0");
+    init_report_ = {true, true, ""};
   }
-
-  // Remove underscores
-  last_match.erase(std::remove(last_match.begin(), last_match.end(), '_'), last_match.end());
-  return last_match;
-}
-
-std::string ProcessKrcReportedRobotName(const std::string & input)
-{
-  std::string trimmed = input.substr(1);
-  std::size_t space_pos = trimmed.find(' ');
-  std::string robot_model = trimmed.substr(0, space_pos);
-  std::transform(robot_model.begin(), robot_model.end(), robot_model.begin(), ::tolower);
-  return robot_model;
-}
-
-void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
-{
+  else
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
-    std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
-
-    const auto * eki_init_data =
-      dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData *>(&init_data);
-    if (!eki_init_data)
-    {
-      init_report_ = {true, false, "Unexpected initialization data type for EKI"};
-      init_cv_.notify_one();
-      return;
-    }
-
-    std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);
-    if (
-      expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
-    {
-      std::ostringstream oss;
-      oss << "Robot model mismatch detected: expected model '" << expected << "', but found '"
-          << reported << "'";
-      init_report_ = {true, false, oss.str()};
-    }
-    else if (info_.joints.size() != init_data.GetTotalAxisCount())
+    if (info_.joints.size() != init_data.GetTotalAxisCount())
     {
       std::ostringstream oss;
       oss << "Mismatch in axis count: Driver expects " << info_.joints.size()
-          << ", but EKI server reported " << init_data.GetTotalAxisCount();
+          << ", but mxAutomation server reported " << init_data.GetTotalAxisCount();
       init_report_ = {true, false, oss.str()};
     }
     else
@@ -207,7 +172,7 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   init_cv_.notify_one();
 }
 
-void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
+void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
 {
   if (status_manager_.IsEmergencyStopActive())
   {
@@ -219,16 +184,24 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
     RCLCPP_ERROR(logger_, "Drives are not powered!");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
+  else if (
+    !status_manager_.IsMotionPossible() &&
+    this->get_lifecycle_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  {
+    RCLCPP_ERROR(logger_, "Motion is not possible");
+    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
+  }
 
   KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
-void KukaEkiRsiHardwareInterface::CreateRobotInstance(
+void KukaMxaRsiHardwareInterface::CreateRobotInstance(
   const kuka::external::control::kss::Configuration & config)
 {
-  robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
+  robot_ptr_ = std::make_unique<kuka::external::control::kss::mxa::Robot>(config);
 }
+
 }  // namespace kuka_rsi_driver
 
 PLUGINLIB_EXPORT_CLASS(
-  kuka_rsi_driver::KukaEkiRsiHardwareInterface, hardware_interface::SystemInterface)
+  kuka_rsi_driver::KukaMxaRsiHardwareInterface, hardware_interface::SystemInterface)

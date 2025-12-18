@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
-#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
+#ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_MXA_RSI_HPP_
+#define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_MXA_RSI_HPP_
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "kuka/external-control-sdk/kss/eki/robot_interface.h"
+#include "kuka/external-control-sdk/kss/mxa/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
@@ -35,13 +35,13 @@ using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
-class KukaEkiRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfaceBase
+class KukaMxaRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfaceBase
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(KukaMxaRsiHardwareInterface)
 
-  KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
-  : KukaRSIHardwareInterfaceBase("KukaEkiRsiHardwareInterface")
+  KUKA_RSI_DRIVER_PUBLIC KukaMxaRsiHardwareInterface()
+  : KukaRSIHardwareInterfaceBase("KukaMxaRsiHardwareInterface")
   {
   }
 
@@ -65,7 +65,7 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
-  KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
+  KUKA_RSI_DRIVER_PUBLIC void mxa_init(const InitializationData &);
 
 private:
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
@@ -82,4 +82,4 @@ private:
 };
 }  // namespace kuka_rsi_driver
 
-#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_EKI_RSI_HPP_
+#endif  // KUKA_RSI_DRIVER__HARDWARE_INTERFACE_MXA_RSI_HPP_
