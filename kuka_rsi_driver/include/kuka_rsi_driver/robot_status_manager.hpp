@@ -26,9 +26,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "kuka/external-control-sdk/kss/eki/client.h"
-#include "kuka/external-control-sdk/kss/eki/extension.h"
-#include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
+#include "kuka/external-control-sdk/kss/status_update.h"
 
 namespace kuka_rsi_driver
 {
@@ -36,7 +34,7 @@ namespace kuka_rsi_driver
 class StatusInterfaces
 {
 public:
-  StatusInterfaces & operator=(const kuka::external::control::kss::eki::StatusUpdate & update)
+  StatusInterfaces & operator=(const kuka::external::control::kss::StatusUpdate & update)
   {
     control_mode_ = static_cast<double>(update.control_mode_);
     cycle_time_ = static_cast<double>(update.cycle_time_);
@@ -79,6 +77,8 @@ public:
 
   bool IsEmergencyStopActive() { return static_cast<bool>(emergency_stop_); }
 
+  bool IsMotionPossible() { return static_cast<bool>(motion_possible_); }
+
 private:
   double control_mode_ = 0.0;
   double cycle_time_ = 0.0;
@@ -99,7 +99,7 @@ public:
     status_interfaces_.RegisterStateInterfaces(state_interfaces);
   }
 
-  void SetStatusInterfaces(const kuka::external::control::kss::eki::StatusUpdate & update)
+  void SetStatusInterfaces(const kuka::external::control::kss::StatusUpdate & update)
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     actual_status_interfaces_ = update;
@@ -127,6 +127,12 @@ public:
   {
     std::lock_guard<std::mutex> lck{status_mtx_};
     return status_interfaces_.IsEmergencyStopActive();
+  }
+
+  bool IsMotionPossible()
+  {
+    std::lock_guard<std::mutex> lck{status_mtx_};
+    return status_interfaces_.IsMotionPossible();
   }
 
 private:

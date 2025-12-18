@@ -21,66 +21,20 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-#include "kuka_rsi_driver/event_observer_eki_rsi.hpp"
+#include "kuka_rsi_driver/event_observers.hpp"
 #include "kuka_rsi_driver/hardware_interface_eki_rsi.hpp"
+
+#include "kuka/external-control-sdk/kss/eki/initialization_data.h"
 
 namespace kuka_rsi_driver
 {
 
 CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
-  if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
+  if (KukaRSIHardwareInterfaceBase::on_init(info) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
   }
-
-  hw_states_.resize(info_.joints.size(), 0.0);
-  hw_commands_.resize(info_.joints.size(), 0.0);
-
-  for (const auto & joint : info_.joints)
-  {
-    bool interfaces_ok = CheckJointInterfaces(joint);
-    if (!interfaces_ok)
-    {
-      return CallbackReturn::ERROR;
-    }
-  }
-
-  // Check gpio components size
-  if (info_.gpios.size() != 1)
-  {
-    RCLCPP_FATAL(logger_, "expecting exactly 1 gpio component");
-    return CallbackReturn::ERROR;
-  }
-  const auto & gpio = info_.gpios[0];
-  // Check gpio component name
-  if (gpio.name != hardware_interface::IO_PREFIX)
-  {
-    RCLCPP_FATAL(logger_, "expecting gpio component called \"gpio\" first");
-    return CallbackReturn::ERROR;
-  }
-
-  // Save the mapping of GPIO states to commands
-  for (const auto & command_interface : gpio.command_interfaces)
-  {
-    // Find the corresponding state interface for each command interface and connect them based on
-    // their names
-    auto it = std::find_if(
-      gpio.state_interfaces.begin(), gpio.state_interfaces.end(),
-      [&command_interface](const hardware_interface::InterfaceInfo & state_interface)
-      { return state_interface.name == command_interface.name; });
-    if (it != gpio.state_interfaces.end())
-    {
-      gpio_states_to_commands_map_.push_back(std::distance(gpio.state_interfaces.begin(), it));
-    }
-    else
-    {
-      gpio_states_to_commands_map_.push_back(-1);  // Not found, use -1 as a placeholder
-    }
-  }
-
-  hw_gpio_states_.resize(gpio.state_interfaces.size(), 0.0);
-  hw_gpio_commands_.resize(gpio.command_interfaces.size(), 0.0);
 
   RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
 
@@ -92,6 +46,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   cycle_time_command_ = 0.0;
   drives_enabled_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
+<<<<<<< HEAD
   server_state_ = 0.0;
 
   first_write_done_ = false;
@@ -99,32 +54,10 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
   msg_received_ = false;
   prev_drives_enabled_ = false;
   drives_command_sent_ = false;
+=======
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 
   return CallbackReturn::SUCCESS;
-}
-
-std::vector<hardware_interface::StateInterface>
-KukaEkiRsiHardwareInterface::export_state_interfaces()
-{
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
-  }
-
-  for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
-  {
-    state_interfaces.emplace_back(
-      hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
-  }
-
-  state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
-
-  status_manager_.RegisterStateInterfaces(state_interfaces);
-
-  return state_interfaces;
 }
 
 std::vector<hardware_interface::CommandInterface>
@@ -132,18 +65,7 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
-  }
-
-  for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
-      &hw_gpio_commands_[i]);
-  }
+  command_interfaces = KukaRSIHardwareInterfaceBase::export_command_interfaces();
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
@@ -157,10 +79,35 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
   return command_interfaces;
 }
 
+std::vector<hardware_interface::StateInterface>
+KukaEkiRsiHardwareInterface::export_state_interfaces()
+{
+  std::vector<hardware_interface::StateInterface> state_interfaces;
+
+  state_interfaces = KukaRSIHardwareInterfaceBase::export_state_interfaces();
+
+  status_manager_.RegisterStateInterfaces(state_interfaces);
+
+  return state_interfaces;
+}
+
 CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
-  if (!ConnectToController())
+  kuka::external::control::kss::Configuration eki_config;
+  eki_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
+  ;
+  if (!SetupRobot(
+        eki_config, std::make_unique<EventObserver>(this),
+        std::make_unique<EkiEventHandlerExtension>(this)))
   {
+    return CallbackReturn::ERROR;
+  }
+
+  auto status = robot_ptr_->RegisterStatusResponseHandler(
+    std::make_unique<StatusUpdateHandler>(this, &status_manager_));
+  if (status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
     return CallbackReturn::ERROR;
   }
 
@@ -188,14 +135,14 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
-  robot_ptr_.reset();
-  return CallbackReturn::SUCCESS;
+  return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn KukaEkiRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
 {
+<<<<<<< HEAD
   if (status_manager_.IsEmergencyStopActive())
   {
     RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
@@ -301,6 +248,17 @@ void KukaEkiRsiHardwareInterface::set_server_event(kuka_drivers_core::HardwareEv
 {
   std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
+=======
+  return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
+}
+
+return_type KukaEkiRsiHardwareInterface::read(
+  const rclcpp::Time & time, const rclcpp::Duration & duration)
+{
+  status_manager_.UpdateStateInterfaces();
+
+  return KukaRSIHardwareInterfaceBase::read(time, duration);
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 }
 
 std::string FindRobotModelInUrdfName(const std::string & input)
@@ -337,7 +295,17 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
     std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters["name"]);
-    std::string reported = ProcessKrcReportedRobotName(init_data.model_name);
+
+    const auto * eki_init_data =
+      dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData *>(&init_data);
+    if (!eki_init_data)
+    {
+      init_report_ = {true, false, "Unexpected initialization data type for EKI"};
+      init_cv_.notify_one();
+      return;
+    }
+
+    std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);
     if (
       expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
     {
@@ -361,6 +329,7 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
   init_cv_.notify_one();
 }
 
+<<<<<<< HEAD
 void KukaEkiRsiHardwareInterface::initialize_command_interfaces(
   kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
 {
@@ -436,6 +405,8 @@ bool KukaEkiRsiHardwareInterface::ConnectToController()
   return true;
 }
 
+=======
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
 {
   if (status_manager_.IsEmergencyStopActive())
@@ -449,44 +420,13 @@ void KukaEkiRsiHardwareInterface::Read(const int64_t request_timeout)
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
 
-  auto motion_state_status =
-    robot_ptr_->ReceiveMotionState(std::chrono::milliseconds(request_timeout));
-  msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
-  if (msg_received_)
-  {
-    const auto & req_message = robot_ptr_->GetLastMotionState();
-    const auto & positions = req_message.GetMeasuredPositions();
-    const auto & gpio_values = req_message.GetGPIOValues();
-
-    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
-    // Save IO states
-    for (size_t i = 0; i < hw_gpio_states_.size(); i++)
-    {
-      auto value = gpio_values.at(i)->GetValue();
-      if (value.has_value())
-      {
-        hw_gpio_states_[i] = value.value();
-      }
-      else
-      {
-        RCLCPP_ERROR(
-          logger_, "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
-          gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
-      }
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(logger_, "Failed to receive motion state: %s", motion_state_status.message);
-    set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
-  }
-
-  std::lock_guard<std::mutex> lk(event_mutex_);
-  server_state_ = static_cast<double>(last_event_);
+  KukaRSIHardwareInterfaceBase::Read(request_timeout);
 }
 
-void KukaEkiRsiHardwareInterface::Write()
+void KukaEkiRsiHardwareInterface::CreateRobotInstance(
+  const kuka::external::control::kss::Configuration & config)
 {
+<<<<<<< HEAD
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
@@ -694,6 +634,9 @@ kuka::external::control::kss::GPIOConfiguration KukaEkiRsiHardwareInterface::Par
                                         // disable limits
   }
   return gpio_config;
+=======
+  robot_ptr_ = std::make_unique<kuka::external::control::kss::eki::Robot>(config);
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 }
 }  // namespace kuka_rsi_driver
 

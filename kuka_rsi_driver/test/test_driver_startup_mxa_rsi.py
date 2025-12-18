@@ -1,4 +1,4 @@
-# Copyright 2024 KUKA Hungaria Kft.
+# Copyright 2025 KUKA Hungaria Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
 import unittest
 
 import launch
-import launch.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
-
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions.include_launch_description import IncludeLaunchDescription
-from ament_index_python.packages import get_package_share_directory
 
 
-# Launch driver startup
+# Launch all of the robot visualisation launch files one by one
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
@@ -36,11 +34,15 @@ def generate_test_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     [
-                        get_package_share_directory("kuka_iiqka_eac_driver"),
+                        get_package_share_directory("kuka_rsi_driver"),
                         "/launch/",
                         "startup.launch.py",
                     ]
-                )
+                ),
+                launch_arguments={
+                    "driver_version": "mxa_rsi",
+                    "cm_log_level": "INFO",
+                }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
         ]
@@ -50,11 +52,11 @@ def generate_test_description():
 class TestDriverStartup(unittest.TestCase):
     def test_read_stdout(self, proc_output):
         # Check for successful initialization
-        proc_output.assertWaitFor("got segment base", timeout=5)
+        proc_output.assertWaitFor("Robot initialized", timeout=5)
         proc_output.assertWaitFor(
-            "Successful initialization of hardware 'lbr_iisy3_r760'", timeout=5
+            "Successful initialization of hardware 'kr6_r700_sixx'", timeout=5
         )
         # Check whether disabling automatic activation was successful
         proc_output.assertWaitFor(
-            "Setting component 'lbr_iisy3_r760' to 'unconfigured' state.", timeout=5
+            "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
         )
