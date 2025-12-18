@@ -41,12 +41,12 @@ CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::Stat
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);
 
-  return RobotManagerBase::on_configure(configuration_controllers_);
+  return RobotManagerBase::configure(configuration_controllers_);
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  return RobotManagerBase::on_cleanup(configuration_controllers_);
+  return RobotManagerBase::cleanup(configuration_controllers_);
 }
 
 void RobotManagerNodeEkiRsi::EventSubscriptionCallback(

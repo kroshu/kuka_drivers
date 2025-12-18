@@ -41,7 +41,7 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
 
   KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
-  : KukaRSIHardwareInterfaceBase("KukaMxaRsiHardwareInterface")
+  : KukaRSIHardwareInterfaceBase("KukaEkiRsiHardwareInterface")
   {
   }
 

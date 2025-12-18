@@ -40,15 +40,13 @@ public:
   RobotManagerBase();
   virtual ~RobotManagerBase() = default;
 
-  CallbackReturn on_configure(const std::vector<std::string> & controllers_to_activate);
+  CallbackReturn configure(const std::vector<std::string> & controllers_to_activate);
 
-  CallbackReturn on_cleanup(const std::vector<std::string> & controllers_to_deactivate);
+  CallbackReturn cleanup(const std::vector<std::string> & controllers_to_deactivate);
 
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
-
-  virtual CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) = 0;
 
 protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);

@@ -24,7 +24,7 @@ namespace kuka_rsi_driver
 class RobotManagerNodeRsi : public RobotManagerBase
 {
 public:
-  RobotManagerNodeRsi();
+  RobotManagerNodeRsi() = default;
   ~RobotManagerNodeRsi() = default;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;

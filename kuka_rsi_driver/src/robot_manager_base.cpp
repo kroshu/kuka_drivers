@@ -81,7 +81,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::on_configure(const std::vector<std::string> & controllers_to_activate)
+RobotManagerBase::configure(const std::vector<std::string> & controllers_to_activate)
 {
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
@@ -108,7 +108,7 @@ RobotManagerBase::on_configure(const std::vector<std::string> & controllers_to_a
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::on_cleanup(const std::vector<std::string> & controllers_to_deactivate)
+RobotManagerBase::cleanup(const std::vector<std::string> & controllers_to_deactivate)
 {
   // Deactivate configuration controllers/broadcaster
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
