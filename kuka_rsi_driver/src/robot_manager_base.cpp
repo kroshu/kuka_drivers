@@ -1,4 +1,4 @@
-// Copyright 2025 KUKA Hungaria Kft.
+// Copyright 2023 KUKA Hungaria Kft.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,16 +18,14 @@
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_rsi_driver/robot_manager_node_eki_rsi.hpp"
+#include "kuka_rsi_driver/robot_manager_base.hpp"
 
-using controller_manager_msgs::srv::SetHardwareComponentState;
-using controller_manager_msgs::srv::SwitchController;
-using lifecycle_msgs::msg::State;
+using namespace controller_manager_msgs::srv;  // NOLINT
+using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_rsi_driver
 {
-RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
-: kuka_drivers_core::ROS2BaseLCNode("robot_manager")
+RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
 {
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
@@ -45,9 +43,6 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
   is_configured_qos.best_effort();
   is_configured_pub_ =
     this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
-
-  control_mode_pub_ = create_publisher<std_msgs::msg::UInt32>(
-    "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
 
   // Subscribe to event_broadcaster/hardware_event
   rclcpp::SubscriptionOptions sub_options;
@@ -74,7 +69,7 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
 
   this->registerStaticParameter<std::string>(
     "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const std::string & robot_model) { return OnRobotModelChangeRequest(robot_model); });
+    [this](const std::string & robot_model) { return onRobotModelChangeRequest(robot_model); });
 
   this->registerStaticParameter<bool>(
     "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
@@ -85,71 +80,49 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
     });
 }
 
-CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_to_activate)
 {
-  const auto logger = get_logger();
-
-  // Publish initial control mode
-  std_msgs::msg::UInt32 message;
-  message.data = static_cast<int>(control_mode_);
-  control_mode_pub_->publish(message);
-
   // Configure hardware interface
-  const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
-    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE);
-  if (!hw_state_change_successful)
+  if (!kuka_drivers_core::changeHardwareState(
+        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE))
   {
-    RCLCPP_ERROR(logger, "Could not configure hardware interface");
+    RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
     return FAILURE;
   }
 
-  // Activate control mode handler and event broadcaster controllers
-  std::vector<std::string> controllers_to_activate{
-    kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::KSS_MESSAGE_HANDLER,
-    kuka_drivers_core::EVENT_BROADCASTER,
-  };
+  // Activate event broadcaster
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
     change_controller_state_client_, controllers_to_activate, {});
   if (!controller_activation_successful)
   {
-    RCLCPP_ERROR(logger, "Could not activate control mode handler or event broadcaster controller");
+    RCLCPP_ERROR(get_logger(), "Could not activate configuration controllers");
     on_cleanup(get_current_state());
     return FAILURE;
   }
 
-  // Publish that the hardware interface is now configured
-  // This will start the control loop
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
-
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotManagerBase::cleanup_driver(const std::vector<std::string> & controllers_to_deactivate)
 {
-  const auto logger = get_logger();
-
-  // Deactivate control mode handler and event broadcaster
-  std::vector<std::string> controllers_to_deactivate{
-    kuka_drivers_core::CONTROL_MODE_HANDLER,
-    kuka_drivers_core::KSS_MESSAGE_HANDLER,
-    kuka_drivers_core::EVENT_BROADCASTER,
-  };
+  // Deactivate configuration controllers/broadcaster
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
     change_controller_state_client_, {}, controllers_to_deactivate);
   if (!controller_deactivation_successful)
   {
-    RCLCPP_ERROR(logger, "Could not deactivate control mode handler and event broadcaster");
+    RCLCPP_ERROR(get_logger(), "Could not deactivate configuration controllers");
   }
 
   // Clean up hardware interface
-  const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
-    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_UNCONFIGURED);
-  if (!hw_state_change_successful)
+  if (!kuka_drivers_core::changeHardwareState(
+        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_UNCONFIGURED))
   {
-    RCLCPP_ERROR(logger, "Could not clean up hardware interface");
+    RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
     return FAILURE;
   }
 
@@ -159,11 +132,12 @@ CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State 
     is_configured_pub_->publish(is_configured_msg_);
     is_configured_pub_->on_deactivate();
   }
-
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State &)
+// TODO(Svastits): rollback in case of failures
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+RobotManagerBase::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
   terminate_ = false;
@@ -171,7 +145,7 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   // Activate hardware interface
   const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
     change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_ACTIVE,
-    RobotManagerNodeEkiRsi::HARDWARE_ACTIVATION_TIMEOUT_MS);
+    RobotManagerBase::HARDWARE_ACTIVATION_TIMEOUT_MS);
   if (!hw_state_change_successful)
   {
     RCLCPP_ERROR(logger, "Could not activate hardware interface");
@@ -205,14 +179,14 @@ CallbackReturn RobotManagerNodeEkiRsi::on_activate(const rclcpp_lifecycle::State
   return SUCCESS;
 }
 
-CallbackReturn RobotManagerNodeEkiRsi::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn RobotManagerBase::on_deactivate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
 
   // Deactivate hardware interface
-  bool deactivation_successful = kuka_drivers_core::changeHardwareState(
-    change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE);
-  if (!deactivation_successful)
+  if (!kuka_drivers_core::changeHardwareState(
+        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE,
+        RobotManagerBase::HARDWARE_DEACTIVATION_TIMEOUT_MS))
   {
     RCLCPP_ERROR(logger, "Could not deactivate hardware interface");
     return ERROR;
@@ -239,44 +213,42 @@ CallbackReturn RobotManagerNodeEkiRsi::on_deactivate(const rclcpp_lifecycle::Sta
   return SUCCESS;
 }
 
-void RobotManagerNodeEkiRsi::EventSubscriptionCallback(
-  const std_msgs::msg::UInt8::SharedPtr message)
+bool RobotManagerBase::onRobotModelChangeRequest(const std::string & robot_model)
+{
+  auto ns = std::string(this->get_namespace());
+  // Remove '/' from namespace (even empty namespace contains one '/')
+  ns.erase(ns.begin());
+
+  // Add '_' to prefix
+  if (ns.size() > 0)
+  {
+    ns += "_";
+  }
+  robot_model_ = ns + robot_model;
+  return true;
+}
+
+void RobotManagerBase::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message)
 {
   const auto logger = get_logger();
 
   const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->data);
-  switch (event)
+  if (event == kuka_drivers_core::HardwareEvent::ERROR)
   {
-    case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
-      RCLCPP_INFO(logger, "External control started");
-      {
-        std::lock_guard<std::mutex> lk(control_mode_cv_m_);
-        control_mode_change_finished_ = true;
-      }
-      control_mode_cv_.notify_all();
-      break;
-    case kuka_drivers_core::HardwareEvent::CONTROL_STOPPED:
-    case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(logger, "External control stopped");
-      terminate_ = true;
-      if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
-      {
-        deactivate();
-      }
-      else if (get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
-      {
-        on_deactivate(get_current_state());
-      }
-      __attribute__((fallthrough));
-    case kuka_drivers_core::HardwareEvent::CONTROL_MODE_SWITCH:
-      control_mode_change_finished_ = false;
-      break;
-    default:
-      break;
+    RCLCPP_INFO(logger, "External control stopped by an error");
+    terminate_ = true;
+    if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+    {
+      deactivate();
+    }
+    else if (get_current_state().id() == State::TRANSITION_STATE_ACTIVATING)
+    {
+      on_deactivate(get_current_state());
+    }
   }
 }
 
-bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
+bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
 {
   const auto logger = get_logger();
 
@@ -296,49 +268,11 @@ bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
     return false;
   }
 
-  // Publish control mode change to control mode handler
-  std_msgs::msg::UInt32 message;
-  message.data = control_mode;
-  control_mode_pub_->publish(message);
-
   if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
-    const auto & controller_to_deactivate =
-      controller_handler_.GetControllersForMode(control_mode_);
-    bool deactivation_successful = kuka_drivers_core::changeControllerState(
-      change_controller_state_client_, {}, controller_to_deactivate);
-    if (!deactivation_successful)
-    {
-      RCLCPP_ERROR(logger, "Could not deactivate controllers of previous control mode");
-      on_deactivate(get_current_state());
-      return false;
-    }
-
-    std::unique_lock<std::mutex> control_mode_lk(control_mode_cv_m_);
-    if (!control_mode_cv_.wait_for(
-          control_mode_lk, std::chrono::milliseconds(3000),
-          [this]() { return control_mode_change_finished_; }))
-    {
-      RCLCPP_ERROR(logger, "Timeout reached while waiting for robot to change control mode.");
-      on_deactivate(get_current_state());
-      return false;
-    }
-    control_mode_change_finished_ = false;
-    control_mode_lk.unlock();
-    RCLCPP_INFO(logger, "Robot Controller finished control mode change");
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
-
-    const auto & controllers_to_activate =
-      controller_handler_.GetControllersForMode(target_control_mode);
-    bool activation_successful = kuka_drivers_core::changeControllerState(
-      change_controller_state_client_, controllers_to_activate, {});
-    if (!activation_successful)
-    {
-      RCLCPP_ERROR(logger, "Could not activate controllers for new control mode");
-      on_deactivate(get_current_state());
-      return false;
-    }
+    RCLCPP_ERROR(
+      logger, "Changing control mode during active control is not supported by plain RSI driver");
+    return false;
   }
 
   control_mode_ = target_control_mode;
@@ -348,30 +282,4 @@ bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
   return true;
 }
 
-bool RobotManagerNodeEkiRsi::OnRobotModelChangeRequest(const std::string & robot_model)
-{
-  auto ns = std::string(get_namespace());
-  ns.erase(ns.begin());
-
-  if (ns.size() > 0)
-  {
-    ns += "_";
-  }
-  robot_model_ = ns + robot_model;
-  return true;
-}
-
 }  // namespace kuka_rsi_driver
-
-int main(int argc, char * argv[])
-{
-  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
-
-  rclcpp::init(argc, argv);
-  rclcpp::executors::MultiThreadedExecutor executor;
-  auto node = std::make_shared<kuka_rsi_driver::RobotManagerNodeEkiRsi>();
-  executor.add_node(node->get_node_base_interface());
-  executor.spin();
-  rclcpp::shutdown();
-  return 0;
-}

@@ -19,30 +19,29 @@
 #include <string>
 #include <vector>
 
-#include "hardware_interface/system_interface.hpp"
+#include "hardware_interface_rsi_base.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "kuka/external-control-sdk/kss/eki/robot_interface.h"
 #include "kuka_drivers_core/control_mode.hpp"
-#include "kuka_rsi_driver/robot_status_manager.hpp"
 #include "kuka_rsi_driver/visibility_control.h"
 
 using hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-using InitializationData = kuka::external::control::kss::eki::InitializationData;
+using InitializationData = kuka::external::control::kss::InitializationData;
 using RsiCycleTime = kuka::external::control::kss::CycleTime;
 
 namespace kuka_rsi_driver
 {
-class KukaEkiRsiHardwareInterface : public hardware_interface::SystemInterface
+class KukaEkiRsiHardwareInterface : public kuka_rsi_driver::KukaRSIHardwareInterfaceBase
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(KukaEkiRsiHardwareInterface)
 
   KUKA_RSI_DRIVER_PUBLIC KukaEkiRsiHardwareInterface()
-  : SystemInterface(), logger_(rclcpp::get_logger("KukaEkiRsiHardwareInterface"))
+  : KukaRSIHardwareInterfaceBase("KukaEkiRsiHardwareInterface")
   {
   }
 
@@ -50,14 +49,12 @@ public:
   CallbackReturn on_init(const hardware_interface::HardwareInfo &) override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
-
-  KUKA_RSI_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  KUKA_RSI_DRIVER_PUBLIC
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+  KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
@@ -68,6 +65,7 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
+<<<<<<< HEAD
   KUKA_RSI_DRIVER_PUBLIC
   return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
@@ -80,14 +78,14 @@ public:
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
     kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered);
 
-private:
-  struct InitSequenceReport
-  {
-    bool sequence_complete = false;
-    bool ok = false;
-    std::string reason = "";
-  };
+=======
+  KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
+private:
+  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
+
+<<<<<<< HEAD
   KUKA_RSI_DRIVER_LOCAL bool ConnectToController();
 
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
@@ -129,24 +127,25 @@ private:
   kuka_drivers_core::HardwareEvent last_event_ =
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
   RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
+=======
+  KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
+    const kuka::external::control::kss::Configuration &) override;
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
 
+<<<<<<< HEAD
   bool first_write_done_;
   bool is_active_;
   bool msg_received_;
   bool prev_drives_enabled_;
   bool drives_command_sent_;
+=======
+>>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
-
-  static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
-  static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
-  static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{10};
-  static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
-  static constexpr std::int64_t READ_TIMEOUT_MS = 1'000;
 };
 }  // namespace kuka_rsi_driver
 
