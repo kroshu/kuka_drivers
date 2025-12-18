@@ -107,8 +107,8 @@ RobotManagerBase::configure(const std::vector<std::string> & controllers_to_acti
   return SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-RobotManagerBase::cleanup(const std::vector<std::string> & controllers_to_deactivate)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotManagerBase::cleanup(
+  const std::vector<std::string> & controllers_to_deactivate)
 {
   // Deactivate configuration controllers/broadcaster
   const bool controller_deactivation_successful = kuka_drivers_core::changeControllerState(
