@@ -65,85 +65,18 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
-<<<<<<< HEAD
-  KUKA_RSI_DRIVER_PUBLIC
-  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
-
-  KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
-
-  KUKA_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
-
   KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
 
-  KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
-    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered);
-
-=======
-  KUKA_RSI_DRIVER_PUBLIC void eki_init(const InitializationData &);
-
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 private:
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
 
-<<<<<<< HEAD
-  KUKA_RSI_DRIVER_LOCAL bool ConnectToController();
-
-  KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout);
-
-  KUKA_RSI_DRIVER_LOCAL void Write();
-
-  KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
-    const hardware_interface::ComponentInfo & joint) const;
-
-  KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
-
-  KUKA_RSI_DRIVER_LOCAL kuka::external::control::kss::GPIOConfiguration ParseGPIOConfig(
-    const hardware_interface::InterfaceInfo & info);
-
-  KUKA_RSI_DRIVER_LOCAL void ChangeDriveState();
-
-  KUKA_RSI_DRIVER_LOCAL void ChangeCycleTime();
-
-  const rclcpp::Logger logger_;
-  std::unique_ptr<kuka::external::control::kss::eki::Robot> robot_ptr_;
-  StatusManager status_manager_;
-
-  std::vector<double> hw_states_;
-  std::vector<double> hw_gpio_states_;
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_gpio_commands_;
-
-  std::vector<int> gpio_states_to_commands_map_;
-
-  double hw_control_mode_command_;
-  double server_state_;
-  double drives_enabled_command_;
-  double cycle_time_command_;
-
-  std::mutex event_mutex_;
-
-  kuka_drivers_core::ControlMode prev_control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  kuka_drivers_core::HardwareEvent last_event_ =
-    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
-  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
-=======
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
     const kuka::external::control::kss::Configuration &) override;
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
 
-<<<<<<< HEAD
-  bool first_write_done_;
-  bool is_active_;
-  bool msg_received_;
-  bool prev_drives_enabled_;
-  bool drives_command_sent_;
-=======
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 };

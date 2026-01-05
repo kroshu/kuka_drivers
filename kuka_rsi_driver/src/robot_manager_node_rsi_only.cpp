@@ -24,58 +24,6 @@ using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_rsi_driver
 {
-<<<<<<< HEAD
-RobotManagerNodeRsi::RobotManagerNodeRsi() : kuka_drivers_core::ROS2BaseLCNode("robot_manager")
-{
-  auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
-  qos.reliable();
-  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-
-  change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
-    "controller_manager/set_hardware_component_state", qos.get_rmw_qos_profile(), cbg_);
-  change_controller_state_client_ = this->create_client<SwitchController>(
-    "controller_manager/switch_controller", qos.get_rmw_qos_profile(), cbg_);
-
-  auto is_configured_qos = rclcpp::QoS(rclcpp::KeepLast(1));
-  is_configured_qos.best_effort();
-
-  is_configured_pub_ =
-    this->create_publisher<std_msgs::msg::Bool>("robot_manager/is_configured", is_configured_qos);
-
-  // Subscribe to event_broadcaster/hardware_event
-  rclcpp::SubscriptionOptions sub_options;
-  event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  sub_options.callback_group = event_callback_group_;
-  event_subscriber_ = create_subscription<std_msgs::msg::UInt8>(
-    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr message) { EventSubscriptionCallback(message); },
-    sub_options);
-
-  this->registerStaticParameter<std::string>(
-    "robot_model", "kr6_r700_sixx", kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const std::string & robot_model)
-    { return this->onRobotModelChangeRequest(robot_model); });
-
-  this->registerStaticParameter<bool>(
-    "use_gpio", false, kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const bool use_gpio)
-    {
-      use_gpio_ = use_gpio;
-      return true;
-    });
-
-  this->registerParameter<std::string>(
-    "position_controller_name", kuka_drivers_core::JOINT_TRAJECTORY_CONTROLLER,
-    kuka_drivers_core::ParameterSetAccessRights{true, false},
-    [this](const std::string & controller_name)
-    {
-      this->position_controller_name_ = controller_name;
-      return true;
-    });
-}
-
-=======
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNodeRsi::on_configure(const rclcpp_lifecycle::State &)
 {

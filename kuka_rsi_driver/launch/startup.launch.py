@@ -182,15 +182,9 @@ def launch_setup(context, *args, **kwargs):
     if use_gpio.perform(context) == "true":
         controller_names.append("gpio_controller")
 
-<<<<<<< HEAD
-    if driver_version.perform(context) == "eki_rsi":
+    if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
         controller_names.append("control_mode_handler")
         controller_names.append("kss_message_handler")
-=======
-    if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
-        controllers["control_mode_handler"] = None
-        controllers["kss_message_handler"] = None
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
 
