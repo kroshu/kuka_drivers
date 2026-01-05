@@ -44,7 +44,6 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::Ha
     logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
 
   cycle_time_command_ = 0.0;
-  drives_enabled_command_ = 0.0;
   hw_control_mode_command_ = 0.0;
 
   return CallbackReturn::SUCCESS;
@@ -59,9 +58,6 @@ KukaEkiRsiHardwareInterface::export_command_interfaces()
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
-
-  command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::DRIVE_STATE, &drives_enabled_command_);
 
   command_interfaces.emplace_back(
     hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME, &cycle_time_command_);

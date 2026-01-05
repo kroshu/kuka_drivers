@@ -544,14 +544,12 @@ kuka::external::control::Status KukaRSIHardwareInterfaceBase::ChangeCycleTime()
 }
 
 void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
-  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
+  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
 {
   prev_control_mode_ = control_mode;
   prev_cycle_time_ = cycle_time;
-  prev_drives_enabled_ = drives_powered;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
-  drives_enabled_command_ = drives_powered ? 1.0 : 0.0;
 }
 
 }  // namespace kuka_rsi_driver
