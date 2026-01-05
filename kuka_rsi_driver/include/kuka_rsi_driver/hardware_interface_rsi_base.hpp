@@ -70,8 +70,8 @@ public:
   return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
-  KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
-
+  KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
+    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
 
 protected:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot(
