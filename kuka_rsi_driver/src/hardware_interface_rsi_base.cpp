@@ -154,7 +154,7 @@ return_type KukaRSIHardwareInterfaceBase::read(const rclcpp::Time &, const rclcp
 return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // If control is not started or a request is missed, do not send back anything
-  if (!msg_received_)
+  if (!msg_received_ || this->lifecycle_state_.id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
     return return_type::OK;
   }

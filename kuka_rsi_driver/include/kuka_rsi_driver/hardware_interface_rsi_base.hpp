@@ -71,7 +71,6 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
-  KUKA_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
 
 
 protected:
@@ -125,8 +124,6 @@ protected:
 
   bool is_active_;
   bool msg_received_;
-  bool first_write_done_;
-  std::atomic<bool> stop_requested_{false};
 
   // EKI-MXA common variables
   StatusManager status_manager_;

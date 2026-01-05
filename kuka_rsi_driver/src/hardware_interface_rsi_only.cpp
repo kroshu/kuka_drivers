@@ -34,8 +34,6 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = false;
-
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
@@ -44,7 +42,6 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   Write();
 
   msg_received_ = false;
-  first_write_done_ = true;
   is_active_ = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
@@ -55,7 +52,19 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  stop_requested_ = true;
+  // If control is active, send stop signal
+  if (msg_received_)
+  {
+    RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
+
+    // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
+    // but resource manager handles locking (resources_lock_), so is not necessary here
+    robot_ptr_->StopControlling();
+  }
+
+  is_active_ = false;
+  msg_received_ = false;
+
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
 }
