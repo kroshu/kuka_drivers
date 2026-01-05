@@ -79,7 +79,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 {
   // mxA server does not store control mode / cycle time, initialize with default
   initialize_command_interfaces(
-    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS);
+    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS, false);
 
   kuka::external::control::kss::Configuration mxa_config;
   mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
@@ -186,7 +186,7 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
   }
   else if (
     !status_manager_.IsMotionPossible() &&
-    this->get_lifecycle_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+    this->lifecycle_state_.id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
     RCLCPP_ERROR(logger_, "Motion is not possible");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);

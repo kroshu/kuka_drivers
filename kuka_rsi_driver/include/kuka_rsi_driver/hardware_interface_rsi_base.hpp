@@ -71,7 +71,9 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC void set_server_event(kuka_drivers_core::HardwareEvent);
   KUKA_RSI_DRIVER_PUBLIC void initialize_command_interfaces(
-    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time);
+    kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered);
+  KUKA_RSI_DRIVER_PUBLIC void set_stop_flag() { stop_requested_ = true; }
+
 
 protected:
   KUKA_RSI_DRIVER_LOCAL bool SetupRobot(
@@ -124,11 +126,16 @@ protected:
 
   bool is_active_;
   bool msg_received_;
+  bool first_write_done_;
+  std::atomic<bool> stop_requested_{false};
+
+  bool prev_drives_enabled_;
 
   // EKI-MXA common variables
   StatusManager status_manager_;
 
   double hw_control_mode_command_;
+  double drives_enabled_command_;
   double cycle_time_command_;
 
   kuka_drivers_core::ControlMode prev_control_mode_ =

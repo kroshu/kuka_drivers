@@ -78,7 +78,6 @@ private:
   std::condition_variable init_cv_;
 
   bool verify_robot_model_;
-  std::atomic<bool> stop_requested_{false};
 };
 }  // namespace kuka_rsi_driver
 

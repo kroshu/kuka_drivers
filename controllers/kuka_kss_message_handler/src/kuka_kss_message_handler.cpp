@@ -55,7 +55,6 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
 
 CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
-<<<<<<< HEAD
   // Drive state
   drive_state_.store(0.0);
   drive_state_command_received_.store(false);
@@ -67,12 +66,8 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
       drive_state_command_received_.store(true);
     });
 
-  // RSI cycle time
-  cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_12MS));
-=======
   // RSI cycle time: default to 4ms, as 12 ms is not supported for iiQKA.OS2
   cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_4MS));
->>>>>>> acb5556 (Add mxAutomation support and refactor (#284))
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));

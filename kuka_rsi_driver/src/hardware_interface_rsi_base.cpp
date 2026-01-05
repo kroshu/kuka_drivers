@@ -176,10 +176,9 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Min: %s, Max: %s",
       gpio_command.name.c_str(), gpio_command.data_type.c_str(), gpio_command.initial_value.c_str(),
-      gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
-      gpio_command.max.c_str());
+      gpio_command.min.c_str(), gpio_command.max.c_str());
 
     // TODO (Komaromi): Add size and parameters
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
@@ -189,9 +188,9 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
   for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
     RCLCPP_INFO(
-      logger_, "Name: %s, Data type: %s, Initial value: %s, Enable limits: %s, Min: %s, Max: %s",
+      logger_, "Name: %s, Data type: %s, Initial value: %s, Min: %s, Max: %s",
       gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
-      gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
+      gpio_state.min.c_str(), gpio_state.max.c_str());
 
     // TODO (Komaromi): Add size, and parameters
     config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
@@ -317,7 +316,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::Pa
 {
   kuka::external::control::kss::GPIOConfiguration gpio_config;
   gpio_config.name = info.name;
-  gpio_config.enable_limits = info.enable_limits;
+  gpio_config.enable_limits = true;
   // TODO (komaromi): This might not work from Kilted kaiju onward the get_optional function in the
   // handle since it is only accepting double and bool
   if (info.data_type == "BOOL" || info.data_type == "bool")
@@ -545,12 +544,14 @@ kuka::external::control::Status KukaRSIHardwareInterfaceBase::ChangeCycleTime()
 }
 
 void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
-  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time)
+  kuka_drivers_core::ControlMode control_mode, RsiCycleTime cycle_time, bool drives_powered)
 {
   prev_control_mode_ = control_mode;
   prev_cycle_time_ = cycle_time;
+  prev_drives_enabled_ = drives_powered;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
+  drives_enabled_command_ = drives_powered ? 1.0 : 0.0;
 }
 
 }  // namespace kuka_rsi_driver
