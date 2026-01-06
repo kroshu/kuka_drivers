@@ -62,6 +62,8 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "mode:=",
             mode,
+            "driver_version:=",
+            "eac",
             " ",
             "controller_ip:=",
             controller_ip,
