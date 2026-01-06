@@ -62,6 +62,7 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "mode:=",
             mode,
+            " ",
             "driver_version:=",
             "eac",
             " ",
