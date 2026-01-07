@@ -3,7 +3,7 @@ repositories:
   kuka_robot_descriptions:
     type: git
     url: https://github.com/kroshu/kuka_robot_descriptions.git
-    version: humble
+    version: test/exec_depend
   kuka-external-control-sdk:
     type: git
     url: https://github.com/kroshu/kuka-external-control-sdk.git
