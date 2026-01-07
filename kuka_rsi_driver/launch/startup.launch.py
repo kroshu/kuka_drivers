@@ -51,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
         rel_path_to_config_file = (
             "/config/ros2_controller_config_rsi_only.yaml"
             if driver_version.perform(context) == "rsi_only"
-            else "/config/ros2_controller_config_eki_rsi.yaml"
+            else "/config/ros2_controller_config_extended.yaml"
         )
         controller_config = (
             get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
@@ -148,7 +148,7 @@ def launch_setup(context, *args, **kwargs):
         executable=(
             "robot_manager_node_rsi_only"
             if driver_version.perform(context) == "rsi_only"
-            else "robot_manager_node_eki_rsi"
+            else "robot_manager_node_extended"
         ),
         parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
     )
@@ -173,14 +173,17 @@ def launch_setup(context, *args, **kwargs):
             arg_list.append("--inactive")
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
-    controller_names = ["joint_state_broadcaster", "joint_trajectory_controller"]
+    controller_names = [
+        "joint_state_broadcaster",
+        "joint_trajectory_controller",
+        "event_broadcaster",
+    ]
 
     if use_gpio.perform(context) == "true":
         controller_names.append("gpio_controller")
 
-    if driver_version.perform(context) == "eki_rsi":
+    if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
         controller_names.append("control_mode_handler")
-        controller_names.append("event_broadcaster")
         controller_names.append("kss_message_handler")
 
     controller_spawners = [controller_spawner(name) for name in controller_names]
@@ -207,7 +210,7 @@ def generate_launch_description():
             "driver_version",
             default_value="rsi_only",
             description="Select the driver version to use",
-            choices=["rsi_only", "eki_rsi"],
+            choices=["rsi_only", "eki_rsi", "mxa_rsi"],
         )
     )
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))

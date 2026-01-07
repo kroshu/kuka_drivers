@@ -1,4 +1,4 @@
-// Copyright 2023 Aron Svastits
+// Copyright 2023 KUKA Hungaria Kft.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,52 +15,21 @@
 #ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
 #define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_RSI_ONLY_HPP_
 
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
-#include "controller_manager_msgs/srv/switch_controller.hpp"
-#include "rclcpp/client.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/bool.hpp"
-
-#include "kuka_drivers_core/ros2_base_lc_node.hpp"
+#include "robot_manager_base.hpp"
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 namespace kuka_rsi_driver
 {
-class RobotManagerNodeRsi : public kuka_drivers_core::ROS2BaseLCNode
+class RobotManagerNodeRsi : public RobotManagerBase
 {
 public:
-  RobotManagerNodeRsi();
+  RobotManagerNodeRsi() = default;
   ~RobotManagerNodeRsi() = default;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
   CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
-
-  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
-
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
-
-private:
-  bool onRobotModelChangeRequest(const std::string & robot_model);
-
-  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
-    change_hardware_state_client_;
-  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
-    change_controller_state_client_;
-  rclcpp::CallbackGroup::SharedPtr cbg_;
-
-  std::string robot_model_;
-  bool use_gpio_ = false;
-  std::string position_controller_name_;
-
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>> is_configured_pub_;
-  std_msgs::msg::Bool is_configured_msg_;
 };
 }  // namespace kuka_rsi_driver
 
