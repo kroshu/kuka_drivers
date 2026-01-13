@@ -51,6 +51,7 @@ def launch_setup(context, *args, **kwargs):
     #  which can be suppressed by this argument
     cm_log_level = LaunchConfiguration("cm_log_level")
     non_rt_cores = LaunchConfiguration('non_rt_cores')
+    rt_core = LaunchConfiguration('rt_core')
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -296,7 +297,15 @@ def generate_launch_description():
             + "/config/gpio_controller_config.yaml",
         )
     )
-
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            'rt_core',
+            default_value='',
+            description=(
+                "CPU core index for taskset pinning of the RT thread"
+            ),
+        )
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             'non_rt_cores',

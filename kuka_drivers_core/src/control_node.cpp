@@ -37,8 +37,36 @@ int main(int argc, char ** argv)
   std::thread control_loop(
     [controller_manager, &is_configured]()
     {
+      rclcpp::Parameter cpu_affinity_param;
+      if (controller_manager->get_parameter("cpu_affinity", cpu_affinity_param))
+      {
+        int cpu = -1;
+        if (cpu_affinity_param.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)
+        {
+          cpu = static_cast<int>(cpu_affinity_param.as_int());
+        }
+        
+        if (cpu >= 0)
+        {
+          cpu_set_t cpuset;
+          CPU_ZERO(&cpuset);
+          CPU_SET(cpu, &cpuset);
+
+          pthread_t thread = pthread_self();
+          if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset) != 0)
+          {
+            RCLCPP_ERROR(controller_manager->get_logger(), "Failed to set CPU affinity");
+            RCLCPP_ERROR(controller_manager->get_logger(), strerror(errno));
+          }
+          else
+          {
+            RCLCPP_INFO(controller_manager->get_logger(), "CPU affinity set to core %d", cpu);
+          }
+        }
+      }
+
       struct sched_param param;
-      param.sched_priority = 95;
+      param.sched_priority = controller_manager->get_parameter_or<int>("thread_priority", 50);
       if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
       {
         RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
@@ -47,6 +75,7 @@ int main(int argc, char ** argv)
           controller_manager->get_logger(),
           "You can use the driver but scheduler priority was not set");
       }
+      else RCLCPP_INFO(controller_manager->get_logger(), "Control loop priority was set to %d", param.sched_priority);
 
       const rclcpp::Duration dt =
         rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
