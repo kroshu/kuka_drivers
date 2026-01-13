@@ -164,6 +164,8 @@ def launch_setup(context, *args, **kwargs):
             robot_description,
             controller_config,
             {
+                "cpu_affinity": rt_core.perform(context),
+                "thread_priority": rt_prio.perform(context),
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
                 },
@@ -303,6 +305,15 @@ def generate_launch_description():
             default_value='',
             description=(
                 "CPU core index for taskset pinning of the RT thread"
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            'rt_prio',
+            default_value=70,
+            description=(
+                "The priority of the thread that runs the control loop"
             ),
         )
     )
