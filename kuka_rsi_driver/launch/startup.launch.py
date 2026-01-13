@@ -50,10 +50,32 @@ def launch_setup(context, *args, **kwargs):
     # Controller manager prints a lot of warnings if cycle time is exceeded,
     #  which can be suppressed by this argument
     cm_log_level = LaunchConfiguration("cm_log_level")
+    non_rt_cores = LaunchConfiguration('non_rt_cores')
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
+
+    # Parse allowed cores into a list of integers; allow formats like "2,3, 4" or "  "
+    cores = []
+    for part in non_rt_cores.perform(context).split(','):
+        part = part.strip()
+        if part == '':
+            continue
+        try:
+            cores.append(int(part))
+        except ValueError:
+            raise RuntimeError(
+                f"Invalid allowed_cores entry: '{part}'. "
+                "Provide a comma-separated list of integers, e.g. '2,3,4'."
+            )
+
+    # Compute the prefix: None if no cores; otherwise build 'taskset -c <list>'
+    prefix_cmd = None
+    if cores:
+        # Build the string "2,3,4" for taskset
+        core_list_str = ','.join(str(c) for c in cores)
+        prefix_cmd = f'taskset -c {core_list_str}'
 
     if not controller_config.perform(context):
         rel_path_to_config_file = (
@@ -152,6 +174,7 @@ def launch_setup(context, *args, **kwargs):
             "--log-level",
             f"controller_manager:={cm_log_level.perform(context)}",
         ],
+        prefix=prefix_cmd,
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -163,6 +186,7 @@ def launch_setup(context, *args, **kwargs):
             else "robot_manager_node_extended"
         ),
         parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
+        prefix=prefix_cmd,
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -170,10 +194,11 @@ def launch_setup(context, *args, **kwargs):
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        prefix=prefix_cmd,
     )
 
     # Spawn controllers
-    def controller_spawner(controller_name, param_file=None, activate=False):
+    def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
         arg_list = [
             controller_name,
             "-c",
@@ -189,7 +214,7 @@ def launch_setup(context, *args, **kwargs):
         if not activate:
             arg_list.append("--inactive")
 
-        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
+        return Node(package="controller_manager", executable="spawner", prefix=prefix_cmd, arguments=arg_list)
 
     controllers = {
         "joint_state_broadcaster": None,
@@ -205,7 +230,7 @@ def launch_setup(context, *args, **kwargs):
         controllers["kss_message_handler"] = None
 
     controller_spawners = [
-        controller_spawner(name, param_file) for name, param_file in controllers.items()
+        controller_spawner(name, prefix_cmd, param_file) for name, param_file in controllers.items()
     ]
 
     nodes_to_start = [
@@ -271,5 +296,17 @@ def generate_launch_description():
             + "/config/gpio_controller_config.yaml",
         )
     )
+
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            'non_rt_cores',
+            default_value='',
+            description=(
+                "Comma-separated CPU core indices for taskset pinning of non-RT threads "
+                "(e.g. '2,3,4'). Leave empty to disable pinning."
+            ),
+        )
+    )
+
 
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
