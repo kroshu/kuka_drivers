@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
         {
           cpu = static_cast<int>(cpu_affinity_param.as_int());
         }
-        
+
         if (cpu >= 0)
         {
           cpu_set_t cpuset;
@@ -75,7 +75,12 @@ int main(int argc, char ** argv)
           controller_manager->get_logger(),
           "You can use the driver but scheduler priority was not set");
       }
-      else RCLCPP_INFO(controller_manager->get_logger(), "Control loop priority was set to %d", param.sched_priority);
+      else
+      {
+        RCLCPP_INFO(
+          controller_manager->get_logger(), "Control loop priority was set to %d",
+          param.sched_priority);
+      }
 
       const rclcpp::Duration dt =
         rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());

@@ -50,8 +50,9 @@ def launch_setup(context, *args, **kwargs):
     # Controller manager prints a lot of warnings if cycle time is exceeded,
     #  which can be suppressed by this argument
     cm_log_level = LaunchConfiguration("cm_log_level")
-    non_rt_cores = LaunchConfiguration('non_rt_cores')
-    rt_core = LaunchConfiguration('rt_core')
+    non_rt_cores = LaunchConfiguration("non_rt_cores")
+    rt_core = LaunchConfiguration("rt_core")
+    rt_prio = LaunchConfiguration("rt_prio")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -59,9 +60,9 @@ def launch_setup(context, *args, **kwargs):
 
     # Parse allowed cores into a list of integers; allow formats like "2,3, 4" or "  "
     cores = []
-    for part in non_rt_cores.perform(context).split(','):
+    for part in non_rt_cores.perform(context).split(","):
         part = part.strip()
-        if part == '':
+        if part == "":
             continue
         try:
             cores.append(int(part))
@@ -75,8 +76,8 @@ def launch_setup(context, *args, **kwargs):
     prefix_cmd = None
     if cores:
         # Build the string "2,3,4" for taskset
-        core_list_str = ','.join(str(c) for c in cores)
-        prefix_cmd = f'taskset -c {core_list_str}'
+        core_list_str = ",".join(str(c) for c in cores)
+        prefix_cmd = f"taskset -c {core_list_str}"
 
     if not controller_config.perform(context):
         rel_path_to_config_file = (
@@ -217,7 +218,12 @@ def launch_setup(context, *args, **kwargs):
         if not activate:
             arg_list.append("--inactive")
 
-        return Node(package="controller_manager", executable="spawner", prefix=prefix_cmd, arguments=arg_list)
+        return Node(
+            package="controller_manager",
+            executable="spawner",
+            prefix=prefix_cmd,
+            arguments=arg_list,
+        )
 
     controllers = {
         "joint_state_broadcaster": None,
@@ -233,7 +239,8 @@ def launch_setup(context, *args, **kwargs):
         controllers["kss_message_handler"] = None
 
     controller_spawners = [
-        controller_spawner(name, prefix_cmd, param_file) for name, param_file in controllers.items()
+        controller_spawner(name, prefix_cmd, param_file)
+        for name, param_file in controllers.items()
     ]
 
     nodes_to_start = [
@@ -301,32 +308,27 @@ def generate_launch_description():
     )
     launch_arguments.append(
         DeclareLaunchArgument(
-            'rt_core',
-            default_value='',
-            description=(
-                "CPU core index for taskset pinning of the RT thread"
-            ),
+            "rt_core",
+            default_value="",
+            description=("CPU core index for taskset pinning of the RT thread"),
         )
     )
     launch_arguments.append(
         DeclareLaunchArgument(
-            'rt_prio',
+            "rt_prio",
             default_value=70,
-            description=(
-                "The priority of the thread that runs the control loop"
-            ),
+            description=("The priority of the thread that runs the control loop"),
         )
     )
     launch_arguments.append(
         DeclareLaunchArgument(
-            'non_rt_cores',
-            default_value='',
+            "non_rt_cores",
+            default_value="",
             description=(
                 "Comma-separated CPU core indices for taskset pinning of non-RT threads "
                 "(e.g. '2,3,4'). Leave empty to disable pinning."
             ),
         )
     )
-
 
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
