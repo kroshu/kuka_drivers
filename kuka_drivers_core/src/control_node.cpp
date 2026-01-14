@@ -45,6 +45,12 @@ int main(int argc, char ** argv)
         {
           cpu = static_cast<int>(cpu_affinity_param.as_int());
         }
+        else
+        {
+          RCLCPP_ERROR(
+            controller_manager->get_logger(),
+            "Invalid parameter type for 'cpu_affinity', it has to be an integer");
+        }
 
         if (cpu >= 0)
         {
@@ -66,7 +72,7 @@ int main(int argc, char ** argv)
       }
 
       struct sched_param param;
-      param.sched_priority = controller_manager->get_parameter_or<int>("thread_priority", 50);
+      param.sched_priority = controller_manager->get_parameter_or<int>("thread_priority", 70);
       if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
       {
         RCLCPP_ERROR(controller_manager->get_logger(), "setscheduler error");
