@@ -309,7 +309,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "rt_core",
-            default_value="",
+            default_value="-1",  # -1 means do not pin to core
             description=("CPU core index for taskset pinning of the RT thread"),
         )
     )
