@@ -52,7 +52,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   sub_options.callback_group = event_cbg_;
 
   event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
-    "kuka_event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
+    "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
     sub_options);
 
