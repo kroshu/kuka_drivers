@@ -229,6 +229,13 @@ Both launch files support the following arguments:
 - `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `mode` is set to 'mock')
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`).
+<<<<<<< HEAD
+=======
+- `cm_log_level` (only jazzy): It is possible to set the `controller_manager`'s log level with this argument, to avoid flooding the log output by warnings about cycle time violations
+- `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
+- `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
+- `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 

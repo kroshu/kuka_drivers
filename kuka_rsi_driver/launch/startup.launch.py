@@ -42,10 +42,40 @@ def launch_setup(context, *args, **kwargs):
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
     gpio_config = LaunchConfiguration("gpio_config")
+<<<<<<< HEAD
+=======
+    # Controller manager prints a lot of warnings if cycle time is exceeded,
+    #  which can be suppressed by this argument
+    cm_log_level = LaunchConfiguration("cm_log_level")
+    non_rt_cores = LaunchConfiguration("non_rt_cores")
+    rt_core = LaunchConfiguration("rt_core")
+    rt_prio = LaunchConfiguration("rt_prio")
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
+
+    # Parse allowed cores into a list of integers; allow formats like "2,3, 4" or "  "
+    cores = []
+    for part in non_rt_cores.perform(context).split(","):
+        part = part.strip()
+        if part == "":
+            continue
+        try:
+            cores.append(int(part))
+        except ValueError:
+            raise RuntimeError(
+                f"Invalid allowed_cores entry: '{part}'. "
+                "Provide a comma-separated list of integers, e.g. '2,3,4'."
+            )
+
+    # Compute the prefix: None if no cores; otherwise build 'taskset -c <list>'
+    prefix_cmd = None
+    if cores:
+        # Build the string "2,3,4" for taskset
+        core_list_str = ",".join(str(c) for c in cores)
+        prefix_cmd = f"taskset -c {core_list_str}"
 
     if not controller_config.perform(context):
         rel_path_to_config_file = (
@@ -135,11 +165,23 @@ def launch_setup(context, *args, **kwargs):
             jtc_config,
             gpio_config,
             {
+                "cpu_affinity": int(rt_core.perform(context)),
+                "thread_priority": int(rt_prio.perform(context)),
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
                 },
             },
         ],
+<<<<<<< HEAD
+=======
+        # Disable controller manager warnings about roundtrip time violations
+        arguments=[
+            "--ros-args",
+            "--log-level",
+            f"controller_manager:={cm_log_level.perform(context)}",
+        ],
+        prefix=prefix_cmd,
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -151,6 +193,7 @@ def launch_setup(context, *args, **kwargs):
             else "robot_manager_node_extended"
         ),
         parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
+        prefix=prefix_cmd,
     )
     robot_state_publisher = Node(
         namespace=ns,
@@ -158,10 +201,15 @@ def launch_setup(context, *args, **kwargs):
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        prefix=prefix_cmd,
     )
 
     # Spawn controllers
+<<<<<<< HEAD
     def controller_spawner(controller_names, activate=False):
+=======
+    def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
         arg_list = [
             controller_names,
             "-c",
@@ -171,7 +219,17 @@ def launch_setup(context, *args, **kwargs):
         ]
         if not activate:
             arg_list.append("--inactive")
+<<<<<<< HEAD
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
+=======
+
+        return Node(
+            package="controller_manager",
+            executable="spawner",
+            prefix=prefix_cmd,
+            arguments=arg_list,
+        )
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
 
     controller_names = [
         "joint_state_broadcaster",
@@ -186,7 +244,14 @@ def launch_setup(context, *args, **kwargs):
         controller_names.append("control_mode_handler")
         controller_names.append("kss_message_handler")
 
+<<<<<<< HEAD
     controller_spawners = [controller_spawner(name) for name in controller_names]
+=======
+    controller_spawners = [
+        controller_spawner(name, prefix_cmd, param_file)
+        for name, param_file in controllers.items()
+    ]
+>>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
 
     nodes_to_start = [
         control_node,
@@ -242,6 +307,30 @@ def generate_launch_description():
             "gpio_config",
             default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/gpio_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "rt_core",
+            default_value="-1",  # -1 means do not pin to core
+            description=("CPU core index for taskset pinning of the RT thread"),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "rt_prio",
+            default_value="70",
+            description=("The priority of the thread that runs the control loop"),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "non_rt_cores",
+            default_value="",
+            description=(
+                "Comma-separated CPU core indices for taskset pinning of non-RT threads "
+                "(e.g. '2,3,4'). Leave empty to disable pinning."
+            ),
         )
     )
 
