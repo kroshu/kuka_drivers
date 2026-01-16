@@ -42,15 +42,9 @@ def launch_setup(context, *args, **kwargs):
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
     gpio_config = LaunchConfiguration("gpio_config")
-<<<<<<< HEAD
-=======
-    # Controller manager prints a lot of warnings if cycle time is exceeded,
-    #  which can be suppressed by this argument
-    cm_log_level = LaunchConfiguration("cm_log_level")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
->>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -172,16 +166,7 @@ def launch_setup(context, *args, **kwargs):
                 },
             },
         ],
-<<<<<<< HEAD
-=======
-        # Disable controller manager warnings about roundtrip time violations
-        arguments=[
-            "--ros-args",
-            "--log-level",
-            f"controller_manager:={cm_log_level.perform(context)}",
-        ],
         prefix=prefix_cmd,
->>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
     )
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
@@ -205,11 +190,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Spawn controllers
-<<<<<<< HEAD
-    def controller_spawner(controller_names, activate=False):
-=======
-    def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
->>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
+    def controller_spawner(controller_names, prefix_cmd, activate=False):
         arg_list = [
             controller_names,
             "-c",
@@ -219,9 +200,6 @@ def launch_setup(context, *args, **kwargs):
         ]
         if not activate:
             arg_list.append("--inactive")
-<<<<<<< HEAD
-        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
-=======
 
         return Node(
             package="controller_manager",
@@ -229,7 +207,6 @@ def launch_setup(context, *args, **kwargs):
             prefix=prefix_cmd,
             arguments=arg_list,
         )
->>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
 
     controller_names = [
         "joint_state_broadcaster",
@@ -244,14 +221,7 @@ def launch_setup(context, *args, **kwargs):
         controller_names.append("control_mode_handler")
         controller_names.append("kss_message_handler")
 
-<<<<<<< HEAD
-    controller_spawners = [controller_spawner(name) for name in controller_names]
-=======
-    controller_spawners = [
-        controller_spawner(name, prefix_cmd, param_file)
-        for name, param_file in controllers.items()
-    ]
->>>>>>> 3e7e3cf (Make CPU affinities and realtime thread priority configurable for RSI driver (#291))
+    controller_spawners = [controller_spawner(name, prefix_cmd) for name in controller_names]
 
     nodes_to_start = [
         control_node,
