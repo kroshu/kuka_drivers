@@ -87,6 +87,9 @@ Both launch files support the following argument:
 - `ec_config`: the location of the configuration file for the `effort_controller` (defaults to `kuka_sunrise_fri_driver/config/effort_controller_config.yaml`)
 - `etb_config`: the location of the configuration file for the `external_torque_broadcaster` (defaults to `kuka_sunrise_fri_driver/config/external_torque_broadcaster._config.yaml`)
 - `cm_log_level` (only jazzy): It is possible to set the `controller_manager`'s log level with this argument, to avoid flooding the log output by warnings about cycle time violations
+- `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
+- `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
+- `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
