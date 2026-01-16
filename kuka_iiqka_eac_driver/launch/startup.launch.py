@@ -171,6 +171,7 @@ def launch_setup(context, *args, **kwargs):
                 "controller_ip": controller_ip,
             },
         ],
+        prefix=prefix_cmd,
     )
     robot_state_publisher = Node(
         namespace=ns,
