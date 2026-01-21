@@ -85,6 +85,28 @@ controller_interface::CallbackReturn JointGroupImpedanceController::on_init()
 
   return CallbackReturn::SUCCESS;
 }
+
+controller_interface::InterfaceConfiguration JointGroupImpedanceController::state_interface_configuration() const
+{
+  controller_interface::InterfaceConfiguration config;
+  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+  for (const auto & joint : params_.joints)
+  {
+    config.names.emplace_back(joint + "/" + hardware_interface::HW_IF_COMMANDED_POSITION);
+  }
+  return config;
+}
+
+controller_interface::return_type JointGroupImpedanceController::update(
+    const rclcpp::Time & time, const rclcpp::Duration & period)
+{
+    forward_command_controller::ForwardControllersBase::update(time, period);
+    for (auto i = 0; i < state_interfaces_.size(); ++i)
+    {
+
+    }
+}
+
 }  // namespace kuka_controllers
 
 PLUGINLIB_EXPORT_CLASS(

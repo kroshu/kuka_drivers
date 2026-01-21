@@ -31,10 +31,14 @@ class JointGroupImpedanceController : public forward_command_controller::Forward
 public:
   JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC JointGroupImpedanceController();
   JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_init() override;
+  JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC controller_interface::return_type update(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
   JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL void declare_parameters() override;
   JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL controller_interface::CallbackReturn read_parameters()
+    override;
+  JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL controller_interface::InterfaceConfiguration state_interface_configuration() const
     override;
 
   using Params = joint_group_impedance_controller::Params;
