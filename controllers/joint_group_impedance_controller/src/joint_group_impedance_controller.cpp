@@ -86,6 +86,15 @@ controller_interface::CallbackReturn JointGroupImpedanceController::on_init()
   return CallbackReturn::SUCCESS;
 }
 
+controller_interface::CallbackReturn JointGroupImpedanceController::on_configure(const rclcpp_lifecycle::State & previous_state)
+{
+  forward_command_controller::ForwardControllersBase::on_configure(previous_state);
+
+    commanded_joint_pos_publisher_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
+      "~/commanded_positions", rclcpp::SystemDefaultsQoS());
+}
+
+
 controller_interface::InterfaceConfiguration JointGroupImpedanceController::state_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration config;
@@ -103,8 +112,10 @@ controller_interface::return_type JointGroupImpedanceController::update(
     forward_command_controller::ForwardControllersBase::update(time, period);
     for (auto i = 0; i < state_interfaces_.size(); ++i)
     {
-
+      commanded_joint_pos_.data[i] = state_interfaces_[i].get_optional().value_or(commanded_joint_pos_.data[i]);
     }
+
+    commanded_joint_pos_publisher_->publish(commanded_joint_pos_);
 }
 
 }  // namespace kuka_controllers
