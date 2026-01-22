@@ -82,16 +82,18 @@ controller_interface::CallbackReturn JointGroupImpedanceController::on_init()
     fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
     return CallbackReturn::ERROR;
   }
-
   return CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn JointGroupImpedanceController::on_configure(const rclcpp_lifecycle::State & previous_state)
 {
-  forward_command_controller::ForwardControllersBase::on_configure(previous_state);
-
     commanded_joint_pos_publisher_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
       "~/commanded_positions", rclcpp::SystemDefaultsQoS());
+
+     auto ret = forward_command_controller::ForwardControllersBase::on_configure(previous_state);
+     // Parameters are read in base class configuration
+     commanded_joint_pos_.data.resize(params_.joints.size());
+     return ret;
 }
 
 
@@ -109,13 +111,14 @@ controller_interface::InterfaceConfiguration JointGroupImpedanceController::stat
 controller_interface::return_type JointGroupImpedanceController::update(
     const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-    forward_command_controller::ForwardControllersBase::update(time, period);
-    for (auto i = 0; i < state_interfaces_.size(); ++i)
+    for (size_t i = 0; i < state_interfaces_.size(); ++i)
     {
       commanded_joint_pos_.data[i] = state_interfaces_[i].get_optional().value_or(commanded_joint_pos_.data[i]);
     }
 
     commanded_joint_pos_publisher_->publish(commanded_joint_pos_);
+
+    return forward_command_controller::ForwardControllersBase::update(time, period);
 }
 
 }  // namespace kuka_controllers
