@@ -338,7 +338,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
       external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
     std::copy(
-      hw_position_commands_.begin(), hw_position_commands_.end(), hw_commanded_position_states_.begin());
+      hw_position_commands_.begin(), hw_position_commands_.end(),
+      hw_commanded_position_states_.begin());
 
     robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
     robot_state_.session_state_ = robotState().getSessionState();
@@ -474,7 +475,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
       info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION, &hw_commanded_position_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
+      &hw_commanded_position_states_[i]);
   }
 
   state_interfaces.emplace_back(

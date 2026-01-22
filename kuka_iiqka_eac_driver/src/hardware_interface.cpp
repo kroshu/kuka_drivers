@@ -139,7 +139,8 @@ std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export
       info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
 
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION, &hw_commanded_position_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
+      &hw_commanded_position_states_[i]);
   }
 
   state_interfaces.emplace_back(
@@ -265,7 +266,8 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     }
 
     std::copy(
-      hw_position_commands_.begin(), hw_position_commands_.end(), hw_commanded_position_states_.begin());
+      hw_position_commands_.begin(), hw_position_commands_.end(),
+      hw_commanded_position_states_.begin());
 
     cycle_count_++;
   }
