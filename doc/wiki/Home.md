@@ -138,7 +138,7 @@ For example in the `moveit_basic_planners_example` the following lines must be a
   example_node->moveGroupInterface()->setStartState(start_state);
 ```
 
-The joint position values commanded are available on the topic `/joint_group_impedance_controller/commanded_position`.
+The joint position values commanded are available on the topic `/joint_group_impedance_controller/commanded_positions`.
 
 Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
 
