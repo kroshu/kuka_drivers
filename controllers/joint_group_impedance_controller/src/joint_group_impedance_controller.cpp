@@ -114,8 +114,7 @@ controller_interface::return_type JointGroupImpedanceController::update(
 {
   for (size_t i = 0; i < state_interfaces_.size(); ++i)
   {
-    commanded_joint_pos_.data[i] =
-      state_interfaces_[i].get_optional().value_or(commanded_joint_pos_.data[i]);
+    commanded_joint_pos_.data[i] = state_interfaces_[i].get_value();
   }
 
   commanded_joint_pos_publisher_->publish(commanded_joint_pos_);
