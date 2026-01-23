@@ -31,17 +31,27 @@ class JointGroupImpedanceController : public forward_command_controller::Forward
 public:
   JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC JointGroupImpedanceController();
   JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_init() override;
+  JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State & previous_state) override;
+  JOINT_GROUP_IMPEDANCE_CONTROLLER_PUBLIC controller_interface::return_type update(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
   JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL void declare_parameters() override;
   JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL controller_interface::CallbackReturn read_parameters()
     override;
+  JOINT_GROUP_IMPEDANCE_CONTROLLER_LOCAL controller_interface::InterfaceConfiguration
+  state_interface_configuration() const override;
 
   using Params = joint_group_impedance_controller::Params;
   using ParamListener = joint_group_impedance_controller::ParamListener;
 
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
+
+  std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>>
+    commanded_joint_pos_publisher_;
+  std_msgs::msg::Float64MultiArray commanded_joint_pos_;
 };
 }  // namespace kuka_controllers
 #endif  // JOINT_GROUP_IMPEDANCE_CONTROLLER__JOINT_GROUP_IMPEDANCE_CONTROLLER_HPP_

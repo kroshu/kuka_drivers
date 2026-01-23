@@ -124,6 +124,7 @@ private:
 
   // State and command interfaces
   std::vector<double> hw_position_commands_;
+  std::vector<double> hw_commanded_position_states_;  // State interface for commanded positions
   std::vector<double> hw_torque_commands_;
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
