@@ -22,6 +22,8 @@ Example cli command to set damping to 0.7 and stiffness to 100 for all joints of
 ros2 topic pub /joint_group_impedance_controller/commands std_msgs/msg/Float64MultiArray "{data: [100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7, 100, 0.7]}" --once
 ```
 
+The controller also publishes the position values commanded at the joint position interface to the `~/commanded_position` topic, which can be used instead of the measured joint positions to allow seamless execution of consequent trajectories in joint impedance mode.
+
 __Required Parameters__:
 
 - `joints` [string_array]: Names of joints used by the controller
