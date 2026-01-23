@@ -88,7 +88,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
     if (joint.state_interfaces.size() != 3)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 2 state interface");
+        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 3 state interface");
       return CallbackReturn::ERROR;
     }
 
