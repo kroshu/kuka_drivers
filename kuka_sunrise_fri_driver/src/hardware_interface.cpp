@@ -36,6 +36,7 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   client_port_ = std::stoi(info_.hardware_parameters.at("client_port"));
 
   hw_position_states_.resize(info_.joints.size());
+  hw_commanded_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());
   hw_stiffness_commands_.resize(info_.joints.size());
   hw_damping_commands_.resize(info_.joints.size());
@@ -107,10 +108,10 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
       return CallbackReturn::ERROR;
     }
 
-    if (joint.state_interfaces.size() != 3)
+    if (joint.state_interfaces.size() != 4)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 3 state interface");
+        rclcpp::get_logger("KukaFRIHardwareInterface"), "expecting exactly 4 state interface");
       return CallbackReturn::ERROR;
     }
 
@@ -135,6 +136,13 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
       RCLCPP_FATAL(
         rclcpp::get_logger("KukaFRIHardwareInterface"),
         "expecting 'EXTERNAL_TORQUE' state interface as third");
+      return CallbackReturn::ERROR;
+    }
+    if (joint.state_interfaces[3].name != hardware_interface::HW_IF_COMMANDED_POSITION)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaFRIHardwareInterface"),
+        "expecting 'COMMANDED_POSITION' state interface as fourth");
       return CallbackReturn::ERROR;
     }
   }
@@ -316,6 +324,10 @@ hardware_interface::return_type KukaFRIHardwareInterface::read(
     hw_ext_torque_states_.assign(
       external_torque, external_torque + KUKA::FRI::LBRState::NUMBER_OF_JOINTS);
 
+    std::copy(
+      hw_position_commands_.begin(), hw_position_commands_.end(),
+      hw_commanded_position_states_.begin());
+
     robot_state_.tracking_performance_ = robotState().getTrackingPerformance();
     robot_state_.session_state_ = robotState().getSessionState();
     robot_state_.connection_quality_ = robotState().getConnectionQuality();
@@ -467,6 +479,10 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
 
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_EXTERNAL_TORQUE, &hw_ext_torque_states_[i]);
+
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
+      &hw_commanded_position_states_[i]);
   }
 
   state_interfaces.emplace_back(
