@@ -138,6 +138,8 @@ For example in the `moveit_basic_planners_example` the following lines must be a
   example_node->moveGroupInterface()->setStartState(start_state);
 ```
 
+The joint position values commanded are available on the topic `/joint_group_impedance_controller/commanded_pos`.
+
 Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
 
 If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/kuka_drivers/blob/humble/examples/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
