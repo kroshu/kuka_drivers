@@ -1,6 +1,6 @@
 robot_manager:
   ros__parameters:
-    control_mode: 1
+    control_mode: 2
     position_controller_name: "joint_trajectory_controller"
     impedance_controller_name: "joint_group_impedance_controller"
     torque_controller_name: "effort_controller"
