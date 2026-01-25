@@ -223,8 +223,6 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
     return false;
   }
 
-  RCLCPP_INFO(logger_, "Network setup successful!");
-
   return true;
 }
 
