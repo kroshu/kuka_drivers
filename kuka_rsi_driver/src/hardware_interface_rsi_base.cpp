@@ -530,7 +530,9 @@ kuka::external::control::Status KukaRSIHardwareInterfaceBase::ChangeCycleTime()
 
   if (prev_cycle_time_ != cycle_time)
   {
-    RCLCPP_INFO(logger_, "Changing RSI cycle time to %d", static_cast<int>(cycle_time));
+    RCLCPP_INFO(
+      logger_, "Changing RSI cycle time to %s",
+      kuka::external::control::kss::CycleTimeToString(cycle_time));
     auto status = robot_ptr_->SetCycleTime(cycle_time);
     if (status.return_code != kuka::external::control::ReturnCode::OK)
     {
