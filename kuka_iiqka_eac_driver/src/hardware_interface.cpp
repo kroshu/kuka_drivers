@@ -41,7 +41,7 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
   hw_torque_states_.resize(info_.joints.size(), 0.0);
   hw_position_commands_.resize(info_.joints.size(), 0.0);
   hw_torque_commands_.resize(info_.joints.size(), 0.0);
-  hw_stiffness_commands_.resize(info_.joints.size(), 30);
+  hw_stiffness_commands_.resize(info_.joints.size(), 1000.0);
   hw_damping_commands_.resize(info_.joints.size(), 0.7);
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
