@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from launch import LaunchDescription
-from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
-
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
+                                  PathJoinSubstitution)
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -116,7 +115,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(
-        DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100")
+        DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100_2")
     )
     launch_arguments.append(DeclareLaunchArgument("ext_axes_family", default_value="kl"))
     launch_arguments.append(DeclareLaunchArgument("robot_dof", default_value="6"))

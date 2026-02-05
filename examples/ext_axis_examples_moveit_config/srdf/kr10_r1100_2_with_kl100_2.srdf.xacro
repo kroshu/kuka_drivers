@@ -3,7 +3,7 @@
     This is a format for representing semantic information about the robot structure.
     A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
 -->
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kr16_r2010_2_with_kl100">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kr10_r1100_2_with_kl100_2">
   <xacro:arg name="prefix" default=""/>
   <xacro:include filename="$(find ext_axis_examples_moveit_config)/srdf/6_axis_kl_macro.xacro"/>
   <xacro:srdf_6_axis_kl prefix="$(arg prefix)"/>

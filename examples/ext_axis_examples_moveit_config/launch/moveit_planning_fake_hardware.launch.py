@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from launch import LaunchDescription
-from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-from moveit_configs_utils import MoveItConfigsBuilder
-from launch.actions.include_launch_description import IncludeLaunchDescription
+from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.launch_description_sources.python_launch_description_source import (
-    PythonLaunchDescriptionSource,
-)
+from launch.actions.include_launch_description import IncludeLaunchDescription
+from launch.launch_description_sources.python_launch_description_source import \
+    PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from moveit_configs_utils import MoveItConfigsBuilder
 
 
 def launch_setup(context, *args, **kwargs):
@@ -87,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(
-        DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100")
+        DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100_2")
     )
     launch_arguments.append(DeclareLaunchArgument("ext_axes_family", default_value="kl"))
     launch_arguments.append(DeclareLaunchArgument("robot_dof", default_value="6"))

@@ -14,8 +14,8 @@
 
 from launch import LaunchDescription
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -27,7 +27,7 @@ def generate_launch_description():
                 [
                     FindPackageShare("ext_axis_examples"),
                     "urdf",
-                    "kr16_r2010_2_with_kl100.urdf.xacro",
+                    "kr10_r1100_2_with_kl100_2.urdf.xacro",
                 ]
             ),
             " ",
