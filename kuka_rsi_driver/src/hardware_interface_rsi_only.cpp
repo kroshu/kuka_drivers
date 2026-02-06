@@ -28,8 +28,8 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   kuka::external::control::kss::Configuration rsi_config;
   rsi_config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  rsi_config.client_ip = info_.hardware_parameters["client_ip"];
-  rsi_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
+  rsi_config.client_ip = info_.hardware_parameters.at("client_ip");
+  rsi_config.client_port = std::stoi(info_.hardware_parameters.at("client_port"));
 
   if (!SetupRobot(rsi_config, nullptr, nullptr))
   {
