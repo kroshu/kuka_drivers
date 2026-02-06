@@ -16,11 +16,11 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
-                                  PathJoinSubstitution)
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
 import os
+
 
 def launch_setup(context):
     robot_model = LaunchConfiguration("robot_model")
@@ -160,14 +160,7 @@ def launch_setup(context):
 
     # Spawn controllers
     def controller_spawner(controller_names, param_file):
-        arg_list = [
-            controller_names,
-            "-c",
-            controller_manager_node,
-            "-n",
-            ns,
-            "--inactive"
-        ]
+        arg_list = [controller_names, "-c", controller_manager_node, "-n", ns, "--inactive"]
 
         if param_file:
             if not os.path.isfile(param_file.perform(context)):
@@ -177,9 +170,9 @@ def launch_setup(context):
         return Node(package="controller_manager", executable="spawner", arguments=arg_list)
 
     controllers = {
-        "joint_state_broadcaster" : None,
+        "joint_state_broadcaster": None,
         "joint_trajectory_controller": jtc_config,
-        "event_broadcaster": None
+        "event_broadcaster": None,
     }
 
     if use_gpio.perform(context) == "true":
@@ -189,7 +182,9 @@ def launch_setup(context):
         controllers["control_mode_handler"] = None
         controllers["kss_message_handler"] = None
 
-    controller_spawners = [controller_spawner(name, param_file) for name, param_file in controllers.items()]
+    controller_spawners = [
+        controller_spawner(name, param_file) for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
         control_node,
@@ -202,7 +197,9 @@ def launch_setup(context):
 
 def generate_launch_description():
     launch_arguments = []
-    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100_2"))
+    launch_arguments.append(
+        DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100_2")
+    )
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])

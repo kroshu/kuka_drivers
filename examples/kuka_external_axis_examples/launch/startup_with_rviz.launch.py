@@ -31,13 +31,19 @@ def generate_launch_description():
     rviz_config_launch_arg = DeclareLaunchArgument(
         "rviz_config",
         default_value=os.path.join(
-            get_package_share_directory("kuka_external_axis_examples"), "config", "rviz", "view_6_axis_kl_urdf.rviz"
+            get_package_share_directory("kuka_external_axis_examples"),
+            "config",
+            "rviz",
+            "view_6_axis_kl_urdf.rviz",
         ),
     )
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [get_package_share_directory("kuka_external_axis_examples"), "/launch/startup.launch.py"]
+            [
+                get_package_share_directory("kuka_external_axis_examples"),
+                "/launch/startup.launch.py",
+            ]
         )
     )
 
