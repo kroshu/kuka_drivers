@@ -37,8 +37,8 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   }
 
   RCLCPP_INFO(
-    logger_, "Network setup successful - RSI listening on %s:%d",
-    rsi_config.client_ip.c_str(), rsi_config.client_port);
+    logger_, "Network setup successful - RSI listening on %s:%d", rsi_config.client_ip.c_str(),
+    rsi_config.client_port);
 
   return CallbackReturn::SUCCESS;
 }

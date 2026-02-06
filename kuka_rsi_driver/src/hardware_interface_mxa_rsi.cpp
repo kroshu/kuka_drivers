@@ -98,8 +98,8 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 
   RCLCPP_INFO(
     logger_, "Network setup successful - Controller: %s, mxA port: %d, RSI listening on %s:%d",
-    mxa_config.kli_ip_address.c_str(), mxa_config.mxa_client_port,
-    mxa_config.client_ip.c_str(), mxa_config.client_port);
+    mxa_config.kli_ip_address.c_str(), mxa_config.mxa_client_port, mxa_config.client_ip.c_str(),
+    mxa_config.client_port);
 
   auto status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &status_manager_));
