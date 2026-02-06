@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="srdf_6_axis_kl" params="prefix">
+    <xacro:include filename="$(find kuka_kl_support)/srdf/kl_macro.xacro"/>
+    <xacro:include filename="$(find kuka_external_axis_examples_moveit_config)/srdf/6_axis_macro.xacro"/>
+    <xacro:srdf_6_axis_ext_axes prefix="${prefix}">
+      <ext_joints>
+        <xacro:kl_srdf_joints/>
+      </ext_joints>
+      <ext_adjacent_links>
+        <xacro:kl_srdf_adjacent_links robot_base_link="${prefix}base_link"/>
+      </ext_adjacent_links>
+    </xacro:srdf_6_axis_ext_axes>
+  </xacro:macro>
+</robot>

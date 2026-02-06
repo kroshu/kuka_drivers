@@ -4,6 +4,8 @@
   <name>kuka_kss_message_handler</name>
   <version>0.0.0</version>
   <description>Non-real time message handler for KSS KUKA robots</description>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
   <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Pasztor</maintainer>
   <license>Apache-2.0</license>
 
