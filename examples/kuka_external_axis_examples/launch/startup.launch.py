@@ -209,7 +209,7 @@ def generate_launch_description():
             "driver_version",
             default_value="rsi_only",
             description="Select the driver version to use",
-            choices=["rsi_only", "eki_rsi"],
+            choices=["rsi_only", "eki_rsi", "mxa_rsi"],
         )
     )
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
