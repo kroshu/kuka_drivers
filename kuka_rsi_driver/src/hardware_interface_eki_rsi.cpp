@@ -95,8 +95,7 @@ CallbackReturn KukaEkiRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 
   RCLCPP_INFO(
     logger_, "Network setup successful - Controller: %s, RSI listening on %s:%d",
-    eki_config.kli_ip_address.c_str(), eki_config.client_ip.c_str(),
-    eki_config.client_port);
+    eki_config.kli_ip_address.c_str(), eki_config.client_ip.c_str(), eki_config.client_port);
 
   auto status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &status_manager_));
