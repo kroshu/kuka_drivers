@@ -34,7 +34,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(const hardware_interface::Ha
     return CallbackReturn::ERROR;
   }
 
-  RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters["controller_ip"].c_str());
+  RCLCPP_INFO(logger_, "Controller IP: %s", info_.hardware_parameters.at("controller_ip").c_str());
 
   auto it = info_.hardware_parameters.find("verify_robot_model");
   verify_robot_model_ = (it != info_.hardware_parameters.end() && it->second == "True");
@@ -82,11 +82,12 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
     kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS);
 
   kuka::external::control::kss::Configuration mxa_config;
-  mxa_config.kli_ip_address = info_.hardware_parameters["controller_ip"];
-  mxa_config.client_port = std::stoi(info_.hardware_parameters["client_port"]);
-  mxa_config.mxa_client_port = std::stoi(info_.hardware_parameters["mxa_client_port"]);
-
-  RCLCPP_INFO(logger_, "mxAutomation client port: %d", mxa_config.client_port);
+  mxa_config.installed_interface =
+    kuka::external::control::kss::Configuration::InstalledInterface::MXA_RSI;
+  mxa_config.kli_ip_address = info_.hardware_parameters.at("controller_ip");
+  mxa_config.client_ip = info_.hardware_parameters.at("client_ip");
+  mxa_config.client_port = std::stoi(info_.hardware_parameters.at("client_port"));
+  mxa_config.mxa_client_port = std::stoi(info_.hardware_parameters.at("mxa_client_port"));
 
   if (!SetupRobot(
         mxa_config, std::make_unique<EventObserver>(this),
@@ -94,6 +95,11 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
   {
     return CallbackReturn::ERROR;
   }
+
+  RCLCPP_INFO(
+    logger_, "Network setup successful - Controller: %s, mxA port: %d, RSI listening on %s:%d",
+    mxa_config.kli_ip_address.c_str(), mxa_config.mxa_client_port, mxa_config.client_ip.c_str(),
+    mxa_config.client_port);
 
   auto status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &status_manager_));

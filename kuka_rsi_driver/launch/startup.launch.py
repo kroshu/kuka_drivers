@@ -29,6 +29,7 @@ def launch_setup(context, *args, **kwargs):
     driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
+    mxa_client_port = LaunchConfiguration("mxa_client_port")
     controller_ip = LaunchConfiguration("controller_ip")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
@@ -105,6 +106,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "client_port:=",
             client_port,
+            " ",
+            "mxa_client_port:=",
+            mxa_client_port,
             " ",
             "client_ip:=",
             client_ip,
@@ -251,6 +255,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
     launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
+    launch_arguments.append(DeclareLaunchArgument("mxa_client_port", default_value="1337"))
     launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
