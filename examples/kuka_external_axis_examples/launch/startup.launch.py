@@ -64,7 +64,7 @@ def launch_setup(context):
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare(f"kuka_external_axis_examples"),
+                    FindPackageShare("kuka_external_axis_examples"),
                     "urdf",
                     robot_model.perform(context) + ".urdf.xacro",
                 ]

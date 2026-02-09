@@ -55,7 +55,8 @@ def launch_setup(context, *args, **kwargs):
             file_path=get_package_share_directory("kuka_external_axis_examples")
             + f"/config/{robot_model.perform(context)}_joint_limits.yaml"
         )
-        # No explicit planning pipeline setup needed: MoveIt loads any config/*_planning.yaml files automatically
+        # No explicit planning pipeline setup needed:
+        # MoveIt loads any config/*_planning.yaml files automatically
         .to_moveit_configs()
     )
 
