@@ -1,2 +1,5 @@
+build*
+CMake*.user
+.idea
 __pycache__/
 .vscode
