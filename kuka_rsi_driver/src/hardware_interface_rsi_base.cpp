@@ -169,10 +169,11 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
   std::unique_ptr<kuka::external::control::EventHandler> event_handler,
   std::unique_ptr<kuka::external::control::kss::IEventHandlerExtension> extension)
 {
-  RCLCPP_INFO(logger_, "Initiating network setup...");
+  RCLCPP_INFO(logger_, "Setting up robot...");
 
-  config.dof = info_.joints.size();
-  RCLCPP_INFO(logger_, "Configured GPIO commands:");
+  ConfigureJoints(config);
+
+  RCLCPP_INFO(logger_, info_.gpios[0].command_interfaces.empty() ? "No GPIO command interfaces configured" :"Configured GPIO commands:");
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)
   {
     RCLCPP_INFO(
@@ -185,7 +186,7 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
 
-  RCLCPP_INFO(logger_, "Configured GPIO states:");
+  RCLCPP_INFO(logger_, info_.gpios[0].state_interfaces.empty() ? "No GPIO state interfaces configured" : "Configured GPIO states:");
   for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
     RCLCPP_INFO(
@@ -223,7 +224,7 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
     return false;
   }
 
-  RCLCPP_INFO(logger_, "Network setup successful!");
+  RCLCPP_INFO(logger_, "Robot setup successful!");
 
   return true;
 }
@@ -301,6 +302,7 @@ bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
 
   return true;
 }
+
 void KukaRSIHardwareInterfaceBase::CopyGPIOStatesToCommands()
 {
   for (size_t i = 0; i < gpio_states_to_commands_map_.size(); i++)
@@ -551,6 +553,25 @@ void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
   prev_cycle_time_ = cycle_time;
   hw_control_mode_command_ = static_cast<double>(control_mode);
   cycle_time_command_ = static_cast<double>(cycle_time);
+}
+
+void KukaRSIHardwareInterfaceBase::ConfigureJoints(kuka::external::control::kss::Configuration & config)
+{
+  config.dof = info_.joints.size();
+
+  using JC = kuka::external::control::kss::JointConfiguration;
+
+  for (const auto & joint : info_.joints) {
+    // Default to REVOLUTE joint
+    const auto type_it = joint.parameters.find(std::string(kTypeParamValue));
+    const auto type = (type_it == joint.parameters.end()) ? JC::Type::REVOLUTE : JC::ToType(type_it->second);
+
+    // Default to internal joints
+    const auto external_it = joint.parameters.find(std::string(kIsExternalParamValue));
+    const bool is_external = (external_it == joint.parameters.end()) ? false : external_it->second == "true";
+
+    config.joint_configs.emplace_back(joint.name, type, is_external);
+  }
 }
 
 }  // namespace kuka_rsi_driver
