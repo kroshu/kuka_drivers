@@ -1,0 +1,244 @@
+# Copyright 2023 Aron Svastits
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
+                                  PathJoinSubstitution)
+from launch_ros.actions import LifecycleNode, Node
+from launch_ros.substitutions import FindPackageShare
+
+
+def launch_setup(context, *args, **kwargs):
+    robot_model = LaunchConfiguration("robot_model")
+    mode = LaunchConfiguration("mode")
+    use_gpio = LaunchConfiguration("use_gpio")
+    driver_version = LaunchConfiguration("driver_version")
+    client_ip = LaunchConfiguration("client_ip")
+    client_port = LaunchConfiguration("client_port")
+    controller_ip = LaunchConfiguration("controller_ip")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
+    roundtrip_time = LaunchConfiguration("roundtrip_time")
+    verify_robot_model = LaunchConfiguration("verify_robot_model")
+    ns = LaunchConfiguration("namespace")
+    controller_config = LaunchConfiguration("controller_config")
+    jtc_config = LaunchConfiguration("jtc_config")
+    gpio_config = LaunchConfiguration("gpio_config")
+    if ns.perform(context) == "":
+        tf_prefix = ""
+    else:
+        tf_prefix = ns.perform(context) + "_"
+
+    if not controller_config.perform(context):
+        rel_path_to_config_file = (
+            "/config/ros2_controller_config_rsi_only.yaml"
+            if driver_version.perform(context) == "rsi_only"
+            else "/config/ros2_controller_config_eki_rsi.yaml"
+        )
+        controller_config = (
+            get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
+        )
+
+    # Get URDF via xacro
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [
+                    FindPackageShare(f"ext_axis_examples"),
+                    "urdf",
+                    robot_model.perform(context) + ".urdf.xacro",
+                ]
+            ),
+            " ",
+            "mode:=",
+            mode,
+            " ",
+            "use_gpio:=",
+            use_gpio,
+            " ",
+            "driver_version:=",
+            driver_version,
+            " ",
+            "client_port:=",
+            client_port,
+            " ",
+            "client_ip:=",
+            client_ip,
+            " ",
+            "controller_ip:=",
+            controller_ip,
+            " ",
+            "prefix:=",
+            tf_prefix,
+            " ",
+            "x:=",
+            x,
+            " ",
+            "y:=",
+            y,
+            " ",
+            "z:=",
+            z,
+            " ",
+            "roll:=",
+            roll,
+            " ",
+            "pitch:=",
+            pitch,
+            " ",
+            "yaw:=",
+            yaw,
+            " ",
+            "roundtrip_time:=",
+            roundtrip_time,
+            " ",
+            "verify_robot_model:=",
+            verify_robot_model,
+        ],
+        on_stderr="capture",
+    )
+
+    robot_description = {"robot_description": robot_description_content}
+
+    # The driver config contains only parameters that can be changed after startup
+    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
+
+    controller_manager_node = ns.perform(context) + "/controller_manager"
+
+    control_node = Node(
+        namespace=ns,
+        package="kuka_drivers_core",
+        executable="control_node",
+        parameters=[
+            robot_description,
+            controller_config,
+            jtc_config,
+            gpio_config,
+            {
+                "hardware_components_initial_state": {
+                    "unconfigured": [tf_prefix + robot_model.perform(context)]
+                },
+            },
+        ],
+    )
+    robot_manager_node = LifecycleNode(
+        name=["robot_manager"],
+        namespace=ns,
+        package="kuka_rsi_driver",
+        executable=(
+            "robot_manager_node_rsi_only"
+            if driver_version.perform(context) == "rsi_only"
+            else "robot_manager_node_eki_rsi"
+        ),
+        parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
+    )
+    robot_state_publisher = Node(
+        namespace=ns,
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="both",
+        parameters=[robot_description],
+    )
+
+    # Spawn controllers
+    def controller_spawner(controller_names, activate=False):
+        arg_list = [
+            controller_names,
+            "-c",
+            controller_manager_node,
+            "-n",
+            ns,
+        ]
+        if not activate:
+            arg_list.append("--inactive")
+        return Node(package="controller_manager", executable="spawner", arguments=arg_list)
+
+    controller_names = ["joint_state_broadcaster", "joint_trajectory_controller"]
+
+    if use_gpio.perform(context) == "true":
+        controller_names.append("gpio_controller")
+
+    if driver_version.perform(context) == "eki_rsi":
+        controller_names.append("control_mode_handler")
+        controller_names.append("event_broadcaster")
+        controller_names.append("kss_message_handler")
+
+    controller_spawners = [controller_spawner(name) for name in controller_names]
+
+    nodes_to_start = [
+        control_node,
+        robot_manager_node,
+        robot_state_publisher,
+    ] + controller_spawners
+
+    return nodes_to_start
+
+
+def generate_launch_description():
+    launch_arguments = []
+    launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr10_r1100_2_with_kl100_2"))
+    launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
+    launch_arguments.append(
+        DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "driver_version",
+            default_value="rsi_only",
+            description="Select the driver version to use",
+            choices=["rsi_only", "eki_rsi"],
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("namespace", default_value=""))
+    launch_arguments.append(DeclareLaunchArgument("client_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
+    launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roll", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("pitch", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("yaw", default_value="0"))
+    launch_arguments.append(DeclareLaunchArgument("roundtrip_time", default_value="4000"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "verify_robot_model", default_value="true", choices=["true", "false"]
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "jtc_config",
+            default_value=get_package_share_directory("ext_axis_examples")
+            + "/config/joint_trajectory_controller_config_6_axis_kl.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "gpio_config",
+            default_value=get_package_share_directory("kuka_rsi_driver")
+            + "/config/gpio_controller_config.yaml",
+        )
+    )
+
+    return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])
