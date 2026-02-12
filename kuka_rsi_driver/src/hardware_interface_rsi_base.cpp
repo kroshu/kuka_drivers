@@ -571,6 +571,8 @@ void KukaRSIHardwareInterfaceBase::ConfigureJoints(kuka::external::control::kss:
     const bool is_external = (external_it == joint.parameters.end()) ? false : external_it->second == "true";
 
     config.joint_configs.emplace_back(joint.name, type, is_external);
+
+    RCLCPP_INFO_STREAM(logger_, "Configured a(n) " << JC::TypeToString(type) << ' ' << (is_external ? "external" : "internal") << " joint");
   }
 }
 
