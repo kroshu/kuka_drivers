@@ -218,7 +218,7 @@ A new context should be created in the same manner based on the original context
 
 ##### Ethernet configuration
 
-The configuration file referrenced by the `Ethernet` object must also be changed. The configuration needed for a single external axis can be seen in `RobotSensorInterface/Ethernet configuration/rsi_ext_axis_ethernet.xml`.
+The configuration file referenced by the `Ethernet` object must also be changed. The configuration needed for a single external axis can be seen in `RobotSensorInterface/Ethernet configuration/rsi_ext_axis_ethernet.xml`.
 
 The only difference between the original configuration and the new one is that tha later adds the following line to the `RECEIVE` block:
 
