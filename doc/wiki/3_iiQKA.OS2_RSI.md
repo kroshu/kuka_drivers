@@ -186,6 +186,65 @@ To configure the client side, two configuration files need to be completed:
      - These must be listed in groups, as explained in the linked controller documentation.
      - Ensure that the interface names match those defined earlier.
 
+### External axes configuration
+
+Both the iiQKA.OS2 system itself and the RSI option package support the possibility of adding external axes to the robot. We provide an example integrating a single linear axis, but hopefully this example, the structure and documentation provided helps the users implement their custom external axis configuration.
+
+#### Controller side configuration
+
+To configure the controller side, use the following files in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
+
+##### Context
+
+The `RobotSensorInterface/Context/rsi_ext_axis_example.rsix` file offers the example setup with one linear external axis integrated:
+
+![External Axis Example Context](resources/rsi_ext_axis_example_context.png)
+
+Compared to the original context
+
+![Original Context](resources/rsi_joint_pos_context.png)
+
+The following changes were needed in the above example:
+
+- Add the `AxisCorrExt` RSI object to the context
+- Connect the `Out8` output of the `Ethernet` object to the first input of the `AxisCorrExt` object
+- Modify the `LowerLimE1` and `UpperLimE1` parameters of the `AxisCorrExt` object
+- Modify the `MaxE1` parameter of the `AxisCorrMon` object
+
+A new context should be created in the same manner based on the original context to fit an arbitrary use case of external axes configuration:
+
+- connect the next `OutX` output of the `Ethernet` object to `CorrEX` input of `AxisCorrExt` object for every external axis
+- modify the limits (i.e., `MaxEX`, `LowerLimX` and `UpperLimX`)
+
+##### Ethernet configuration
+
+The configuration file referrenced by the `Ethernet` object must also be changed. The configuration needed for a single external axis can be seen in `RobotSensorInterface/Ethernet configuration/rsi_ext_axis_ethernet.xml`.
+
+The only difference between the original configuration and the new one is that tha later adds the following line to the `RECEIVE` block:
+
+```xml
+<ELEMENT TAG="EK.E1" TYPE="DOUBLE" INDX="8" HOLDON="1" />
+```
+
+This is what enables RSI to parse the data arriving from the driver.
+
+> [!IMPORTANT]
+> Make sure to always use the same convention for naming the values associated with external axis (i.e., `TAG="EK.EX`, where `X` should increase by one for each new axis). Make sure that the `INDX` values increase by one for each axis.
+
+> [!IMPORTANT]
+> When using GPIOs along external axes, add the lines related to external axes _before_ adding the GPIO message configuration (i.e, first come internal axes, then external axes, and finally GPIOs).
+
+##### Program
+
+To change the KRL program for the external axis example, change the `CONTEXT_NAME` variable in `Program/RSI/rsi_joint_pos.dat` to `rsi_ext_axis_example` (similarly, for the arbitrary use case use the context name of the specified context).
+
+#### Client side configuration
+
+Check out the [README of the kuka_robot_descriptions repository](https://github.com/kroshu/kuka_robot_descriptions/README.md#external-axes-configuration) to find out about all the configurations needed on the client side.
+
+> [!NOTE]
+> The driver only supports revolute and prismatic external joints.
+
 ## Usage
 
 ### Starting the driver
