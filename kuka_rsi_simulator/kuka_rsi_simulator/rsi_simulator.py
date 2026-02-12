@@ -29,8 +29,8 @@ def create_rsi_xml_rob(act_joint_pos, timeout_count, ipoc):
         root, "RIst", {"X": "0.0", "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"}
     )
     ET.SubElement(root, "AIPos", {f"A{i+1}": str(q[i]) for i in range(6)})
+    ET.SubElement(root, "EIPos", {f"E{i+1}": str(q[i + 6]) for i in range(6)})
     ET.SubElement(root, "Delay", {"D": str(timeout_count)})
-    ET.SubElement(root, "EXT", {f"E{i+1}": str(q[i + 6]) for i in range(6)})
     ET.SubElement(root, "IPOC").text = str(ipoc)
     return ET.tostring(root, encoding="utf-8", method="xml").replace(b" />", b"/>")
 
@@ -40,9 +40,12 @@ def parse_rsi_xml_sen(data):
 
     corrections = []
     for tag, letter in [("AK", "A"), ("EK", "E")]:
-        attribute = root.find(tag).attrib
-        values = [attribute[f"{letter}{i+1}"] for i in range(6)]
-        corrections.extend(values)
+        if root.find(tag) is not None:
+            attribute = root.find(tag).attrib
+            values = [attribute[f"{letter}{i+1}"] for i in range(6) if attribute.get(f"{letter}{i+1}", None)]
+            corrections.extend(values)
+
+    corrections.extend([0] * (12 - len(corrections)))
 
     IPOC = root.find("IPOC").text
     stop_flag = root.find("Stop").text
