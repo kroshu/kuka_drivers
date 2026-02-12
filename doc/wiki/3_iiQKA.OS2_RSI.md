@@ -240,7 +240,7 @@ To change the KRL program for the external axis example, change the `CONTEXT_NAM
 
 #### Client side configuration
 
-Check out the [README of the kuka_robot_descriptions repository](https://github.com/kroshu/kuka_robot_descriptions/README.md#external-axes-configuration) to find out about all the configurations needed on the client side.
+Check out the [README of the kuka_robot_descriptions repository](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axes-configuration) to find out about all the configurations needed on the client side.
 
 > [!NOTE]
 > The driver only supports revolute and prismatic external joints.
