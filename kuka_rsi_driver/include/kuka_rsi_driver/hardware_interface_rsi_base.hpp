@@ -140,6 +140,12 @@ protected:
   static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{3};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
+
+private:
+  KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(kuka::external::control::kss::Configuration & config);
+
+  static constexpr std::string_view kTypeParamValue = "type";
+  static constexpr std::string_view kIsExternalParamValue = "is_external";
 };
 }  // namespace kuka_rsi_driver
 

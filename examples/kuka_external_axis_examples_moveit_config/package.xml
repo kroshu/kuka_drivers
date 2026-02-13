@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kuka_external_axis_examples_moveit_config</name>
+  <version>0.0.0</version>
+  <description>Package containing MoveIt configurations for external axis support</description>
+  <maintainer email="svastits1@gmail.com">Aron Svastits</maintainer>
+  <maintainer email="kovacsge.work@gmail.com">Gergely Kovacs</maintainer>
+  <maintainer email="pasztor.kristof.kp@gmail.com">Kristof Matyas Pasztor</maintainer>
+  <maintainer email="pepo.tamas@gmail.com">Tamas Pepo</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>urdf</depend>
+  <depend>xacro</depend>
+
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>kuka_external_axis_examples</exec_depend>
+  <exec_depend>kuka_kl_support</exec_depend>
+  <exec_depend>moveit</exec_depend>
+  <exec_depend>moveit_planners</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <architecture_independent/>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

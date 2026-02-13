@@ -322,3 +322,57 @@ Once the driver is launched, one can use the standard ROS 2 lifecycle transition
 - `ros2 lifecycle set /robot_manager cleanup`: Terminates the connection to the robot controller
 
 The integration of EKI not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers. For more details, refer to the [Controllers](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers) wiki page.
+
+
+## External axes configuration
+
+Both KSS and the RSI option package support adding external axes to the robot. We provide an example that integrates a single linear axis. This example, together with the structure and documentation, should help users implement their own external‑axis configurations.
+
+### Controller-side configuration
+
+Use the files in [`kuka_external_control_sdk/krc_setup/kss`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/kss) when configuring the controller side.
+
+#### Context
+
+The `Config/User/Common/SensorInterface/rsi_ext_axis_example.rsix` contains an example setup with one linear external axis.
+
+Compared to the original context the following changes were required:
+
+- Add the `AxisCorrExt` object.
+- Connect `Ethernet` object's `Out8` output to the first input of `AxisCorrExt`.
+- Update the `LowerLimE1` and `UpperLimE1` parameters of `AxisCorrExt`.
+- Update the `MaxE1` parameter of the `AxisCorrMon` object.
+
+To create a new custom context:
+
+- Connect the next `OutX` output of the `Ethernet` object to the corresponding `CorrEX` input of `AxisCorrExt` for each external axis.
+- Adjust limits (`MaxEX`, `LowerLimX`, `UpperLimX`) accordingly.
+
+#### Ethernet configuration
+
+The configuration file referenced by the Ethernet object must also be updated. See the example in: `Config/User/Common/SensorInterface/rsi_ext_axis_ethernet.xml`.
+
+The only difference from the original configuration is an additional line in the `RECEIVE` block:
+
+```xml
+<ELEMENT TAG="EK.E1" TYPE="DOUBLE" INDX="8" HOLDON="1" />
+```
+
+This allows RSI to parse data from the driver.
+
+> [!IMPORTANT]
+> Use a consistent naming convention for external-axis values (`TAG="EK.EX"`), incrementing `X` for each axis. Ensure `INDX` values also increase sequentially.
+
+> [!IMPORTANT]
+> When using GPIOs, list external axes before adding GPIO message configuration. The correct order is: internal axes &rarr; external axes &rarr; GPIOs.
+
+#### Program
+
+To adapt the KRL program for the external-axis example, update the RSI context name in either `KRC/R1/Program/RSI/rsi_joint_pos_4ms.src` or `KRC/R1/Program/RSI/rsi_joint_pos_12ms.src`, depending on your use case, to `rsi_ext_axis_example`. For custom setups, use the name of the corresponding context file.
+
+### Client-side configuration
+
+See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axes-configuration) for all client-side configuration steps.
+
+> [!NOTE]
+> The driver supports only __revolute__ and __prismatic__ external joints.
