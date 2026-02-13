@@ -173,7 +173,9 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
 
   ConfigureJoints(config);
 
-  RCLCPP_INFO(logger_, info_.gpios[0].command_interfaces.empty() ? "No GPIO command interfaces configured" :"Configured GPIO commands:");
+  RCLCPP_INFO(
+    logger_, info_.gpios[0].command_interfaces.empty() ? "No GPIO command interfaces configured"
+                                                       : "Configured GPIO commands:");
   for (const auto & gpio_command : info_.gpios[0].command_interfaces)
   {
     RCLCPP_INFO(
@@ -186,7 +188,9 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
 
-  RCLCPP_INFO(logger_, info_.gpios[0].state_interfaces.empty() ? "No GPIO state interfaces configured" : "Configured GPIO states:");
+  RCLCPP_INFO(
+    logger_, info_.gpios[0].state_interfaces.empty() ? "No GPIO state interfaces configured"
+                                                     : "Configured GPIO states:");
   for (const auto & gpio_state : info_.gpios[0].state_interfaces)
   {
     RCLCPP_INFO(
@@ -555,24 +559,31 @@ void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
   cycle_time_command_ = static_cast<double>(cycle_time);
 }
 
-void KukaRSIHardwareInterfaceBase::ConfigureJoints(kuka::external::control::kss::Configuration & config)
+void KukaRSIHardwareInterfaceBase::ConfigureJoints(
+  kuka::external::control::kss::Configuration & config)
 {
-  config.dof = info_.joints.size();
-
   using JC = kuka::external::control::kss::JointConfiguration;
 
-  for (const auto & joint : info_.joints) {
-    // Default to REVOLUTE joint
+  config.dof = info_.joints.size();
+  config.joint_configs.reserve(info_.joints.size());
+
+  for (const auto & joint : info_.joints)
+  {
+    // Default to revolute joints
     const auto type_it = joint.parameters.find(std::string(kTypeParamValue));
-    const auto type = (type_it == joint.parameters.end()) ? JC::Type::REVOLUTE : JC::ToType(type_it->second);
+    const auto type =
+      (type_it == joint.parameters.end()) ? JC::Type::REVOLUTE : JC::ToType(type_it->second);
 
     // Default to internal joints
     const auto external_it = joint.parameters.find(std::string(kIsExternalParamValue));
-    const bool is_external = (external_it == joint.parameters.end()) ? false : external_it->second == "true";
+    const bool is_external =
+      (external_it == joint.parameters.end()) ? false : external_it->second == "true";
 
     config.joint_configs.emplace_back(joint.name, type, is_external);
 
-    RCLCPP_INFO_STREAM(logger_, "Configured a(n) " << JC::TypeToString(type) << ' ' << (is_external ? "external" : "internal") << " joint");
+    RCLCPP_INFO_STREAM(
+      logger_, "Configured joint \"" << joint.name << "\": type=" << JC::TypeToString(type)
+                                     << ", external=" << (is_external ? "true" : "false"));
   }
 }
 

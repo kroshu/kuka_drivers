@@ -42,7 +42,11 @@ def parse_rsi_xml_sen(data):
     for tag, letter in [("AK", "A"), ("EK", "E")]:
         if root.find(tag) is not None:
             attribute = root.find(tag).attrib
-            values = [attribute[f"{letter}{i+1}"] for i in range(6) if attribute.get(f"{letter}{i+1}", None)]
+            values = [
+                attribute[f"{letter}{i+1}"]
+                for i in range(6)
+                if attribute.get(f"{letter}{i+1}", None)
+            ]
             corrections.extend(values)
 
     corrections.extend([0] * (12 - len(corrections)))

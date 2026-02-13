@@ -144,7 +144,7 @@ protected:
 private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(kuka::external::control::kss::Configuration & config);
 
-  static constexpr std::string_view kTypeParamValue       = "type";
+  static constexpr std::string_view kTypeParamValue = "type";
   static constexpr std::string_view kIsExternalParamValue = "is_external";
 };
 }  // namespace kuka_rsi_driver
