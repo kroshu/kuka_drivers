@@ -28,8 +28,19 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
   kuka::external::control::kss::Configuration rsi_config;
   rsi_config.installed_interface =
     kuka::external::control::kss::Configuration::InstalledInterface::RSI_ONLY;
-  const bool setup_success = SetupRobot(rsi_config, nullptr, nullptr);
-  return setup_success ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
+  rsi_config.client_ip = info_.hardware_parameters.at("client_ip");
+  rsi_config.client_port = std::stoi(info_.hardware_parameters.at("client_port"));
+
+  if (!SetupRobot(rsi_config, nullptr, nullptr))
+  {
+    return CallbackReturn::ERROR;
+  }
+
+  RCLCPP_INFO(
+    logger_, "Network setup successful - RSI listening on %s:%d", rsi_config.client_ip.c_str(),
+    rsi_config.client_port);
+
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
