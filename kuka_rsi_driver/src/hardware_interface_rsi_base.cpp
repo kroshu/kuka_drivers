@@ -562,7 +562,7 @@ void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
 }
 
 void KukaRSIHardwareInterfaceBase::ConfigureJoints(
-  kuka::external::control::kss::Configuration & config)
+  kuka::external::control::kss::Configuration & config) const
 {
   using JC = kuka::external::control::kss::JointConfiguration;
 

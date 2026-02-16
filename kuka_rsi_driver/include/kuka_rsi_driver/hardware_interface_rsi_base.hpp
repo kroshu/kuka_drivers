@@ -142,7 +142,7 @@ protected:
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
 
 private:
-  KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(kuka::external::control::kss::Configuration & config);
+  KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(kuka::external::control::kss::Configuration & config) const;
 
   static constexpr std::string_view kTypeParamValue = "type";
   static constexpr std::string_view kIsExternalParamValue = "is_external";
