@@ -212,7 +212,7 @@ To configure the client side, two configuration files need to be completed:
 3. Start the `KRC:\R1\Program\rsi_joint_pos_4ms.src`/`KRC:\R1\Program\rsi_joint_pos_12ms.src` program on the controller and execute the line of `RSI_MOVECORR()`
     - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
-On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#additional-packages) section of the project overview).
+On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
 
 ##### Launch arguments
 
@@ -326,7 +326,7 @@ The integration of EKI not only helps the initiation of external control but als
 
 ## External axes configuration
 
-Both KSS and the RSI option package support adding external axes to the robot. We provide an example that integrates a single linear axis. This example, together with the structure and documentation, should help users implement their own external‑axis configurations.
+Both KSS and the RSI option package support adding external axes to the robot. We provide an [example](https://github.com/kroshu/examples/blob/master/kuka_external_axis_examples) that integrates a single linear axis. This example, together with the structure and documentation, should help users implement their own external‑axis configurations.
 
 ### Controller-side configuration
 
