@@ -173,6 +173,8 @@ std::string ProcessKrcReportedRobotName(const std::string & input)
   std::size_t space_pos = trimmed.find(' ');
   std::string robot_model = trimmed.substr(0, space_pos);
   std::transform(robot_model.begin(), robot_model.end(), robot_model.begin(), ::tolower);
+  // Remove underscores to match URDF processing
+  robot_model.erase(std::remove(robot_model.begin(), robot_model.end(), '_'), robot_model.end());
   return robot_model;
 }
 
