@@ -13,8 +13,6 @@
 
   <depend>controller_interface</depend>
   <depend>pluginlib</depend>
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
   <depend>std_msgs</depend>
   <depend>kuka_drivers_core</depend>
   <depend>kuka_driver_interfaces</depend>
