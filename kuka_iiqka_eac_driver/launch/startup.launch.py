@@ -134,7 +134,6 @@ def launch_setup(context, *args, **kwargs):
         get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
 
-
     control_node = Node(
         namespace=ns,
         package="kuka_drivers_core",

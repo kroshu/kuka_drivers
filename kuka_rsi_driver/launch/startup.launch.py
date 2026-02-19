@@ -159,7 +159,6 @@ def launch_setup(context, *args, **kwargs):
     # The driver config contains only parameters that can be changed after startup
     driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
 
-
     control_node = Node(
         namespace=ns,
         package="kuka_drivers_core",
