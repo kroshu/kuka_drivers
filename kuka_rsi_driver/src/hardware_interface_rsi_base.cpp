@@ -184,7 +184,7 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
       gpio_command.enable_limits ? "true" : "false", gpio_command.min.c_str(),
       gpio_command.max.c_str());
 
-    // TODO (Komaromi): Add size and parameters
+    // TODO(Komaromi): Add size and parameters
     config.gpio_command_configs.emplace_back(ParseGPIOConfig(gpio_command));
   }
 
@@ -198,7 +198,7 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
       gpio_state.name.c_str(), gpio_state.data_type.c_str(), gpio_state.initial_value.c_str(),
       gpio_state.enable_limits ? "true" : "false", gpio_state.min.c_str(), gpio_state.max.c_str());
 
-    // TODO (Komaromi): Add size, and parameters
+    // TODO(Komaromi): Add size, and parameters
     config.gpio_state_configs.emplace_back(ParseGPIOConfig(gpio_state));
   }
 
@@ -240,6 +240,29 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
   msg_received_ = motion_state_status.return_code == kuka::external::control::ReturnCode::OK;
   if (msg_received_)
   {
+    // record timestamp immediately after the motion state is received
+    auto now = std::chrono::steady_clock::now();
+
+    // measure interval since previous packet if available
+    if (last_msg_received_time_ != std::chrono::steady_clock::time_point{})
+    {
+      auto interval = now - last_msg_received_time_;
+      auto interval_ms =
+        std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(interval);
+      // determine expected cycle time enum
+      double dt_ms = (prev_cycle_time_ == RsiCycleTime::RSI_12MS) ? 12.0 : 4.0;  // default to 4ms
+      double low_thresh = dt_ms - 0.5;
+      double high_thresh = dt_ms + 0.5;
+      if (interval_ms.count() < low_thresh || interval_ms.count() > high_thresh)
+      {
+        RCLCPP_WARN(
+          logger_, "Unexpected RSI state interval: %.3f ms (expected %.3f±0.5 ms)",
+          interval_ms.count(), dt_ms);
+      }
+    }
+    // update stored time for both interval and control-latency calculations
+    last_msg_received_time_ = now;
+
     const auto & req_message = robot_ptr_->GetLastMotionState();
     const auto & positions = req_message.GetMeasuredPositions();
     const auto & gpio_values = req_message.GetGPIOValues();
@@ -259,6 +282,12 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
           logger_, "GPIO value not set. No value type found for GPIO %s (Should be dead code)",
           gpio_values.at(i)->GetGPIOConfig()->GetName().c_str());
       }
+    }
+
+    if (delay_ != robot_ptr_->getDelay())
+    {
+      delay_ = robot_ptr_->getDelay();
+      RCLCPP_WARN(logger_, "Packet loss registered, current delay: %lu", delay_);
     }
   }
   else
@@ -324,7 +353,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::Pa
   kuka::external::control::kss::GPIOConfiguration gpio_config;
   gpio_config.name = info.name;
   gpio_config.enable_limits = info.enable_limits;
-  // TODO (komaromi): This might not work from Kilted kaiju onward the get_optional function in the
+  // TODO(komaromi): This might not work from Kilted kaiju onward the get_optional function in the
   // handle since it is only accepting double and bool
   if (info.data_type == "BOOL" || info.data_type == "bool")
   {
@@ -358,7 +387,7 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::Pa
   }
   else
   {
-    // TODO (Komaromi): Should this be set to 0?
+    // TODO(Komaromi): Should this be set to 0?
     gpio_config.initial_value = 0.0;  // If initial_value is empty, set to 0.0
   }
   if (!info.min.empty())
@@ -522,6 +551,20 @@ void KukaRSIHardwareInterfaceBase::Write()
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
+
+  // measure elapsed time since last motion state message
+  // No need to check msg_received_ here, as Write() is only called when msg_received_ is true
+  auto now = std::chrono::steady_clock::now();
+  auto elapsed =
+    std::chrono::duration_cast<std::chrono::microseconds>(now - last_msg_received_time_);
+  // if the delay exceeds threshold, flag as warning
+  if (elapsed > KukaRSIHardwareInterfaceBase::kWarningThreshold)
+  {
+    RCLCPP_WARN(
+      logger_,
+      "Slow response: %ld us elapsed between motion state was received and control signal sent",
+      static_cast<uint64_t>(elapsed.count()));
+  }
 
   auto send_reply_status = robot_ptr_->SendControlSignal();
 

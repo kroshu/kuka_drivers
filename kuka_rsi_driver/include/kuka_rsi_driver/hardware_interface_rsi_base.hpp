@@ -16,6 +16,7 @@
 #define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "hardware_interface/system_interface.hpp"
@@ -50,7 +51,7 @@ public:
 
   KUKA_RSI_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
-  // TODO: On init should be changed to this
+  // TODO(Svastits): On init should be changed to this
   // KUKA_RSI_DRIVER_PUBLIC
   // CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams & params)
   // override;
@@ -125,6 +126,9 @@ protected:
   bool is_active_;
   bool msg_received_;
 
+  std::chrono::steady_clock::time_point last_msg_received_time_{};
+  uint64_t delay_ = 0;
+
   // EKI-MXA common variables
   StatusManager status_manager_;
 
@@ -133,13 +137,16 @@ protected:
 
   kuka_drivers_core::ControlMode prev_control_mode_ =
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_12MS;
+  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_4MS;
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
   static constexpr std::chrono::seconds DRIVES_POWERED_TIMEOUT{3};
   static constexpr std::chrono::milliseconds DRIVES_POWERED_CHECK_INTERVAL{100};
   static constexpr int64_t READ_TIMEOUT_MS = 1'000;
+
+  // threshold for logging slow RSI responses
+  static constexpr std::chrono::milliseconds kWarningThreshold{2};
 
 private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(
