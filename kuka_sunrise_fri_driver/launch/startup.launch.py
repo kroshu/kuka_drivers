@@ -129,8 +129,6 @@ def launch_setup(context, *args, **kwargs):
         get_package_share_directory("kuka_sunrise_fri_driver") + "/config/driver_config.yaml"
     )
 
-    controller_manager_node = ns.perform(context) + "/controller_manager"
-
     control_node = Node(
         namespace=ns,
         package="kuka_drivers_core",
@@ -180,7 +178,7 @@ def launch_setup(context, *args, **kwargs):
         arg_list = [
             controller_names,
             "-c",
-            controller_manager_node,
+            "controller_manager",
             "-n",
             ns,
         ]
