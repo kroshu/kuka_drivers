@@ -15,6 +15,9 @@
 #ifndef KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_EXTENDED_HPP_
 #define KUKA_RSI_DRIVER__ROBOT_MANAGER_NODE_EXTENDED_HPP_
 
+#include <string>
+#include <vector>
+
 #include "std_msgs/msg/u_int32.hpp"
 #include "std_msgs/msg/u_int8.hpp"
 
