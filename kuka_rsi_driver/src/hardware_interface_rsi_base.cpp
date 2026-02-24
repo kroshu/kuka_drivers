@@ -353,13 +353,8 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::Pa
 {
   kuka::external::control::kss::GPIOConfiguration gpio_config;
   gpio_config.name = info.name;
-<<<<<<< HEAD
   gpio_config.enable_limits = true;
-  // TODO (komaromi): This might not work from Kilted kaiju onward the get_optional function in the
-=======
-  gpio_config.enable_limits = info.enable_limits;
   // TODO(komaromi): This might not work from Kilted kaiju onward the get_optional function in the
->>>>>>> 6fa7037 (Scheduling diagnostics (#317))
   // handle since it is only accepting double and bool
   if (info.data_type == "BOOL" || info.data_type == "bool")
   {
