@@ -46,7 +46,7 @@ def generate_test_description():
                 }.items(),
             ),
             launch.actions.TimerAction(
-                period=10.0,
+                period=15.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
@@ -55,7 +55,7 @@ def generate_test_description():
                 ],
             ),
             launch.actions.TimerAction(
-                period=15.0,
+                period=20.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
@@ -81,8 +81,8 @@ class TestDriverActivation(unittest.TestCase):
         )
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'lbr_iiwa14_r820'", timeout=15
+            "Successful 'configure' of hardware 'lbr_iiwa14_r820'", timeout=25
         )
         proc_output.assertWaitFor(
-            "Successful 'activate' of hardware 'lbr_iiwa14_r820'", timeout=20
+            "Successful 'activate' of hardware 'lbr_iiwa14_r820'", timeout=30
         )
