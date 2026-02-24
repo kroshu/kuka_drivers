@@ -1,4 +1,4 @@
-gpio_controller:
+/**/gpio_controller:
   ros__parameters:
     type: gpio_controllers/GpioCommandController
     gpios:

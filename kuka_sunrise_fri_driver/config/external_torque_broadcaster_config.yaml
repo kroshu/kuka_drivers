@@ -1,4 +1,4 @@
-external_torque_broadcaster:
+/**/external_torque_broadcaster:
   ros__parameters:
     interfaces:
      - external_torque
