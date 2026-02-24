@@ -147,40 +147,39 @@ return_type KukaEkiRsiHardwareInterface::read(
   return KukaRSIHardwareInterfaceBase::read(time, duration);
 }
 
-std::string FindRobotModelInUrdfName(const std::string & input)
+std::tuple<std::size_t, std::size_t, std::string> GetPayloadReachAndType(
+  const std::string & input, const char * regex)
 {
-  // Regex pattern to match robot model names
-  std::regex pattern(
-    "kr\\d+_r\\d+_[a-z\\d]*", std::regex_constants::ECMAScript | std::regex_constants::icase);
+  std::regex pattern(regex, std::regex_constants::ECMAScript | std::regex_constants::icase);
   std::smatch match;
-  std::string last_match;
-  auto search_start = input.cbegin();
 
-  while (std::regex_search(search_start, input.cend(), match, pattern))
+  if (std::regex_search(input.cbegin(), input.cend(), match, pattern))
   {
-    last_match = match.str();
-    search_start = match.suffix().first;
+    const std::size_t payload = std::stoull(match[1].str());
+    const std::size_t reach = std::stoull(match[2].str());
+    const std::string type = match[3].str();
+    return {payload, reach, type};
   }
 
-  // Remove underscores
-  last_match.erase(std::remove(last_match.begin(), last_match.end(), '_'), last_match.end());
-  return last_match;
+  return {0, 0, ""};
 }
 
-std::string ProcessKrcReportedRobotName(const std::string & input)
+std::tuple<std::size_t, std::size_t, std::string> ProcessKrcReportedRobotName(
+  const std::string & input)
 {
   std::string trimmed = input.substr(1);
   std::size_t space_pos = trimmed.find(' ');
   std::string robot_model = trimmed.substr(0, space_pos);
   std::transform(robot_model.begin(), robot_model.end(), robot_model.begin(), ::tolower);
-  return robot_model;
+  return GetPayloadReachAndType(robot_model, "kr(\\d+)r(\\d+)_*([a-z\\d]*)");
 }
 
 void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
 {
   {
     std::lock_guard<std::mutex> lk{init_mtx_};
-    std::string expected = FindRobotModelInUrdfName(info_.hardware_parameters.at("name"));
+    const auto [p_exp, r_exp, t_exp] =
+      GetPayloadReachAndType(info_.hardware_parameters.at("name"), "kr(\\d+)_r(\\d+)_*([a-z\\d]*)");
 
     const auto * eki_init_data =
       dynamic_cast<const kuka::external::control::kss::eki::EKIInitializationData *>(&init_data);
@@ -191,13 +190,14 @@ void KukaEkiRsiHardwareInterface::eki_init(const InitializationData & init_data)
       return;
     }
 
-    std::string reported = ProcessKrcReportedRobotName(eki_init_data->model_name);
-    if (
-      expected.find(reported) == std::string::npos && reported.find(expected) == std::string::npos)
+    const auto [p_rep, r_rep, t_rep] = ProcessKrcReportedRobotName(eki_init_data->model_name);
+    if (p_exp != p_rep || r_exp != r_rep || t_exp != t_rep)
     {
       std::ostringstream oss;
-      oss << "Robot model mismatch detected: expected model '" << expected << "', but found '"
-          << reported << "'";
+      oss << "Robot model mismatch detected: expected model with payload of " << p_exp
+          << ", reach of " << r_exp << ", and type of '" << t_exp
+          << "', but found one with payload of " << p_rep << ", reach of " << r_rep
+          << "and type of '" << t_rep << "'";
       init_report_ = {true, false, oss.str()};
     }
     else if (info_.joints.size() != init_data.GetTotalAxisCount())
