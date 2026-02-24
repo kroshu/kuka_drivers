@@ -1,4 +1,4 @@
-robot_manager:
+/**/robot_manager:
   ros__parameters:
     control_mode: 1
     position_controller_name: "joint_trajectory_controller"
