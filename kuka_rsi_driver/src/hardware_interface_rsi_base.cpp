@@ -256,8 +256,10 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
       if (interval_ms.count() < low_thresh || interval_ms.count() > high_thresh)
       {
         RCLCPP_WARN(
-          logger_, "Unexpected RSI state interval: %.3f ms (expected %.3f±0.5 ms)",
-          interval_ms.count(), dt_ms);
+          logger_,
+          "Unexpected RSI state interval: %.3f ms (expected %.3f±0.5 ms), change in interpolation "
+          "count %u",
+          interval_ms.count(), dt_ms, robot_ptr_->getIpoc() - last_ipoc_);
       }
     }
     // update stored time for both interval and control-latency calculations
@@ -284,11 +286,16 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
       }
     }
 
-    if (delay_ != robot_ptr_->getDelay())
+    if (robot_ptr_->getDelay() != 0)
     {
-      delay_ = robot_ptr_->getDelay();
-      RCLCPP_WARN(logger_, "Packet loss registered, current delay: %lu", delay_);
+      packet_loss_count_++;
+      RCLCPP_WARN(
+        logger_,
+        "Packet loss registered, number of lost packets: %lu, continuous packet losses: %lu",
+        packet_loss_count_, robot_ptr_->getDelay());
     }
+
+    last_ipoc_ = robot_ptr_->getIpoc();
   }
   else
   {
@@ -437,6 +444,8 @@ kuka::external::control::kss::GPIOConfiguration KukaRSIHardwareInterfaceBase::Pa
 
 CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_lifecycle::State &)
 {
+  ResetDiagnostics();
+
   if (status_manager_.IsEmergencyStopActive())
   {
     RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
@@ -573,6 +582,14 @@ void KukaRSIHardwareInterfaceBase::Write()
     RCLCPP_ERROR(logger_, "Sending reply failed: %s", send_reply_status.message);
     throw std::runtime_error("Error sending reply");
   }
+}
+
+void KukaRSIHardwareInterfaceBase::ResetDiagnostics()
+{
+  // Reset diagnostics related variables
+  packet_loss_count_ = 0;
+  last_ipoc_ = 0;
+  last_msg_received_time_ = std::chrono::steady_clock::time_point{};
 }
 
 kuka::external::control::Status KukaRSIHardwareInterfaceBase::ChangeCycleTime()
