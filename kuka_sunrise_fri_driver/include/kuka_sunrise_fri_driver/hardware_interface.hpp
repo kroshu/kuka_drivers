@@ -63,7 +63,7 @@ public:
   {
   }
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
-  on_init(const hardware_interface::HardwareInfo & info) override;
+  on_init(const hardware_interface::HardwareComponentInterfaceParams & params) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_configure(const rclcpp_lifecycle::State & previous_state) override;
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn

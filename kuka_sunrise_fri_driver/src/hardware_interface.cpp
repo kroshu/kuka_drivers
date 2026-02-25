@@ -22,12 +22,12 @@
 namespace kuka_sunrise_fri_driver
 {
 CallbackReturn KukaFRIHardwareInterface::on_init(
-  const hardware_interface::HardwareInfo & system_info)
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
   fri_connection_ =
     std::make_shared<FRIConnection>([this] { this->onError(); }, [this] { this->onError(); });
 
-  if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS)
+  if (hardware_interface::SystemInterface::on_init(params) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
   }
