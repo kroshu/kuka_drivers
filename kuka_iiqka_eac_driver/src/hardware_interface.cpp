@@ -27,9 +27,10 @@
 
 namespace kuka_eac
 {
-CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn KukaEACHardwareInterface::on_init(
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
-  if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
+  if (hardware_interface::SystemInterface::on_init(params) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
   }

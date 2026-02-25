@@ -29,9 +29,10 @@
 namespace kuka_rsi_driver
 {
 
-CallbackReturn KukaEkiRsiHardwareInterface::on_init(const hardware_interface::HardwareInfo & info)
+CallbackReturn KukaEkiRsiHardwareInterface::on_init(
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
-  if (KukaRSIHardwareInterfaceBase::on_init(info) != CallbackReturn::SUCCESS)
+  if (KukaRSIHardwareInterfaceBase::on_init(params) != CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
   }
