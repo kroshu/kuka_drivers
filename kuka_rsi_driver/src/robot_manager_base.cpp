@@ -78,6 +78,19 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       use_gpio_ = use_gpio;
       return true;
     });
+
+  // Use the provided value to initialize the member (prevents unused-parameter warning)
+  this->registerStaticParameter<int>(
+    "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const int cycle_time)
+    {
+      cycle_time_ = cycle_time;  // 1 => 4ms, 2 => 12ms
+      return true;
+    });
+
+  // Publisher for sending cycle_time to KssMessageHandler
+  cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
+    "kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -91,7 +104,7 @@ RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_
     return FAILURE;
   }
 
-  // Activate event broadcaster
+  // Activate event broadcaster / configuration controllers
   const bool controller_activation_successful = kuka_drivers_core::changeControllerState(
     change_controller_state_client_, controllers_to_activate, {});
   if (!controller_activation_successful)
@@ -104,6 +117,10 @@ RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
+
+  // Set default cycle time (from parameter) – FIX: correct method name and member
+  ChangeCycleTime(cycle_time_);
+
   return SUCCESS;
 }
 
@@ -280,6 +297,30 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
   RCLCPP_INFO(logger, "Successfully changed control mode to %i", control_mode);
 
   return true;
+}
+
+void RobotManagerBase::ChangeCycleTime(const int cycle_time)
+{
+  if (cycle_time != 1 &&
+      cycle_time != 2)
+  {
+    RCLCPP_ERROR(
+      get_logger(),
+      "Invalid cycle time requested: %d. Valid options are %d (4 ms) and %d (12 ms).",
+      cycle_time, 1, 2);
+    return;
+  }
+
+  std_msgs::msg::UInt8 msg;
+  msg.data = static_cast<uint8_t>(cycle_time);
+
+  const int ms = (cycle_time == 1) ? 4 : 12;
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Publishing cycle_time (%d ms) code=%u on kss_message_handler/cycle_time",
+    ms, msg.data);
+
+  cycle_time_pub_->publish(msg);
 }
 
 }  // namespace kuka_rsi_driver

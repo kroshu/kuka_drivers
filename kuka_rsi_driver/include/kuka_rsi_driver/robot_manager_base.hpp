@@ -52,6 +52,7 @@ protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);
   virtual void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
+  void ChangeCycleTime(const int cycle_time);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -74,6 +75,10 @@ protected:
 
   rclcpp::CallbackGroup::SharedPtr event_callback_group_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+
+  // NEW: publisher and backing field for cycle time
+  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
+  int cycle_time_{1};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;
