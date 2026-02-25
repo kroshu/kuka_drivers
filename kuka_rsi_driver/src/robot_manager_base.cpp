@@ -80,12 +80,12 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   // Use the provided value to initialize the member (prevents unused-parameter warning)
-  this->registerStaticParameter<int>(
-    "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const int cycle_time)
+  this->registerParameter<int>(
+    "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{true, true},
+    [this](int cycle_time)
     {
-      cycle_time_ = cycle_time;  // 1 => 4ms, 2 => 12ms
-      return true;
+      // Set default cycle time (from parameter)
+      return ChangeCycleTime(cycle_time);  // 1 => 4ms, 2 => 12ms
     });
 
   // Publisher for sending cycle_time to KssMessageHandler
@@ -117,9 +117,6 @@ RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_
   is_configured_pub_->on_activate();
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
-
-  // Set default cycle time (from parameter) – FIX: correct method name and member
-  ChangeCycleTime(cycle_time_);
 
   return SUCCESS;
 }
@@ -299,7 +296,7 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
   return true;
 }
 
-void RobotManagerBase::ChangeCycleTime(const int cycle_time)
+bool RobotManagerBase::ChangeCycleTime(const int cycle_time)
 {
   if (cycle_time != 1 &&
       cycle_time != 2)
@@ -308,7 +305,16 @@ void RobotManagerBase::ChangeCycleTime(const int cycle_time)
       get_logger(),
       "Invalid cycle time requested: %d. Valid options are %d (4 ms) and %d (12 ms).",
       cycle_time, 1, 2);
-    return;
+    return false;
+  }
+
+  if(cycle_time_ == cycle_time)
+  {
+    RCLCPP_WARN(
+      get_logger(),
+      "Tried to change cycle time to the one currently used: %d. No change will be made.",
+      cycle_time);
+    return true;
   }
 
   std_msgs::msg::UInt8 msg;
@@ -321,6 +327,8 @@ void RobotManagerBase::ChangeCycleTime(const int cycle_time)
     ms, msg.data);
 
   cycle_time_pub_->publish(msg);
+  cycle_time_ = cycle_time;
+  return true;
 }
 
 }  // namespace kuka_rsi_driver
