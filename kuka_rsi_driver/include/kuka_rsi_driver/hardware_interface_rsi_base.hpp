@@ -84,6 +84,8 @@ protected:
 
   KUKA_RSI_DRIVER_LOCAL void Write();
 
+  KUKA_RSI_DRIVER_LOCAL void ResetDiagnostics();
+
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
@@ -126,8 +128,10 @@ protected:
   bool is_active_;
   bool msg_received_;
 
+  // Variables for monitoring packet losses and timing
   std::chrono::steady_clock::time_point last_msg_received_time_{};
-  uint64_t delay_ = 0;
+  uint64_t packet_loss_count_ = 0;
+  uint64_t last_ipoc_ = 0;
 
   // EKI-MXA common variables
   StatusManager status_manager_;

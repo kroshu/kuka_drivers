@@ -45,6 +45,8 @@ CallbackReturn KukaRSIHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  ResetDiagnostics();
+
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
