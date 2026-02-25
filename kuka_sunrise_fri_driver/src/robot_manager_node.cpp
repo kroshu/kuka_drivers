@@ -77,7 +77,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std::string & controller_ip) { return this->ValidateIPAdress(controller_ip); });
 
   registerParameter<int>(
-    "send_period_ms", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    "cycle_time", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
 
   registerParameter<int>(
@@ -400,11 +400,11 @@ std::string RobotManagerNode::GetControllerName() const
   }
 }
 
-void RobotManagerNode::setFriConfiguration(int send_period_ms, int receive_multiplier) const
+void RobotManagerNode::setFriConfiguration(int cycle_time, int receive_multiplier) const
 {
   kuka_driver_interfaces::msg::FriConfiguration msg;
   msg.receive_multiplier = receive_multiplier;
-  msg.send_period_ms = send_period_ms;
+  msg.send_period_ms = cycle_time;
   fri_config_pub_->publish(msg);
 }
 

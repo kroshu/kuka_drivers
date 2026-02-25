@@ -92,7 +92,7 @@ private:
     std::string_view controller_name, kuka_drivers_core::ControllerType controller_type);
   bool onJointDampingChangeRequest(const std::vector<double> & joint_damping);
   bool onJointStiffnessChangeRequest(const std::vector<double> & joint_stiffness);
-  void setFriConfiguration(int send_period_ms, int receive_multiplier) const;
+  void setFriConfiguration(int cycle_time, int receive_multiplier) const;
   void setImpedanceConfiguration(
     const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
     const std::vector<double> & stiffness, const std::vector<double> & damping) const;
