@@ -281,11 +281,10 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
     RCLCPP_ERROR(logger, "Tried to change to a not implemented control mode");
     return false;
   }
-
-  if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  
+  if (!OnControlModeChangeRequestAdditionalTasks(control_mode))
   {
-    RCLCPP_ERROR(
-      logger, "Changing control mode during active control is not supported by plain RSI driver");
+    RCLCPP_ERROR(logger, "Additional tasks for control mode change failed");
     return false;
   }
 

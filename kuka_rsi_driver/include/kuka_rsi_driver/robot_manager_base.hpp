@@ -52,6 +52,7 @@ protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);
   virtual void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
+  virtual bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]]const int control_mode) { return true; }
   bool ChangeCycleTime(const int cycle_time);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
