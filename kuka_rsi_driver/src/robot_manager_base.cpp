@@ -79,6 +79,10 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return true;
     });
 
+  // Publisher for sending cycle_time to KssMessageHandler
+  cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
+    "kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
+
   // Use the provided value to initialize the member (prevents unused-parameter warning)
   this->registerParameter<int>(
     "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{true, true},
@@ -87,10 +91,6 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       // Set default cycle time (from parameter)
       return ChangeCycleTime(cycle_time);  // 1 => 4ms, 2 => 12ms
     });
-
-  // Publisher for sending cycle_time to KssMessageHandler
-  cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
-    "kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -281,7 +281,7 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
     RCLCPP_ERROR(logger, "Tried to change to a not implemented control mode");
     return false;
   }
-  
+
   if (!OnControlModeChangeRequestAdditionalTasks(control_mode))
   {
     RCLCPP_ERROR(logger, "Additional tasks for control mode change failed");
@@ -297,17 +297,15 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
 
 bool RobotManagerBase::ChangeCycleTime(const int cycle_time)
 {
-  if (cycle_time != 1 &&
-      cycle_time != 2)
+  if (cycle_time != 1 && cycle_time != 2)
   {
     RCLCPP_ERROR(
-      get_logger(),
-      "Invalid cycle time requested: %d. Valid options are %d (4 ms) and %d (12 ms).",
+      get_logger(), "Invalid cycle time requested: %d. Valid options are %d (4 ms) and %d (12 ms).",
       cycle_time, 1, 2);
     return false;
   }
 
-  if(cycle_time_ == cycle_time)
+  if (cycle_time_ == cycle_time)
   {
     RCLCPP_WARN(
       get_logger(),
@@ -321,8 +319,7 @@ bool RobotManagerBase::ChangeCycleTime(const int cycle_time)
 
   const int ms = (cycle_time == 1) ? 4 : 12;
   RCLCPP_INFO(
-    this->get_logger(),
-    "Publishing cycle_time (%d ms) code=%u on kss_message_handler/cycle_time",
+    this->get_logger(), "Publishing cycle_time (%d ms) code=%u on kss_message_handler/cycle_time",
     ms, msg.data);
 
   cycle_time_pub_->publish(msg);

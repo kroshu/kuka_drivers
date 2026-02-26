@@ -52,7 +52,10 @@ protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);
   virtual void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
-  virtual bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]]const int control_mode) { return true; }
+  virtual bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]] const int control_mode)
+  {
+    return true;
+  }
   bool ChangeCycleTime(const int cycle_time);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
@@ -67,7 +70,7 @@ protected:
 
   kuka_drivers_core::ControllerHandler controller_handler_;
   kuka_drivers_core::ControlMode control_mode_ =
-  kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
 
   std::atomic<bool> terminate_{false};
 

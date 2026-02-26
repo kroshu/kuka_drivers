@@ -42,7 +42,6 @@ private:
 
   bool OnControlModeChangeRequestAdditionalTasks(const int control_mode) override;
 
-
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_ = false;

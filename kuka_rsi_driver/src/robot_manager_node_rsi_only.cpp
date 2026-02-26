@@ -41,7 +41,8 @@ RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
   return RobotManagerBase::cleanup_driver(controllers_to_deactivate);
 }
 
-bool RobotManagerNodeRsi::OnControlModeChangeRequestAdditionalTasks([[maybe_unused]] const int control_mode)
+bool RobotManagerNodeRsi::OnControlModeChangeRequestAdditionalTasks(
+  [[maybe_unused]] const int control_mode)
 {
   const auto logger = get_logger();
 
@@ -51,7 +52,7 @@ bool RobotManagerNodeRsi::OnControlModeChangeRequestAdditionalTasks([[maybe_unus
       logger, "Changing control mode during active control is not supported by plain RSI driver");
     return false;
   }
-  
+
   return true;
 }
 
