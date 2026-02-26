@@ -63,7 +63,7 @@ protected:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
-
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr set_param_client_;
   std::string robot_model_;
   bool use_gpio_ = false;
   std::string position_controller_name_;
