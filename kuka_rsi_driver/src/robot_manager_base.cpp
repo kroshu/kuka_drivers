@@ -78,9 +78,9 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       use_gpio_ = use_gpio;
       return true;
     });
-  
-  set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-      "controller_manager/set_parameters");
+
+  set_param_client_ =
+    this->create_client<rcl_interfaces::srv::SetParameters>("controller_manager/set_parameters");
 
   // Publisher for sending cycle_time to KssMessageHandler
   cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
@@ -327,16 +327,14 @@ bool RobotManagerBase::ChangeCycleTime(const int cycle_time)
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;
-  
-  int desired_rate_ = 1000/ms;  // Convert ms to Hz
+
+  int desired_rate_ = 1000 / ms;  // Convert ms to Hz
   auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
   rcl_interfaces::msg::Parameter param;
   param.name = "update_rate";
   param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
   param.value.integer_value = desired_rate_;
-  RCLCPP_INFO(
-  this->get_logger(), "Publishing update_rate (%d Hz)",
-  desired_rate_);
+  RCLCPP_INFO(this->get_logger(), "Publishing update_rate (%d Hz)", desired_rate_);
 
   request->parameters.push_back(param);
 

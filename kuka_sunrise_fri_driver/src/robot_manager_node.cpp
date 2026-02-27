@@ -66,9 +66,9 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
     [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
     sub_options);
-  
-  set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-    "controller_manager/set_parameters");
+
+  set_param_client_ =
+    this->create_client<rcl_interfaces::srv::SetParameters>("controller_manager/set_parameters");
 
   registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820", kuka_drivers_core::ParameterSetAccessRights{false, false},
@@ -312,16 +312,14 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
 
   send_period_ms_ = send_period;
   setFriConfiguration(send_period_ms_, receive_multiplier_);
-    
-  int desired_rate_ = 1000/send_period_ms_;  // Convert ms to Hz
+
+  int desired_rate_ = 1000 / send_period_ms_;  // Convert ms to Hz
   auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
   rcl_interfaces::msg::Parameter param;
   param.name = "update_rate";
   param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
   param.value.integer_value = desired_rate_;
-  RCLCPP_INFO(
-  this->get_logger(), "Publishing update_rate (%d Hz)",
-  desired_rate_);
+  RCLCPP_INFO(this->get_logger(), "Publishing update_rate (%d Hz)", desired_rate_);
 
   request->parameters.push_back(param);
 
