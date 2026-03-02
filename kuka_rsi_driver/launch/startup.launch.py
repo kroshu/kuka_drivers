@@ -339,7 +339,9 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "lock_memory",
             default_value="true",
-            description=("Whether to lock memory of the control loop with mlockall to avoid paging"),
+            description=(
+                "Whether to lock memory of the control loop with mlockall to avoid paging"
+            ),
         )
     )
 

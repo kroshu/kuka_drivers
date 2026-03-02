@@ -76,18 +76,22 @@ int main(int argc, char ** argv)
       bool lock_memory = controller_manager->get_parameter_or<bool>("lock_memory", true);
       if (lock_memory)
       {
-        if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) 
+        if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
         {
           RCLCPP_ERROR(controller_manager->get_logger(), "mlockall error: %s", strerror(errno));
         }
         else
         {
-          RCLCPP_INFO(controller_manager->get_logger(), "Memory of control loop locked successfully to disable paging");
+          RCLCPP_INFO(
+            controller_manager->get_logger(),
+            "Memory of control loop locked successfully to disable paging");
         }
       }
-      else 
+      else
       {
-        RCLCPP_WARN(controller_manager->get_logger(), "Memory locking disabled, consider enabling it for better real-time performance");
+        RCLCPP_WARN(
+          controller_manager->get_logger(),
+          "Memory locking disabled, consider enabling it for better real-time performance");
       }
 
       struct sched_param param;
