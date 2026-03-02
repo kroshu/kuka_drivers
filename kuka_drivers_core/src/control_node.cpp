@@ -73,8 +73,8 @@ int main(int argc, char ** argv)
         }
       }
 
-      bool mem_lock = controller_manager->get_parameter_or<bool>("mem_lock", true);
-      if (mem_lock)
+      bool lock_memory = controller_manager->get_parameter_or<bool>("lock_memory", true);
+      if (lock_memory)
       {
         if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) 
         {
