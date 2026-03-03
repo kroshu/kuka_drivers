@@ -87,9 +87,10 @@ protected:
   rclcpp::CallbackGroup::SharedPtr event_callback_group_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
 
-  //publisher and backing field for cycle time
+  // publisher and backing field for cycle time
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
-  cycle_time_options cycle_time_{cycle_time_options::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
+  cycle_time_options cycle_time_{
+    cycle_time_options::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;

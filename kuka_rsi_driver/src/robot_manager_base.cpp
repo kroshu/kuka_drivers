@@ -321,7 +321,7 @@ bool RobotManagerBase::ChangeCycleTime(cycle_time_options cycle_time)
   msg.data = static_cast<uint8_t>(cycle_time);
 
   int ms;
-  if(cycle_time == cycle_time_options::RSI_4MS)
+  if (cycle_time == cycle_time_options::RSI_4MS)
   {
     ms = 4;
   }
