@@ -15,6 +15,8 @@
 #include <memory>
 #include <thread>
 
+#include <sys/mman.h>
+
 #include "controller_manager/controller_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
@@ -71,6 +73,27 @@ int main(int argc, char ** argv)
         }
       }
 
+      bool lock_memory = controller_manager->get_parameter_or<bool>("lock_memory", true);
+      if (lock_memory)
+      {
+        if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
+        {
+          RCLCPP_ERROR(controller_manager->get_logger(), "mlockall error: %s", strerror(errno));
+        }
+        else
+        {
+          RCLCPP_INFO(
+            controller_manager->get_logger(),
+            "Memory of control loop locked successfully to disable paging");
+        }
+      }
+      else
+      {
+        RCLCPP_WARN(
+          controller_manager->get_logger(),
+          "Memory locking disabled, consider enabling it for better real-time performance");
+      }
+
       struct sched_param param;
       param.sched_priority = controller_manager->get_parameter_or<int>("thread_priority", 70);
       if (sched_setscheduler(0, SCHED_FIFO, &param) == -1)
@@ -107,6 +130,13 @@ int main(int argc, char ** argv)
             controller_manager->update(controller_manager->now(), dt);
             std::this_thread::sleep_for(dt_ms);
           }
+        }
+
+        // Unlock memory after control loop finishes
+        int rc = munlockall();
+        if (rc != 0)
+        {
+          RCLCPP_ERROR(controller_manager->get_logger(), "munlockall error: %s", strerror(errno));
         }
       }
       catch (std::exception & e)

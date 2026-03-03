@@ -259,7 +259,7 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
         RCLCPP_WARN(
           logger_,
           "Unexpected RSI state interval: %.3f ms (expected %.3f±0.5 ms), change in interpolation "
-          "count %u",
+          "count %lu",
           interval_ms.count(), dt_ms, robot_ptr_->getIpoc() - last_ipoc_);
       }
     }
