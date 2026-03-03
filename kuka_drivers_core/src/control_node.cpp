@@ -131,13 +131,13 @@ int main(int argc, char ** argv)
             std::this_thread::sleep_for(dt_ms);
           }
         }
-        
+
         // Unlock memory after control loop finishes
         int rc = munlockall();
-        if (rc != 0) {
-            RCLCPP_ERROR(controller_manager->get_logger(), "munlockall error: %s", strerror(errno));
+        if (rc != 0)
+        {
+          RCLCPP_ERROR(controller_manager->get_logger(), "munlockall error: %s", strerror(errno));
         }
-
       }
       catch (std::exception & e)
       {
