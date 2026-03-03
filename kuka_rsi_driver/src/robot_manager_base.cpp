@@ -89,7 +89,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](int cycle_time)
     {
       // Set default cycle time (from parameter)
-      return ChangeCycleTime(static_cast<cycle_time_options>(cycle_time));  // 1 => 4ms, 2 => 12ms
+      return ChangeCycleTime(static_cast<CycleTime>(cycle_time));  // 1 => 4ms, 2 => 12ms
     });
 }
 
@@ -298,13 +298,13 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
   return true;
 }
 
-bool RobotManagerBase::ChangeCycleTime(cycle_time_options cycle_time)
+bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 {
-  if (cycle_time != cycle_time_options::RSI_4MS && cycle_time != cycle_time_options::RSI_12MS)
+  if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
-      get_logger(), "Invalid cycle time requested: %d. Valid options are %d (4 ms) and %d (12 ms).",
-      cycle_time, RSI_4MS, RSI_12MS);
+      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.",
+      cycle_time, CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
     return false;
   }
 
@@ -312,26 +312,17 @@ bool RobotManagerBase::ChangeCycleTime(cycle_time_options cycle_time)
   {
     RCLCPP_WARN(
       get_logger(),
-      "Tried to change cycle time to the one currently used: %d. No change will be made.",
-      cycle_time);
+      "Tried to change cycle time to the one currently used: %s. No change will be made.",
+      CycleTimeToString(cycle_time));
     return true;
   }
 
   std_msgs::msg::UInt8 msg;
   msg.data = static_cast<uint8_t>(cycle_time);
-
-  int ms;
-  if (cycle_time == cycle_time_options::RSI_4MS)
-  {
-    ms = 4;
-  }
-  else
-  {
-    ms = 12;
-  }
+  
   RCLCPP_INFO(
-    this->get_logger(), "Publishing cycle_time (%d ms) code=%u on kss_message_handler/cycle_time",
-    ms, msg.data);
+    this->get_logger(), "Publishing cycle_time  %s on kss_message_handler/cycle_time",
+      CycleTimeToString(cycle_time));
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;

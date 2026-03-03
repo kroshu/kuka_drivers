@@ -57,13 +57,27 @@ protected:
     return true;
   }
 
-  enum cycle_time_options
+  enum CycleTime
   {
     RSI_4MS = 1,
     RSI_12MS = 2
   };
 
-  bool ChangeCycleTime(cycle_time_options cycle_time);
+  bool ChangeCycleTime(CycleTime cycle_time);
+
+  // Convert CycleTime enum to human-readable string
+  inline const char * CycleTimeToString(CycleTime cycle_time)
+  {
+    switch (cycle_time)
+    {
+      case CycleTime::RSI_4MS:
+        return "1 (4ms)";
+      case CycleTime::RSI_12MS:
+        return "2 (12ms)";
+      default:
+        return "unspecified";
+    }
+  }
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -89,8 +103,8 @@ protected:
 
   // publisher and backing field for cycle time
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
-  cycle_time_options cycle_time_{
-    cycle_time_options::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
+  CycleTime cycle_time_{
+    CycleTime::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;
