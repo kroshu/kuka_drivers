@@ -103,6 +103,7 @@ Both launch files support the following arguments:
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
+- `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
