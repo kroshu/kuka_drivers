@@ -170,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
             {
                 "cpu_affinity": int(rt_core.perform(context)),
                 "thread_priority": int(rt_prio.perform(context)),
-                "lock_memory": bool(lock_memory.perform(context)),
+                "lock_memory": lock_memory.perform(context) == "true"
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
                 },
