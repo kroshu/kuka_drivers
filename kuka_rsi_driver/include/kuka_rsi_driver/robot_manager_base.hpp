@@ -57,7 +57,7 @@ protected:
     return true;
   }
 
-  enum CycleTime
+  enum class CycleTime
   {
     RSI_4MS = 1,
     RSI_12MS = 2
