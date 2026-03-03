@@ -30,8 +30,8 @@ The IP address of robot controller must be provided as a launch argument. For fu
 
 The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
 
-- `send_period_ms` (integer): this parameter defines the send rate in milliseconds (with which the controller sends robot state updates). It must be between 1 and 10 for control and can be only changed in `inactive` and `configuring` states.
-- `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`send_period_ms` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
+- `cycle_time` (integer): this parameter defines the send rate in milliseconds (with which the controller sends robot state updates). It must be between 1 and 10 for control and can be only changed in `inactive` and `configuring` states.
+- `receive_multiplier` (integer): this parameter defines the answer rate factor (the client should sends commands in every `receive_multiplier`*`cycle_time` milliseconds). It must be at least 1 and can be only changed in `inactive` and `configuring` states.
 - `control_mode`: The enum value of the control mode should be given, which updates the `ControlMode` and `ClientCommandMode` parameters of FRI. It cannot be changed in active state.
 - `joint_damping`, `joint_stiffness` (double vectors): these parameters change the stiffness and damping attributes of joint impedance control mode. The updated values are sent to the hardware interface using the `joint_group_impedance_controller` to adapt to conventions, but it is not possible to change them in active state due to the constraints of FRI. (Therefore the `joint_group_impedance_controller` is deactivated at driver activation.)
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
@@ -90,6 +90,7 @@ Both launch files support the following argument:
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
+- `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
