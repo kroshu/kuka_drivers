@@ -103,8 +103,7 @@ protected:
 
   // publisher and backing field for cycle time
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
-  CycleTime cycle_time_{
-    CycleTime::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
+  CycleTime cycle_time_{CycleTime::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;

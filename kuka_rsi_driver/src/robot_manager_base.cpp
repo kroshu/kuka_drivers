@@ -303,8 +303,8 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
-      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.",
-      cycle_time, CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
+      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.", cycle_time,
+      CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
     return false;
   }
 
@@ -319,10 +319,10 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 
   std_msgs::msg::UInt8 msg;
   msg.data = static_cast<uint8_t>(cycle_time);
-  
+
   RCLCPP_INFO(
     this->get_logger(), "Publishing cycle_time  %s on kss_message_handler/cycle_time",
-      CycleTimeToString(cycle_time));
+    CycleTimeToString(cycle_time));
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;
