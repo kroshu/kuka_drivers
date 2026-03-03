@@ -42,6 +42,7 @@ def launch_setup(context, *args, **kwargs):
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
+    lock_memory = LaunchConfiguration("lock_memory")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -144,6 +145,7 @@ def launch_setup(context, *args, **kwargs):
             {
                 "cpu_affinity": int(rt_core.perform(context)),
                 "thread_priority": int(rt_prio.perform(context)),
+                "lock_memory": lock_memory.perform(context) == "true",
                 "hardware_components_initial_state": {
                     "unconfigured": [tf_prefix + robot_model.perform(context)]
                 },
@@ -282,6 +284,15 @@ def generate_launch_description():
             description=(
                 "Comma-separated CPU core indices for taskset pinning of non-RT threads "
                 "(e.g. '2,3,4'). Leave empty to disable pinning."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "lock_memory",
+            default_value="true",
+            description=(
+                "Whether to lock memory of the control loop with mlockall to avoid paging"
             ),
         )
     )
