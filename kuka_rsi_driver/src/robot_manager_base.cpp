@@ -118,6 +118,10 @@ RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_
   is_configured_msg_.data = true;
   is_configured_pub_->publish(is_configured_msg_);
 
+  std_msgs::msg::UInt8 msg;
+  msg.data = static_cast<uint8_t>(cycle_time_);
+  cycle_time_pub_->publish(msg);
+
   return SUCCESS;
 }
 
