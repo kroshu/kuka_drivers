@@ -86,25 +86,12 @@ void RobotManagerNodeEkiRsi::EventSubscriptionCallback(
   }
 }
 
-bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
+bool RobotManagerNodeEkiRsi::OnControlModeChangeRequestAdditionalTasks(const int control_mode)
 {
   const auto logger = get_logger();
 
   kuka_drivers_core::ControlMode target_control_mode =
     static_cast<kuka_drivers_core::ControlMode>(control_mode);
-
-  if (control_mode_ == target_control_mode)
-  {
-    RCLCPP_WARN(logger, "Tried to change control mode to the one currently used");
-    return true;
-  }
-
-  RCLCPP_INFO(logger, "Control mode change requested");
-  if (target_control_mode != kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL)
-  {
-    RCLCPP_ERROR(logger, "Tried to change to a not implemented control mode");
-    return false;
-  }
 
   // Publish control mode change to control mode handler
   std_msgs::msg::UInt32 message;
@@ -150,10 +137,6 @@ bool RobotManagerNodeEkiRsi::OnControlModeChangeRequest(const int control_mode)
       return false;
     }
   }
-
-  control_mode_ = target_control_mode;
-
-  RCLCPP_INFO(logger, "Successfully changed control mode to %i", control_mode);
 
   return true;
 }

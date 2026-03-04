@@ -30,6 +30,9 @@ public:
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
   CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+
+protected:
+  bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]] const int control_mode) override;
 };
 }  // namespace kuka_rsi_driver
 

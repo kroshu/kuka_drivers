@@ -1,3 +1,4 @@
 /**/robot_manager:
   ros__parameters:
     position_controller_name: "joint_trajectory_controller"
+    cycle_time: 1

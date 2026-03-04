@@ -40,7 +40,7 @@ public:
 private:
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message) override;
 
-  bool OnControlModeChangeRequest(const int control_mode) override;
+  bool OnControlModeChangeRequestAdditionalTasks(const int control_mode) override;
 
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
