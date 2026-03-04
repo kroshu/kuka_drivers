@@ -30,7 +30,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
 
-  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
   event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
@@ -79,8 +79,8 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return true;
     });
 
-  set_param_client_ =
-    this->create_client<rcl_interfaces::srv::SetParameters>("controller_manager/set_parameters");
+  set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+    "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
 
   // Publisher for sending cycle_time to KssMessageHandler
   cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
@@ -342,7 +342,28 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 
   request->parameters.push_back(param);
 
-  set_param_client_->async_send_request(request);
+  auto response = kuka_drivers_core::sendRequest<rcl_interfaces::srv::SetParameters::Response>(
+    set_param_client_, request,
+    5000,  // service timeout
+    5000   // response timeout
+  );
+
+  if (!response || response->results.empty() || !response->results[0].successful)
+  {
+    const char * reason = (response && !response->results.empty())
+                            ? response->results[0].reason.c_str()
+                            : "no response";
+
+    RCLCPP_ERROR(this->get_logger(), "Failed to set update_rate parameter: %s", reason);
+
+    return false;
+  }
+  else
+  {
+    RCLCPP_INFO(
+      this->get_logger(), "Successfully set update_rate parameter to %d Hz", desired_rate_);
+  }
+
   return true;
 }
 

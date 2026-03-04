@@ -115,10 +115,6 @@ int main(int argc, char ** argv)
       controller_manager->get_clock()->sleep_for(
         rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate()));
 
-      // const rclcpp::Duration dt =
-      // rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
-      // std::chrono::milliseconds dt_ms{1000 / controller_manager->get_update_rate()};
-      // for calculating sleep time
       auto const period =
         std::chrono::nanoseconds(1'000'000'000 / controller_manager->get_update_rate());
 
