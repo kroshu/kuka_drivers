@@ -306,8 +306,9 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
-      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.", cycle_time,
-      CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
+      get_logger(), "Invalid cycle time requested: %s. Valid options are %s and %s.",
+      CycleTimeToString(cycle_time).c_str(), CycleTimeToString(CycleTime::RSI_4MS).c_str(),
+      CycleTimeToString(CycleTime::RSI_12MS).c_str());
     return false;
   }
 
@@ -316,7 +317,7 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
     RCLCPP_WARN(
       get_logger(),
       "Tried to change cycle time to the one currently used: %s. No change will be made.",
-      CycleTimeToString(cycle_time));
+      CycleTimeToString(cycle_time).c_str());
     return true;
   }
 
@@ -325,11 +326,12 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 
   RCLCPP_INFO(
     this->get_logger(), "Publishing cycle_time  %s on kss_message_handler/cycle_time",
-    CycleTimeToString(cycle_time));
+    CycleTimeToString(cycle_time).c_str());
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;
 
+  int ms = CycleTimeToInt(cycle_time);
   int desired_rate_ = 1000 / ms;  // Convert ms to Hz
   auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
   rcl_interfaces::msg::Parameter param;

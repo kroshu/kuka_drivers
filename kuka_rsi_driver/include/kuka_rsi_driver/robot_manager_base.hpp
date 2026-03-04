@@ -66,7 +66,7 @@ protected:
   bool ChangeCycleTime(CycleTime cycle_time);
 
   // Convert CycleTime enum to human-readable string
-  inline const char * CycleTimeToString(CycleTime cycle_time)
+  inline std::string CycleTimeToString(CycleTime cycle_time)
   {
     switch (cycle_time)
     {
@@ -75,7 +75,20 @@ protected:
       case CycleTime::RSI_12MS:
         return "2 (12ms)";
       default:
-        return "unspecified";
+        return std::to_string(static_cast<int>(cycle_time));
+    }
+  }
+
+  inline int CycleTimeToInt(CycleTime cycle_time)
+  {
+    switch (cycle_time)
+    {
+      case CycleTime::RSI_4MS:
+        return 4;
+      case CycleTime::RSI_12MS:
+        return 12;
+      default:
+        return -1;
     }
   }
 
