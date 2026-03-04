@@ -30,7 +30,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
   auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
   qos.reliable();
 
-  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+  cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   event_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
   change_hardware_state_client_ = this->create_client<SetHardwareComponentState>(
