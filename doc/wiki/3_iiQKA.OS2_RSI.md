@@ -198,11 +198,11 @@ Use the files in [`kuka_external_control_sdk/krc_setup/iiqka_os2`](https://githu
 
 The `RobotSensorInterface/Context/rsi_ext_axis_example.rsix` contains an example setup with one linear external axis:
 
-![External Axis Example Context](resources/rsi_ext_axis_example_context.png)
+![External Axis Example Context](https://github.com/kroshu/kuka_drivers/tree/master/doc/wiki/resources/rsi_ext_axis_example_context.png)
 
 Compared to the original context:
 
-![Original Context](resources/rsi_joint_pos_context.png)
+![Original Context](https://github.com/kroshu/kuka_drivers/tree/master/doc/wiki/resources/rsi_joint_pos_context.png)
 
 The following changes were required:
 
