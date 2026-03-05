@@ -292,7 +292,7 @@ Tested configurations:
 
 ### Setting up the EKI + RSI driver
 
-To set up the driver for use with both EKI and RSI, follow the instructions in the guide posted in the SDK repository: [External control setup for KSS with EKI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_eki_setup.md)
+To set up the driver for use with both EKI and RSI, follow the instructions in the guide posted in the SDK repository: [External control setup for KSS with EKI](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_setup.md#eki-server-setup)
 
 ### Launching the EKI + RSI driver
 
