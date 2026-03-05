@@ -303,8 +303,9 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
-      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.", static_cast<int>(cycle_time),
-      CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
+      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.",
+      static_cast<int>(cycle_time), CycleTimeToString(CycleTime::RSI_4MS),
+      CycleTimeToString(CycleTime::RSI_12MS));
     return false;
   }
 
