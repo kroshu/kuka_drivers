@@ -41,10 +41,6 @@ def generate_test_description():
                         "startup.launch.py",
                     ]
                 ),
-                launch_arguments={
-                    "mode": "mock",
-                    "cm_log_level": "INFO",
-                }.items(),
             ),
             launch.actions.TimerAction(
                 period=15.0,

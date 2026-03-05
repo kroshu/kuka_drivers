@@ -26,3 +26,6 @@
       type: kuka_controllers/FRIConfigurationController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
+
+    overruns:
+      print_warnings: false
