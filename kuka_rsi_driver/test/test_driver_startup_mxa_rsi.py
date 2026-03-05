@@ -39,6 +39,9 @@ def generate_test_description():
                         "startup.launch.py",
                     ]
                 ),
+                launch_arguments={
+                    "driver_version": "mxa_rsi",
+                }.items(),
             ),
             launch_testing.actions.ReadyToTest(),
         ]
