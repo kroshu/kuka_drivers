@@ -52,6 +52,32 @@ protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);
   virtual void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
+  virtual bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]] const int control_mode)
+  {
+    return true;
+  }
+
+  enum class CycleTime
+  {
+    RSI_4MS = 1,
+    RSI_12MS = 2
+  };
+
+  bool ChangeCycleTime(CycleTime cycle_time);
+
+  // Convert CycleTime enum to human-readable string
+  inline const char * CycleTimeToString(CycleTime cycle_time)
+  {
+    switch (cycle_time)
+    {
+      case CycleTime::RSI_4MS:
+        return "1 (4ms)";
+      case CycleTime::RSI_12MS:
+        return "2 (12ms)";
+      default:
+        return "unspecified";
+    }
+  }
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -74,6 +100,10 @@ protected:
 
   rclcpp::CallbackGroup::SharedPtr event_callback_group_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+
+  // publisher and backing field for cycle time
+  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
+  CycleTime cycle_time_{CycleTime::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;

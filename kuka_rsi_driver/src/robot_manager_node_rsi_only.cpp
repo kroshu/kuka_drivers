@@ -41,6 +41,21 @@ RobotManagerNodeRsi::on_cleanup(const rclcpp_lifecycle::State &)
   return RobotManagerBase::cleanup_driver(controllers_to_deactivate);
 }
 
+bool RobotManagerNodeRsi::OnControlModeChangeRequestAdditionalTasks(
+  [[maybe_unused]] const int control_mode)
+{
+  const auto logger = get_logger();
+
+  if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  {
+    RCLCPP_ERROR(
+      logger, "Changing control mode during active control is not supported by plain RSI driver");
+    return false;
+  }
+
+  return true;
+}
+
 }  // namespace kuka_rsi_driver
 
 int main(int argc, char * argv[])
