@@ -81,11 +81,11 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   // Publisher for sending cycle_time to KssMessageHandler
   cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
-    "~/kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
+    "kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
 
   // Use the provided value to initialize the member (prevents unused-parameter warning)
   this->registerParameter<int>(
-    "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{true, true},
+    "cycle_time", 1, kuka_drivers_core::ParameterSetAccessRights{true, false},
     [this](int cycle_time)
     {
       // Set default cycle time (from parameter)
@@ -303,7 +303,7 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
-      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.", cycle_time,
+      get_logger(), "Invalid cycle time requested: %d. Valid options are %s and %s.", static_cast<int>(cycle_time),
       CycleTimeToString(CycleTime::RSI_4MS), CycleTimeToString(CycleTime::RSI_12MS));
     return false;
   }
