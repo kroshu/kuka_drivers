@@ -14,3 +14,6 @@
       type: gpio_controllers/GpioCommandController
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+
+    overruns:
+      print_warnings: false
