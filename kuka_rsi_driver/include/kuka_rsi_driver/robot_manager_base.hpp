@@ -59,6 +59,7 @@ protected:
 
   enum class CycleTime
   {
+    UNDEFINED = -1,
     RSI_4MS = 1,
     RSI_12MS = 2
   };
@@ -74,6 +75,8 @@ protected:
         return "1 (4ms)";
       case CycleTime::RSI_12MS:
         return "2 (12ms)";
+      case CycleTime::UNDEFINED:
+        return "undefined";
       default:
         return std::to_string(static_cast<int>(cycle_time));
     }
@@ -87,6 +90,8 @@ protected:
         return 4;
       case CycleTime::RSI_12MS:
         return 12;
+      case CycleTime::UNDEFINED:
+        return -1;
       default:
         return -1;
     }
@@ -116,7 +121,7 @@ protected:
 
   // publisher and backing field for cycle time
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;
-  CycleTime cycle_time_{CycleTime::RSI_4MS};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
+  CycleTime cycle_time_{CycleTime::UNDEFINED};  // 1 => 4 ms (RSI_4MS), 2 => 12 ms (RSI_12MS)
 
   static constexpr int HARDWARE_ACTIVATION_TIMEOUT_MS = 15'000;
   static constexpr int HARDWARE_DEACTIVATION_TIMEOUT_MS = 15'000;

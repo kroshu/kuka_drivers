@@ -141,8 +141,8 @@ int main(int argc, char ** argv)
           }
           else
           {
-            controller_manager->update(controller_manager->now(), dt);
-            std::this_thread::sleep_for(dt_ms);
+            controller_manager->update(controller_manager->now(), period);
+            std::this_thread::sleep_for(period);
           }
         }
 
