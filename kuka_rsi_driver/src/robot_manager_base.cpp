@@ -303,7 +303,6 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
 
 bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 {
-
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
@@ -339,7 +338,6 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   rclcpp::Parameter p("update_rate", desired_rate_);
   request->parameters.push_back(p.to_parameter_msg());
   RCLCPP_INFO(this->get_logger(), "Publishing update_rate (%d Hz)", desired_rate_);
-
 
   auto response = kuka_drivers_core::sendRequest<rcl_interfaces::srv::SetParameters::Response>(
     set_param_client_, request,

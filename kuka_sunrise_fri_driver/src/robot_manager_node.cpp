@@ -67,8 +67,8 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
     sub_options);
 
-  set_param_client_ =
-    this->create_client<rcl_interfaces::srv::SetParameters>("controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
+  set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+    "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
 
   registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820", kuka_drivers_core::ParameterSetAccessRights{false, false},
@@ -320,13 +320,11 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
   request->parameters.push_back(p.to_parameter_msg());
   RCLCPP_INFO(this->get_logger(), "Publishing update_rate (%d Hz)", desired_rate_);
 
-
   auto response = kuka_drivers_core::sendRequest<rcl_interfaces::srv::SetParameters::Response>(
     set_param_client_, request,
     5000,  // service timeout
     5000   // response timeout
   );
-
 
   if (!response || response->results.empty() || !response->results[0].successful)
   {
@@ -342,7 +340,6 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
       this->get_logger(), "Successfully set update_rate parameter to %d Hz", desired_rate_);
   }
 
-  
   return true;
 }
 
