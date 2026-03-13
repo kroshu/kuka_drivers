@@ -128,8 +128,6 @@ int main(int argc, char ** argv)
           auto const current_time = controller_manager->get_trigger_clock()->now();
           auto const dt = current_time - previous_time;
           previous_time = current_time;
-          auto dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::nanoseconds(dt.nanoseconds()));
 
           if (is_configured)
           {

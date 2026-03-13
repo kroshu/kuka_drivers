@@ -84,7 +84,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   // Publisher for sending cycle_time to KssMessageHandler
   cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
-    "~/kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
+    "kss_message_handler/cycle_time", rclcpp::SystemDefaultsQoS());
 
   // Use the provided value to initialize the member (prevents unused-parameter warning)
   this->registerParameter<int>(
@@ -162,7 +162,11 @@ RobotManagerBase::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
   terminate_ = false;
-  ChangeCycleTime(static_cast<CycleTime>(cycle_time_));
+  if (!ChangeCycleTime(cycle_time_))
+  {
+    RCLCPP_ERROR(logger, "Could not change cycle time");
+    return FAILURE;
+  }
 
   // Activate hardware interface
   const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
@@ -354,13 +358,12 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   request->parameters.push_back(p.to_parameter_msg());
   RCLCPP_INFO(this->get_logger(), "Publishing update_rate (%d Hz)", desired_rate_);
 
-  auto response = kuka_drivers_core::sendRequest<rcl_interfaces::srv::SetParameters::Response>(
-    set_param_client_, request,
-    5000,  // service timeout
-    5000   // response timeout
-  );
-
-  if (!response || response->results.empty() || !response->results[0].successful)
+  if (auto response = kuka_drivers_core::sendRequest<rcl_interfaces::srv::SetParameters::Response>(
+        set_param_client_, request,
+        5000,  // service timeout
+        5000   // response timeout
+      );
+      !response || response->results.empty() || !response->results[0].successful)
   {
     const char * reason = (response && !response->results.empty())
                             ? response->results[0].reason.c_str()

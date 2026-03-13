@@ -83,7 +83,7 @@ protected:
     }
   }
 
-  inline int CycleTimeToInt(CycleTime cycle_time)
+  inline int CycleTimeToInt(CycleTime cycle_time) const
   {
     switch (cycle_time)
     {
