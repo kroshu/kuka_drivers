@@ -79,7 +79,7 @@ protected:
       case CycleTime::UNDEFINED:
         return "undefined";
       default:
-        return std::to_string(static_cast<int>(cycle_time)).c_str();
+        return "undefined/invalid";
     }
   }
 

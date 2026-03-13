@@ -79,7 +79,6 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return true;
     });
 
-
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
 
@@ -319,8 +318,8 @@ bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
   {
     RCLCPP_ERROR(
       get_logger(), "Invalid cycle time requested: %s. Valid options are %s and %s.",
-      CycleTimeToString(cycle_time).c_str(), CycleTimeToString(CycleTime::RSI_4MS).c_str(),
-      CycleTimeToString(CycleTime::RSI_12MS).c_str());
+      CycleTimeToString(cycle_time), CycleTimeToString(CycleTime::RSI_4MS),
+      CycleTimeToString(CycleTime::RSI_12MS));
     return false;
   }
 
