@@ -65,6 +65,7 @@ protected:
   };
 
   bool ChangeCycleTime(CycleTime cycle_time);
+  bool ValidateCycleTime(CycleTime cycle_time);
 
   // Convert CycleTime enum to human-readable string
   inline std::string CycleTimeToString(CycleTime cycle_time)

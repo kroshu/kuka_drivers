@@ -92,7 +92,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
     [this](int cycle_time)
     {
       // Set default cycle time (from parameter)
-      return ChangeCycleTime(static_cast<CycleTime>(cycle_time));  // 1 => 4ms, 2 => 12ms
+      return ValidateCycleTime(static_cast<CycleTime>(cycle_time));  // 1 => 4ms, 2 => 12ms
     });
 }
 
@@ -162,6 +162,7 @@ RobotManagerBase::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto logger = get_logger();
   terminate_ = false;
+  ChangeCycleTime(static_cast<CycleTime>(cycle_time_));
 
   // Activate hardware interface
   const bool hw_state_change_successful = kuka_drivers_core::changeHardwareState(
@@ -301,8 +302,18 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
   return true;
 }
 
-bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
+bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
 {
+  if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Tried to change cycle time while driver is active. "
+      "Cycle time can only be changed in inactive state. "
+      "Please deactivate the driver, change cycle time, and activate it again.");
+    return false;
+  }
+
+
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
     RCLCPP_ERROR(
@@ -330,7 +341,11 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;
+  return true;
+}
 
+bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
+{
   int ms = CycleTimeToInt(cycle_time);
   int desired_rate_ = 1000 / ms;  // Convert ms to Hz
   auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
@@ -352,14 +367,14 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
                             : "no response";
 
     RCLCPP_ERROR(this->get_logger(), "Failed to set update_rate parameter: %s", reason);
+    return false;
   }
   else
   {
     RCLCPP_INFO(
       this->get_logger(), "Successfully set update_rate parameter to %d Hz", desired_rate_);
+      return true;
   }
-
-  return true;
 }
 
 }  // namespace kuka_rsi_driver
