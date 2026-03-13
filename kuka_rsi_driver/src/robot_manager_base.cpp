@@ -79,6 +79,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return true;
     });
 
+
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
 
@@ -328,7 +329,7 @@ bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
     RCLCPP_WARN(
       get_logger(),
       "Tried to change cycle time to the one currently used: %s. No change will be made.",
-      CycleTimeToString(cycle_time).c_str());
+      CycleTimeToString(cycle_time));
     return true;
   }
 
@@ -337,7 +338,7 @@ bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
 
   RCLCPP_INFO(
     this->get_logger(), "Publishing cycle_time  %s on kss_message_handler/cycle_time",
-    CycleTimeToString(cycle_time).c_str());
+    CycleTimeToString(cycle_time));
 
   cycle_time_pub_->publish(msg);
   cycle_time_ = cycle_time;

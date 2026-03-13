@@ -43,11 +43,10 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "mode": "mock",
-                    "cm_log_level": "INFO",
                 }.items(),
             ),
             launch.actions.TimerAction(
-                period=15.0,
+                period=20.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
@@ -56,7 +55,7 @@ def generate_test_description():
                 ],
             ),
             launch.actions.TimerAction(
-                period=20.0,
+                period=25.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],

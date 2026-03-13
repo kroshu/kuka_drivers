@@ -68,7 +68,7 @@ protected:
   bool ValidateCycleTime(CycleTime cycle_time);
 
   // Convert CycleTime enum to human-readable string
-  inline std::string CycleTimeToString(CycleTime cycle_time)
+  inline const char * CycleTimeToString(CycleTime cycle_time)
   {
     switch (cycle_time)
     {
@@ -79,7 +79,7 @@ protected:
       case CycleTime::UNDEFINED:
         return "undefined";
       default:
-        return std::to_string(static_cast<int>(cycle_time));
+        return std::to_string(static_cast<int>(cycle_time)).c_str();
     }
   }
 

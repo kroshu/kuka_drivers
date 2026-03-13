@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <sys/mman.h>
+
 #include <memory>
 #include <thread>
-
-#include <sys/mman.h>
 
 #include "controller_manager/controller_manager.hpp"
 #include "rclcpp/rclcpp.hpp"

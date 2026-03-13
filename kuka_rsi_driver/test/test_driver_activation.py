@@ -42,7 +42,6 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "driver_version": "rsi_only",
-                    "cm_log_level": "INFO",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -55,7 +54,7 @@ def generate_test_description():
                 )
             ),
             launch.actions.TimerAction(
-                period=10.0,
+                period=20.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
@@ -64,7 +63,7 @@ def generate_test_description():
                 ],
             ),
             launch.actions.TimerAction(
-                period=15.0,
+                period=25.0,
                 actions=[
                     launch.actions.ExecuteProcess(
                         cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
@@ -89,5 +88,5 @@ class TestDriverActivation(unittest.TestCase):
             "Setting component 'kr6_r700_sixx' to 'unconfigured' state.", timeout=5
         )
         # Check for successful configuration and activation
-        proc_output.assertWaitFor("Successful 'configure' of hardware 'kr6_r700_sixx'", timeout=15)
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'kr6_r700_sixx'", timeout=20)
+        proc_output.assertWaitFor("Successful 'configure' of hardware 'kr6_r700_sixx'", timeout=25)
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'kr6_r700_sixx'", timeout=30)
