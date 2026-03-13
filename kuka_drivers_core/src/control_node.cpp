@@ -111,10 +111,10 @@ int main(int argc, char ** argv)
           param.sched_priority);
       }
 
-      controller_manager->get_clock()->wait_until_started();
-      controller_manager->get_clock()->sleep_for(rclcpp::Duration::from_seconds(0.004));
+      auto period = std::chrono::nanoseconds(4'000'000);
 
-      auto period = std::chrono::nanoseconds(0.004);
+      controller_manager->get_clock()->wait_until_started();
+      controller_manager->get_clock()->sleep_for(period);
 
       // for calculating the measured period of the loop
       rclcpp::Time previous_time = controller_manager->get_trigger_clock()->now();
