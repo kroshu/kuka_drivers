@@ -304,7 +304,8 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
 
 bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
 {
-  if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
+  if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+  {
     RCLCPP_ERROR(
       this->get_logger(),
       "Tried to change cycle time while driver is active. "
@@ -312,7 +313,6 @@ bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
       "Please deactivate the driver, change cycle time, and activate it again.");
     return false;
   }
-
 
   if (cycle_time != CycleTime::RSI_4MS && cycle_time != CycleTime::RSI_12MS)
   {
@@ -373,7 +373,7 @@ bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
   {
     RCLCPP_INFO(
       this->get_logger(), "Successfully set update_rate parameter to %d Hz", desired_rate_);
-      return true;
+    return true;
   }
 }
 
