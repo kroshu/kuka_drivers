@@ -80,7 +80,7 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
     });
 
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-    "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
+    "controller_manager/set_parameters", qos.get_rmw_qos_profile(), cbg_);
 
   // Publisher for sending cycle_time to KssMessageHandler
   cycle_time_pub_ = this->create_publisher<std_msgs::msg::UInt8>(

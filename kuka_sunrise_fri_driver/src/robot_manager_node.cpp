@@ -68,7 +68,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
     sub_options);
 
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-    "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
+    "controller_manager/set_parameters", qos.get_rmw_qos_profile(), cbg_);
 
   registerStaticParameter<std::string>(
     "robot_model", "lbr_iiwa14_r820", kuka_drivers_core::ParameterSetAccessRights{false, false},
