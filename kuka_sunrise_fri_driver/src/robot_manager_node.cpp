@@ -333,6 +333,7 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
                             : "no response";
 
     RCLCPP_ERROR(this->get_logger(), "Failed to set update_rate parameter: %s", reason);
+    return false;
   }
   else
   {
