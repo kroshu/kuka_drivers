@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
       controller_manager->get_clock()->sleep_for(period);
 
       // for calculating the measured period of the loop
-      rclcpp::Time previous_time = controller_manager->get_trigger_clock()->now();
+      rclcpp::Time previous_time = controller_manager->get_clock()->now();
       std::this_thread::sleep_for(period);
 
       try
@@ -125,7 +125,7 @@ int main(int argc, char ** argv)
         while (rclcpp::ok())
         {
           // calculate measured period
-          auto const current_time = controller_manager->get_trigger_clock()->now();
+          auto const current_time = controller_manager->get_clock()->now();
           auto const dt = current_time - previous_time;
           previous_time = current_time;
 
