@@ -111,14 +111,24 @@ int main(int argc, char ** argv)
           param.sched_priority);
       }
 
-      const rclcpp::Duration dt =
-        rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
-      std::chrono::milliseconds dt_ms{1000 / controller_manager->get_update_rate()};
+      auto period = std::chrono::nanoseconds(4'000'000);
+
+      controller_manager->get_clock()->wait_until_started();
+      controller_manager->get_clock()->sleep_for(period);
+
+      // for calculating the measured period of the loop
+      rclcpp::Time previous_time = controller_manager->get_trigger_clock()->now();
+      std::this_thread::sleep_for(period);
 
       try
       {
         while (rclcpp::ok())
         {
+          // calculate measured period
+          auto const current_time = controller_manager->get_trigger_clock()->now();
+          auto const dt = current_time - previous_time;
+          previous_time = current_time;
+
           if (is_configured)
           {
             controller_manager->read(controller_manager->now(), dt);
@@ -127,8 +137,10 @@ int main(int argc, char ** argv)
           }
           else
           {
-            controller_manager->update(controller_manager->now(), dt);
-            std::this_thread::sleep_for(dt_ms);
+            period =
+              std::chrono::nanoseconds(1'000'000'000 / controller_manager->get_update_rate());
+            controller_manager->update(controller_manager->now(), period);
+            std::this_thread::sleep_for(period);
           }
         }
 
