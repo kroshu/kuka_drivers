@@ -72,6 +72,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_imp_pub_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
   std_msgs::msg::UInt32 control_mode_msg_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr set_param_client_;
 
   int receive_multiplier_ = 0;
   int send_period_ms_ = 0;
