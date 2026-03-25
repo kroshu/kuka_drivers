@@ -115,11 +115,12 @@ int main(int argc, char ** argv)
       {
         while (rclcpp::ok())
         {
-          // Use a fixed period for interpolation, as the interpolation cycle is also fixed on the controller side
-          // Calculating the period from the actual time could cause jitter in the interpolated values
+          // Use a fixed period for interpolation, as the interpolation cycle is also fixed on the
+          // controller side. Calculating the period from the actual time could cause jitter in the
+          // interpolated values
           // TODO: adjust dt for non-integer update rates, (e.g. 12 ms cycle time for RSI IPO mode)
           const rclcpp::Duration dt =
-              rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
+            rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
 
           if (is_configured)
           {
