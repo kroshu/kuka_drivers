@@ -113,6 +113,8 @@ int main(int argc, char ** argv)
 
       try
       {
+        rclcpp::Time current_time = controller_manager->now();
+        bool using_fixed_time = false;
         while (rclcpp::ok())
         {
           // Use a fixed period for interpolation, as the interpolation cycle is also fixed on the
@@ -124,12 +126,22 @@ int main(int argc, char ** argv)
 
           if (is_configured)
           {
+            if (!using_fixed_time)
+            {
+              using_fixed_time = true;
+              current_time = controller_manager->now();
+            }
+
             controller_manager->read(controller_manager->now(), dt);
-            controller_manager->update(controller_manager->now(), dt);
+            controller_manager->update(current_time, dt);
             controller_manager->write(controller_manager->now(), dt);
+
+            // Advance the simulated control time by the fixed dt period
+            current_time = rclcpp::Time(current_time.nanoseconds() + dt.nanoseconds());
           }
           else
           {
+            using_fixed_time = false;
             controller_manager->update(controller_manager->now(), dt);
             std::this_thread::sleep_for(dt.to_chrono<std::chrono::nanoseconds>());
           }
