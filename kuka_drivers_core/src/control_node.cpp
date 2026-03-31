@@ -111,6 +111,7 @@ int main(int argc, char ** argv)
           param.sched_priority);
       }
 
+<<<<<<< HEAD
       auto period = std::chrono::nanoseconds(4'000'000);
 
       controller_manager->get_clock()->wait_until_started();
@@ -120,14 +121,25 @@ int main(int argc, char ** argv)
       rclcpp::Time previous_time = controller_manager->get_clock()->now();
       std::this_thread::sleep_for(period);
 
+=======
+>>>>>>> c83a429 (Call controller `update` with fixed period to avoid interpolation jitter (#335))
       try
       {
         while (rclcpp::ok())
         {
+<<<<<<< HEAD
           // calculate measured period
           auto const current_time = controller_manager->get_clock()->now();
           auto const dt = current_time - previous_time;
           previous_time = current_time;
+=======
+          // Use a fixed period for interpolation, as the interpolation cycle is also fixed on the
+          // controller side. Calculating the period from the actual time could cause jitter in the
+          // interpolated values
+          // TODO: adjust dt for non-integer update rates, (e.g. 12 ms cycle time for RSI IPO mode)
+          const rclcpp::Duration dt =
+            rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
+>>>>>>> c83a429 (Call controller `update` with fixed period to avoid interpolation jitter (#335))
 
           if (is_configured)
           {
@@ -137,10 +149,8 @@ int main(int argc, char ** argv)
           }
           else
           {
-            period =
-              std::chrono::nanoseconds(1'000'000'000 / controller_manager->get_update_rate());
-            controller_manager->update(controller_manager->now(), period);
-            std::this_thread::sleep_for(period);
+            controller_manager->update(controller_manager->now(), dt);
+            std::this_thread::sleep_for(dt.to_chrono<std::chrono::nanoseconds>());
           }
         }
 
