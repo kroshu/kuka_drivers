@@ -19,11 +19,10 @@
 #include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
 
-
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
-using namespace lifecycle_msgs::msg;  // NOLINT
+using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_sunrise_fri_driver
 {
@@ -129,8 +128,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   control_mode_pub_->publish(control_mode_msg_);
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
-  //setFriConfiguration(send_period_ms_, receive_multiplier_);
-  if(onSendPeriodChangeRequest(period_ms_) == false)
+  // setFriConfiguration(send_period_ms_, receive_multiplier_);
+  if (onSendPeriodChangeRequest(period_ms_) == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -225,7 +224,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if(onSendPeriodChangeRequest(period_ms_) == false)
+  if (onSendPeriodChangeRequest(period_ms_) == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -310,8 +309,7 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
 
 bool RobotManagerNode::ValidatePeriod(int send_period)
 {
-  if (this->get_current_state().id() ==
-    lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
     RCLCPP_ERROR(
       this->get_logger(),
