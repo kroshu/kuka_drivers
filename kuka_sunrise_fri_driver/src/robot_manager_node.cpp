@@ -128,8 +128,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   control_mode_pub_->publish(control_mode_msg_);
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
-  // setFriConfiguration(send_period_ms_, receive_multiplier_);
-  if (onSendPeriodChangeRequest() == false)
+  if (SendPeriodChangeRequest() == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -224,7 +223,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (onSendPeriodChangeRequest() == false)
+  if (SendPeriodChangeRequest() == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -334,7 +333,7 @@ bool RobotManagerNode::ValidatePeriod(int send_period)
   return true;
 }
 
-bool RobotManagerNode::onSendPeriodChangeRequest()
+bool RobotManagerNode::SendPeriodChangeRequest()
 {
   if (!ValidatePeriod(send_period_ms_))
   {
