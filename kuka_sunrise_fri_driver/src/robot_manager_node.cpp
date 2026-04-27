@@ -129,7 +129,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
   // setFriConfiguration(send_period_ms_, receive_multiplier_);
-  if (onSendPeriodChangeRequest(period_ms_) == false)
+  if (onSendPeriodChangeRequest() == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -224,7 +224,7 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
 
-  if (onSendPeriodChangeRequest(period_ms_) == false)
+  if (onSendPeriodChangeRequest() == false)
   {
     RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
     return FAILURE;
@@ -330,18 +330,17 @@ bool RobotManagerNode::ValidatePeriod(int send_period)
     RCLCPP_ERROR(get_logger(), "Control signal send period must not be bigger than 10 ms");
     return false;
   }
-  period_ms_ = send_period;
+  send_period_ms_ = send_period;
   return true;
 }
 
-bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
+bool RobotManagerNode::onSendPeriodChangeRequest()
 {
-  if (!ValidatePeriod(send_period))
+  if (!ValidatePeriod(send_period_ms_))
   {
     return false;
   }
 
-  send_period_ms_ = send_period;
   setFriConfiguration(send_period_ms_, receive_multiplier_);
 
   int desired_rate_ = 1000 / send_period_ms_;  // Convert ms to Hz
