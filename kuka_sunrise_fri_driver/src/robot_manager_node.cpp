@@ -22,6 +22,7 @@
 #include "kuka_sunrise_fri_driver/robot_manager_node.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
+using namespace lifecycle_msgs::msg;           // NOLINT
 
 namespace kuka_sunrise_fri_driver
 {
@@ -81,7 +82,7 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   registerParameter<int>(
     "cycle_time", 10, kuka_drivers_core::ParameterSetAccessRights{true, false},
-    [this](const int & send_period) { return this->onSendPeriodChangeRequest(send_period); });
+    [this](const int & send_period) { return this->ValidatePeriod(send_period); });
 
   registerParameter<int>(
     "receive_multiplier", 1, kuka_drivers_core::ParameterSetAccessRights{true, false},
@@ -127,8 +128,11 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   control_mode_pub_->publish(control_mode_msg_);
 
   // Publish FRI configuration to notify fri_configuration_controller of initial values
-  setFriConfiguration(send_period_ms_, receive_multiplier_);
-
+  if (SendPeriodChangeRequest() == false)
+  {
+    RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
+    return FAILURE;
+  }
   // Configure hardware interface
   if (!kuka_drivers_core::changeHardwareState(
         change_hardware_state_client_, robot_model_,
@@ -218,6 +222,12 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
     this->on_deactivate(get_current_state());
     return FAILURE;
   }
+
+  if (SendPeriodChangeRequest() == false)
+  {
+    RCLCPP_ERROR(get_logger(), "Failed to set FRI configuration");
+    return FAILURE;
+  }
   return SUCCESS;
 }
 
@@ -296,8 +306,18 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   return true;
 }
 
-bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
+bool RobotManagerNode::ValidatePeriod(int send_period)
 {
+  if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Tried to change cycle time while driver is active. "
+      "Cycle time can only be changed in inactive state. "
+      "Please deactivate the driver, change cycle time, and activate it again.");
+    return false;
+  }
+
   if (send_period < 1 || send_period > 100)
   {
     RCLCPP_ERROR(get_logger(), "Send period milliseconds must be >=1 && <=100");
@@ -309,8 +329,17 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
     RCLCPP_ERROR(get_logger(), "Control signal send period must not be bigger than 10 ms");
     return false;
   }
-
   send_period_ms_ = send_period;
+  return true;
+}
+
+bool RobotManagerNode::SendPeriodChangeRequest()
+{
+  if (!ValidatePeriod(send_period_ms_))
+  {
+    return false;
+  }
+
   setFriConfiguration(send_period_ms_, receive_multiplier_);
 
   int desired_rate_ = 1000 / send_period_ms_;  // Convert ms to Hz
@@ -333,14 +362,14 @@ bool RobotManagerNode::onSendPeriodChangeRequest(int send_period)
                             : "no response";
 
     RCLCPP_ERROR(this->get_logger(), "Failed to set update_rate parameter: %s", reason);
+    return false;
   }
   else
   {
     RCLCPP_INFO(
       this->get_logger(), "Successfully set update_rate parameter to %d Hz", desired_rate_);
+    return true;
   }
-
-  return true;
 }
 
 bool RobotManagerNode::onReceiveMultiplierChangeRequest(const int & receive_multiplier)
