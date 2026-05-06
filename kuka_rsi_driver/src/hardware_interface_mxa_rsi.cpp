@@ -142,6 +142,8 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
+
+  auto result = KukaRSIHardwareInterfaceBase::extended_activation(state);
   for (int i=0; i<hw_states_.size(); i++) 
   {   RCLCPP_INFO(logger_, "Activate");
       RCLCPP_INFO(logger_, " State : %lf", hw_states_[i]);
@@ -149,7 +151,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
       RCLCPP_INFO(logger_, "Initial state: %lf", robot_ptr_->initial_motion_state_.GetMeasuredPositions()[i]);
 
   }
-  return KukaRSIHardwareInterfaceBase::extended_activation(state);
+  return result;
 }
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
