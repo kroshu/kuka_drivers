@@ -552,6 +552,9 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
     }
     RCLCPP_INFO(logger_, "Drives successfully powered off");
   }
+
+  robot_ptr_->control_signal_.Reset()
+
   return CallbackReturn::SUCCESS;
 }
 

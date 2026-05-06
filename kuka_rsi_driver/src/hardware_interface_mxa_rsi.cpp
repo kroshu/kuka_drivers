@@ -110,9 +110,13 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
     return CallbackReturn::ERROR;
   }
 
+  RCLCPP_INFO(logger_, "Tesód");
+
   // Wait for the response to arrive from the controller
   std::unique_lock<std::mutex> lk{init_mtx_};
   init_cv_.wait(lk, [this] { return init_report_.sequence_complete; });
+
+  RCLCPP_INFO(logger_, "Apukád");
 
   if (verify_robot_model_)
   {
@@ -131,16 +135,34 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
     RCLCPP_INFO(logger_, "Robot model verification is disabled, proceeding with the connection.");
   }
 
+  RCLCPP_INFO(logger_, "Anyukád");
+
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
+  for (int i=0; i<hw_states_.size(); i++) 
+  {   RCLCPP_INFO(logger_, "Activate");
+      RCLCPP_INFO(logger_, " State : %lf", hw_states_[i]);
+      RCLCPP_INFO(logger_, "Command: %lf", hw_commands_[i]);
+      RCLCPP_INFO(logger_, "Initial state: %lf", robot_ptr_->initial_motion_state_.GetMeasuredPositions()[i]);
+
+  }
   return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
 {
+  for (int i=0; i<hw_states_.size(); i++) 
+  {
+      RCLCPP_INFO(logger_, "Deactivate");
+      RCLCPP_INFO(logger_, "State: %lf", hw_states_[i]);
+      RCLCPP_INFO(logger_, "Command: %lf", hw_commands_[i]);
+      RCLCPP_INFO(logger_, "Initial state: %lf", robot_ptr_->initial_motion_state_.GetMeasuredPositions()[i]);
+  }
+  
+
   return KukaRSIHardwareInterfaceBase::extended_deactivation(state);
 }
 
@@ -154,8 +176,10 @@ return_type KukaMxaRsiHardwareInterface::read(
 
 void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 {
+  RCLCPP_INFO(logger_, "Nagytatád");
   if (init_data.GetTotalAxisCount() == 0)
   {
+    RCLCPP_INFO(logger_, "Kishúgod");
     RCLCPP_WARN(
       logger_,
       "Skipping robot model verification, as it is not supported for mxA versions below 4.0");
@@ -163,6 +187,7 @@ void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
   }
   else
   {
+    RCLCPP_INFO(logger_, "Kisöcséd");
     std::lock_guard<std::mutex> lk{init_mtx_};
     if (info_.joints.size() != init_data.GetTotalAxisCount())
     {
