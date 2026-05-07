@@ -513,6 +513,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
 
 CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_lifecycle::State &)
 {
+  
   if (msg_received_)
   {
     RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
@@ -524,11 +525,14 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   else
   {
     RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+    robot_ptr_->control_signal_.Reset();
+    RCLCPP_INFO(logger_, "Initial position has been reset");
+    RCLCPP_INFO(logger_, "InitialPositionsSet: %d", robot_ptr_->control_signal_.InitialPositionsSet());
     robot_ptr_->CancelRsiProgram();
+    
   }
   is_active_ = false;
   msg_received_ = false;
-
   if (status_manager_.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");
@@ -553,7 +557,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
     RCLCPP_INFO(logger_, "Drives successfully powered off");
   }
 
-  robot_ptr_->control_signal_.Reset();
+
 
   return CallbackReturn::SUCCESS;
 }
