@@ -256,11 +256,11 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
       double high_thresh = dt_ms + 0.5;
       if (interval_ms.count() < low_thresh || interval_ms.count() > high_thresh)
       {
-        RCLCPP_WARN(
+        /* RCLCPP_WARN(
           logger_,
           "Unexpected RSI state interval: %.3f ms (expected %.3f±0.5 ms), change in interpolation "
           "count %lu",
-          interval_ms.count(), dt_ms, robot_ptr_->getIpoc() - last_ipoc_);
+          interval_ms.count(), dt_ms, robot_ptr_->getIpoc() - last_ipoc_); */
       }
     }
     // update stored time for both interval and control-latency calculations
