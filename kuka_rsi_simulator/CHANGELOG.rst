@@ -2,8 +2,8 @@
 Changelog for package kuka_rsi_simulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-05-11)
+------------------
 * Add external axis support (backport `#305 <https://github.com/kroshu/kuka_drivers/issues/305>`_) (`#306 <https://github.com/kroshu/kuka_drivers/issues/306>`_)
   * Add external axis support (`#305 <https://github.com/kroshu/kuka_drivers/issues/305>`_)
   * Add external axis example

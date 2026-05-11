@@ -2,8 +2,8 @@
 Changelog for package kuka_drivers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-05-11)
+------------------
 * cleanup (`#307 <https://github.com/kroshu/kuka_drivers/issues/307>`_) (`#308 <https://github.com/kroshu/kuka_drivers/issues/308>`_)
   (cherry picked from commit e5718bbb7196ed59c78a2ffd2319dbe40f441d39)
   Co-authored-by: Áron Svastits <49677296+Svastits@users.noreply.github.com>

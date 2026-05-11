@@ -2,8 +2,8 @@
 Changelog for package kuka_sunrise_fri_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-05-11)
+------------------
 * Added synchronus cycle time change to sunrise similar to RSI pattern (`#340 <https://github.com/kroshu/kuka_drivers/issues/340>`_) (`#341 <https://github.com/kroshu/kuka_drivers/issues/341>`_)
   * Addied synchronus cycle time change to sunrise similar to RSI pattern
   * format fixes

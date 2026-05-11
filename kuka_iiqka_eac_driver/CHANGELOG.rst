@@ -2,8 +2,8 @@
 Changelog for package kuka_iiqka_eac_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-05-11)
+------------------
 * Fix cycle time publisher namespace and parameter access rights (`#330 <https://github.com/kroshu/kuka_drivers/issues/330>`_) (`#331 <https://github.com/kroshu/kuka_drivers/issues/331>`_)
   * ci stabilization
   * format
