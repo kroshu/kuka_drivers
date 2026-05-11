@@ -1,0 +1,4 @@
+[submodule "kuka_official"]
+	path = kuka_official
+	url = https://github.com/Svastits/studious-fortnight.git
+	branch = kroshu_drivers
