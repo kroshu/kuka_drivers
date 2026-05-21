@@ -524,6 +524,8 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   else
   {
     RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+    robot_ptr_->ResetControlSignal();
+    RCLCPP_INFO(logger_, "Reseted initial position");
     robot_ptr_->CancelRsiProgram();
   }
   is_active_ = false;
