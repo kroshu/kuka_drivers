@@ -513,7 +513,6 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
 
 CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_lifecycle::State &)
 {
-  
   if (msg_received_)
   {
     RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
@@ -527,7 +526,6 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
     RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
     RCLCPP_INFO(logger_, robot_ptr_->ResetControlSignal().message);
     robot_ptr_->CancelRsiProgram();
-    
   }
   is_active_ = false;
   msg_received_ = false;
@@ -554,8 +552,6 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
     }
     RCLCPP_INFO(logger_, "Drives successfully powered off");
   }
-
-
 
   return CallbackReturn::SUCCESS;
 }
