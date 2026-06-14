@@ -17,7 +17,7 @@ test2/controller_manager:
 
 test2/effort_controller:
   ros__parameters:
-    interface_name: position
+    interface_name: effort
     joints:
     - test2_joint_1
     - test2_joint_2
