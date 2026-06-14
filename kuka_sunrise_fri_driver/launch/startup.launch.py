@@ -171,19 +171,21 @@ def launch_setup(context, *args, **kwargs):
         prefix=prefix_cmd,
     )
 
+    controller_manager_name = "controller_manager"
+    if ns.perform(context) != "":
+        controller_manager_name = f"/{ns.perform(context)}/controller_manager"
+
     # Spawn controllers
     def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
         arg_list = [
             controller_name,
             "-c",
-            "controller_manager",
-            "-n",
-            ns,
+            controller_manager_name,
         ]
 
         # Add param-file if it's provided
         if param_file:
-            arg_list.extend(["--param-file", param_file])
+            arg_list.extend(["-p", param_file])
 
         if not activate:
             arg_list.append("--inactive")

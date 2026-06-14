@@ -9,7 +9,7 @@
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
     effort_controller:
-      type: effort_controllers/JointGroupEffortController
+      type: forward_command_controller/ForwardCommandController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
     fri_state_broadcaster:

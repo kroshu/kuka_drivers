@@ -1,5 +1,6 @@
 /**/effort_controller:
   ros__parameters:
+    interface_name: effort
     joints:
     - joint_1
     - joint_2
