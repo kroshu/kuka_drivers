@@ -85,7 +85,8 @@ private:
   std::string GetControllerName() const;
   bool onControlModeChangeRequest(int control_mode);
   bool onRobotModelChangeRequest(const std::string & robot_model);
-  bool onSendPeriodChangeRequest(int send_period);
+  bool SendPeriodChangeRequest();
+  bool ValidatePeriod(int send_period);
   bool setReceiveMultiplier(int receive_multiplier);
   bool onReceiveMultiplierChangeRequest(const int & receive_multiplier);
   bool ValidateIPAdress(std::string_view controller_ip) const;
