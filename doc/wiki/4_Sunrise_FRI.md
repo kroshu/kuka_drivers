@@ -55,7 +55,7 @@ The parameters in the driver configuration file can be also changed during runti
     - [`fri_configuration_controller`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#32-fri_configuration_controller) (no configuration file)
     - [`fri_state_broadcaster`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#21-fri_state_broadcaster) (no configuration file)
     - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml))
-    - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
+    - `effort_controller` (of type `ForwardCommandController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/effort_controller_config.yaml))
     - [`control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#31-kuka_control_mode_handler) (no configuration file)
     - `external_torque_broadcaster` (of type `JointStateBroadcaster`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_sunrise_fri_driver/config/external_torque_broadcaster_config.yaml), publishes a `JointState` message type on the topic `external_torque_broadcaster/joint_states` containing the measured external torques for every joint)
 

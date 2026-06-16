@@ -9,6 +9,17 @@ test1/controller_manager:
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController
     effort_controller:
-      type: effort_controllers/JointGroupPositionController
+      type: forward_command_controller/ForwardCommandController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
+
+test1/effort_controller:
+  ros__parameters:
+    interface_name: position
+    joints:
+    - test1_joint_1
+    - test1_joint_2
+    - test1_joint_3
+    - test1_joint_4
+    - test1_joint_5
+    - test1_joint_6

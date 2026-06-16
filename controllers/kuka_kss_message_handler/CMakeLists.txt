@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(kuka_kss_message_handler)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -22,15 +22,15 @@ target_compile_features(kuka_kss_message_handler PUBLIC c_std_99 cxx_std_17)  # 
 target_include_directories(kuka_kss_message_handler PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-ament_target_dependencies(
+target_link_libraries(
   kuka_kss_message_handler
-  controller_interface
-  pluginlib
-  rclcpp
-  rclcpp_lifecycle
-  std_msgs
-  kuka_drivers_core
-  kuka_driver_interfaces
+  controller_interface::controller_interface
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  rclcpp_lifecycle::rclcpp_lifecycle
+  std_msgs::std_msgs
+  kuka_drivers_core::kuka_drivers_core
+  kuka_driver_interfaces::kuka_driver_interfaces
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,

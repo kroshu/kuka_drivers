@@ -9,8 +9,19 @@ test2/controller_manager:
     joint_group_impedance_controller:
       type: kuka_controllers/JointGroupImpedanceController
     effort_controller:
-      type: effort_controllers/JointGroupPositionController
+      type: forward_command_controller/ForwardCommandController
     control_mode_handler:
       type: kuka_controllers/ControlModeHandler
     event_broadcaster:
       type: kuka_controllers/EventBroadcaster
+
+test2/effort_controller:
+  ros__parameters:
+    interface_name: effort
+    joints:
+    - test2_joint_1
+    - test2_joint_2
+    - test2_joint_3
+    - test2_joint_4
+    - test2_joint_5
+    - test2_joint_6

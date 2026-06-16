@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(kuka_event_broadcaster)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -19,7 +19,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core
+target_link_libraries(${PROJECT_NAME}
+  controller_interface::controller_interface
+  kuka_drivers_core::kuka_drivers_core
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
