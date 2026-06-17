@@ -524,11 +524,19 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   else
   {
     RCLCPP_INFO(logger_, "Message not received, but stop requested. Cancelling RSI program.");
+    auto reset_status = robot_ptr_->ResetControlSignal();
+    if (reset_status.return_code != kuka::external::control::ReturnCode::OK)
+    {
+      RCLCPP_WARN(logger_, "Failed to reset control signal.");
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "%s", reset_status.message);
+    }
     robot_ptr_->CancelRsiProgram();
   }
   is_active_ = false;
   msg_received_ = false;
-
   if (status_manager_.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");
@@ -552,6 +560,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
     }
     RCLCPP_INFO(logger_, "Drives successfully powered off");
   }
+
   return CallbackReturn::SUCCESS;
 }
 

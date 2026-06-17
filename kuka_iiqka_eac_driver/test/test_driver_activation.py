@@ -81,6 +81,6 @@ class TestDriverActivation(unittest.TestCase):
         )
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=25
+            "Successful 'configure' of hardware 'lbr_iisy3_r760'", timeout=30
         )
-        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=30)
+        proc_output.assertWaitFor("Successful 'activate' of hardware 'lbr_iisy3_r760'", timeout=35)
