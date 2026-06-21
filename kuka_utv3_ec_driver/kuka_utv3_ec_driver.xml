@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<library path="kuka_utv3_ec_driver">
+  <class type="omnimove::KukaUTV3HardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>ros2_control hardware interface for UTV3 platform</description>
+  </class>
+</library>

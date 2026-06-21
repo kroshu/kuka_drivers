@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kuka_utv3_ec_driver</name>
+  <version>0.0.1</version>
+  <description>A ROS2 hardware interface for use with KUKA UTV3 vehicles</description>
+  <maintainer email="ravi.rathnam@kuka.com">Ravi Rathnam</maintainer>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+
+  <exec_depend>controller_manager</exec_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
