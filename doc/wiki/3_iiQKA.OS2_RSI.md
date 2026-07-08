@@ -246,6 +246,74 @@ See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_de
 > [!NOTE]
 > The driver supports only __revolute__ and __prismatic__ external joints.
 
+### RSI XML message configuration
+
+By default, the driver uses the default RSI XML element names inherited from the `kuka-external-control-sdk` (`RIst`, `AIPos`, `AK`, `EK`, etc.) and the provided `rsi_ethernet.xml` is already aligned with these defaults. If your RSI context file uses different XML element or attribute names (for example when adding a custom RSIX context), you can configure the driver to match by providing a YAML file.
+
+#### YAML configuration file
+
+An annotated example is provided at `kuka_rsi_driver/config/rsi_xml_config_example.yaml`. Copy and adapt it to match your setup:
+
+```yaml
+rsi_xml_config:
+  motion_state:                    # XML elements received from the KRC
+    cartesian:
+      xml_element: "RIst"
+    joints:                        # one entry per joint, in URDF order
+      - joint_identifier: "joint_1"
+        xml_element: "AIPos"
+        xml_attribute: "A1"
+      # ... repeat for each joint
+    delay:
+      xml_element: "Delay"
+      xml_attribute: "D"
+    gpio:                          # omit if no GPIO state interfaces
+      xml_element: "GPIO"
+      xml_attributes: ["01", "02"]
+    ipoc:
+      xml_element: "IPOC"
+  control_signal:                  # XML elements sent to the KRC
+    joints:
+      xml_element: "AK"
+    ext_joints:                    # omit if no external axes
+      xml_element: "EK"
+      xml_attributes: ["E1"]
+    gpio:                          # omit if no GPIO command interfaces
+      xml_element: "GPIO"
+    ipoc:
+      xml_element: "IPOC"
+```
+
+Pass the absolute path to this file using the `rsi_xml_config_file` launch argument (see [Launch arguments](#launch-arguments)).
+
+> [!NOTE]
+> If `rsi_xml_config_file` is not set, the driver uses the SDK defaults. For a standard setup with the provided `rsi_ethernet.xml` and `rsi_joint_pos.rsix` files, no custom YAML file is needed.
+
+#### Generating the KRC ethernet configuration file
+
+Instead of manually editing `rsi_ethernet.xml`, the `generate_krc_rsi_config` script can generate it automatically from the same YAML file:
+
+```bash
+ros2 run kuka_rsi_driver generate_krc_rsi_config \
+    --config /path/to/rsi_xml_config.yaml \
+    --client-ip <ROS_PC_IP> \
+    --client-port 59152 \
+    --output rsi_ethernet.xml
+```
+
+| Argument | Description | Default |
+|---|---|---|
+| `--config` | Path to the YAML config file | *(required)* |
+| `--client-ip` | IP address of the ROS PC as seen from the KRC | *(required)* |
+| `--client-port` | UDP port the driver listens on | `59152` |
+| `--sentype` | RSI SENTYPE value | `KROSHU` |
+| `--output` | Output file path | `rsi_ethernet.xml` |
+
+Upload the generated file to the controller as described in [Update and upload configuration files](#update-and-upload-configuration-files).
+
+> [!NOTE]
+> The SEND section of the generated file always uses KRC built-in values (`DEF_RIst`, `DEF_AIPos`, `DEF_EIPos`, `DEF_Delay`). These values correspond to fixed XML element names on the KRC side. If your RSIX context uses different element names for these built-in signals, a custom RSIX context must be configured on the KRC side; the script will print a warning in that case.
+
 ## Usage
 
 ### Starting the driver
@@ -294,6 +362,7 @@ Both launch files support the following arguments:
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
+- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK legacy defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 

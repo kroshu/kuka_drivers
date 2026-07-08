@@ -153,8 +153,12 @@ private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(
     kuka::external::control::kss::Configuration & config) const;
 
+  KUKA_RSI_DRIVER_LOCAL void LoadXmlConfig(
+    const std::string & path, kuka::external::control::kss::Configuration & config) const;
+
   static constexpr std::string_view kTypeParamValue = "type";
   static constexpr std::string_view kIsExternalParamValue = "is_external";
+  static constexpr std::string_view kRsiXmlConfigFileParam = "rsi_xml_config_file";
 };
 }  // namespace kuka_rsi_driver
 

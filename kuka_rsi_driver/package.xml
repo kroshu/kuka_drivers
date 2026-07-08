@@ -20,6 +20,7 @@
   <depend>pluginlib</depend>
   <depend>std_msgs</depend>
   <depend>tinyxml_vendor</depend>
+  <depend>yaml-cpp</depend>
 
   <exec_depend>joint_trajectory_controller</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
