@@ -47,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
+    eb_config = LaunchConfiguration("eb_config")
     gpio_config = LaunchConfiguration("gpio_config")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
@@ -223,7 +224,7 @@ def launch_setup(context, *args, **kwargs):
     controllers = {
         "joint_state_broadcaster": None,
         "joint_trajectory_controller": jtc_config,
-        "event_broadcaster": None,
+        "event_broadcaster": eb_config,
     }
 
     if use_gpio.perform(context) == "true":
@@ -286,6 +287,13 @@ def generate_launch_description():
             "jtc_config",
             default_value=get_package_share_directory("kuka_rsi_driver")
             + "/config/joint_trajectory_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "eb_config",
+            default_value=get_package_share_directory("kuka_rsi_driver")
+            + "/config/kuka_event_broadcaster_config.yaml",
         )
     )
     launch_arguments.append(

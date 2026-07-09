@@ -39,32 +39,29 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  if (params_.robot_names.empty())
-  {
-    config.names.emplace_back(
-      std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
-    return config;
-  }
-
+  // An empty robot_names array is parsed as NOT_SET in this startup path and throws an exception, 
+  //  so it is not necessary to check for it here. Default is [""] for single-robot/no-prefix behavior.
   for (const auto & robot_name : params_.robot_names)
   {
+    if (robot_name.empty())
+    {
+      config.names.emplace_back(
+        std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
+      continue;
+    }
+
     config.names.emplace_back(
       robot_name + "/" + std::string(hardware_interface::STATE_PREFIX) + "/" +
       hardware_interface::SERVER_STATE);
   }
+
   return config;
 }
 
 controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
-  if (params_.robot_names.empty())
-  {
-    event_robot_names_ = {"default"};
-    last_events_ = {0};
-    return controller_interface::CallbackReturn::SUCCESS;
-  }
-
   event_robot_names_ = params_.robot_names;
+
   last_events_.assign(event_robot_names_.size(), 0);
 
   return controller_interface::CallbackReturn::SUCCESS;

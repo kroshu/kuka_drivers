@@ -1,6 +1,6 @@
 kuka_event_broadcaster:
   robot_names: {
     type: string_array,
-    default_value: [],
+    default_value: [""],
     description: "Names of robot interface prefixes",
   }
