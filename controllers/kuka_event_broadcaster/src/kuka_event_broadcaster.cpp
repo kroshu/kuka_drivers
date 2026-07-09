@@ -39,11 +39,11 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  // An empty robot_names array is parsed as NOT_SET in this startup path and throws an exception, 
+  // An empty robot_prefixes array is parsed as NOT_SET in this startup path and throws an exception,
   //  so it is not necessary to check for it here. Default is [""] for single-robot/no-prefix behavior.
-  for (const auto & robot_name : params_.robot_names)
+  for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    if (robot_name.empty())
+    if (robot_prefix.empty())
     {
       config.names.emplace_back(
         std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
@@ -51,7 +51,7 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
     }
 
     config.names.emplace_back(
-      robot_name + "/" + std::string(hardware_interface::STATE_PREFIX) + "/" +
+      robot_prefix + "_" + std::string(hardware_interface::STATE_PREFIX) + "/" +
       hardware_interface::SERVER_STATE);
   }
 
@@ -60,9 +60,9 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
 
 controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
-  event_robot_names_ = params_.robot_names;
+  event_robot_prefixes_ = params_.robot_prefixes;
 
-  last_events_.assign(event_robot_names_.size(), 0);
+  last_events_.assign(event_robot_prefixes_.size(), 0);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -91,7 +91,7 @@ controller_interface::return_type EventBroadcaster::update(
     }
 
     last_events_[i] = current_event;
-    event_msg_.robot_name = event_robot_names_[i];
+    event_msg_.robot_name = event_robot_prefixes_[i];
     event_msg_.event = current_event;
     event_publisher_->publish(event_msg_);
   }

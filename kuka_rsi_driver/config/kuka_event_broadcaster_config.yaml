@@ -4,7 +4,7 @@
     # Empty array can be interpreted as NOT_SET by Jazzy in this path,
     # so use [""] for single-robot/no-prefix behavior.
     # Example values:
-    # robot_names: [""]
-    # robot_names: [robot1, ""]
-    # robot_names: [robot1, robot2]
-    robot_names: [""]
+    # robot_prefixes: [""]
+    # robot_prefixes: [robot1, ""]
+    # robot_prefixes: [robot1, robot2]
+    robot_prefixes: [""]

@@ -61,7 +61,7 @@ private:
 
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
-  std::vector<std::string> event_robot_names_;
+  std::vector<std::string> event_robot_prefixes_;
   std::vector<uint8_t> last_events_;
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_publisher_;

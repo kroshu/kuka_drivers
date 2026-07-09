@@ -116,7 +116,7 @@ private:
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatusArray>::SharedPtr status_publisher_;
   rclcpp::TimerBase::SharedPtr timer_;
-  std::vector<std::string> robot_names_;
+  std::vector<std::string> robot_prefixes_;
   std::vector<kuka_driver_interfaces::msg::KssStatus> current_statuses_;
   kuka_driver_interfaces::msg::KssStatusArray status_msg_;
 

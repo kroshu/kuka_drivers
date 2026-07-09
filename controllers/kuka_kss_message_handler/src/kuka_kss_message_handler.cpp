@@ -31,14 +31,14 @@ CallbackReturn KssMessageHandler::on_init()
 }
 
 std::string KssMessageHandler::ComposeInterfaceName(
-  const std::string & robot_name, const std::string & interface_group,
+  const std::string & robot_prefix, const std::string & interface_group,
   const std::string & interface_name)
 {
-  if (robot_name.empty())
+  if (robot_prefix.empty())
   {
     return interface_group + "/" + interface_name;
   }
-  return robot_name + "/" + interface_group + "/" + interface_name;
+  return robot_prefix + "_" + interface_group + "/" + interface_name;
 }
 
 InterfaceConfig KssMessageHandler::command_interface_configuration() const
@@ -46,11 +46,11 @@ InterfaceConfig KssMessageHandler::command_interface_configuration() const
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  for (const auto & robot_name : params_.robot_names)
+  for (const auto & robot_prefix : params_.robot_prefixes)
   {
     config.names.emplace_back(
       ComposeInterfaceName(
-        robot_name, hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME));
+        robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME));
   }
 
   return config;
@@ -68,12 +68,12 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
     hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
     hardware_interface::ROBOT_STOPPED};
 
-  for (const auto & robot_name : params_.robot_names)
+  for (const auto & robot_prefix : params_.robot_prefixes)
   {
     for (const auto & interface : state_interfaces)
     {
       config.names.emplace_back(
-        ComposeInterfaceName(robot_name, hardware_interface::STATE_PREFIX, interface));
+        ComposeInterfaceName(robot_prefix, hardware_interface::STATE_PREFIX, interface));
     }
   }
 
@@ -82,10 +82,10 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
 
 CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
-  robot_names_ = params_.robot_names;
-  current_statuses_.assign(robot_names_.size(), kuka_driver_interfaces::msg::KssStatus{});
+  robot_prefixes_ = params_.robot_prefixes;
+  current_statuses_.assign(robot_prefixes_.size(), kuka_driver_interfaces::msg::KssStatus{});
 
-  status_msg_.robot_names = robot_names_;
+  status_msg_.robot_names = robot_prefixes_;
   status_msg_.statuses = current_statuses_;
 
   // RSI cycle time: default to 4ms, as 12 ms is not supported for iiQKA.OS2
@@ -111,7 +111,7 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(
     get_node()->get_logger(),
     "KSS message handler configured with %zu robot instance(s); cycle_time command topic is shared",
-    robot_names_.size());
+    robot_prefixes_.size());
   return CallbackReturn::SUCCESS;
 }
 
@@ -133,7 +133,7 @@ ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
         RCLCPP_WARN_THROTTLE(
           get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
           "Failed to set cycle time command interface for robot '%s'",
-          idx < robot_names_.size() ? robot_names_[idx].c_str() : "unknown");
+          idx < robot_prefixes_.size() ? robot_prefixes_[idx].c_str() : "unknown");
       }
     }
 

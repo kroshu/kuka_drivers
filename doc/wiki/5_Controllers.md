@@ -40,7 +40,7 @@ __Required Parameters__: None
 
 __Optional Parameters__:
 
-- `robot_names` (`string[]`, default `['']`):
+- `robot_prefixes` (`string[]`, default `['']`):
   - Empty string entry (`''`) maps to unprefixed interfaces for single-robot compatibility.
   - Non-empty entries map to prefixed interfaces (`<robot_name>/state/...` and
     `<robot_name>/runtime_config/cycle_time`).
@@ -51,7 +51,7 @@ The `EventBroadcaster` publishes server state change events as a map-like messag
 `~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`.
 
 - Single robot (default): uses `state/server_state` and publishes `robot_name=default`.
-- Multi robot (with `robot_names`): uses state interfaces
+- Multi robot (with `robot_prefixes`): uses state interfaces
   `<robot_name>/state/server_state` and publishes one message per changed robot event.
 
 The enum values are equivalent with the following events:
@@ -64,7 +64,7 @@ The enum values are equivalent with the following events:
 
 __Parameters__:
 
-- `robot_names` [string_array, optional]: Robot/interface prefixes that should be monitored by one
+- `robot_prefixes` [string_array, optional]: Robot/interface prefixes that should be monitored by one
   broadcaster instance.
 
 ## 3. Configuration Controllers
@@ -84,7 +84,7 @@ __Required Parameters__: None
 
 __Optional Parameters__:
 
-- `robot_names` (`string[]`, default `['']`):
+- `robot_prefixes` (`string[]`, default `['']`):
   - Empty string entry (`''`) maps to the unprefixed `runtime_config/control_mode` interface.
   - Non-empty entries map to prefixed interfaces (`<robot_name>/runtime_config/control_mode`).
 

@@ -26,14 +26,14 @@ controller_interface::CallbackReturn ControlModeHandler::on_init()
 }
 
 std::string ControlModeHandler::ComposeInterfaceName(
-  const std::string & robot_name, const std::string & interface_group,
+  const std::string & robot_prefix, const std::string & interface_group,
   const std::string & interface_name)
 {
-  if (robot_name.empty())
+  if (robot_prefix.empty())
   {
     return interface_group + "/" + interface_name;
   }
-  return robot_name + "/" + interface_group + "/" + interface_name;
+  return robot_prefix + "_" + interface_group + "/" + interface_name;
 }
 
 controller_interface::InterfaceConfiguration ControlModeHandler::command_interface_configuration()
@@ -42,11 +42,11 @@ controller_interface::InterfaceConfiguration ControlModeHandler::command_interfa
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  for (const auto & robot_name : params_.robot_names)
+  for (const auto & robot_prefix : params_.robot_prefixes)
   {
     config.names.emplace_back(
       ComposeInterfaceName(
-        robot_name, hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE));
+        robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE));
   }
 
   return config;
