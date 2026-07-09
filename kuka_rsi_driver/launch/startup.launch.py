@@ -187,7 +187,10 @@ def launch_setup(context, *args, **kwargs):
             if driver_version.perform(context) == "rsi_only"
             else "robot_manager_node_extended"
         ),
-        parameters=[driver_config, {"robot_model": robot_model, "use_gpio": use_gpio}],
+        parameters=[
+            driver_config,
+            {"robot_models": [robot_model.perform(context)], "use_gpio": use_gpio},
+        ],
         prefix=prefix_cmd,
     )
     robot_state_publisher = Node(

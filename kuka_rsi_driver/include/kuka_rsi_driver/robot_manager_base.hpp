@@ -50,7 +50,7 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
 protected:
-  bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onRobotModelsChangeRequest(const std::vector<std::string> & robot_models);
   virtual void EventSubscriptionCallback(
     const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
@@ -106,7 +106,7 @@ protected:
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr set_param_client_;
-  std::string robot_model_;
+  std::vector<std::string> robot_models_;
   bool use_gpio_ = false;
   std::string position_controller_name_;
 
