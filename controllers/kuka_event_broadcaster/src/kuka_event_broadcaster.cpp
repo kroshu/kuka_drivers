@@ -20,7 +20,9 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn EventBroadcaster::on_init()
 {
-  event_publisher_ = get_node()->create_publisher<std_msgs::msg::UInt8>(
+  param_listener_ = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener_->get_params();
+  event_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::HardwareEvent>(
     "~/hardware_event", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -36,13 +38,35 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.emplace_back(
-    std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
+
+  if (params_.robot_names.empty())
+  {
+    config.names.emplace_back(
+      std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
+    return config;
+  }
+
+  for (const auto & robot_name : params_.robot_names)
+  {
+    config.names.emplace_back(
+      robot_name + "/" + std::string(hardware_interface::STATE_PREFIX) + "/" +
+      hardware_interface::SERVER_STATE);
+  }
   return config;
 }
 
 controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
+  if (params_.robot_names.empty())
+  {
+    event_robot_names_ = {"default"};
+    last_events_ = {0};
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  event_robot_names_ = params_.robot_names;
+  last_events_.assign(event_robot_names_.size(), 0);
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -60,14 +84,21 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  auto current_event =
-    static_cast<uint8_t>(state_interfaces_[0].get_optional().value_or(last_event_));
-  if (current_event != last_event_)
+  for (size_t i = 0; i < state_interfaces_.size(); ++i)
   {
-    event_msg_.data = current_event;
+    const auto current_event =
+      static_cast<uint8_t>(state_interfaces_[i].get_optional().value_or(last_events_[i]));
+    if (current_event == last_events_[i])
+    {
+      continue;
+    }
+
+    last_events_[i] = current_event;
+    event_msg_.robot_name = event_robot_names_[i];
+    event_msg_.event = current_event;
     event_publisher_->publish(event_msg_);
-    last_event_ = current_event;
   }
+
   return controller_interface::return_type::OK;
 }
 }  // namespace kuka_controllers

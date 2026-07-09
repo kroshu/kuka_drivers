@@ -47,9 +47,10 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
   // Subscribe to event_broadcaster/hardware_event
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_callback_group_;
-  event_subscriber_ = create_subscription<std_msgs::msg::UInt8>(
+  event_subscriber_ = create_subscription<kuka_driver_interfaces::msg::HardwareEvent>(
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr message) { EventSubscriptionCallback(message); },
+    [this](const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr message)
+    { EventSubscriptionCallback(message); },
     sub_options);
 
   // Register parameters
@@ -254,11 +255,12 @@ bool RobotManagerBase::onRobotModelChangeRequest(const std::string & robot_model
   return true;
 }
 
-void RobotManagerBase::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message)
+void RobotManagerBase::EventSubscriptionCallback(
+  const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr message)
 {
   const auto logger = get_logger();
 
-  const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->data);
+  const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->event);
   if (event == kuka_drivers_core::HardwareEvent::ERROR)
   {
     RCLCPP_INFO(logger, "External control stopped by an error");

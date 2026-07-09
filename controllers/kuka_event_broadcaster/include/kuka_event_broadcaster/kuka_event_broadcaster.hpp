@@ -15,15 +15,18 @@
 #ifndef KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_
 #define KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
-#include "std_msgs/msg/u_int8.hpp"
+
+#include "kuka_event_broadcaster/kuka_event_broadcaster_parameters.hpp"
 
 #include "kuka_event_broadcaster/visibility_control.h"
 
@@ -53,9 +56,16 @@ public:
   KUKA_EVENT_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
-  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr event_publisher_;
-  std_msgs::msg::UInt8 event_msg_;
-  int last_event_ = 0;
+  using Params = kuka_event_broadcaster::Params;
+  using ParamListener = kuka_event_broadcaster::ParamListener;
+
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+  std::vector<std::string> event_robot_names_;
+  std::vector<uint8_t> last_events_;
+
+  rclcpp::Publisher<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_publisher_;
+  kuka_driver_interfaces::msg::HardwareEvent event_msg_;
 };
 }  // namespace kuka_controllers
 #endif  // KUKA_EVENT_BROADCASTER__KUKA_EVENT_BROADCASTER_HPP_

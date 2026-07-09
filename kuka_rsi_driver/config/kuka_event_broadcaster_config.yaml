@@ -1,0 +1,12 @@
+event_broadcaster:
+  ros__parameters:
+    # Robot/interface prefixes used by the hardware component exports.
+    # Example resulting state interface names:
+    #   robot1/state/server_state
+    #   robot2/state/server_state
+    # Published topic:
+    #   /event_broadcaster/hardware_event
+    # One message is published per changed robot event as a name/value pair.
+    robot_names:
+      - robot1
+      - robot2

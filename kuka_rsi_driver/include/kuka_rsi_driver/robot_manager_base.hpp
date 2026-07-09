@@ -22,6 +22,7 @@
 
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
@@ -50,7 +51,8 @@ public:
 
 protected:
   bool onRobotModelChangeRequest(const std::string & robot_model);
-  virtual void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message);
+  virtual void EventSubscriptionCallback(
+    const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr message);
   virtual bool OnControlModeChangeRequest(const int control_mode);
   virtual bool OnControlModeChangeRequestAdditionalTasks([[maybe_unused]] const int control_mode)
   {
@@ -118,7 +120,7 @@ protected:
   std_msgs::msg::Bool is_configured_msg_;
 
   rclcpp::CallbackGroup::SharedPtr event_callback_group_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_subscriber_;
 
   // publisher and backing field for cycle time
   rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr cycle_time_pub_;

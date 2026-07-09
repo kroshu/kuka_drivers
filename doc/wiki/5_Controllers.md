@@ -40,7 +40,14 @@ __Required Parameters__: None
 
 ### 2.2. `kuka_event_broadcaster`
 
-The `EventBroadcaster` publishes server state change events as integers (enum values) on the `~/hardware_event` topic. The enum values are equivalent with the following events:
+The `EventBroadcaster` publishes server state change events as a map-like message on
+`~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`.
+
+- Single robot (default): uses `state/server_state` and publishes `robot_name=default`.
+- Multi robot (with `robot_names`): uses state interfaces
+  `<robot_name>/state/server_state` and publishes one message per changed robot event.
+
+The enum values are equivalent with the following events:
 
 - 2: Start command was accepted by the robot controller
 - 3: External control started
@@ -48,7 +55,10 @@ The `EventBroadcaster` publishes server state change events as integers (enum va
 - 5: Control mode switch was successful (only relevant for drivers, where control mode can be changed in active state)
 - 6: External control stopped by an error (Error message is only available in the hardware interface)
 
-__Required Parameters__: None
+__Parameters__:
+
+- `robot_names` [string_array, optional]: Robot/interface prefixes that should be monitored by one
+  broadcaster instance.
 
 ## 3. Configuration Controllers
 

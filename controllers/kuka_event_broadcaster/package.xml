@@ -17,6 +17,8 @@
   <depend>controller_interface</depend>
   <depend>pluginlib</depend>
   <depend>kuka_drivers_core</depend>
+  <depend>kuka_driver_interfaces</depend>
+  <depend>generate_parameter_library</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

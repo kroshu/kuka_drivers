@@ -22,6 +22,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FriConfiguration.msg"
   "msg/FRIState.msg"
+  "msg/HardwareEvent.msg"
   "msg/KssStatus.msg"
 )
 

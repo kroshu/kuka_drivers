@@ -9,8 +9,15 @@ find_package(ament_cmake REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 
 include_directories(include)
+
+generate_parameter_library(
+  kuka_event_broadcaster_parameters
+  src/kuka_event_broadcaster_parameters.yaml
+)
 
 add_library(${PROJECT_NAME} SHARED
   src/kuka_event_broadcaster.cpp)
@@ -19,8 +26,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core
+ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core kuka_driver_interfaces
 )
+target_link_libraries(${PROJECT_NAME} kuka_event_broadcaster_parameters)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

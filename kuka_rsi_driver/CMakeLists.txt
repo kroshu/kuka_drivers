@@ -18,6 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(hardware_interface REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 find_package(kuka-external-control-sdk CONFIG REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -45,7 +46,12 @@ target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 # Shared library for robot_manager_base
 add_library(robot_manager_base STATIC src/robot_manager_base.cpp)
-ament_target_dependencies(robot_manager_base std_msgs kuka_drivers_core controller_manager_msgs)
+ament_target_dependencies(
+  robot_manager_base
+  std_msgs
+  kuka_driver_interfaces
+  kuka_drivers_core
+  controller_manager_msgs)
 target_link_libraries(robot_manager_base kuka_drivers_core::communication_helpers)
 
 add_executable(robot_manager_node_extended src/robot_manager_node_extended.cpp)
