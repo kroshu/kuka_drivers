@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FRIState.msg"
   "msg/HardwareEvent.msg"
   "msg/KssStatus.msg"
+  "msg/KssStatusArray.msg"
 )
 
 if(BUILD_TESTING)

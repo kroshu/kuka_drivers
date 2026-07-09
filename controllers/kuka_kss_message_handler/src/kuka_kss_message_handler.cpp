@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cmath>
 
 #include "pluginlib/class_list_macros.hpp"
 
@@ -22,12 +23,36 @@
 namespace kuka_controllers
 {
 
+CallbackReturn KssMessageHandler::on_init()
+{
+  param_listener_ = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener_->get_params();
+  return CallbackReturn::SUCCESS;
+}
+
+std::string KssMessageHandler::ComposeInterfaceName(
+  const std::string & robot_name, const std::string & interface_group,
+  const std::string & interface_name)
+{
+  if (robot_name.empty())
+  {
+    return interface_group + "/" + interface_name;
+  }
+  return robot_name + "/" + interface_group + "/" + interface_name;
+}
+
 InterfaceConfig KssMessageHandler::command_interface_configuration() const
 {
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.emplace_back(
-    std::string{hardware_interface::CONFIG_PREFIX} + "/" + hardware_interface::CYCLE_TIME);
+
+  for (const auto & robot_name : params_.robot_names)
+  {
+    config.names.emplace_back(
+      ComposeInterfaceName(
+        robot_name, hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME));
+  }
+
   return config;
 }
 
@@ -43,9 +68,13 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
     hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
     hardware_interface::ROBOT_STOPPED};
 
-  for (const auto & interface : state_interfaces)
+  for (const auto & robot_name : params_.robot_names)
   {
-    config.names.emplace_back(std::string{hardware_interface::STATE_PREFIX} + "/" + interface);
+    for (const auto & interface : state_interfaces)
+    {
+      config.names.emplace_back(
+        ComposeInterfaceName(robot_name, hardware_interface::STATE_PREFIX, interface));
+    }
   }
 
   return config;
@@ -53,38 +82,73 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
 
 CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
+  robot_names_ = params_.robot_names;
+  current_statuses_.assign(robot_names_.size(), kuka_driver_interfaces::msg::KssStatus{});
+
+  status_msg_.robot_names = robot_names_;
+  status_msg_.statuses = current_statuses_;
+
   // RSI cycle time: default to 4ms, as 12 ms is not supported for iiQKA.OS2
   cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_4MS));
+  prev_cycle_time_ = std::numeric_limits<double>::quiet_NaN();
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
-  // Status
-  status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatus>(
-    "~/status", rclcpp::SystemDefaultsQoS());
+
+  // Status publisher for all robots. One message contains all robot statuses.
+  status_publisher_ =
+    get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
+      "~/status", rclcpp::SystemDefaultsQoS());
+
   timer_ = get_node()->create_wall_timer(
     STATUS_PUBLISH_INTERVAL,
     [this]
     {
-      status_.UpdateMessage();
-      status_publisher_->publish(status_.GetMessage());
+      status_msg_.statuses = current_statuses_;
+      status_publisher_->publish(status_msg_);
     });
 
-  RCLCPP_INFO(get_node()->get_logger(), "KSS message handler configured");
+  RCLCPP_INFO(
+    get_node()->get_logger(),
+    "KSS message handler configured with %zu robot instance(s); cycle_time command topic is shared",
+    robot_names_.size());
   return CallbackReturn::SUCCESS;
 }
 
 ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  bool cycle_time_set = command_interfaces_[0].set_value(cycle_time_.load());
-  if (!cycle_time_set)
+  const double cycle_time = cycle_time_.load();
+  const bool cycle_time_changed =
+    std::isnan(prev_cycle_time_) || cycle_time != prev_cycle_time_;
+  bool all_cycle_time_set = true;
+
+  if (cycle_time_changed)
   {
-    RCLCPP_WARN_THROTTLE(
-      get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
-      "Failed to set cycle time command interface");
+    for (size_t idx = 0; idx < command_interfaces_.size(); ++idx)
+    {
+      const bool cycle_time_set = command_interfaces_[idx].set_value(cycle_time);
+      all_cycle_time_set = all_cycle_time_set && cycle_time_set;
+      if (!cycle_time_set)
+      {
+        RCLCPP_WARN_THROTTLE(
+          get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
+          "Failed to set cycle time command interface for robot '%s'",
+          idx < robot_names_.size() ? robot_names_[idx].c_str() : "unknown");
+      }
+    }
+
+    if (all_cycle_time_set)
+    {
+      prev_cycle_time_ = cycle_time;
+    }
   }
 
-  status_ = state_interfaces_;
-  return cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
+  for (size_t idx = 0; idx < current_statuses_.size(); ++idx)
+  {
+    AssignStatusFromInterfaces(current_statuses_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
+  }
+
+  return all_cycle_time_set ? ReturnType::OK : ReturnType::ERROR;
 }
 
 void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::SharedPtr msg)
@@ -109,22 +173,21 @@ void KssMessageHandler::RsiCycleTimeChangedCallback(const std_msgs::msg::UInt8::
   }
 }
 
-KssMessageHandler::Status & KssMessageHandler::Status::operator=(
-  const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces)
+void KssMessageHandler::AssignStatusFromInterfaces(
+  kuka_driver_interfaces::msg::KssStatus & status,
+  const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
+  const size_t start_idx)
 {
-  for (const auto & [value_ptr, idx] : UINT8_MAPPINGS)
+  for (const auto & [member, index] : UINT8_STATUS_FIELDS)
   {
-    *value_ptr = static_cast<uint8_t>(
-      state_interfaces[idx].get_optional().value_or(static_cast<double>(*value_ptr)));
+    status.*member =
+      ReadInterfaceValue<uint8_t>(state_interfaces[start_idx + index], status.*member);
   }
 
-  for (const auto & [value_ptr, idx] : BOOL_MAPPINGS)
+  for (const auto & [member, index] : BOOL_STATUS_FIELDS)
   {
-    *value_ptr = static_cast<bool>(
-      state_interfaces[idx].get_optional().value_or(static_cast<double>(*value_ptr)));
+    status.*member = ReadInterfaceValue<bool>(state_interfaces[start_idx + index], status.*member);
   }
-
-  return *this;
 }
 
 }  // namespace kuka_controllers

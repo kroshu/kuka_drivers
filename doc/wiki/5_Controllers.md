@@ -38,6 +38,13 @@ The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state`
 
 __Required Parameters__: None
 
+__Optional Parameters__:
+
+- `robot_names` (`string[]`, default `['']`):
+  - Empty string entry (`''`) maps to unprefixed interfaces for single-robot compatibility.
+  - Non-empty entries map to prefixed interfaces (`<robot_name>/state/...` and
+    `<robot_name>/runtime_config/cycle_time`).
+
 ### 2.2. `kuka_event_broadcaster`
 
 The `EventBroadcaster` publishes server state change events as a map-like message on
@@ -99,13 +106,23 @@ The `kuka_kss_message_handler` controller only works for the EKI + RSI driver. I
   - 1 &rarr; 4 ms
   - 2 &rarr; 12 ms
 
+  In multi-robot mode, this topic is shared across all configured robots, therefore the selected
+  cycle time is applied to all of them.
+
   ```shell
   ros2 topic pub /kss_message_handler/cycle_time std_msgs/msg/UInt8 "{data: 1}" --once
   ```
 
 - __Monitor Robot Status__
 
-  Subscribe to `~/status` to receive updates via `kuka_driver_interfaces::msg::KssStatus`, which includes:
+  Subscribe to `~/status` to receive updates via
+  `kuka_driver_interfaces::msg::KssStatusArray` (`robot_names[]` + `statuses[]`).
+  The `statuses` entries are `kuka_driver_interfaces::msg::KssStatus` values and each index
+  corresponds to the same index in `robot_names`.
+
+  Status messages are published at 1 Hz regardless of whether values changed.
+
+  Each `kuka_driver_interfaces::msg::KssStatus` includes:
 
   Field             | Possible values                          | Description
   ------------------|------------------------------------------|--------------------------------------------------------------------

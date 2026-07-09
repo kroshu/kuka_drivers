@@ -1,4 +1,4 @@
-event_broadcaster:
+/**/event_broadcaster:
   ros__parameters:
     # Optional. Empty string means a robot with no prefix (state/server_state).
     # Empty array can be interpreted as NOT_SET by Jazzy in this path,
