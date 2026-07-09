@@ -40,6 +40,7 @@ def launch_setup(context, *args, **kwargs):
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
     etb_config = LaunchConfiguration("etb_config")
+    cmh_config = LaunchConfiguration("cmh_config")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
@@ -203,7 +204,7 @@ def launch_setup(context, *args, **kwargs):
         "fri_state_broadcaster": None,
         "joint_group_impedance_controller": jic_config,
         "effort_controller": ec_config,
-        "control_mode_handler": None,
+        "control_mode_handler": cmh_config,
         "event_broadcaster": None,
     }
 
@@ -269,6 +270,13 @@ def generate_launch_description():
             "etb_config",
             default_value=get_package_share_directory("kuka_sunrise_fri_driver")
             + "/config/external_torque_broadcaster_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cmh_config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
+            + "/config/kuka_control_mode_handler_config.yaml",
         )
     )
     launch_arguments.append(

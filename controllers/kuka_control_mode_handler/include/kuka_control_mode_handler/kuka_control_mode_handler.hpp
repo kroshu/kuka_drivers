@@ -27,6 +27,7 @@
 #include "rclcpp/time.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 
+#include "kuka_control_mode_handler/kuka_control_mode_handler_parameters.hpp"
 #include "kuka_control_mode_handler/visibility_control.h"
 
 namespace kuka_controllers
@@ -55,6 +56,15 @@ public:
   KUKA_CONTROL_MODE_HANDLER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
+  KUKA_CONTROL_MODE_HANDLER_LOCAL static std::string ComposeInterfaceName(
+    const std::string & robot_name, const std::string & interface_group,
+    const std::string & interface_name);
+
+  using Params = kuka_control_mode_handler::Params;
+  using ParamListener = kuka_control_mode_handler::ParamListener;
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+
   rclcpp::Subscription<std_msgs::msg::UInt32>::SharedPtr control_mode_subscriber_;
   std::atomic<kuka_drivers_core::ControlMode> control_mode_ =
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;

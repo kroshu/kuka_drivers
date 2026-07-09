@@ -76,7 +76,17 @@ Hardware interfaces do not support parameters that can be changed in runtime. To
 The `ControlModeHandler` can update the `control_mode` command interface of a hardware. It listens on the `~/control_mode` topic and makes control mode changes possible without having to reactivate the driver.
 The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
 
+In multi-robot mode, one `ControlModeHandler` instance can update multiple prefixed
+`control_mode` command interfaces, but it still accepts only a single shared `~/control_mode`
+input topic. Therefore the same control mode is applied to all configured robots.
+
 __Required Parameters__: None
+
+__Optional Parameters__:
+
+- `robot_names` (`string[]`, default `['']`):
+  - Empty string entry (`''`) maps to the unprefixed `runtime_config/control_mode` interface.
+  - Non-empty entries map to prefixed interfaces (`<robot_name>/runtime_config/control_mode`).
 
 ### 3.2. `fri_configuration_controller`
 

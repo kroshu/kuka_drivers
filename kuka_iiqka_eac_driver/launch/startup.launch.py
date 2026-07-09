@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     jtc_config = LaunchConfiguration("jtc_config")
     jic_config = LaunchConfiguration("jic_config")
     ec_config = LaunchConfiguration("ec_config")
+    cmh_config = LaunchConfiguration("cmh_config")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
@@ -202,7 +203,7 @@ def launch_setup(context, *args, **kwargs):
         "joint_trajectory_controller": jtc_config,
         "joint_group_impedance_controller": jic_config,
         "effort_controller": ec_config,
-        "control_mode_handler": None,
+        "control_mode_handler": cmh_config,
         "event_broadcaster": None,
     }
 
@@ -260,6 +261,13 @@ def generate_launch_description():
             "jic_config",
             default_value=get_package_share_directory("kuka_iiqka_eac_driver")
             + "/config/joint_impedance_controller_config.yaml",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "cmh_config",
+            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
+            + "/config/kuka_control_mode_handler_config.yaml",
         )
     )
     launch_arguments.append(
