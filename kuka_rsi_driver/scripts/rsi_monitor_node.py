@@ -249,7 +249,8 @@ class RsiMonitorNode(Node):
             stdev_latency_ms = statistics.stdev(self._receive_to_send_latency_ns) / 1e6
             self.get_logger().info(
                 "Response latency [ms] (receive->send, matching IPOC): "
-                f"min={min_latency_ms:.3f} avg={avg_latency_ms:.3f} max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
+                f"min={min_latency_ms:.3f} avg={avg_latency_ms:.3f} "
+                f"max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
             )
         else:
             self.get_logger().info("Response latency [ms] (receive->send, matching IPOC): n/a")
@@ -261,7 +262,8 @@ class RsiMonitorNode(Node):
             stdev_latency_ms = statistics.stdev(self._send_to_receive_latency_ns) / 1e6
             self.get_logger().info(
                 "Response latency [ms] (send->next receive with IPOC+1): "
-                f"min={min_latency_ms:.3f} avg={avg_latency_ms:.3f} max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
+                f"min={min_latency_ms:.3f} avg={avg_latency_ms:.3f} "
+                f"max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
             )
         else:
             self.get_logger().info("Response latency [ms] (send->next receive with IPOC+1): n/a")
