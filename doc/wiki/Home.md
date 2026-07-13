@@ -157,4 +157,4 @@ A dedicated launch file is also required for this setup. It should declare the a
 
 ## Detailed setup and startup instructions
 
-For detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) or [iiQKA.OS2 setup in RSI docs](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI#iiqkaos2-setup-rsi-6x).
+For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).
