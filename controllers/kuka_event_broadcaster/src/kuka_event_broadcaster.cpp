@@ -47,12 +47,13 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
     {
       config.names.emplace_back(
         std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
-      continue;
     }
-
-    config.names.emplace_back(
-      robot_prefix + "_" + std::string(hardware_interface::STATE_PREFIX) + "/" +
-      hardware_interface::SERVER_STATE);
+    else
+    {
+      config.names.emplace_back(
+        robot_prefix + "_" + std::string(hardware_interface::STATE_PREFIX) + "/" +
+        hardware_interface::SERVER_STATE);
+    }
   }
 
   return config;

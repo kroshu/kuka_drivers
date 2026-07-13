@@ -38,7 +38,10 @@ std::string KssMessageHandler::ComposeInterfaceName(
   {
     return interface_group + "/" + interface_name;
   }
-  return robot_prefix + "_" + interface_group + "/" + interface_name;
+  else
+  {
+    return robot_prefix + "_" + interface_group + "/" + interface_name;
+  }
 }
 
 InterfaceConfig KssMessageHandler::command_interface_configuration() const

@@ -33,7 +33,10 @@ std::string ControlModeHandler::ComposeInterfaceName(
   {
     return interface_group + "/" + interface_name;
   }
-  return robot_prefix + "_" + interface_group + "/" + interface_name;
+  else
+  {
+    return robot_prefix + "_" + interface_group + "/" + interface_name;
+  }
 }
 
 controller_interface::InterfaceConfiguration ControlModeHandler::command_interface_configuration()
