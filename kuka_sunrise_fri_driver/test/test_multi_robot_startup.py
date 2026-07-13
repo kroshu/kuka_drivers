@@ -31,7 +31,7 @@ from ament_index_python.packages import get_package_share_directory
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    test_config_dir = get_package_share_directory("kuka_sunrise_fri_driver") + "/test/config/"
+    test_config_dir = get_package_share_directory("kuka_sunrise_fri_driver") + "/test/config"
     return launch.LaunchDescription(
         [
             IncludeLaunchDescription(
@@ -44,8 +44,7 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "namespace": "test1",
-                    "controller_config": f"{test_config_dir + 'test1_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test1_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "controller_config_dir": f"{test_config_dir + '/test1'}",
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -58,8 +57,7 @@ def generate_test_description():
                 ),
                 launch_arguments={
                     "namespace": "test2",
-                    "controller_config": f"{test_config_dir + 'test2_ros2_controller_config.yaml'}",  # noqa: E501
-                    "jtc_config": f"{test_config_dir + 'test2_joint_trajectory_controller_config.yaml'}",  # noqa: E501
+                    "controller_config_dir": f"{test_config_dir + '/test2'}",
                     "x": "2",
                 }.items(),
             ),

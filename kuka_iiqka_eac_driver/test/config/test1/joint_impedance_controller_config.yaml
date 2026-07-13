@@ -1,0 +1,9 @@
+test1/joint_group_impedance_controller:
+  ros__parameters:
+    joints:
+    - test1_joint_1
+    - test1_joint_2
+    - test1_joint_3
+    - test1_joint_4
+    - test1_joint_5
+    - test1_joint_6
