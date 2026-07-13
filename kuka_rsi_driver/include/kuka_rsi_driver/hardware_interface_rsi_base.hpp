@@ -153,7 +153,7 @@ private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(
     kuka::external::control::kss::Configuration & config) const;
 
-  KUKA_RSI_DRIVER_LOCAL void LoadXmlConfig(
+  KUKA_RSI_DRIVER_LOCAL bool LoadXmlConfig(
     const std::string & path, kuka::external::control::kss::Configuration & config) const;
 
   static constexpr std::string_view kTypeParamValue = "type";

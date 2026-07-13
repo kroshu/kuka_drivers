@@ -288,6 +288,7 @@ Pass the absolute path to this file using the `rsi_xml_config_file` launch argum
 
 > [!NOTE]
 > If `rsi_xml_config_file` is not set, the driver uses the SDK defaults. For a standard setup with the provided `rsi_ethernet.xml` and `rsi_joint_pos.rsix` files, no custom YAML file is needed.
+> The `kuka_rsi_simulator` can use the same file via its `rsi_xml_config_file` launch argument.
 
 #### Generating the KRC ethernet configuration file
 
@@ -387,6 +388,15 @@ ros2 launch kuka_rsi_driver startup_with_rviz.launch.py
 ```bash
 ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py
 ```
+
+To run the simulator with a custom RSI XML mapping, pass the same config file used by the driver:
+
+```bash
+ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py \
+    rsi_xml_config_file:=/absolute/path/to/rsi_xml_config.yaml
+```
+
+If `rsi_xml_config_file` is left empty, the simulator uses the same legacy defaults as the driver.
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
 

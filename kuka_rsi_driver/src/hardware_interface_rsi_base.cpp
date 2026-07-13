@@ -1,4 +1,4 @@
-// Copyright 2023 KUKA Hungaria Kft.
+// Copyright 2026 KUKA Hungaria Kft.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -178,7 +178,13 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
   const auto xml_config_it = info_.hardware_parameters.find(std::string(kRsiXmlConfigFileParam));
   if (xml_config_it != info_.hardware_parameters.end() && !xml_config_it->second.empty())
   {
-    LoadXmlConfig(xml_config_it->second, config);
+    if (!LoadXmlConfig(xml_config_it->second, config))
+    {
+      RCLCPP_ERROR(
+        logger_, "Aborting setup due to invalid RSI XML config file: '%s'",
+        xml_config_it->second.c_str());
+      return false;
+    }
   }
 
   RCLCPP_INFO(
@@ -638,7 +644,7 @@ void KukaRSIHardwareInterfaceBase::initialize_command_interfaces(
   cycle_time_command_ = static_cast<double>(cycle_time);
 }
 
-void KukaRSIHardwareInterfaceBase::LoadXmlConfig(
+bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
   const std::string & path, kuka::external::control::kss::Configuration & config) const
 {
   using namespace kuka::external::control::kss;  // NOLINT
@@ -651,7 +657,7 @@ void KukaRSIHardwareInterfaceBase::LoadXmlConfig(
   catch (const YAML::Exception & e)
   {
     RCLCPP_ERROR(logger_, "Failed to load RSI XML config file '%s': %s", path.c_str(), e.what());
-    return;
+    return false;
   }
 
   const YAML::Node rsi_node = root["rsi_xml_config"];
@@ -659,51 +665,50 @@ void KukaRSIHardwareInterfaceBase::LoadXmlConfig(
   {
     RCLCPP_ERROR(
       logger_, "RSI XML config file '%s' does not contain 'rsi_xml_config' key", path.c_str());
-    return;
+    return false;
   }
 
-  // --- Motion state XML configuration ---
-  const YAML::Node ms_node = rsi_node["motion_state"];
-  if (ms_node)
+  try
   {
-    MotionStateXmlConfiguration motion_state_xml;
-
-    if (const YAML::Node cartesian = ms_node["cartesian"])
+    // --- Motion state XML configuration ---
+    const YAML::Node ms_node = rsi_node["motion_state"];
+    if (ms_node)
     {
-      if (const YAML::Node elem = cartesian["xml_element"])
+      MotionStateXmlConfiguration motion_state_xml;
+
+      if (const YAML::Node cartesian = ms_node["cartesian"])
       {
-        motion_state_xml.cartesian.xml_element = elem.as<std::string>();
-      }
-      if (const YAML::Node attrs = cartesian["xml_attributes"])
-      {
-        if (attrs.size() != motion_state_xml.cartesian.xml_attributes.size())
+        if (const YAML::Node elem = cartesian["xml_element"])
         {
-          RCLCPP_WARN(
-            logger_,
-            "motion_state.cartesian.xml_attributes has %zu entries; expected %zu. Skipping.",
-            attrs.size(), motion_state_xml.cartesian.xml_attributes.size());
+          motion_state_xml.cartesian.xml_element = elem.as<std::string>();
         }
-        else
+        if (const YAML::Node attrs = cartesian["xml_attributes"])
         {
+          if (attrs.size() != motion_state_xml.cartesian.xml_attributes.size())
+          {
+            RCLCPP_ERROR(
+              logger_, "motion_state.cartesian.xml_attributes has %zu entries; expected %zu.",
+              attrs.size(), motion_state_xml.cartesian.xml_attributes.size());
+            return false;
+          }
+
           for (std::size_t i = 0; i < attrs.size(); ++i)
           {
             motion_state_xml.cartesian.xml_attributes[i] = attrs[i].as<std::string>();
           }
         }
       }
-    }
 
-    if (const YAML::Node joints = ms_node["joints"])
-    {
-      if (joints.size() != info_.joints.size())
+      if (const YAML::Node joints = ms_node["joints"])
       {
-        RCLCPP_WARN(
-          logger_,
-          "motion_state.joints has %zu entries but URDF defines %zu joints. Skipping joint fields.",
-          joints.size(), info_.joints.size());
-      }
-      else
-      {
+        if (joints.size() != info_.joints.size())
+        {
+          RCLCPP_ERROR(
+            logger_, "motion_state.joints has %zu entries but URDF defines %zu joints.",
+            joints.size(), info_.joints.size());
+          return false;
+        }
+
         for (const YAML::Node & jn : joints)
         {
           MotionStateJointFieldConfiguration joint_field;
@@ -714,110 +719,119 @@ void KukaRSIHardwareInterfaceBase::LoadXmlConfig(
           motion_state_xml.joint_fields.push_back(std::move(joint_field));
         }
       }
-    }
 
-    if (const YAML::Node delay = ms_node["delay"])
-    {
-      if (const YAML::Node elem = delay["xml_element"])
+      if (const YAML::Node delay = ms_node["delay"])
       {
-        motion_state_xml.delay_xml_element = elem.as<std::string>();
-      }
-      if (const YAML::Node attr = delay["xml_attribute"])
-      {
-        motion_state_xml.delay_xml_attribute = attr.as<std::string>();
-      }
-    }
-
-    if (const YAML::Node gpio = ms_node["gpio"])
-    {
-      if (const YAML::Node elem = gpio["xml_element"])
-      {
-        motion_state_xml.gpio_xml_element = elem.as<std::string>();
-      }
-      if (const YAML::Node attrs = gpio["xml_attributes"])
-      {
-        for (const YAML::Node & a : attrs)
+        if (const YAML::Node elem = delay["xml_element"])
         {
-          motion_state_xml.gpio_xml_attributes.push_back(a.as<std::string>());
+          motion_state_xml.delay_xml_element = elem.as<std::string>();
         }
-        if (motion_state_xml.gpio_xml_attributes.size() != info_.gpios[0].state_interfaces.size())
+        if (const YAML::Node attr = delay["xml_attribute"])
         {
-          RCLCPP_WARN(
-            logger_,
-            "motion_state.gpio.xml_attributes has %zu entries but %zu GPIO state interfaces are "
-            "defined. They must match.",
-            motion_state_xml.gpio_xml_attributes.size(), info_.gpios[0].state_interfaces.size());
+          motion_state_xml.delay_xml_attribute = attr.as<std::string>();
         }
       }
-    }
 
-    if (const YAML::Node ipoc = ms_node["ipoc"])
-    {
-      if (const YAML::Node elem = ipoc["xml_element"])
+      if (const YAML::Node gpio = ms_node["gpio"])
       {
-        motion_state_xml.ipoc_xml_element = elem.as<std::string>();
+        if (const YAML::Node elem = gpio["xml_element"])
+        {
+          motion_state_xml.gpio_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = gpio["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            motion_state_xml.gpio_xml_attributes.push_back(a.as<std::string>());
+          }
+          if (motion_state_xml.gpio_xml_attributes.size() != info_.gpios[0].state_interfaces.size())
+          {
+            RCLCPP_ERROR(
+              logger_,
+              "motion_state.gpio.xml_attributes has %zu entries but %zu GPIO state interfaces "
+              "are defined. They must match.",
+              motion_state_xml.gpio_xml_attributes.size(), info_.gpios[0].state_interfaces.size());
+            return false;
+          }
+        }
       }
+
+      if (const YAML::Node ipoc = ms_node["ipoc"])
+      {
+        if (const YAML::Node elem = ipoc["xml_element"])
+        {
+          motion_state_xml.ipoc_xml_element = elem.as<std::string>();
+        }
+      }
+
+      RCLCPP_INFO(logger_, "Custom motion state XML configuration loaded from '%s'", path.c_str());
+      config.motion_state_xml_config = std::move(motion_state_xml);
     }
 
-    RCLCPP_INFO(logger_, "Custom motion state XML configuration loaded from '%s'", path.c_str());
-    config.motion_state_xml_config = std::move(motion_state_xml);
+    // --- Control signal XML configuration ---
+    const YAML::Node cs_node = rsi_node["control_signal"];
+    if (cs_node)
+    {
+      ControlSignalXmlConfiguration control_signal_xml;
+
+      if (const YAML::Node joints = cs_node["joints"])
+      {
+        if (const YAML::Node elem = joints["xml_element"])
+        {
+          control_signal_xml.joint_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = joints["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.joint_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node ext_joints = cs_node["ext_joints"])
+      {
+        if (const YAML::Node elem = ext_joints["xml_element"])
+        {
+          control_signal_xml.ext_joint_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = ext_joints["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.ext_joint_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node gpio = cs_node["gpio"])
+      {
+        if (const YAML::Node elem = gpio["xml_element"])
+        {
+          control_signal_xml.gpio_xml_element = elem.as<std::string>();
+        }
+      }
+
+      if (const YAML::Node ipoc = cs_node["ipoc"])
+      {
+        if (const YAML::Node elem = ipoc["xml_element"])
+        {
+          control_signal_xml.ipoc_xml_element = elem.as<std::string>();
+        }
+      }
+
+      RCLCPP_INFO(
+        logger_, "Custom control signal XML configuration loaded from '%s'", path.c_str());
+      config.control_signal_xml_config = std::move(control_signal_xml);
+    }
   }
-
-  // --- Control signal XML configuration ---
-  const YAML::Node cs_node = rsi_node["control_signal"];
-  if (cs_node)
+  catch (const YAML::Exception & e)
   {
-    ControlSignalXmlConfiguration control_signal_xml;
-
-    if (const YAML::Node joints = cs_node["joints"])
-    {
-      if (const YAML::Node elem = joints["xml_element"])
-      {
-        control_signal_xml.joint_xml_element = elem.as<std::string>();
-      }
-      if (const YAML::Node attrs = joints["xml_attributes"])
-      {
-        for (const YAML::Node & a : attrs)
-        {
-          control_signal_xml.joint_xml_attributes.push_back(a.as<std::string>());
-        }
-      }
-    }
-
-    if (const YAML::Node ext_joints = cs_node["ext_joints"])
-    {
-      if (const YAML::Node elem = ext_joints["xml_element"])
-      {
-        control_signal_xml.ext_joint_xml_element = elem.as<std::string>();
-      }
-      if (const YAML::Node attrs = ext_joints["xml_attributes"])
-      {
-        for (const YAML::Node & a : attrs)
-        {
-          control_signal_xml.ext_joint_xml_attributes.push_back(a.as<std::string>());
-        }
-      }
-    }
-
-    if (const YAML::Node gpio = cs_node["gpio"])
-    {
-      if (const YAML::Node elem = gpio["xml_element"])
-      {
-        control_signal_xml.gpio_xml_element = elem.as<std::string>();
-      }
-    }
-
-    if (const YAML::Node ipoc = cs_node["ipoc"])
-    {
-      if (const YAML::Node elem = ipoc["xml_element"])
-      {
-        control_signal_xml.ipoc_xml_element = elem.as<std::string>();
-      }
-    }
-
-    RCLCPP_INFO(logger_, "Custom control signal XML configuration loaded from '%s'", path.c_str());
-    config.control_signal_xml_config = std::move(control_signal_xml);
+    RCLCPP_ERROR(logger_, "Invalid RSI XML config file '%s': %s", path.c_str(), e.what());
+    return false;
   }
+
+  return true;
 }
 
 void KukaRSIHardwareInterfaceBase::ConfigureJoints(
