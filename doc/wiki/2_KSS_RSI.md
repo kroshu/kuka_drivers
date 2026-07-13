@@ -8,6 +8,8 @@ The driver supports three configurations on both KSS and iiQKA.OS2:
 - `eki_rsi`: Uses EKI for non-real-time startup/status handling and RSI for cyclic control.
 - `mxa_rsi`: Uses mxAutomation for non-real-time startup/status handling and RSI for cyclic control.
 
+The integration of EKI and mxA not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers.
+
 It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
 
 ## Test setups
@@ -167,6 +169,7 @@ On successful activation the brakes of the robot will be released and external c
 Both launch files support the following arguments:
 
 - `client_port`: port of the client machine (default: 59152)
+- `controller_ip`: The IP address of the KUKA Line Interface (KLI) - not used for `rsi_only` setup
 - `mxa_client_port`: port of the client machine where mxAutomation packets are received (default: 1337)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
