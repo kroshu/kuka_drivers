@@ -91,7 +91,9 @@ ament_export_dependencies(
 install(DIRECTORY config launch test
   DESTINATION share/${PROJECT_NAME})
 
-install(PROGRAMS scripts/generate_krc_rsi_config.py
+install(PROGRAMS
+  scripts/generate_krc_rsi_config.py
+  scripts/rsi_monitor_node.py
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

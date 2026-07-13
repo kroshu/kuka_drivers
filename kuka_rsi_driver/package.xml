@@ -28,6 +28,8 @@
   <exec_depend>kuka_kss_message_handler</exec_depend>
   <exec_depend>kuka_event_broadcaster</exec_depend>
   <exec_depend>controller_manager</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>python3-scapy</exec_depend>
 
   <test_depend>kuka_rsi_simulator</test_depend>
   <test_depend>ros2lifecycle</test_depend>

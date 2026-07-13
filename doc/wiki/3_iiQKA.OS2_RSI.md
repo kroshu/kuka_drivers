@@ -364,12 +364,15 @@ Both launch files support the following arguments:
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
 - `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK legacy defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
+- `enable_rsi_monitoring`: If set to `true`, starts an additional non-invasive UDP port monitor node that passively monitors RSI communication and reports communication statistics when the driver is stopped (defaults to `false`).
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
+
+When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses Scapy to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
 
 ### Stopping external control
 
