@@ -287,9 +287,15 @@ Both launch files support the following arguments:
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `mode` is set to 'mock')
-- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
-- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`).
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 4000 us, only used if `mode` is set to 'mock')
+- `controller_config_dir`: the directory that contains all controller configuration files (defaults to `kuka_rsi_driver/config`). The driver expects the following file names in this directory:
+  - `ros2_controller_config_rsi_only.yaml` (used when `driver_version:=rsi_only`)
+  - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
+  - `joint_trajectory_controller_config.yaml`
+  - `kuka_event_broadcaster_config.yaml`
+  - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
+  - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
+  - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
