@@ -14,6 +14,8 @@ It is recommended to run the driver on a real-time capable client machine. Detai
 
 ## Test setups
 
+The following tables contain the exact versions used for testing the driver.
+
 ### KSS tested configurations
 
 | Controller | Robot                | KSS Version | EthernetKRL Version | RSI Version |
