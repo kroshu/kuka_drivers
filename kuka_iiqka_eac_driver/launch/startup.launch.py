@@ -163,7 +163,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             driver_config,
             {
-                "robot_model": robot_model,
+                "robot_models": [robot_model],
                 "controller_ip": controller_ip,
             },
         ],

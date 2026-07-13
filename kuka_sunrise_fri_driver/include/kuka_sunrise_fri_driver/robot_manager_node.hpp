@@ -76,7 +76,7 @@ private:
 
   int receive_multiplier_ = 0;
   int send_period_ms_ = 0;
-  std::string robot_model_;
+  std::vector<std::string> robot_models_;
   std::string joint_pos_controller_name_;
   std::string joint_torque_controller_name_;
   std::vector<double> joint_stiffness_ = std::vector<double>(7, 100.0);
@@ -84,7 +84,7 @@ private:
 
   std::string GetControllerName() const;
   bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onRobotModelsChangeRequest(const std::vector<std::string> & robot_models);
   bool SendPeriodChangeRequest();
   bool ValidatePeriod(int send_period);
   bool setReceiveMultiplier(int receive_multiplier);

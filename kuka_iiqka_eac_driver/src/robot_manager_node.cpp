@@ -88,10 +88,11 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   this->registerStaticParameter<std::string>(
     "controller_ip", "", kuka_drivers_core::ParameterSetAccessRights{false, false},
     [this](const std::string &) { return true; });
-  this->registerStaticParameter<std::string>(
-    "robot_model", "lbr_iisy3_r760", kuka_drivers_core::ParameterSetAccessRights{false, false},
-    [this](const std::string & robot_model)
-    { return this->onRobotModelChangeRequest(robot_model); });
+  this->registerStaticParameter<std::vector<std::string>>(
+    "robot_models", std::vector<std::string>{"lbr_iisy3_r760"},
+    kuka_drivers_core::ParameterSetAccessRights{false, false},
+    [this](const std::vector<std::string> & robot_models)
+    { return this->onRobotModelsChangeRequest(robot_models); });
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -102,12 +103,15 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);
 
-  // Configure hardware interface
-  if (!kuka_drivers_core::changeHardwareState(
-        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE))
+  // Configure hardware interfaces
+  for (const auto & robot_model : robot_models_)
   {
-    RCLCPP_ERROR(get_logger(), "Could not configure hardware interface");
-    return FAILURE;
+    if (!kuka_drivers_core::changeHardwareState(
+          change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
+      return FAILURE;
+    }
   }
 
   // Publish message about HWIF configuration
@@ -143,12 +147,15 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR(get_logger(), "Could not deactivate control mode handler and event broadcaster");
   }
 
-  // Clean up hardware interface
-  if (!kuka_drivers_core::changeHardwareState(
-        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_UNCONFIGURED))
+  // Clean up hardware interfaces
+  for (const auto & robot_model : robot_models_)
   {
-    RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface");
-    return FAILURE;
+    if (!kuka_drivers_core::changeHardwareState(
+          change_hardware_state_client_, robot_model, State::PRIMARY_STATE_UNCONFIGURED))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface '%s'", robot_model.c_str());
+      return FAILURE;
+    }
   }
 
   is_configured_msg_.data = false;
@@ -199,12 +206,15 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
   // Join observe thread, necessary if previous activation failed
   terminate_ = false;
-  // Activate hardware interface
-  if (!kuka_drivers_core::changeHardwareState(
-        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_ACTIVE, 5000))
+  // Activate hardware interfaces
+  for (const auto & robot_model : robot_models_)
   {
-    RCLCPP_ERROR(get_logger(), "Could not activate hardware interface");
-    return FAILURE;
+    if (!kuka_drivers_core::changeHardwareState(
+          change_hardware_state_client_, robot_model, State::PRIMARY_STATE_ACTIVE, 5000))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not activate hardware interface '%s'", robot_model.c_str());
+      return FAILURE;
+    }
   }
 
   // Workaround until controller_manager/jtc bug is fixed:
@@ -235,13 +245,16 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  // Deactivate hardware interface
+  // Deactivate hardware interfaces
   // Deactivation was not stable with 2000 ms timeout
-  if (!kuka_drivers_core::changeHardwareState(
-        change_hardware_state_client_, robot_model_, State::PRIMARY_STATE_INACTIVE, 3000))
+  for (const auto & robot_model : robot_models_)
   {
-    RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface");
-    return ERROR;
+    if (!kuka_drivers_core::changeHardwareState(
+          change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE, 3000))
+    {
+      RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface '%s'", robot_model.c_str());
+      return ERROR;
+    }
   }
 
   // Stop RT controllers
@@ -332,18 +345,39 @@ bool RobotManagerNode::onControlModeChangeRequest(int control_mode)
   return true;
 }
 
-bool RobotManagerNode::onRobotModelChangeRequest(const std::string & robot_model)
+bool RobotManagerNode::onRobotModelsChangeRequest(const std::vector<std::string> & robot_models)
 {
+  if (robot_models.empty())
+  {
+    RCLCPP_ERROR(get_logger(), "Parameter 'robot_models' must contain at least one model name");
+    return false;
+  }
+
   auto ns = std::string(this->get_namespace());
-  // Remove '/' from namespace (even empty namespace contains one '/')
-  ns.erase(ns.begin());
+  // Remove leading '/' from namespace when present.
+  if (!ns.empty() && ns.front() == '/')
+  {
+    ns.erase(ns.begin());
+  }
 
   // Add '_' to prefix
   if (ns.size() > 0)
   {
     ns += "_";
   }
-  robot_model_ = ns + robot_model;
+
+  robot_models_.clear();
+  robot_models_.reserve(robot_models.size());
+  for (const auto & robot_model : robot_models)
+  {
+    if (robot_model.empty())
+    {
+      RCLCPP_ERROR(get_logger(), "Parameter 'robot_models' contains an empty model name");
+      return false;
+    }
+    robot_models_.emplace_back(ns + robot_model);
+  }
+
   return true;
 }
 }  // namespace kuka_eac

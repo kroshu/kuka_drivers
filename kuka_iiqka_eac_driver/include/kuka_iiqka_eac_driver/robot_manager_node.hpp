@@ -53,7 +53,7 @@ public:
 private:
   void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onRobotModelsChangeRequest(const std::vector<std::string> & robot_models);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -61,7 +61,7 @@ private:
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr event_cbg_;
-  std::string robot_model_;
+  std::vector<std::string> robot_models_;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
   kuka_drivers_core::ControlMode control_mode_ =
