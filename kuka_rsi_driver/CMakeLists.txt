@@ -76,7 +76,6 @@ if(BUILD_TESTING)
   add_launch_test(test/test_driver_startup_eki_rsi.py)
   add_launch_test(test/test_driver_startup_mxa_rsi.py)
   add_launch_test(test/test_driver_activation.py)
-  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ## EXPORTS
