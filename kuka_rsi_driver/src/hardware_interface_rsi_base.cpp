@@ -114,8 +114,9 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
       hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
   }
 
-  state_interfaces.emplace_back(std::make_shared<hardware_interface::StateInterface>(
-    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_));
+  state_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &server_state_);
 
   return state_interfaces;
 }
