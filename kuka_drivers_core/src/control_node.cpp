@@ -113,8 +113,6 @@ int main(int argc, char ** argv)
 
       try
       {
-        // std::chrono::steady_clock::time_point next_iteration_time{std::chrono::steady_clock::now()};
-        // auto const period = std::chrono::nanoseconds(1'000'000'000 / controller_manager->get_update_rate());
         while (rclcpp::ok())
         {
           // Use a fixed period for interpolation, as the interpolation cycle is also fixed on the
@@ -123,10 +121,6 @@ int main(int argc, char ** argv)
           // TODO: adjust dt for non-integer update rates, (e.g. 12 ms cycle time for RSI IPO mode)
           const rclcpp::Duration dt =
             rclcpp::Duration::from_seconds(1.0 / controller_manager->get_update_rate());
-        // {
-        //   next_iteration_time += period;
-        //   std::this_thread::sleep_until(next_iteration_time);
-        // }
 
           if (is_configured)
           {
