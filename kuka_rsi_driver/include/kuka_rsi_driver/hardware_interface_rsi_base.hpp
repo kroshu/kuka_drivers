@@ -149,6 +149,10 @@ protected:
   // threshold for logging slow RSI responses
   static constexpr std::chrono::milliseconds kWarningThreshold{2};
 
+  // Interface prefix for state and command interfaces, enabling multi-robot support
+  std::string interface_prefix_;
+
+
 private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(
     kuka::external::control::kss::Configuration & config) const;

@@ -87,6 +87,14 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
   // Locking is taken care of in resource manager (read, write, on_activate, on_deactivate)
   server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
 
+  auto info = get_hardware_info();
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -106,8 +114,8 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
       hardware_interface::IO_PREFIX, info_.gpios[0].state_interfaces[i].name, &hw_gpio_states_[i]);
   }
 
-  state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+  state_interfaces.emplace_back(std::make_shared<hardware_interface::StateInterface>(
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_));
 
   return state_interfaces;
 }
