@@ -149,7 +149,11 @@ open_loop_control: true
 
 ## Multi-robot scenario
 
-As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components have to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modified to reflect the new node and joint names. An example of this can found in the [`iiqka_moveit_example`](https://github.com/kroshu/examples/blob/master/iiqka_moveit_example) package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
+Since ROS 2 Jazzy, `ros2_control` supports asynchronous hardware interfaces. With this feature enabled, multiple robots can be started within the same `controller_manager`, because each hardware interface can run in its own asynchronous execution context, the blocking `read()` methods no longer cause an issue.
+
+For a multi-robot setup, a dedicated robot description xacro should be created that loads both robot models in one file using launch arguments (for example robot model names, prefixes and optional namespace-specific parameters). This combined xacro is then passed as the single `robot_description` to the control node.
+
+A dedicated launch file is also required for this setup. It should declare the arguments of both robots, generate the combined xacro, start one `controller_manager`, and spawn the controllers for both robots with the correct names and configuration files. Configuration files still need to be adapted to the corresponding namespaces and prefixed joint names. An example setup is available in the `kuka_multi_robot_examples` package: [examples/kuka_multi_robot_examples](https://github.com/kroshu/examples/tree/master/kuka_multi_robot_examples).
 
 ## Detailed setup and startup instructions
 
