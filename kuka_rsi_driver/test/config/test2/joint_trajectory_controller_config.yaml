@@ -1,0 +1,17 @@
+test2/joint_trajectory_controller:
+  ros__parameters:
+    joints:
+    - test2_joint_1
+    - test2_joint_2
+    - test2_joint_3
+    - test2_joint_4
+    - test2_joint_5
+    - test2_joint_6
+
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_nonzero_velocity_at_trajectory_end: true

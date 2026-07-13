@@ -1,0 +1,25 @@
+/**/controller_manager:
+  ros__parameters:
+    update_rate: 250  # Hz
+
+    defaults:
+      allow_controller_activation_with_inactive_hardware: true
+      deactivate_controllers_on_hardware_self_deactivate: false
+
+    control_mode_handler:
+      type: kuka_controllers/ControlModeHandler
+
+    event_broadcaster:
+      type: kuka_controllers/EventBroadcaster
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    kss_message_handler:
+      type: kuka_controllers/KssMessageHandler
+
+    overruns:
+      print_warnings: false
