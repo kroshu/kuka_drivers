@@ -118,6 +118,7 @@ private:
   std::string client_ip_ = "0.0.0.0";
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
+  std::string interface_prefix_;
 
   // State and command interfaces
   std::vector<double> hw_position_commands_;

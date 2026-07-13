@@ -35,6 +35,14 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   client_ip_ = info_.hardware_parameters.at("client_ip");
   client_port_ = std::stoi(info_.hardware_parameters.at("client_port"));
 
+  auto info = get_hardware_info();
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
+
   hw_position_states_.resize(info_.joints.size());
   hw_commanded_position_states_.resize(info_.joints.size());
   hw_position_commands_.resize(info_.joints.size());
@@ -429,31 +437,32 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
     &robot_state_.session_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
     &robot_state_.connection_quality_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
     &robot_state_.safety_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
     &robot_state_.command_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
     &robot_state_.control_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
     &robot_state_.operation_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
     &robot_state_.drive_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
     &robot_state_.overlay_type_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::TRACKING_PERFORMANCE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX,
+    hardware_interface::TRACKING_PERFORMANCE,
     &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access)
@@ -480,7 +489,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   }
 
   state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &server_state_);
   return state_interfaces;
 }
 
@@ -490,12 +500,14 @@ KukaFRIHardwareInterface::export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &control_mode_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
+    &control_mode_);
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD, &send_period_ms_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD,
+    &send_period_ms_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_)

@@ -90,6 +90,7 @@ private:
   double hw_control_mode_command_ = 0;
   double server_state_ = 0;
   int cycle_count_ = 0;
+  std::string interface_prefix_;
 
   std::mutex event_mutex_;
 
