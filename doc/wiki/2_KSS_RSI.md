@@ -1,6 +1,8 @@
-# KSS driver (RSI)
+# KSS and iiQKA.OS2 drivers (RSI)
 
-This guide provides instructions for setting up and using a ROS 2 driver to control KUKA robots running on **KUKA System Software (KSS)**. The driver supports two configurations:
+This guide provides instructions for setting up and using the RSI-based ROS 2 driver for KUKA robots running on **KUKA System Software (KSS)** and **iiQKA.OS2**.
+
+The driver supports two configurations:
 
 - [RSI-only driver](#rsi-only-driver): Utilizes the **Robot Sensor Interface (RSI)** option package for direct robot control
 - [EKI + RSI driver](#eki--rsi-driver): Combines the **Ethernet KRL Interface (EKI)** with RSI to enable runtime configuration
@@ -24,7 +26,7 @@ Tested configurations:
 
 #### Client side
 
-It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
+It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
 
 To set up the controller with WorkVisual (which is necessary if RSI is not yet installed), a Windows machine is also required.
 
@@ -81,6 +83,74 @@ Method 2:
 3. Copy the contents of the `krc_setup/kss/KRC/R1/Program` folder to `KRC:\R1\Program` in WorkVisual
 4. Copy the contents of the `krc_setup/kss/Config/User/Common` folder to `C:\KRC\ROBOTER\Config\User\Common` in WorkVisual
 5. Deploy the project
+
+## iiQKA.OS2 setup (RSI 6.x)
+
+iiQKA.OS2 uses the same RSI driver package (`kuka_rsi_driver`) and the same startup/lifecycle flow. The differences are on controller-side setup and project deployment.
+
+### Test setup for iiQKA.OS2
+
+Tested configurations:
+
+| Controller | Robot              | iiQKA.OS2 Version | RSI Version |
+|------------|--------------------|-------------------|-------------|
+| KR C5 OPS  | &ndash;            | 9.1.0             | 6.1.2       |
+| KR C5      | KR 16 R1610-2      | 9.1.0             | 6.1.2       |
+
+### Client side (iiQKA.OS2)
+
+It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
+
+To set up the controller with iiQWorks.Sim (for example when RSI is not yet installed), a Windows machine is also required.
+
+#### Client IP configuration (iiQKA.OS2)
+
+- Use the KRC's built in DHCP server (KSI) to connect to the Windows machine (in this case leave subnet settings as default), or set a fixed IP in the subnet of the KLI interface. This is required to connect to iiQWorks.Sim and transfer the project to the KRC.
+- Set a fixed IP in the subnet of the KLI interface for the real-time machine, which is required to send commands via RSI.
+
+### Controller side (iiQKA.OS2)
+
+These instructions were tested with RSI 6.0.0 and above.
+
+#### Controller network configuration (iiQKA.OS2)
+
+RSI can only communicate via the KLI network. Ensure the controller and the ROS PC are on the same subnet.
+
+1. Log in as **Expert**, **Safety Maintenance Technician** or **Administrator** on the smartPAD and open **System > System settings > Network**.
+2. Change network settings:
+  - Set **Allocation** to manual to connect the ROS PC directly to the controller.
+  - Set the selected **IP address** and **Subnet mask**.
+3. Press **Apply**.
+
+#### RSI project configuration in iiQWorks.Sim
+
+1. Add RSI (6.0.0 or above) in iiQWorks.Sim.
+  - Download the RSI option package from the **Software Repository** in **iiQworks.Cockpit**.
+  - Open **File > Options > Add-on > KUKA Option packages > Manage**.
+  - Use the plus icon to add the downloaded `.kop` file.
+2. Add the robot from the eCatalog and enable the required option packages in **Component properties**.
+3. In **Home > Devices > Option packages > iiQka.RobotSensorInterface**:
+  - Manage RSI context files (import/export/create).
+  - Manage Ethernet configuration XML files (import/export/create).
+4. In **Program**, manage the KRL program files.
+
+#### Update and upload configuration files (iiQKA.OS2)
+
+Use the files from [`kuka_external_control_sdk/krc_setup/iiqka_os2`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/iiqka_os2):
+
+- `Program/RSI/rsi_joint_pos.src`: KRL program that starts external control with 4 ms cycle time.
+- `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: helper files for RSI context initialization.
+- `RobotSensorInterface/Context/ros_rsi.rsix`: RSI context.
+- `RobotSensorInterface/Ethernet_configuration/rsi_ethernet.xml`: RSI Ethernet mapping and client IP/port settings.
+
+Upload steps:
+
+1. Connect to the KRC with iiQWorks.Sim.
+2. Log in as **Expert** or **Administrator** and set operation mode to **T1**.
+3. Import `rsi_joint_pos.src`, `rsi_helper.dat` and `rsi_helper.src` to the **Program** area.
+4. Import `ros_rsi.rsix` under RSI context files.
+5. Import `rsi_ethernet.xml` under Ethernet configurations.
+6. Deploy from the **Configuration** page.
 
 ### Configuration
 
@@ -210,7 +280,9 @@ To configure the client side, two configuration files need to be completed:
 
     - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
 
-3. Start the `KRC:\R1\Program\rsi_joint_pos_4ms.src`/`KRC:\R1\Program\rsi_joint_pos_12ms.src` program on the controller and execute the line of `RSI_MOVECORR()`
+3. Start the controller-side RSI program and execute `RSI_MOVECORR()`:
+  - KSS: `KRC:\R1\Program\RSI\rsi_joint_pos_4ms.src` or `KRC:\R1\Program\RSI\rsi_joint_pos_12ms.src`
+  - iiQKA.OS2: `Program\RSI\ros_rsi.src`
     - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
@@ -328,7 +400,7 @@ Once the driver is launched, one can use the standard ROS 2 lifecycle transition
 - `ros2 lifecycle set /robot_manager deactivate`: Stops external control and cancels the RSI program
 - `ros2 lifecycle set /robot_manager cleanup`: Terminates the connection to the robot controller
 
-The integration of EKI not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers. For more details, refer to the [Controllers](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers) wiki page.
+The integration of EKI not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers. For more details, refer to the [Controllers](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers) wiki page.
 
 
 ## External axes configuration
@@ -337,7 +409,12 @@ Both KSS and the RSI option package support adding external axes to the robot. W
 
 ### Controller-side configuration
 
-Use the files in [`kuka_external_control_sdk/krc_setup/kss`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/kss) when configuring the controller side.
+Both controller environments are supported, with different setup folders:
+
+- KSS: [`kuka_external_control_sdk/krc_setup/kss`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/kss)
+- iiQKA.OS2: [`kuka_external_control_sdk/krc_setup/iiqka_os2`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/iiqka_os2)
+
+Use the files in the platform-specific setup folder above when configuring the controller side.
 
 #### Context
 
@@ -375,7 +452,12 @@ This allows RSI to parse data from the driver.
 
 #### Program
 
-To adapt the KRL program for the external-axis example, update the RSI context name in either `KRC/R1/Program/RSI/rsi_joint_pos_4ms.src` or `KRC/R1/Program/RSI/rsi_joint_pos_12ms.src`, depending on your use case, to `rsi_ext_axis_example`. For custom setups, use the name of the corresponding context file.
+To adapt the KRL program for the external-axis example:
+
+- KSS: update the RSI context name in `KRC/R1/Program/RSI/rsi_joint_pos_4ms.src` or `KRC/R1/Program/RSI/rsi_joint_pos_12ms.src` to `rsi_ext_axis_example`.
+- iiQKA.OS2: update the `CONTEXT_NAME` variable in `Program/RSI/rsi_joint_pos.dat` to `rsi_ext_axis_example`.
+
+For custom setups, use the name of the corresponding context file.
 
 ### Client-side configuration
 
