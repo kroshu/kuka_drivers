@@ -33,7 +33,7 @@ from scapy.sendrecv import AsyncSniffer
 IPOC_PATTERN = re.compile(rb"<IPOC>\s*([^<\s]+)\s*</IPOC>")
 
 
-def _format_payload_sample(payload: bytes, max_len: int = 220) -> str:
+def _format_payload_sample(payload: bytes, max_len: int = 120) -> str:
     text = payload.decode("utf-8", errors="replace")
     contains_control_chars = any((ord(ch) < 32 and ch not in "\r\n\t") for ch in text)
     if contains_control_chars:
@@ -50,18 +50,11 @@ def _format_timestamp_ns(timestamp_ns: Optional[int]) -> str:
     return datetime.fromtimestamp(timestamp_ns / 1e9).isoformat(timespec="milliseconds")
 
 
-def _extract_ipoc(payload: bytes) -> Optional[str]:
+def _extract_ipoc(payload: bytes) -> Optional[int]:
     match = IPOC_PATTERN.search(payload)
     if match is None:
         return None
-    return match.group(1).decode("ascii", errors="ignore").strip()
-
-
-def _parse_ipoc_int(ipoc: str) -> Optional[int]:
-    try:
-        return int(ipoc)
-    except ValueError:
-        return None
+    return int(match.group(1).decode("ascii", errors="ignore").strip())
 
 
 @dataclass
@@ -109,10 +102,10 @@ class RsiMonitorNode(Node):
         self._matched_pairs = 0
         self._receive_to_send_latency_ns: list[int] = []
         self._send_to_receive_latency_ns: list[int] = []
-        self._last_sender_timestamp_ns: Optional[int] = None
-        self._last_sender_ipoc: Optional[int] = None
-        self._pending_receiver: Dict[str, _PacketRecord] = {}
-        self._pending_sender: Dict[str, _PacketRecord] = {}
+        self._s2r_pending_sender_ns: Dict[int, int] = {}
+        self._s2r_pending_receiver_ns: Dict[int, int] = {}
+        self._pending_receiver: Dict[int, _PacketRecord] = {}
+        self._pending_sender: Dict[int, _PacketRecord] = {}
         self._sniffer: Optional[AsyncSniffer] = None
 
         signal.signal(signal.SIGINT, self._handle_stop_signal)
@@ -147,7 +140,7 @@ class RsiMonitorNode(Node):
             self.get_logger().info(f"Auto-detected sender port: {src_port}")
         return "sender"
 
-    def _try_match_ipoc(self, ipoc: str) -> None:
+    def _try_match_ipoc(self, ipoc: int) -> None:
         receiver_record = self._pending_receiver.get(ipoc)
         sender_record = self._pending_sender.get(ipoc)
         if receiver_record is None or sender_record is None:
@@ -180,7 +173,6 @@ class RsiMonitorNode(Node):
         ipoc = _extract_ipoc(payload)
         if ipoc is None:
             return
-        ipoc_int = _parse_ipoc_int(ipoc)
 
         direction = self._classify_packet(int(udp_layer.sport), int(udp_layer.dport))
         if direction is None:
@@ -188,18 +180,16 @@ class RsiMonitorNode(Node):
 
         now_ns = time.time_ns()
         if direction == "receiver":
-            if self._last_sender_timestamp_ns is not None:
-                if (
-                    self._last_sender_ipoc is not None
-                    and ipoc_int is not None
-                    and ipoc_int == self._last_sender_ipoc + 1
-                    and now_ns >= self._last_sender_timestamp_ns
-                ):
-                    self._send_to_receive_latency_ns.append(
-                        now_ns - self._last_sender_timestamp_ns
-                    )
-                self._last_sender_timestamp_ns = None
-                self._last_sender_ipoc = None
+            sender_candidates = [k for k in self._s2r_pending_sender_ns if k < ipoc]
+            if sender_candidates:
+                best = max(sender_candidates)
+                sender_ts = self._s2r_pending_sender_ns.pop(best)
+                self._send_to_receive_latency_ns.append(now_ns - sender_ts)
+                for stale in sender_candidates:
+                    self._s2r_pending_sender_ns.pop(stale, None)
+            else:
+                self._s2r_pending_receiver_ns[ipoc] = now_ns
+
             if ipoc not in self._pending_receiver:
                 self._pending_receiver[ipoc] = _PacketRecord(
                     payload=payload,
@@ -207,9 +197,17 @@ class RsiMonitorNode(Node):
                     timestamp_ns=now_ns,
                 )
         else:  # sender
+            receiver_candidates = [k for k in self._s2r_pending_receiver_ns if k > ipoc]
+            if receiver_candidates:
+                best = min(receiver_candidates)
+                receiver_ts = self._s2r_pending_receiver_ns.pop(best)
+                self._send_to_receive_latency_ns.append(receiver_ts - now_ns)
+                for stale in receiver_candidates:
+                    self._s2r_pending_receiver_ns.pop(stale, None)
+            else:
+                self._s2r_pending_sender_ns[ipoc] = now_ns
+
             if ipoc in self._pending_receiver and ipoc not in self._pending_sender:
-                self._last_sender_timestamp_ns = now_ns
-                self._last_sender_ipoc = ipoc_int
                 self._pending_sender[ipoc] = _PacketRecord(
                     payload=payload,
                     source=f"{ip_layer.src}:{udp_layer.sport}",
@@ -262,7 +260,7 @@ class RsiMonitorNode(Node):
             avg_latency_ms = statistics.fmean(self._send_to_receive_latency_ns) / 1e6
             stdev_latency_ms = statistics.stdev(self._send_to_receive_latency_ns) / 1e6
             self.get_logger().info(
-                "Response latency [ms] (send->next receive with IPOC+1): "
+                "Response latency [ms] (send->next receive): "
                 f"min={min_latency_ms:.3f} avg={avg_latency_ms:.3f} "
                 f"max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
             )
@@ -270,6 +268,12 @@ class RsiMonitorNode(Node):
             self.get_logger().info("Response latency [ms] (send->next receive with IPOC+1): n/a")
         self.get_logger().info(f"Unmatched receiver packets: {len(self._pending_receiver)}")
         self.get_logger().info(f"Unmatched sender packets: {len(self._pending_sender)}")
+        self.get_logger().info(
+            f"S2R pending sender buffer size: {len(self._s2r_pending_sender_ns)}"
+        )
+        self.get_logger().info(
+            f"S2R pending receiver buffer size: {len(self._s2r_pending_receiver_ns)}"
+        )
 
         for stream_name in ("receiver", "sender"):
             stats = self._stats[stream_name]
