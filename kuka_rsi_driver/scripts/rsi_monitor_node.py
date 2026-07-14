@@ -15,6 +15,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+import psutil
 import re
 import signal
 import statistics
@@ -205,7 +206,7 @@ class RsiMonitorNode(Node):
                     source=f"{ip_layer.src}:{udp_layer.sport}",
                     timestamp_ns=now_ns,
                 )
-        else:
+        else:  # sender
             if ipoc in self._pending_receiver and ipoc not in self._pending_sender:
                 self._last_sender_timestamp_ns = now_ns
                 self._last_sender_ipoc = ipoc_int
@@ -219,7 +220,7 @@ class RsiMonitorNode(Node):
     def run(self) -> None:
         try:
             self._sniffer = AsyncSniffer(
-                iface=["lo", "loopback0", ""],
+                iface=[name for name, stat in psutil.net_if_stats().items() if stat.isup],
                 filter="udp",
                 prn=self._handle_packet,
                 store=False,
