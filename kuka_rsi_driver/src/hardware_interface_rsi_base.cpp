@@ -310,6 +310,7 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     }
 
     last_ipoc_ = robot_ptr_->getIpoc();
+
   }
   else
   {
@@ -720,18 +721,6 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
         }
       }
 
-      if (const YAML::Node delay = ms_node["delay"])
-      {
-        if (const YAML::Node elem = delay["xml_element"])
-        {
-          motion_state_xml.delay_xml_element = elem.as<std::string>();
-        }
-        if (const YAML::Node attr = delay["xml_attribute"])
-        {
-          motion_state_xml.delay_xml_attribute = attr.as<std::string>();
-        }
-      }
-
       if (const YAML::Node gpio = ms_node["gpio"])
       {
         if (const YAML::Node elem = gpio["xml_element"])
@@ -753,14 +742,6 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
               motion_state_xml.gpio_xml_attributes.size(), info_.gpios[0].state_interfaces.size());
             return false;
           }
-        }
-      }
-
-      if (const YAML::Node ipoc = ms_node["ipoc"])
-      {
-        if (const YAML::Node elem = ipoc["xml_element"])
-        {
-          motion_state_xml.ipoc_xml_element = elem.as<std::string>();
         }
       }
 
@@ -809,14 +790,6 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
         if (const YAML::Node elem = gpio["xml_element"])
         {
           control_signal_xml.gpio_xml_element = elem.as<std::string>();
-        }
-      }
-
-      if (const YAML::Node ipoc = cs_node["ipoc"])
-      {
-        if (const YAML::Node elem = ipoc["xml_element"])
-        {
-          control_signal_xml.ipoc_xml_element = elem.as<std::string>();
         }
       }
 

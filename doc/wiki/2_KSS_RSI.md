@@ -203,14 +203,9 @@ rsi_xml_config:
         xml_element: "AIPos"
         xml_attribute: "A1"
       # ... repeat for each joint
-    delay:
-      xml_element: "Delay"
-      xml_attribute: "D"
     gpio:                          # omit if no GPIO state interfaces
       xml_element: "GPIO"
       xml_attributes: ["01", "02"]
-    ipoc:
-      xml_element: "IPOC"
   control_signal:                  # XML elements sent to the KRC
     joints:
       xml_element: "AK"
@@ -219,9 +214,9 @@ rsi_xml_config:
       xml_attributes: ["E1"]
     gpio:                          # omit if no GPIO command interfaces
       xml_element: "GPIO"
-    ipoc:
-      xml_element: "IPOC"
 ```
+
+`Delay` (`<Delay D="..."/>`) and `IPOC` (`<IPOC>...</IPOC>`) are always parsed/sent as fixed RSI built-ins and are not configurable from this YAML mapping.
 
 Pass the absolute path to this file using the `rsi_xml_config_file` launch argument (see [Launch arguments](#launch-arguments)).
 

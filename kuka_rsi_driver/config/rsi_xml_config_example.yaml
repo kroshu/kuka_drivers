@@ -48,20 +48,14 @@ rsi_xml_config:
         xml_element: "AIPos"
         xml_attribute: "A6"
 
-    # Packet-loss delay counter (KRC built-in: DEF_Delay)
-    delay:
-      xml_element: "Delay"
-      xml_attribute: "D"
-
     # GPIO state values (custom signals, one attribute per GPIO state interface).
     # Comment out or remove if no GPIO state interfaces are configured.
     # gpio:
     #   xml_element: "GPIO"
     #   xml_attributes: ["01", "02"]
 
-    # IPOC cycle counter
-    ipoc:
-      xml_element: "IPOC"
+    # Delay and IPOC are fixed RSI built-ins (<Delay D="..."/> and <IPOC>...</IPOC>)
+    # and are always parsed by the SDK. They are not configurable here.
 
   # -----------------------------------------------------------------
   # control_signal — describes the XML elements in messages sent by
@@ -86,6 +80,5 @@ rsi_xml_config:
     # gpio:
     #   xml_element: "GPIO"
 
-    # IPOC echo
-    ipoc:
-      xml_element: "IPOC"
+    # IPOC is always emitted as a fixed RSI built-in (<IPOC>...</IPOC>)
+    # and is not configurable here.
