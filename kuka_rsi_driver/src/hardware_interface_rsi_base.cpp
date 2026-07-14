@@ -310,7 +310,6 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     }
 
     last_ipoc_ = robot_ptr_->getIpoc();
-
   }
   else
   {
