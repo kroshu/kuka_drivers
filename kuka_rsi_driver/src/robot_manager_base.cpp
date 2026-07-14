@@ -108,7 +108,8 @@ RobotManagerBase::configure_driver(const std::vector<std::string> & controllers_
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE))
     {
-      RCLCPP_ERROR(get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
+      RCLCPP_ERROR(
+        get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
       return FAILURE;
     }
   }

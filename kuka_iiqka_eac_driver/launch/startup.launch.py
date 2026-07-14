@@ -205,9 +205,7 @@ def launch_setup(context, *args, **kwargs):
     controllers = {
         "joint_state_broadcaster": None,
         "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
-        "joint_group_impedance_controller": config_file(
-            "joint_impedance_controller_config.yaml"
-        ),
+        "joint_group_impedance_controller": config_file("joint_impedance_controller_config.yaml"),
         "effort_controller": config_file("effort_controller_config.yaml"),
         "control_mode_handler": config_file("kuka_control_mode_handler_config.yaml"),
         "event_broadcaster": None,
@@ -251,8 +249,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config_dir",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config",
+            default_value=get_package_share_directory("kuka_iiqka_eac_driver") + "/config",
         )
     )
     launch_arguments.append(

@@ -39,8 +39,10 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  // An empty robot_prefixes array is parsed as NOT_SET in this startup path and throws an exception,
-  //  so it is not necessary to check for it here. Default is [""] for single-robot/no-prefix behavior.
+  // An empty robot_prefixes array is parsed as NOT_SET in this startup path and throws an
+  // exception,
+  //  so it is not necessary to check for it here. Default is [""] for single-robot/no-prefix
+  //  behavior.
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
     if (robot_prefix.empty())

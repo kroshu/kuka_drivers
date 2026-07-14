@@ -46,8 +46,8 @@ public:
     configure_delay_ = this->get_parameter("configure_delay").as_double();
     activate_delay_ = this->get_parameter("activate_delay").as_double();
 
-    change_state_client_ = this->create_client<lifecycle_msgs::srv::ChangeState>(
-      managed_node + "/change_state");
+    change_state_client_ =
+      this->create_client<lifecycle_msgs::srv::ChangeState>(managed_node + "/change_state");
 
     worker_thread_ = std::thread([this]() { this->run(); });
   }

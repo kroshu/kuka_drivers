@@ -225,22 +225,16 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-            "joint_trajectory_controller": config_file(
-                "joint_trajectory_controller_config.yaml"
-            ),
-            "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
+        "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
+        "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
     if use_gpio.perform(context) == "true":
-            controllers["gpio_controller"] = config_file("gpio_controller_config.yaml")
+        controllers["gpio_controller"] = config_file("gpio_controller_config.yaml")
 
     if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
-            controllers["control_mode_handler"] = config_file(
-                "kuka_control_mode_handler_config.yaml"
-            )
-            controllers["kss_message_handler"] = config_file(
-                "kuka_kss_message_handler_config.yaml"
-            )
+        controllers["control_mode_handler"] = config_file("kuka_control_mode_handler_config.yaml")
+        controllers["kss_message_handler"] = config_file("kuka_kss_message_handler_config.yaml")
 
     controller_spawners = [
         controller_spawner(name, prefix_cmd, param_file)

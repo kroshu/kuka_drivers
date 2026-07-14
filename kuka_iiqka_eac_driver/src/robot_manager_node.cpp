@@ -109,7 +109,8 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE))
     {
-      RCLCPP_ERROR(get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
+      RCLCPP_ERROR(
+        get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
       return FAILURE;
     }
   }
@@ -252,7 +253,8 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE, 3000))
     {
-      RCLCPP_ERROR(get_logger(), "Could not deactivate hardware interface '%s'", robot_model.c_str());
+      RCLCPP_ERROR(
+        get_logger(), "Could not deactivate hardware interface '%s'", robot_model.c_str());
       return ERROR;
     }
   }

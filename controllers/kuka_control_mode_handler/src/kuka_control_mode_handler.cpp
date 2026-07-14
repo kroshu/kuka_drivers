@@ -47,9 +47,8 @@ controller_interface::InterfaceConfiguration ControlModeHandler::command_interfa
 
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    config.names.emplace_back(
-      ComposeInterfaceName(
-        robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE));
+    config.names.emplace_back(ComposeInterfaceName(
+      robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE));
   }
 
   return config;

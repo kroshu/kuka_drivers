@@ -201,15 +201,11 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-        "external_torque_broadcaster": config_file(
-            "external_torque_broadcaster_config.yaml"
-        ),
+        "external_torque_broadcaster": config_file("external_torque_broadcaster_config.yaml"),
         "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
         "fri_configuration_controller": None,
         "fri_state_broadcaster": None,
-        "joint_group_impedance_controller": config_file(
-            "joint_impedance_controller_config.yaml"
-        ),
+        "joint_group_impedance_controller": config_file("joint_impedance_controller_config.yaml"),
         "effort_controller": config_file("effort_controller_config.yaml"),
         "control_mode_handler": config_file("kuka_control_mode_handler_config.yaml"),
         "event_broadcaster": None,
@@ -247,8 +243,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config_dir",
-            default_value=get_package_share_directory("kuka_sunrise_fri_driver")
-            + "/config",
+            default_value=get_package_share_directory("kuka_sunrise_fri_driver") + "/config",
         )
     )
     launch_arguments.append(

@@ -440,8 +440,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
     interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
     &robot_state_.session_state_);
   state_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
-    &robot_state_.connection_quality_);
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX,
+    hardware_interface::CONNECTION_QUALITY, &robot_state_.connection_quality_);
   state_interfaces.emplace_back(
     interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
     &robot_state_.safety_state_);
@@ -462,8 +462,7 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
     &robot_state_.overlay_type_);
   state_interfaces.emplace_back(
     interface_prefix_ + hardware_interface::FRI_STATE_PREFIX,
-    hardware_interface::TRACKING_PERFORMANCE,
-    &robot_state_.tracking_performance_);
+    hardware_interface::TRACKING_PERFORMANCE, &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access)
   for (auto & output : gpio_outputs_)

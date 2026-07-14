@@ -51,9 +51,8 @@ InterfaceConfig KssMessageHandler::command_interface_configuration() const
 
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    config.names.emplace_back(
-      ComposeInterfaceName(
-        robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME));
+    config.names.emplace_back(ComposeInterfaceName(
+      robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME));
   }
 
   return config;
@@ -99,9 +98,8 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
 
   // Status publisher for all robots. One message contains all robot statuses.
-  status_publisher_ =
-    get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
-      "~/status", rclcpp::SystemDefaultsQoS());
+  status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
+    "~/status", rclcpp::SystemDefaultsQoS());
 
   timer_ = get_node()->create_wall_timer(
     STATUS_PUBLISH_INTERVAL,
@@ -121,8 +119,7 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
   const double cycle_time = cycle_time_.load();
-  const bool cycle_time_changed =
-    std::isnan(prev_cycle_time_) || cycle_time != prev_cycle_time_;
+  const bool cycle_time_changed = std::isnan(prev_cycle_time_) || cycle_time != prev_cycle_time_;
   bool all_cycle_time_set = true;
 
   if (cycle_time_changed)
@@ -148,7 +145,8 @@ ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
 
   for (size_t idx = 0; idx < current_statuses_.size(); ++idx)
   {
-    AssignStatusFromInterfaces(current_statuses_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
+    AssignStatusFromInterfaces(
+      current_statuses_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
   }
 
   return all_cycle_time_set ? ReturnType::OK : ReturnType::ERROR;

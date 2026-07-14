@@ -27,8 +27,8 @@
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int8.hpp"
 
-#include "kuka_driver_interfaces/msg/kss_status_array.hpp"
 #include "kuka_driver_interfaces/msg/kss_status.hpp"
+#include "kuka_driver_interfaces/msg/kss_status_array.hpp"
 #include "kuka_kss_message_handler/kuka_kss_message_handler_parameters.hpp"
 #include "kuka_kss_message_handler/visibility_control.h"
 
@@ -81,7 +81,8 @@ private:
     std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::emergency_stop, 3},
     std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::guard_stop, 4},
     std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::in_motion, 5},
-    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::motion_possible, 6},
+    std::pair<BoolStatusMember, size_t>{
+      &kuka_driver_interfaces::msg::KssStatus::motion_possible, 6},
     std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::robot_stopped, 8}};
 
   KUKA_KSS_MESSAGE_HANDLER_LOCAL static std::string ComposeInterfaceName(
@@ -94,8 +95,7 @@ private:
 
   template <typename T>
   static T ReadInterfaceValue(
-    const hardware_interface::LoanedStateInterface & state_interface,
-    const T fallback_value)
+    const hardware_interface::LoanedStateInterface & state_interface, const T fallback_value)
   {
     return static_cast<T>(
       state_interface.get_optional().value_or(static_cast<double>(fallback_value)));
