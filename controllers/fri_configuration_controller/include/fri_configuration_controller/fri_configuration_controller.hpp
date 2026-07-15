@@ -25,6 +25,7 @@
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 
+#include "fri_configuration_controller/fri_configuration_controller_parameters.hpp"
 #include "fri_configuration_controller/visibility_control.h"
 
 namespace kuka_controllers
@@ -53,9 +54,18 @@ public:
   FRI_CONFIGURATION_CONTROLLER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
+  static std::string ComposeInterfaceName(
+    const std::string & robot_prefix, const std::string & interface_name);
+
+  using Params = fri_configuration_controller::Params;
+  using ParamListener = fri_configuration_controller::ParamListener;
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+
   rclcpp::Subscription<kuka_driver_interfaces::msg::FriConfiguration>::SharedPtr fri_config_sub_;
   double receive_multiplier_ = 1;
   double send_period_ms_ = 10;
+  std::vector<std::string> robot_prefixes_;
 };
 }  // namespace kuka_controllers
 #endif  // FRI_CONFIGURATION_CONTROLLER__FRI_CONFIGURATION_CONTROLLER_HPP_
