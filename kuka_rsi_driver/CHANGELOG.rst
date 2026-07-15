@@ -2,8 +2,8 @@
 Changelog for package kuka_rsi_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-07-15)
+------------------
 * Synchronize update rate of controller manager 
 * Add option to lock memory
 * Change model verification to only consider payload, reach and type 

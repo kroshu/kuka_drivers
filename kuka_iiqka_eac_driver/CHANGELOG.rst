@@ -2,8 +2,8 @@
 Changelog for package kuka_iiqka_eac_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2026-07-15)
+------------------
 * Add option to lock memory
 
 1.0.0 (2025-10-03)
