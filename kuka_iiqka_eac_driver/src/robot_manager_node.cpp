@@ -22,6 +22,7 @@
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT
@@ -51,9 +52,10 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
 
-  event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
+  event_subscriber_ = this->create_subscription<kuka_driver_interfaces::msg::HardwareEvent>(
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
+    [this](const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg)
+    { this->EventSubscriptionCallback(msg); },
     sub_options);
 
   // Register parameters
@@ -164,13 +166,14 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   return SUCCESS;
 }
 
-void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+void RobotManagerNode::EventSubscriptionCallback(
+  const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg)
 {
-  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
+  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->event))
   {
     case kuka_drivers_core::HardwareEvent::CONTROL_STARTED:
     {
-      RCLCPP_INFO(get_logger(), "External control started");
+      RCLCPP_INFO(get_logger(), "External control started (robot: %s)", msg->robot_name.c_str());
       // Notify lock after control mode change
       {
         std::lock_guard<std::mutex> lk(control_mode_cv_m_);
@@ -181,7 +184,7 @@ void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::Sha
     }
     case kuka_drivers_core::HardwareEvent::CONTROL_STOPPED:
     case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(get_logger(), "External control stopped");
+      RCLCPP_INFO(get_logger(), "External control stopped (robot: %s)", msg->robot_name.c_str());
       terminate_ = true;
       if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
       {

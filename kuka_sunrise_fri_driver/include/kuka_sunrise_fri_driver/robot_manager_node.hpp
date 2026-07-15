@@ -23,12 +23,12 @@
 
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/u_int32.hpp"
-#include "std_msgs/msg/u_int8.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "kuka_driver_interfaces/msg/fri_configuration.hpp"
@@ -70,7 +70,7 @@ private:
   rclcpp::Publisher<kuka_driver_interfaces::msg::FriConfiguration>::SharedPtr fri_config_pub_;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_imp_pub_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_subscriber_;
   std_msgs::msg::UInt32 control_mode_msg_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr set_param_client_;
 
@@ -98,7 +98,7 @@ private:
   void setImpedanceConfiguration(
     const rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr & pub,
     const std::vector<double> & stiffness, const std::vector<double> & damping) const;
-  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
+  void EventSubscriptionCallback(const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg);
 };
 
 }  // namespace kuka_sunrise_fri_driver

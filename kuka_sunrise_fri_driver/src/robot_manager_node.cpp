@@ -63,9 +63,10 @@ RobotManagerNode::RobotManagerNode() : kuka_drivers_core::ROS2BaseLCNode("robot_
 
   rclcpp::SubscriptionOptions sub_options;
   sub_options.callback_group = event_cbg_;
-  event_subscriber_ = this->create_subscription<std_msgs::msg::UInt8>(
+  event_subscriber_ = this->create_subscription<kuka_driver_interfaces::msg::HardwareEvent>(
     "event_broadcaster/hardware_event", rclcpp::SystemDefaultsQoS(),
-    [this](const std_msgs::msg::UInt8::SharedPtr msg) { this->EventSubscriptionCallback(msg); },
+    [this](const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg)
+    { this->EventSubscriptionCallback(msg); },
     sub_options);
 
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
@@ -557,12 +558,13 @@ bool RobotManagerNode::onJointDampingChangeRequest(const std::vector<double> & j
   return true;
 }
 
-void RobotManagerNode::EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+void RobotManagerNode::EventSubscriptionCallback(
+  const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg)
 {
-  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->data))
+  switch (static_cast<kuka_drivers_core::HardwareEvent>(msg->event))
   {
     case kuka_drivers_core::HardwareEvent::ERROR:
-      RCLCPP_INFO(get_logger(), "External control stopped");
+      RCLCPP_INFO(get_logger(), "External control stopped (robot: %s)", msg->robot_name.c_str());
       if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
       {
         this->deactivate();

@@ -34,25 +34,24 @@ Broadcasters receive the state interfaces of a hardware and publish it to a ROS2
 
 ### 2.1. `fri_state_broadcaster`
 
-The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state` topic, using the custom [FRIState](https://github.com/kroshu/kuka_drivers/blob/master/kuka_driver_interfaces/msg/FRIState.msg) message.
+The `FRIStateBroadcaster` publishes the actual state of FRI to the `~/fri_state` topic, using the custom [FRIStateArray](https://github.com/kroshu/kuka_drivers/blob/master/kuka_driver_interfaces/msg/FRIStateArray.msg) message, which contains an array of [FRIState](https://github.com/kroshu/kuka_drivers/blob/master/kuka_driver_interfaces/msg/FRIState.msg) messages.
 
 __Required Parameters__: None
 
 __Optional Parameters__:
 
 - `robot_prefixes` (`string[]`, default `['']`):
-  - Empty string entry (`''`) maps to unprefixed interfaces for single-robot compatibility.
-  - Non-empty entries map to prefixed interfaces (`<robot_name>/state/...` and
-    `<robot_name>/runtime_config/cycle_time`).
+  - Empty string entry (`''`) maps to unprefixed interfaces for single-robot compatibility (`fri_state/session_state`, etc.).
+  - Non-empty entries map to prefixed interfaces (`<robot_prefix>_fri_state/session_state`, etc.).
+  - One publisher instance broadcasts the state of all robots as a single `FRIStateArray` message.
 
 ### 2.2. `kuka_event_broadcaster`
 
 The `EventBroadcaster` publishes server state change events as a map-like message on
 `~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`.
 
-- Single robot (default): uses `state/server_state` and publishes `robot_name=default`.
-- Multi robot (with `robot_prefixes`): uses state interfaces
-  `<robot_name>/state/server_state` and publishes one message per changed robot event.
+- Single robot (default): uses `state/server_state` interface and publishes one message per event.
+- Multi robot (with `robot_prefixes`): uses state interfaces `<robot_prefix>_state/server_state` and publishes one message per changed robot event.
 
 The enum values are equivalent with the following events:
 
@@ -62,10 +61,13 @@ The enum values are equivalent with the following events:
 - 5: Control mode switch was successful (only relevant for drivers, where control mode can be changed in active state)
 - 6: External control stopped by an error (Error message is only available in the hardware interface)
 
-__Parameters__:
+__Required Parameters__: None
 
-- `robot_prefixes` [string_array, optional]: Robot/interface prefixes that should be monitored by one
-  broadcaster instance.
+__Optional Parameters__:
+
+- `robot_prefixes` (`string[]`, default `['']`):
+  - Empty string entry (`''`) maps to the unprefixed `state/server_state` interface.
+  - Non-empty entries map to prefixed interfaces (`<robot_prefix>_state/server_state`).
 
 ## 3. Configuration Controllers
 
@@ -86,13 +88,21 @@ __Optional Parameters__:
 
 - `robot_prefixes` (`string[]`, default `['']`):
   - Empty string entry (`''`) maps to the unprefixed `runtime_config/control_mode` interface.
-  - Non-empty entries map to prefixed interfaces (`<robot_name>/runtime_config/control_mode`).
+  - Non-empty entries map to prefixed interfaces (`<robot_prefix>_runtime_config/control_mode`).
 
 ### 3.2. `fri_configuration_controller`
 
-The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` advertises the topic `~/set_fri_config`. Sending a message containing the desired integer values of `cycle_time` and `receive_multiplier` updates the parameters of the hardware interface.
+The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` subscribes to the `~/set_fri_config` topic. Sending a message containing the desired integer values of `send_period_ms` (cycle time) and `receive_multiplier` updates the parameters of the hardware interface.
+
+In multi-robot mode, one `FRIConfigurationController` instance can update multiple prefixed command interfaces, but it still accepts only a single shared `~/set_fri_config` input topic. Therefore the same FRI configuration is applied to all configured robots.
 
 __Required Parameters__: None
+
+__Optional Parameters__:
+
+- `robot_prefixes` (`string[]`, default `['']`):
+  - Empty string entry (`''`) maps to unprefixed command interfaces (`runtime_config/receive_multiplier`, `runtime_config/send_period`).
+  - Non-empty entries map to prefixed interfaces (`<robot_prefix>_runtime_config/receive_multiplier`, `<robot_prefix>_runtime_config/send_period`).
 
 ## 4. Hybrid Controllers
 
@@ -100,15 +110,8 @@ Hybrid Controllers group together related functionalities that are intended to b
 
 ### 4.1. `kuka_kss_message_handler`
 
-The `kuka_kss_message_handler` controller only works for the EKI + RSI driver. It provides several non-real-time capabilities:
+The `kuka_kss_message_handler` controller only works for the EKI + RSI driver. It provides two non-real-time capabilities:
 
-- __Toggle Robot Drives__
-
-  Publish a `std_msgs::msg::Bool` message to `~/drive_state` to control the drive state:
-
-  ```shell
-  ros2 topic pub /kss_message_handler/drive_state std_msgs/msg/Bool "{data: false}" --once
-  ```
 
 - __Set RSI Cycle Time__
 
@@ -153,3 +156,10 @@ The `kuka_kss_message_handler` controller only works for the EKI + RSI driver. I
 __Note:__ These features are available only when the driver is in the __configured__ state. However, status updates are still published in the __active__ state. These updates are only sent if the EKI driver has an idle cycle, meaning no other messages are being transmitted at that moment; this applies to both the configured and the active states.
 
 __Required Parameters__: None
+
+__Optional Parameters__:
+
+- `robot_prefixes` (`string[]`, default `['']`):
+  - Empty string entry (`''`) maps to unprefixed state interfaces (`state/control_mode`, `state/cycle_time`, etc.) and unprefixed command interface (`runtime_config/cycle_time`).
+  - Non-empty entries map to prefixed interfaces (`<robot_prefix>_state/control_mode`, `<robot_prefix>_runtime_config/cycle_time`, etc.).
+  - The `~/cycle_time` topic is shared across all configured robots, allowing centralized control of all robot instances.

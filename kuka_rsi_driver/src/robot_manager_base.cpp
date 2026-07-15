@@ -299,7 +299,7 @@ void RobotManagerBase::EventSubscriptionCallback(
   const auto event = static_cast<kuka_drivers_core::HardwareEvent>(message->event);
   if (event == kuka_drivers_core::HardwareEvent::ERROR)
   {
-    RCLCPP_INFO(logger, "External control stopped by an error");
+    RCLCPP_INFO(logger, "External control stopped by an error (robot: %s)", message->robot_name.c_str());
     terminate_ = true;
     if (get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
     {
