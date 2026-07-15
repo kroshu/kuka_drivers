@@ -2,6 +2,11 @@
 Changelog for package kuka_drivers_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Synchronize update rate of controller manager
+* Add option to lock memory of control loop
+
 1.0.0 (2025-10-03)
 ------------------
 * Update version and maintainers

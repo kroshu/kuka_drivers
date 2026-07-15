@@ -2,6 +2,10 @@
 Changelog for package kuka_driver_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add mxAutomation support 
+
 1.0.0 (2025-10-03)
 ------------------
 * Update version and maintainers
