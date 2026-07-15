@@ -2,6 +2,15 @@
 Changelog for package kuka_control_mode_handler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add mxAutomation support and refactor
+
+1.0.0 (2025-10-03)
+------------------
+* Smaller bugfixes
+* Update version and maintainers
+
 0.9.2 (2024-07-10)
 ------------------
 * Fix GCC warning causing unstable build

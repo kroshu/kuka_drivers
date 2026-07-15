@@ -2,6 +2,19 @@
 Changelog for package kuka_drivers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add mxAutomation support 
+
+1.0.0 (2025-10-03)
+------------------
+* Redesign RSI communication to make it real-time safe
+* Add EKI wrapper for starting RSI
+* Add IO support
+* Add iiQKA.OS2 support
+* Add Gazebo support
+* Smaller bugfixes
+
 0.9.2 (2024-07-10)
 ------------------
 * Fix GCC warning causing unstable build
