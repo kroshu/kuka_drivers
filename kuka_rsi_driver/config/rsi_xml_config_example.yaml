@@ -2,7 +2,7 @@
 #
 # Pass the path to this file (or a copy of it) to the driver via the
 # 'rsi_xml_config_file' hardware parameter in your robot's URDF/xacro.
-# If this parameter is not set, the SDK legacy defaults are used
+# If this parameter is not set, the SDK defaults are used
 # (RIst / AIPos / AK / EK element names), so for a standard setup this
 # file is only needed if you want to customise the XML element/attribute names.
 #
@@ -17,7 +17,7 @@ rsi_xml_config:
   # -----------------------------------------------------------------
   # motion_state — describes the XML elements in messages sent by the
   # KRC to the PC (incoming to the driver).
-  # Omit this section to use the SDK legacy defaults.
+  # Omit this section to use the SDK defaults.
   # -----------------------------------------------------------------
   motion_state:
 
@@ -60,7 +60,7 @@ rsi_xml_config:
   # -----------------------------------------------------------------
   # control_signal — describes the XML elements in messages sent by
   # the PC to the KRC (outgoing from the driver).
-  # Omit this section to use the SDK legacy defaults.
+  # Omit this section to use the SDK defaults.
   # -----------------------------------------------------------------
   control_signal:
 

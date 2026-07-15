@@ -50,7 +50,7 @@ except ImportError:
     print("ERROR: PyYAML is not installed. Install with: pip install pyyaml", file=sys.stderr)
     sys.exit(1)
 
-# Default legacy element names (match SDK defaults)
+# Default element names (match SDK defaults)
 _DEFAULT_CARTESIAN_ELEMENT = "RIst"
 _DEFAULT_JOINT_ELEMENT = "AIPos"
 _DEFAULT_EXT_JOINT_ELEMENT = "EIPos"

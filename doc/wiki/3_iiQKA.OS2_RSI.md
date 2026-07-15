@@ -358,7 +358,7 @@ Both launch files support the following arguments:
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
-- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK legacy defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
+- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 - `enable_rsi_monitoring`: If set to `true`, starts an additional non-invasive UDP port monitor node that passively monitors RSI communication and reports communication statistics when the driver is stopped (defaults to `false`).
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
@@ -394,7 +394,7 @@ ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py \
     rsi_xml_config_file:=/absolute/path/to/rsi_xml_config.yaml
 ```
 
-If `rsi_xml_config_file` is left empty, the simulator uses the same legacy defaults as the driver.
+If `rsi_xml_config_file` is left empty, the simulator uses the same defaults as the driver.
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
 

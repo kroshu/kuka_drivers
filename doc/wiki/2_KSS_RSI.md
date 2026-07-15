@@ -296,7 +296,7 @@ Both launch files support the following arguments:
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only` and `eki_rsi` (defaults to `rsi_only`)
 - `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
-- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK legacy defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
+- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
@@ -337,7 +337,7 @@ ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py \
     rsi_xml_config_file:=/absolute/path/to/rsi_xml_config.yaml
 ```
 
-If `rsi_xml_config_file` is left empty, the simulator uses the same legacy defaults as the driver.
+If `rsi_xml_config_file` is left empty, the simulator uses the same defaults as the driver.
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
 
