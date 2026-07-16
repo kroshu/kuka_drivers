@@ -28,25 +28,43 @@ rsi_xml_config:
 
     # Per-joint position mapping (KRC built-in: DEF_AIPos for internal axes).
     # Must contain one entry per joint, in the same order as the URDF joints.
+    # Position values are always required.
     joints:
-      - joint_identifier: "joint_1"
-        xml_element: "AIPos"
-        xml_attribute: "A1"
-      - joint_identifier: "joint_2"
-        xml_element: "AIPos"
-        xml_attribute: "A2"
-      - joint_identifier: "joint_3"
-        xml_element: "AIPos"
-        xml_attribute: "A3"
-      - joint_identifier: "joint_4"
-        xml_element: "AIPos"
-        xml_attribute: "A4"
-      - joint_identifier: "joint_5"
-        xml_element: "AIPos"
-        xml_attribute: "A5"
-      - joint_identifier: "joint_6"
-        xml_element: "AIPos"
-        xml_attribute: "A6"
+      positions:
+        - joint_identifier: "joint_1"
+          xml_element: "AIPos"
+          xml_attribute: "A1"
+        - joint_identifier: "joint_2"
+          xml_element: "AIPos"
+          xml_attribute: "A2"
+        - joint_identifier: "joint_3"
+          xml_element: "AIPos"
+          xml_attribute: "A3"
+        - joint_identifier: "joint_4"
+          xml_element: "AIPos"
+          xml_attribute: "A4"
+        - joint_identifier: "joint_5"
+          xml_element: "AIPos"
+          xml_attribute: "A5"
+        - joint_identifier: "joint_6"
+          xml_element: "AIPos"
+          xml_attribute: "A6"
+
+    # Optional per-joint velocity mapping.
+    # If provided, this must also contain one entry per joint.
+      # velocities:
+      #   - joint_identifier: "joint_1"
+      #     xml_element: "AIVel"
+      #     xml_attribute: "A1"
+      #   # ... repeat for each joint
+
+    # Optional per-joint torque mapping.
+    # If provided, this must also contain one entry per joint.
+      # torques:
+      #   - joint_identifier: "joint_1"
+      #     xml_element: "AITor"
+      #     xml_attribute: "A1"
+      #   # ... repeat for each joint
 
     # GPIO state values (custom signals, one attribute per GPIO state interface).
     # Comment out or remove if no GPIO state interfaces are configured.
@@ -55,7 +73,7 @@ rsi_xml_config:
     #   xml_attributes: ["01", "02"]
 
     # Delay and IPOC are fixed RSI built-ins (<Delay D="..."/> and <IPOC>...</IPOC>)
-    # and are always parsed by the SDK. They are not configurable here.
+    # and are always parsed by the SDK. They are not configurable.
 
   # -----------------------------------------------------------------
   # control_signal — describes the XML elements in messages sent by
@@ -69,11 +87,41 @@ rsi_xml_config:
       xml_element: "AK"
       # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated if omitted
 
+    # Internal joint velocity commands.
+    # Disabled by default for backward compatibility.
+    # Uncomment to enable.
+    # velocities:
+    #   enabled: true
+    #   xml_element: "VK"
+    #   # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated
+
+    # Internal joint torque commands.
+    # Disabled by default for backward compatibility.
+    # Uncomment to enable.
+    # torques:
+    #   enabled: true
+    #   xml_element: "TK"
+    #   # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated
+
     # External joint position corrections.
     # Comment out or remove if no external axes are configured.
     # ext_joints:
     #   xml_element: "EK"
     #   xml_attributes: ["E1"]
+
+    # External joint velocity commands.
+    # Independent from internal velocities: enabled only when this section is present.
+    # ext_velocities:
+    #   enabled: true
+    #   xml_element: "EVK"
+    #   # xml_attributes: ["E1"]   # optional; auto-generated
+
+    # External joint torque commands.
+    # Independent from internal torques: only enabled when this section is present.
+    # ext_torques:
+    #   enabled: true
+    #   xml_element: "ETK"
+    #   # xml_attributes: ["E1"]   # optional; auto-generated
 
     # GPIO command values (one attribute per GPIO command interface).
     # Comment out or remove if no GPIO command interfaces are configured.

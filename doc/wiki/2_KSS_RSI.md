@@ -198,25 +198,52 @@ rsi_xml_config:
   motion_state:                    # XML elements received from the KRC
     cartesian:
       xml_element: "RIst"
-    joints:                        # one entry per joint, in URDF order
-      - joint_identifier: "joint_1"
-        xml_element: "AIPos"
-        xml_attribute: "A1"
-      # ... repeat for each joint
+    joints:
+      positions:                   # required: one position entry per joint, in URDF order
+        - joint_identifier: "joint_1"
+          xml_element: "AIPos"
+          xml_attribute: "A1"
+        # ... repeat for each joint
+      velocities:                  # optional: one velocity entry per joint
+        - joint_identifier: "joint_1"
+          xml_element: "AIVel"
+          xml_attribute: "A1"
+        # ... repeat for each joint
+      torques:                     # optional: one torque entry per joint
+        - joint_identifier: "joint_1"
+          xml_element: "AITor"
+          xml_attribute: "A1"
+        # ... repeat for each joint
     gpio:                          # omit if no GPIO state interfaces
       xml_element: "GPIO"
       xml_attributes: ["01", "02"]
   control_signal:                  # XML elements sent to the KRC
     joints:
       xml_element: "AK"
+    velocities:                    # optional, disabled by default
+      enabled: true
+      xml_element: "VK"
+    torques:                       # optional, disabled by default
+      enabled: true
+      xml_element: "TK"
     ext_joints:                    # omit if no external axes
       xml_element: "EK"
+      xml_attributes: ["E1"]
+    ext_velocities:                # optional external velocity mapping
+      xml_element: "EVK"
+      xml_attributes: ["E1"]
+    ext_torques:                   # optional external torque mapping
+      xml_element: "ETK"
       xml_attributes: ["E1"]
     gpio:                          # omit if no GPIO command interfaces
       xml_element: "GPIO"
 ```
 
 `Delay` (`<Delay D="..."/>`) and `IPOC` (`<IPOC>...</IPOC>`) are always parsed/sent as fixed RSI built-ins and are not configurable from this YAML mapping.
+
+Joint **positions are always required** in motion-state mapping (`motion_state.joints.positions`). Velocity and torque mappings (`motion_state.joints.velocities`, `motion_state.joints.torques`) are optional and can be enabled independently.
+
+Velocity and torque transmission are **disabled by default** for outgoing control signals. To include them in outgoing RSI messages, add `control_signal.velocities` / `control_signal.torques` (and optionally `ext_velocities` / `ext_torques` for external axes).
 
 Pass the absolute path to this file using the `rsi_xml_config_file` launch argument (see [Launch arguments](#launch-arguments)).
 
@@ -247,7 +274,7 @@ ros2 run kuka_rsi_driver generate_krc_rsi_config \
 Upload the generated file to the controller as described in [Update and upload configuration files](#update-and-upload-configuration-files).
 
 > [!NOTE]
-> The SEND section of the generated file always uses KRC built-in values (`DEF_RIst`, `DEF_AIPos`, `DEF_EIPos`, `DEF_Delay`). These values correspond to fixed XML element names on the KRC side. If your RSIX context uses different element names for these built-in signals, a custom RSIX context must be configured on the KRC side; the script will print a warning in that case.
+> In the SEND section, motion-state groups that use the default KRC element names are emitted using the KRC built-in shortcuts (`RIst` → `DEF_RIst`, `AIPos` → `DEF_AIPos`, `EIPos` → `DEF_EIPos`), and `Delay` is always emitted as `DEF_Delay` after all configurable SEND fields. Groups that use custom element/attribute names are expanded into individual, explicitly-indexed `<ELEMENT>` entries so the generated file matches your YAML exactly. Such custom SEND element names require a matching custom RSIX context configured on the KRC side.
 
 ### Usage
 

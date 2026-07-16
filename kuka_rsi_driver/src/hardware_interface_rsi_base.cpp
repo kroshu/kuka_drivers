@@ -671,8 +671,7 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
   try
   {
     // --- Motion state XML configuration ---
-    const YAML::Node ms_node = rsi_node["motion_state"];
-    if (ms_node)
+    if (const YAML::Node ms_node = rsi_node["motion_state"])
     {
       MotionStateXmlConfiguration motion_state_xml;
 
@@ -699,17 +698,28 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
         }
       }
 
-      if (const YAML::Node joints = ms_node["joints"])
+      const YAML::Node joints_node = ms_node["joints"];
+      if (joints_node)
       {
-        if (joints.size() != info_.joints.size())
+        YAML::Node positions = joints_node["positions"];
+
+        if (!positions)
         {
           RCLCPP_ERROR(
-            logger_, "motion_state.joints has %zu entries but URDF defines %zu joints.",
-            joints.size(), info_.joints.size());
+            logger_,
+            "motion_state.joints.positions is required and must contain one entry per joint.");
           return false;
         }
 
-        for (const YAML::Node & jn : joints)
+        if (positions.size() != info_.joints.size())
+        {
+          RCLCPP_ERROR(
+            logger_, "motion_state.joints.positions has %zu entries but URDF defines %zu joints.",
+            positions.size(), info_.joints.size());
+          return false;
+        }
+
+        for (const YAML::Node & jn : positions)
         {
           MotionStateJointFieldConfiguration joint_field;
           joint_field.joint_identifier = jn["joint_identifier"].as<std::string>();
@@ -718,6 +728,50 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
           joint_field.xml_attribute = jn["xml_attribute"].as<std::string>();
           motion_state_xml.joint_fields.push_back(std::move(joint_field));
         }
+      }
+      else
+      {
+        RCLCPP_ERROR(
+          logger_,
+          "motion_state.joints.positions is required and must contain one entry per joint.");
+        return false;
+      }
+
+      const auto append_motion_state_signals =
+        [&](const YAML::Node & node, MotionStateSignalType signal_type, const char * field_name)
+      {
+        if (!node)
+        {
+          return true;
+        }
+        if (node.size() != info_.joints.size())
+        {
+          RCLCPP_ERROR(
+            logger_, "motion_state.%s has %zu entries but URDF defines %zu joints.", field_name,
+            node.size(), info_.joints.size());
+          return false;
+        }
+        for (const YAML::Node & jn : node)
+        {
+          MotionStateJointFieldConfiguration joint_field;
+          joint_field.joint_identifier = jn["joint_identifier"].as<std::string>();
+          joint_field.signal_type = signal_type;
+          joint_field.xml_element = jn["xml_element"].as<std::string>();
+          joint_field.xml_attribute = jn["xml_attribute"].as<std::string>();
+          motion_state_xml.joint_fields.push_back(std::move(joint_field));
+        }
+        return true;
+      };
+
+      if (!append_motion_state_signals(
+            joints_node["velocities"], MotionStateSignalType::VELOCITY, "joints.velocities"))
+      {
+        return false;
+      }
+      if (!append_motion_state_signals(
+            joints_node["torques"], MotionStateSignalType::TORQUE, "joints.torques"))
+      {
+        return false;
       }
 
       if (const YAML::Node gpio = ms_node["gpio"])
@@ -749,8 +803,7 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
     }
 
     // --- Control signal XML configuration ---
-    const YAML::Node cs_node = rsi_node["control_signal"];
-    if (cs_node)
+    if (const YAML::Node cs_node = rsi_node["control_signal"])
     {
       ControlSignalXmlConfiguration control_signal_xml;
 
@@ -780,6 +833,86 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
           for (const YAML::Node & a : attrs)
           {
             control_signal_xml.ext_joint_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node velocities = cs_node["velocities"])
+      {
+        control_signal_xml.include_velocity_values = true;
+        if (const YAML::Node enabled = velocities["enabled"])
+        {
+          control_signal_xml.include_velocity_values = enabled.as<bool>();
+        }
+        if (const YAML::Node elem = velocities["xml_element"])
+        {
+          control_signal_xml.velocity_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = velocities["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.velocity_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node ext_velocities = cs_node["ext_velocities"])
+      {
+        control_signal_xml.include_ext_velocity_values = true;
+        if (const YAML::Node enabled = ext_velocities["enabled"])
+        {
+          control_signal_xml.include_ext_velocity_values = enabled.as<bool>();
+        }
+        if (const YAML::Node elem = ext_velocities["xml_element"])
+        {
+          control_signal_xml.ext_velocity_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = ext_velocities["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.ext_velocity_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node torques = cs_node["torques"])
+      {
+        control_signal_xml.include_torque_values = true;
+        if (const YAML::Node enabled = torques["enabled"])
+        {
+          control_signal_xml.include_torque_values = enabled.as<bool>();
+        }
+        if (const YAML::Node elem = torques["xml_element"])
+        {
+          control_signal_xml.torque_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = torques["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.torque_xml_attributes.push_back(a.as<std::string>());
+          }
+        }
+      }
+
+      if (const YAML::Node ext_torques = cs_node["ext_torques"])
+      {
+        control_signal_xml.include_ext_torque_values = true;
+        if (const YAML::Node enabled = ext_torques["enabled"])
+        {
+          control_signal_xml.include_ext_torque_values = enabled.as<bool>();
+        }
+        if (const YAML::Node elem = ext_torques["xml_element"])
+        {
+          control_signal_xml.ext_torque_xml_element = elem.as<std::string>();
+        }
+        if (const YAML::Node attrs = ext_torques["xml_attributes"])
+        {
+          for (const YAML::Node & a : attrs)
+          {
+            control_signal_xml.ext_torque_xml_attributes.push_back(a.as<std::string>());
           }
         }
       }
