@@ -2,8 +2,8 @@
 Changelog for package fri_configuration_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2026-07-16)
+------------------
 * Add mxAutomation support 
 
 1.0.0 (2025-10-03)

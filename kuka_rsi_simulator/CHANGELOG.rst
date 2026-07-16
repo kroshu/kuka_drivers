@@ -2,8 +2,8 @@
 Changelog for package kuka_rsi_simulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2026-07-16)
+------------------
 * Add external axis support
 
 1.0.0 (2025-10-03)

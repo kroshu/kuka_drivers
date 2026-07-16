@@ -2,8 +2,8 @@
 Changelog for package kuka_sunrise_fri_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2026-07-16)
+------------------
 * Added synchronus cycle time change
 * Synchronize update rate of controller manager
 * Add option to lock memory
