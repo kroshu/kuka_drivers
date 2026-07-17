@@ -47,11 +47,7 @@ import sys
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
-try:
-    import yaml
-except ImportError:
-    print("ERROR: PyYAML is not installed. Install with: pip install pyyaml", file=sys.stderr)
-    sys.exit(1)
+import yaml
 
 # Default element/attribute names (match SDK defaults)
 _DEFAULT_CARTESIAN_ELEMENT = "RIst"
@@ -187,7 +183,6 @@ def build_krc_xml(
     rsi_cfg: dict,
     client_ip: str,
     client_port: int,
-    sentype: str,
 ) -> ET.Element:
     """Build the ROOT element for the KRC ethernet XML."""
     root = ET.Element("ROOT")
@@ -196,7 +191,7 @@ def build_krc_xml(
     config_el = ET.SubElement(root, "CONFIG")
     ET.SubElement(config_el, "IP_NUMBER").text = client_ip
     ET.SubElement(config_el, "PORT").text = str(client_port)
-    ET.SubElement(config_el, "SENTYPE").text = sentype
+    ET.SubElement(config_el, "SENTYPE").text = "KROSHU"
     ET.SubElement(config_el, "ONLYSEND").text = "FALSE"
 
     ms_cfg = rsi_cfg.get("motion_state", {}) or {}
@@ -408,11 +403,6 @@ def main() -> None:
         help="UDP port the driver listens on (default: 59152).",
     )
     parser.add_argument(
-        "--sentype",
-        default="KROSHU",
-        help="RSI SENTYPE value (default: KROSHU).",
-    )
-    parser.add_argument(
         "--output",
         "-o",
         default="rsi_ethernet.xml",
@@ -421,7 +411,7 @@ def main() -> None:
     args = parser.parse_args()
 
     rsi_cfg = load_config(args.config)
-    root_el = build_krc_xml(rsi_cfg, args.client_ip, args.client_port, args.sentype)
+    root_el = build_krc_xml(rsi_cfg, args.client_ip, args.client_port)
 
     pretty_xml = _prettify(root_el)
     lines = pretty_xml.splitlines()
