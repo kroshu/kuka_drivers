@@ -92,7 +92,6 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 
   // RSI cycle time: default to 4ms, as 12 ms is not supported for iiQKA.OS2
   cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_4MS));
-  prev_cycle_time_ = std::numeric_limits<double>::quiet_NaN();
   cycle_time_subscription_ = get_node()->create_subscription<std_msgs::msg::UInt8>(
     "~/cycle_time", rclcpp::SystemDefaultsQoS(),
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
@@ -119,27 +118,18 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duration &)
 {
   const double cycle_time = cycle_time_.load();
-  const bool cycle_time_changed = std::isnan(prev_cycle_time_) || cycle_time != prev_cycle_time_;
   bool all_cycle_time_set = true;
 
-  if (cycle_time_changed)
+  for (size_t idx = 0; idx < command_interfaces_.size(); ++idx)
   {
-    for (size_t idx = 0; idx < command_interfaces_.size(); ++idx)
+    const bool cycle_time_set = command_interfaces_[idx].set_value(cycle_time);
+    all_cycle_time_set = all_cycle_time_set && cycle_time_set;
+    if (!cycle_time_set)
     {
-      const bool cycle_time_set = command_interfaces_[idx].set_value(cycle_time);
-      all_cycle_time_set = all_cycle_time_set && cycle_time_set;
-      if (!cycle_time_set)
-      {
-        RCLCPP_WARN_THROTTLE(
-          get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
-          "Failed to set cycle time command interface for robot '%s'",
-          idx < robot_prefixes_.size() ? robot_prefixes_[idx].c_str() : "unknown");
-      }
-    }
-
-    if (all_cycle_time_set)
-    {
-      prev_cycle_time_ = cycle_time;
+      RCLCPP_WARN_THROTTLE(
+        get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
+        "Failed to set cycle time command interface for robot '%s'",
+        idx < robot_prefixes_.size() ? robot_prefixes_[idx].c_str() : "unknown");
     }
   }
 

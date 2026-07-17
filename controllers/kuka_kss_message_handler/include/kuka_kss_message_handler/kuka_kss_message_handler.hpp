@@ -17,7 +17,6 @@
 
 #include <array>
 #include <atomic>
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -112,7 +111,6 @@ private:
   // Cycle time
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr cycle_time_subscription_;
   std::atomic<double> cycle_time_;
-  double prev_cycle_time_{std::numeric_limits<double>::quiet_NaN()};
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatusArray>::SharedPtr status_publisher_;
   rclcpp::TimerBase::SharedPtr timer_;
