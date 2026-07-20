@@ -93,22 +93,32 @@ def _load_rsi_xml_config(config_path):
         )
 
     joints = motion_state.get("joints")
+    external_joint_count = None
     if joints is not None:
-        if not isinstance(joints, list):
-            raise ValueError("'motion_state.joints' must be a list when provided.")
-        joint_mappings = []
-        for idx, joint in enumerate(joints):
-            if not isinstance(joint, dict):
-                raise ValueError("Each entry in 'motion_state.joints' must be a dictionary.")
-            joint_mappings.append(
-                (
-                    joint.get("xml_element", "AIPos"),
-                    joint.get("xml_attribute", f"A{idx + 1}"),
-                    idx,
-                )
+        if not isinstance(joints, dict):
+            raise ValueError("'motion_state.joints' must be a dictionary.")
+        positions = joints.get("positions")
+        if positions is None:
+            raise ValueError(
+                "'motion_state.joints.positions' must be a list when 'motion_state.joints' is provided."
             )
+        if not isinstance(positions, list):
+            raise ValueError("'motion_state.joints.positions' must be a list.")
+
+        joint_mappings = []
+        for idx, joint in enumerate(positions):
+            if not isinstance(joint, dict):
+                raise ValueError(
+                    "Each entry in 'motion_state.joints.positions' must be a dictionary."
+                )
+            xml_element = joint.get("xml_element", "AIPos")
+            xml_attribute = joint.get("xml_attribute", f"A{idx + 1}")
+            joint_mappings.append((xml_element, xml_attribute, idx))
         if joint_mappings:
             config["motion_state_joint_mappings"] = joint_mappings
+            external_joint_count = sum(
+                1 for _, xml_attribute, _ in joint_mappings if str(xml_attribute).startswith("E")
+            )
 
     delay = motion_state.get("delay") or {}
     if delay:
@@ -125,7 +135,9 @@ def _load_rsi_xml_config(config_path):
             "xml_element", config["motion_state_ipoc_element"]
         )
 
-    control_joints = control_signal.get("joints") or {}
+    control_joints = control_signal.get("joints")
+    if control_joints is not None and not isinstance(control_joints, dict):
+        raise ValueError("'control_signal.joints' must be a dictionary when provided.")
     if control_joints:
         config["control_signal_joint_element"] = control_joints.get(
             "xml_element", config["control_signal_joint_element"]
@@ -133,6 +145,13 @@ def _load_rsi_xml_config(config_path):
         configured_joint_attrs = control_joints.get("xml_attributes")
         if configured_joint_attrs:
             config["control_signal_joint_attributes"] = configured_joint_attrs
+        elif external_joint_count is not None:
+            internal_joint_count = (
+                len(config["motion_state_joint_mappings"]) - external_joint_count
+            )
+            config["control_signal_joint_attributes"] = [
+                f"A{i}" for i in range(1, internal_joint_count + 1)
+            ]
 
     control_ext_joints = control_signal.get("ext_joints")
     if control_ext_joints is not None:
@@ -144,6 +163,10 @@ def _load_rsi_xml_config(config_path):
         configured_ext_attrs = control_ext_joints.get("xml_attributes")
         if configured_ext_attrs is not None:
             config["control_signal_ext_joint_attributes"] = configured_ext_attrs
+        elif external_joint_count is not None:
+            config["control_signal_ext_joint_attributes"] = [
+                f"E{i}" for i in range(1, external_joint_count + 1)
+            ]
 
     control_ipoc = control_signal.get("ipoc") or {}
     if control_ipoc:
