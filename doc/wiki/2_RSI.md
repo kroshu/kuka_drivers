@@ -195,6 +195,8 @@ Both launch files support the following arguments:
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
 
+> [!NOTE]
+> The `rt_core` and `rt_prio`, parameters are not applied to asynchronous hardware interfaces. For async hardware configuration, use the `async_thread_priority` and `async_affinity` xacro arguments instead.
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
