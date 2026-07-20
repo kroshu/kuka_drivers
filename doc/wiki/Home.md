@@ -155,6 +155,11 @@ For a multi-robot setup, a dedicated robot description xacro should be created t
 
 A dedicated launch file is also required for this setup. It should declare the arguments of both robots, generate the combined xacro, start one `controller_manager`, and spawn the controllers for both robots with the correct names and configuration files. Configuration files still need to be adapted to the corresponding namespaces and prefixed joint names. An example setup is available in the `kuka_multi_robot_examples` package: [examples/kuka_multi_robot_examples](https://github.com/kroshu/examples/tree/master/kuka_multi_robot_examples).
 
+The robot hardware desciptions expose two configurable parameters to control the async execution behavior:
+
+- `async_thread_priority` (default: `69`): sets the thread priority for the asynchronous hardware interface executor thread
+- `async_affinity` (default: `""` - empty, allows any core): pins the asynchronous hardware interface thread to specific CPU cores
+
 ## Detailed setup and startup instructions
 
 For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).
