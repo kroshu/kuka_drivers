@@ -228,7 +228,8 @@ def build_krc_xml(
     send_index = 1
 
     def _emit_send_group(elem_name, tags, type_="DOUBLE"):
-        """Emit a motion-state SEND group.
+        """
+        Emit a motion-state SEND group.
 
         If ``elem_name`` matches a KRC built-in default, emit the corresponding
         ``DEF_`` shortcut (a single internally-handled element). Otherwise, expand
