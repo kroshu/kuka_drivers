@@ -100,7 +100,8 @@ def _load_rsi_xml_config(config_path):
         positions = joints.get("positions")
         if positions is None:
             raise ValueError(
-                "'motion_state.joints.positions' must be a list when 'motion_state.joints' is provided."
+                "'motion_state.joints.positions' must be a list when "
+                "'motion_state.joints' is provided."
             )
         if not isinstance(positions, list):
             raise ValueError("'motion_state.joints.positions' must be a list.")
