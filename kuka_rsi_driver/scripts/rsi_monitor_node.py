@@ -33,14 +33,12 @@ from scapy.sendrecv import AsyncSniffer
 IPOC_PATTERN = re.compile(rb"<IPOC>\s*([^<\s]+)\s*</IPOC>")
 
 
-def _format_payload_sample(payload: bytes, max_len: int = 120) -> str:
+def _format_payload_sample(payload: bytes) -> str:
     text = payload.decode("utf-8", errors="replace")
     contains_control_chars = any((ord(ch) < 32 and ch not in "\r\n\t") for ch in text)
     if contains_control_chars:
         return payload.hex(" ")
     compact = " ".join(text.split())
-    if len(compact) > max_len:
-        return compact[:max_len] + "..."
     return compact
 
 
@@ -152,8 +150,10 @@ class RsiMonitorNode(Node):
         self._stats["sender"].record(
             sender_record.payload, sender_record.source, sender_record.timestamp_ns
         )
+
+        # Calculate time to respond
         latency_ns = sender_record.timestamp_ns - receiver_record.timestamp_ns
-        if latency_ns >= 0:
+        if latency_ns >= 0:  # Should never be false
             self._receive_to_send_latency_ns.append(latency_ns)
         self._matched_pairs += 1
 
@@ -180,13 +180,14 @@ class RsiMonitorNode(Node):
 
         now_ns = time.time_ns()
         if direction == "receiver":
+            # Time elapsed between sending a response and receiving the next message
             sender_candidates = [k for k in self._s2r_pending_sender_ns if k < ipoc]
             if sender_candidates:
-                best = max(sender_candidates)
-                sender_ts = self._s2r_pending_sender_ns.pop(best)
+                best_ipoc = max(sender_candidates)
+                sender_ts = self._s2r_pending_sender_ns.pop(best_ipoc)
                 self._send_to_receive_latency_ns.append(now_ns - sender_ts)
-                for stale in sender_candidates:
-                    self._s2r_pending_sender_ns.pop(stale, None)
+                for stale_ipoc in sender_candidates:
+                    self._s2r_pending_sender_ns.pop(stale_ipoc, None)
             else:
                 self._s2r_pending_receiver_ns[ipoc] = now_ns
 
@@ -197,10 +198,11 @@ class RsiMonitorNode(Node):
                     timestamp_ns=now_ns,
                 )
         else:  # sender
+            # Indicates how far the sender is lagging behind
             receiver_candidates = [k for k in self._s2r_pending_receiver_ns if k > ipoc]
             if receiver_candidates:
-                best = min(receiver_candidates)
-                receiver_ts = self._s2r_pending_receiver_ns.pop(best)
+                best_ipoc = min(receiver_candidates)
+                receiver_ts = self._s2r_pending_receiver_ns.pop(best_ipoc)
                 self._send_to_receive_latency_ns.append(receiver_ts - now_ns)
                 for stale in receiver_candidates:
                     self._s2r_pending_receiver_ns.pop(stale, None)
@@ -265,7 +267,7 @@ class RsiMonitorNode(Node):
                 f"max={max_latency_ms:.3f} stdev={stdev_latency_ms:.3f}"
             )
         else:
-            self.get_logger().info("Response latency [ms] (send->next receive with IPOC+1): n/a")
+            self.get_logger().info("Response latency [ms] (send->next receive): n/a")
         self.get_logger().info(f"Unmatched receiver packets: {len(self._pending_receiver)}")
         self.get_logger().info(f"Unmatched sender packets: {len(self._pending_sender)}")
         self.get_logger().info(
