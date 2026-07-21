@@ -660,7 +660,18 @@ bool KukaRSIHardwareInterfaceBase::LoadXmlConfig(
     return false;
   }
 
-  const YAML::Node rsi_node = root["rsi_xml_config"];
+  YAML::Node rsi_node;
+  try
+  {
+    rsi_node = root["rsi_xml_config"];
+  }
+  catch (const YAML::Exception & e)
+  {
+    RCLCPP_ERROR(
+      logger_, "RSI XML config file '%s' has an invalid top-level structure: %s", path.c_str(),
+      e.what());
+    return false;
+  }
   if (!rsi_node)
   {
     RCLCPP_ERROR(

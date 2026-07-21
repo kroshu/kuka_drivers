@@ -317,7 +317,7 @@ Pass the absolute path to this file using the `rsi_xml_config_file` launch argum
 Instead of manually editing `rsi_ethernet.xml`, the `generate_krc_rsi_config` script can generate it automatically from the same YAML file:
 
 ```bash
-ros2 run kuka_rsi_driver generate_krc_rsi_config \
+ros2 run kuka_rsi_driver generate_krc_rsi_config.py \
     --config /path/to/rsi_xml_config.yaml \
     --client-ip <ROS_PC_IP> \
     --client-port 59152 \
@@ -329,13 +329,15 @@ ros2 run kuka_rsi_driver generate_krc_rsi_config \
 | `--config` | Path to the YAML config file | *(required)* |
 | `--client-ip` | IP address of the ROS PC as seen from the KRC | *(required)* |
 | `--client-port` | UDP port the driver listens on | `59152` |
-| `--sentype` | RSI SENTYPE value | `KROSHU` |
 | `--output` | Output file path | `rsi_ethernet.xml` |
 
 Upload the generated file to the controller as described in [Update and upload configuration files](#update-and-upload-configuration-files).
 
 > [!NOTE]
 > In the SEND section, motion-state groups that use the default KRC element names are emitted using the KRC built-in shortcuts (`RIst` → `DEF_RIst`, `AIPos` → `DEF_AIPos`, `EIPos` → `DEF_EIPos`), and `Delay` is always emitted as `DEF_Delay` after all configurable SEND fields. Groups that use custom element/attribute names are expanded into individual, explicitly-indexed `<ELEMENT>` entries so the generated file matches your YAML exactly. Such custom SEND element names require a matching custom RSIX context configured on the KRC side.
+
+> [!NOTE]
+> Automatic detection of the number of internal and external axes relies on the default RSI position element names (`AIPos` for internal axes and `EIPos` for external axes). If custom position element names are used, axis types can no longer be inferred reliably from the RSI XML configuration. In such cases, the configuration for all internal and external axes must be specified explicitly, or the default naming convention should be preserved.
 
 ## Usage
 

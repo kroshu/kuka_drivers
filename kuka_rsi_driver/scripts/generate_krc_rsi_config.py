@@ -18,7 +18,7 @@ Generate a KRC-side RSI ethernet XML configuration file from an abstract YAML co
 
 Usage
 -----
-ros2 run kuka_rsi_driver generate_krc_rsi_config \
+ros2 run kuka_rsi_driver generate_krc_rsi_config.py \
     --config rsi_xml_config.yaml \
     --client-ip 192.168.1.100 \
     --client-port 59152 \
@@ -318,7 +318,7 @@ def build_krc_xml(
         ext_joint_cmd_elem = ext_joints_cmd_cfg.get("xml_element", _DEFAULT_EXT_JOINT_CMD_ELEMENT)
         ext_joint_cmd_attrs = ext_joints_cmd_cfg.get("xml_attributes", []) or []
         if not ext_joint_cmd_attrs:
-            ext_joint_cmd_attrs = [f"E{i}" for i in range(1, len(ext_positions_send) + 1)]
+            ext_joint_cmd_attrs = [f"E{i}" for i in range(1, n_external + 1)]
         for attr in ext_joint_cmd_attrs:
             tag = f"{ext_joint_cmd_elem}.{attr}"
             ET.SubElement(
@@ -341,7 +341,7 @@ def build_krc_xml(
         cs_cfg,
         "ext_velocities",
         _DEFAULT_EXT_VELOCITY_CMD_ELEMENT,
-        [f"E{i}" for i in range(1, len(ext_positions_send) + 1)],
+        [f"E{i}" for i in range(1, n_external + 1)],
     )
     indx = _add_receive_signal(
         elements_recv,
@@ -357,7 +357,7 @@ def build_krc_xml(
         cs_cfg,
         "ext_torques",
         _DEFAULT_EXT_TORQUE_CMD_ELEMENT,
-        [f"E{i}" for i in range(1, len(ext_positions_send) + 1)],
+        [f"E{i}" for i in range(1, n_external + 1)],
     )
 
     # GPIO command RECEIVE entries

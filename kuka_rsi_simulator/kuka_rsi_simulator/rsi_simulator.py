@@ -222,12 +222,10 @@ def parse_rsi_xml_sen(data, xml_config):
     ]:
         if root.find(tag) is not None:
             element_attributes = root.find(tag).attrib
-            values = [
-                element_attributes[attr] for attr in attributes if element_attributes.get(attr)
-            ]
+            values = [element_attributes.get(attr, "0") for attr in attributes]
             corrections.extend(values)
 
-    corrections.extend([0] * (12 - len(corrections)))
+    corrections = (corrections + [0] * 12)[:12]
 
     ipoc_node = root.find(xml_config["control_signal_ipoc_element"])
     IPOC = ipoc_node.text if ipoc_node is not None else "0"

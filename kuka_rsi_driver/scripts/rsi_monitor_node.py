@@ -52,7 +52,10 @@ def _extract_ipoc(payload: bytes) -> Optional[int]:
     match = IPOC_PATTERN.search(payload)
     if match is None:
         return None
-    return int(match.group(1).decode("ascii", errors="ignore").strip())
+    try:
+        return int(match.group(1).decode("ascii", errors="ignore").strip())
+    except ValueError:
+        return None
 
 
 @dataclass
@@ -243,7 +246,7 @@ class RsiMonitorNode(Node):
     def _print_summary(self) -> None:
         self.get_logger().info("UDP monitor stopped. Summary (matching IPOC packets only):")
         self.get_logger().info(f"Matched IPOC pairs: {self._matched_pairs}")
-        if self._receive_to_send_latency_ns:
+        if len(self._receive_to_send_latency_ns) >= 2:
             min_latency_ms = min(self._receive_to_send_latency_ns) / 1e6
             max_latency_ms = max(self._receive_to_send_latency_ns) / 1e6
             avg_latency_ms = statistics.fmean(self._receive_to_send_latency_ns) / 1e6
@@ -256,7 +259,7 @@ class RsiMonitorNode(Node):
         else:
             self.get_logger().info("Response latency [ms] (receive->send, matching IPOC): n/a")
 
-        if self._send_to_receive_latency_ns:
+        if len(self._send_to_receive_latency_ns) >= 2:
             min_latency_ms = min(self._send_to_receive_latency_ns) / 1e6
             max_latency_ms = max(self._send_to_receive_latency_ns) / 1e6
             avg_latency_ms = statistics.fmean(self._send_to_receive_latency_ns) / 1e6
