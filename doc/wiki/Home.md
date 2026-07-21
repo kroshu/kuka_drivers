@@ -160,6 +160,8 @@ The robot hardware desciptions expose two configurable parameters to control the
 - `async_thread_priority` (default: `69`): sets the thread priority for the asynchronous hardware interface executor thread
 - `async_affinity` (default: `""` - empty, allows any core): pins the asynchronous hardware interface thread to specific CPU cores
 
+To plan with Moveit and a dual-arm setup, the moveit configuration also has to be modified. As here the URDF and SRDF files are not in the moveit support package, using MoveitConfigsBuilder is not recommended, the configuration files have to be loaded manually one by one. It is possible to create new configuration files with the resource names updated, or to remap the existing resource names from the launch files. An example for this second approach is also available in the `kuka_multi_robot_examples` package.
+
 ## Detailed setup and startup instructions
 
 For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).
