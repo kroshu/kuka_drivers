@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <limits>
 #include <yaml-cpp/yaml.h>
 #include <vector>
 
@@ -32,16 +33,97 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     return CallbackReturn::ERROR;
   }
 
-  hw_states_.resize(info_.joints.size(), 0.0);
-  hw_commands_.resize(info_.joints.size(), 0.0);
+  hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_torque_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_velocity_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_torque_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const auto & joint : info_.joints)
   {
-    bool interfaces_ok = CheckJointInterfaces(joint);
-    if (!interfaces_ok)
+    if (!CheckJointInterfaces(joint))
     {
       return CallbackReturn::ERROR;
     }
+  }
+
+  // Load the RSI XML config during init so that export_state_interfaces and
+  // export_command_interfaces can decide which optional interfaces to expose.
+  const auto xml_config_it = info_.hardware_parameters.find(std::string(kRsiXmlConfigFileParam));
+  if (xml_config_it != info_.hardware_parameters.end() && !xml_config_it->second.empty())
+  {
+    kuka::external::control::kss::Configuration temp_config;
+    if (!LoadXmlConfig(xml_config_it->second, temp_config))
+    {
+      RCLCPP_ERROR(
+        logger_, "Aborting initialization due to invalid RSI XML config file: '%s'",
+        xml_config_it->second.c_str());
+      return CallbackReturn::ERROR;
+    }
+    motion_state_xml_config_ = temp_config.motion_state_xml_config;
+    control_signal_xml_config_ = temp_config.control_signal_xml_config;
+  }
+
+  // Derive optional interface flags from the XML config.
+  if (motion_state_xml_config_.has_value())
+  {
+    using MST = kuka::external::control::kss::MotionStateSignalType;
+    const auto & joint_fields = motion_state_xml_config_.value().joint_fields;
+    has_velocity_state_interface_ = std::any_of(
+      joint_fields.cbegin(), joint_fields.cend(),
+      [](const kuka::external::control::kss::MotionStateJointFieldConfiguration & field)
+      { return field.signal_type == MST::VELOCITY; });
+    has_torque_state_interface_ = std::any_of(
+      joint_fields.cbegin(), joint_fields.cend(),
+      [](const kuka::external::control::kss::MotionStateJointFieldConfiguration & field)
+      { return field.signal_type == MST::TORQUE; });
+  }
+
+  if (control_signal_xml_config_.has_value())
+  {
+    const auto & ctrl_cfg = control_signal_xml_config_.value();
+    has_velocity_command_interface_ =
+      ctrl_cfg.include_velocity_values || ctrl_cfg.include_ext_velocity_values;
+    has_torque_command_interface_ =
+      ctrl_cfg.include_torque_values || ctrl_cfg.include_ext_torque_values;
+  }
+
+  // Warn if velocity/torque interfaces are exported but not configured in XML
+  if (!has_velocity_state_interface_)
+  {
+    RCLCPP_WARN(
+      logger_,
+      "Velocity state interfaces will be exported to ROS 2 Control, but motion_state.joints.velocities "
+      "is not configured in RSI XML. Velocity state values will remain at their default (NaN) and will not "
+      "be updated with actual measurements from the robot.");
+  }
+
+  if (!has_torque_state_interface_)
+  {
+    RCLCPP_WARN(
+      logger_,
+      "Effort state interfaces will be exported to ROS 2 Control, but motion_state.joints.torques "
+      "is not configured in RSI XML. Effort state values will remain at their default (NaN) and will not "
+      "be updated with actual measurements from the robot.");
+  }
+
+  if (!has_velocity_command_interface_)
+  {
+    RCLCPP_WARN(
+      logger_,
+      "Velocity command interfaces will be exported to ROS 2 Control, but control_signal.velocities "
+      "(or control_signal.ext_velocities) is not enabled in RSI XML. Velocity commands will not be "
+      "transmitted to the robot even if they are written to ROS 2 Control.");
+  }
+
+  if (!has_torque_command_interface_)
+  {
+    RCLCPP_WARN(
+      logger_,
+      "Effort command interfaces will be exported to ROS 2 Control, but control_signal.torques "
+      "(or control_signal.ext_torques) is not enabled in RSI XML. Effort commands will not be "
+      "transmitted to the robot even if they are written to ROS 2 Control.");
   }
 
   // Check gpio components size
@@ -99,6 +181,10 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
   {
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_states_[i]);
+    state_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
   }
 
   for (size_t i = 0; i < info_.gpios[0].state_interfaces.size(); i++)
@@ -116,11 +202,16 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
 std::vector<hardware_interface::CommandInterface>
 KukaRSIHardwareInterfaceBase::export_command_interfaces()
 {
+  RCLCPP_INFO(logger_, "Exporting command interfaces");
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
   }
 
   for (size_t i = 0; i < info_.gpios[0].command_interfaces.size(); i++)
@@ -175,17 +266,9 @@ bool KukaRSIHardwareInterfaceBase::SetupRobot(
 
   ConfigureJoints(config);
 
-  const auto xml_config_it = info_.hardware_parameters.find(std::string(kRsiXmlConfigFileParam));
-  if (xml_config_it != info_.hardware_parameters.end() && !xml_config_it->second.empty())
-  {
-    if (!LoadXmlConfig(xml_config_it->second, config))
-    {
-      RCLCPP_ERROR(
-        logger_, "Aborting setup due to invalid RSI XML config file: '%s'",
-        xml_config_it->second.c_str());
-      return false;
-    }
-  }
+  // Apply the XML config parsed during on_init (may be nullopt if no config file was provided).
+  config.motion_state_xml_config = motion_state_xml_config_;
+  config.control_signal_xml_config = control_signal_xml_config_;
 
   RCLCPP_INFO(
     logger_, info_.gpios[0].command_interfaces.empty() ? "No GPIO command interfaces configured"
@@ -284,6 +367,16 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     const auto & gpio_values = req_message.GetGPIOValues();
 
     std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+    if (has_velocity_state_interface_)
+    {
+      const auto & velocities = req_message.GetMeasuredVelocities();
+      std::copy(velocities.cbegin(), velocities.cend(), hw_velocity_states_.begin());
+    }
+    if (has_torque_state_interface_)
+    {
+      const auto & torques = req_message.GetMeasuredTorques();
+      std::copy(torques.cbegin(), torques.cend(), hw_torque_states_.begin());
+    }
     // Save IO states
     for (size_t i = 0; i < hw_gpio_states_.size(); i++)
     {
@@ -330,27 +423,105 @@ void KukaRSIHardwareInterfaceBase::set_server_event(kuka_drivers_core::HardwareE
 bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
   const hardware_interface::ComponentInfo & joint) const
 {
-  if (joint.command_interfaces.size() != 1)
+  bool has_position_command = false;
+  bool has_velocity_command = false;
+  bool has_effort_command = false;
+
+  for (const auto & interface_info : joint.command_interfaces)
   {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 command interface");
+    if (interface_info.name == hardware_interface::HW_IF_POSITION)
+    {
+      if (has_position_command)
+      {
+        RCLCPP_FATAL(
+          logger_, "Duplicate POSITION command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_position_command = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_VELOCITY)
+    {
+      if (has_velocity_command)
+      {
+        RCLCPP_FATAL(
+          logger_, "Duplicate VELOCITY command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_velocity_command = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
+    {
+      if (has_effort_command)
+      {
+        RCLCPP_FATAL(
+          logger_, "Duplicate EFFORT command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_effort_command = true;
+    }
+    else
+    {
+      RCLCPP_FATAL(
+        logger_, "Unsupported command interface '%s' for joint %s", interface_info.name.c_str(),
+        joint.name.c_str());
+      return false;
+    }
+  }
+
+  if (!has_position_command)
+  {
+    RCLCPP_FATAL(
+      logger_, "POSITION command interface is required for joint %s", joint.name.c_str());
     return false;
   }
 
-  if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+  bool has_position_state = false;
+  bool has_velocity_state = false;
+  bool has_effort_state = false;
+
+  for (const auto & interface_info : joint.state_interfaces)
   {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION command interface");
-    return false;
+    if (interface_info.name == hardware_interface::HW_IF_POSITION)
+    {
+      if (has_position_state)
+      {
+        RCLCPP_FATAL(
+          logger_, "Duplicate POSITION state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_position_state = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_VELOCITY)
+    {
+      if (has_velocity_state)
+      {
+        RCLCPP_FATAL(
+          logger_, "Duplicate VELOCITY state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_velocity_state = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
+    {
+      if (has_effort_state)
+      {
+        RCLCPP_FATAL(logger_, "Duplicate EFFORT state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_effort_state = true;
+    }
+    else
+    {
+      RCLCPP_FATAL(
+        logger_, "Unsupported state interface '%s' for joint %s", interface_info.name.c_str(),
+        joint.name.c_str());
+      return false;
+    }
   }
 
-  if (joint.state_interfaces.size() != 1)
+  if (!has_position_state)
   {
-    RCLCPP_FATAL(logger_, "Expecting exactly 1 state interface");
-    return false;
-  }
-
-  if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-  {
-    RCLCPP_FATAL(logger_, "Expecting only POSITION state interface");
+    RCLCPP_FATAL(logger_, "POSITION state interface is required for joint %s", joint.name.c_str());
     return false;
   }
 
@@ -513,6 +684,15 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5 * READ_TIMEOUT_MS);
   std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  if (has_velocity_command_interface_)
+  {
+    std::copy(
+      hw_velocity_states_.cbegin(), hw_velocity_states_.cend(), hw_velocity_commands_.begin());
+  }
+  if (has_torque_command_interface_)
+  {
+    std::copy(hw_torque_states_.cbegin(), hw_torque_states_.cend(), hw_torque_commands_.begin());
+  }
   CopyGPIOStatesToCommands();
   Write();
 
@@ -582,6 +762,14 @@ void KukaRSIHardwareInterfaceBase::Write()
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
   control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+  if (has_velocity_command_interface_)
+  {
+    control_signal.AddVelocityValues(hw_velocity_commands_.cbegin(), hw_velocity_commands_.cend());
+  }
+  if (has_torque_command_interface_)
+  {
+    control_signal.AddTorqueValues(hw_torque_commands_.cbegin(), hw_torque_commands_.cend());
+  }
   control_signal.AddGPIOValues(hw_gpio_commands_.cbegin(), hw_gpio_commands_.cend());
 
   // measure elapsed time since last motion state message

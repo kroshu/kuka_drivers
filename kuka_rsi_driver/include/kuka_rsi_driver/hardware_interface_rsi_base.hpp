@@ -16,6 +16,7 @@
 #define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -111,9 +112,18 @@ protected:
   std::unique_ptr<kuka::external::control::kss::rsi::Robot> robot_ptr_;
 
   std::vector<double> hw_states_;
+  std::vector<double> hw_velocity_states_;
+  std::vector<double> hw_torque_states_;
   std::vector<double> hw_gpio_states_;
   std::vector<double> hw_commands_;
+  std::vector<double> hw_velocity_commands_;
+  std::vector<double> hw_torque_commands_;
   std::vector<double> hw_gpio_commands_;
+
+  bool has_velocity_state_interface_ = false;
+  bool has_torque_state_interface_ = false;
+  bool has_velocity_command_interface_ = false;
+  bool has_torque_command_interface_ = false;
 
   double server_state_;
   kuka_drivers_core::HardwareEvent last_event_ =
@@ -155,6 +165,11 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL bool LoadXmlConfig(
     const std::string & path, kuka::external::control::kss::Configuration & config) const;
+
+  // Parsed XML config populated during on_init; applied to Configuration in SetupRobot.
+  std::optional<kuka::external::control::kss::MotionStateXmlConfiguration> motion_state_xml_config_;
+  std::optional<kuka::external::control::kss::ControlSignalXmlConfiguration>
+    control_signal_xml_config_;
 
   static constexpr std::string_view kTypeParamValue = "type";
   static constexpr std::string_view kIsExternalParamValue = "is_external";

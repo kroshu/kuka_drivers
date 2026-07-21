@@ -278,6 +278,9 @@ Upload the generated file to the controller as described in [Update and upload c
 > [!NOTE]
 > Automatic detection of the number of internal and external axes relies on the default RSI position element names (`AIPos` for internal axes and `EIPos` for external axes). If custom position element names are used, axis types can no longer be inferred reliably from the RSI XML configuration. In such cases, the configuration for all internal and external axes must be specified explicitly, or the default naming convention should be preserved.
 
+> [!NOTE]
+> If torque or velocity command/state interfaces are not configured in the provided YAML file, they will still be exported to ROS 2 Control. However, their state values will remain at the default value (NaN) and will not be updated with measurements from the robot. Likewise, commands written to these interfaces will not be forwarded to the robot.
+
 ### Usage
 
 #### Starting the driver
