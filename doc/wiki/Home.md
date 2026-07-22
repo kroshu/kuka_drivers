@@ -162,6 +162,37 @@ The robot hardware desciptions expose two configurable parameters to control the
 
 To plan with Moveit and a dual-arm setup, the moveit configuration also has to be modified. As here the URDF and SRDF files are not in the moveit support package, using MoveitConfigsBuilder is not recommended, the configuration files have to be loaded manually one by one. It is possible to create new configuration files with the resource names updated, or to remap the existing resource names from the launch files. An example for this second approach is also available in the `kuka_multi_robot_examples` package.
 
+### Dual-arm timing scenarios
+
+The following timing constraints apply in all cases due to `ros2_control` behavior:
+- Main-thread `read` starts immediately after `write` finishes, so this thread is not idle.
+- Async-thread `read` is called at a fixed rate (defined by the controller manager update rate), so there is an idle period after every `write`.
+- KRCs send motion states every 4 ms, but jitter is possible.
+- `update` runs only on the main thread, but it also updates the async hardware interface.
+
+Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads.
+
+**Scenario 1:**
+The async thread receives robot state 2 ms after `read` is triggered.
+Outcome: both robots can be controlled smoothly, and jitter does not affect stability.
+![alt text](resources/dual_arm_timing/scenario1.png)
+
+**Scenario 2:**
+The async thread receives robot state 0.5 ms after `read` is triggered.
+Outcome: both robots can be controlled smoothly, but the system is not jitter-resistant.
+![alt text](resources/dual_arm_timing/scenario2.png)
+
+**Scenario 3:**
+The async thread receives robot state 0.5 ms after `read` is triggered, and `read` scheduling is delayed for one cycle.
+Issue: the packet arrives while the thread is still idle. `read` is then called afterwards and skips this packet (which also causes a one-tick delay for all subsequent packets).
+![alt text](resources/dual_arm_timing/scenario3.png)
+
+**Scenario 4:**
+The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.5 ms late.
+Issue: due to the late packet, `update` is executed for the second time before this `write`. In the next cycle, no `update` is executed before `write`, causing a robot jerk.
+![alt text](resources/dual_arm_timing/scenario4.png)
+
+
 ## Detailed setup and startup instructions
 
 For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).
