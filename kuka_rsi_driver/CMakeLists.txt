@@ -30,6 +30,7 @@ include_directories(include)
 add_library(
   ${PROJECT_NAME} SHARED
   src/hardware_interface_rsi_base.cpp
+  src/rsi_xml_configuration_parser.cpp
   src/hardware_interface_eki_rsi.cpp
   src/hardware_interface_rsi_only.cpp
   src/hardware_interface_mxa_rsi.cpp

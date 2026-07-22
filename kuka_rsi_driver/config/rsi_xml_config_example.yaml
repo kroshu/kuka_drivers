@@ -23,6 +23,7 @@ rsi_xml_config:
 
     # Cartesian actual position element (KRC built-in: DEF_RIst)
     cartesian:
+      enabled: true   # optional; set to false if not needed
       xml_element: "RIst"
       xml_attributes: ["X", "Y", "Z", "A", "B", "C"]   # optional; shown here for clarity
 

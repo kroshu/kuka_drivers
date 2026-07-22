@@ -26,6 +26,7 @@ from std_msgs.msg import String
 
 def _default_rsi_xml_config():
     return {
+        "motion_state_cartesian_enabled": True,
         "motion_state_cartesian_element": "RIst",
         "motion_state_cartesian_attributes": ["X", "Y", "Z", "A", "B", "C"],
         "motion_state_position_mappings": [
@@ -95,6 +96,10 @@ def _load_rsi_xml_config(config_path):
 
     cartesian = motion_state.get("cartesian") or {}
     if cartesian:
+        cartesian_enabled = cartesian.get("enabled", True)
+        if not isinstance(cartesian_enabled, bool):
+            raise ValueError("'motion_state.cartesian.enabled' must be boolean when provided.")
+        config["motion_state_cartesian_enabled"] = cartesian_enabled
         config["motion_state_cartesian_element"] = cartesian.get(
             "xml_element", config["motion_state_cartesian_element"]
         )
@@ -314,11 +319,12 @@ def create_rsi_xml_rob(
     act_joint_pos, act_joint_vel, act_joint_torque, timeout_count, ipoc, xml_config
 ):
     root = ET.Element("Rob", {"TYPE": "KUKA"})
-    ET.SubElement(
-        root,
-        xml_config["motion_state_cartesian_element"],
-        {attr: "0.0" for attr in xml_config["motion_state_cartesian_attributes"]},
-    )
+    if xml_config["motion_state_cartesian_enabled"]:
+        ET.SubElement(
+            root,
+            xml_config["motion_state_cartesian_element"],
+            {attr: "0.0" for attr in xml_config["motion_state_cartesian_attributes"]},
+        )
 
     _append_joint_signal_elements(
         root, xml_config["motion_state_position_mappings"], act_joint_pos
