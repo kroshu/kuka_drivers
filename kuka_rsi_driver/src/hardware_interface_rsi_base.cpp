@@ -95,7 +95,9 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     RCLCPP_WARN(
       logger_,
       "Velocity state interfaces will be exported to ROS 2 Control, but "
-      "motion_state.joints.velocities is not configured in RSI XML. Velocity state values will remain at their default (NaN) and will not be updated with actual measurements from the robot.");
+      "motion_state.joints.velocities is not configured in RSI XML. Velocity state values will "
+      "remain at their default (NaN) and will not be updated with actual measurements from the "
+      "robot.");
   }
 
   if (!has_torque_state_interface_)
