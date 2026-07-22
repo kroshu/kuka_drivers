@@ -50,24 +50,28 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   Read(10 * READ_TIMEOUT_MS);
 
   std::copy(
-    hw_position_states_.cbegin(), hw_position_states_.cend(), hw_position_commands_.begin());
+    interface_data_.position_states.cbegin(), interface_data_.position_states.cend(),
+    interface_data_.position_commands.begin());
 
-  if (has_velocity_command_interface_)
+  if (optional_interface_flags_.has_velocity_command_interface)
   {
     std::copy(
-      hw_velocity_states_.cbegin(), hw_velocity_states_.cend(), hw_velocity_commands_.begin());
+      interface_data_.velocity_states.cbegin(), interface_data_.velocity_states.cend(),
+      interface_data_.velocity_commands.begin());
   }
-  if (has_torque_command_interface_)
+  if (optional_interface_flags_.has_torque_command_interface)
   {
-    std::copy(hw_torque_states_.cbegin(), hw_torque_states_.cend(), hw_torque_commands_.begin());
+    std::copy(
+      interface_data_.torque_states.cbegin(), interface_data_.torque_states.cend(),
+      interface_data_.torque_commands.begin());
   }
 
   CopyGPIOStatesToCommands();
 
   Write();
 
-  msg_received_ = false;
-  is_active_ = true;
+  runtime_state_.msg_received = false;
+  runtime_state_.is_active = true;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
   set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STARTED);
@@ -78,7 +82,7 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // If control is active, send stop signal
-  if (msg_received_)
+  if (runtime_state_.msg_received)
   {
     RCLCPP_INFO(logger_, "Deactivating hardware interface by sending stop signal");
 
@@ -87,8 +91,8 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
     robot_ptr_->StopControlling();
   }
 
-  is_active_ = false;
-  msg_received_ = false;
+  runtime_state_.is_active = false;
+  runtime_state_.msg_received = false;
 
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;
