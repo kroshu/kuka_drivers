@@ -49,7 +49,19 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   Read(10 * READ_TIMEOUT_MS);
 
-  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  std::copy(
+    hw_position_states_.cbegin(), hw_position_states_.cend(), hw_position_commands_.begin());
+
+  if (has_velocity_command_interface_)
+  {
+    std::copy(
+      hw_velocity_states_.cbegin(), hw_velocity_states_.cend(), hw_velocity_commands_.begin());
+  }
+  if (has_torque_command_interface_)
+  {
+    std::copy(hw_torque_states_.cbegin(), hw_torque_states_.cend(), hw_torque_commands_.begin());
+  }
+
   CopyGPIOStatesToCommands();
 
   Write();

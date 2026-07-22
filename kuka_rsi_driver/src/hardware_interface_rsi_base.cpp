@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <limits>
 #include <yaml-cpp/yaml.h>
+#include <limits>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -33,10 +33,10 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     return CallbackReturn::ERROR;
   }
 
-  hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_torque_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_position_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocity_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_torque_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
@@ -94,9 +94,10 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
   {
     RCLCPP_WARN(
       logger_,
-      "Velocity state interfaces will be exported to ROS 2 Control, but motion_state.joints.velocities "
-      "is not configured in RSI XML. Velocity state values will remain at their default (NaN) and will not "
-      "be updated with actual measurements from the robot.");
+      "Velocity state interfaces will be exported to ROS 2 Control, but "
+      "motion_state.joints.velocities "
+      "is not configured in RSI XML. Velocity state values will remain at their default (NaN) and "
+      "will not be updated with actual measurements from the robot.");
   }
 
   if (!has_torque_state_interface_)
@@ -104,17 +105,18 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     RCLCPP_WARN(
       logger_,
       "Effort state interfaces will be exported to ROS 2 Control, but motion_state.joints.torques "
-      "is not configured in RSI XML. Effort state values will remain at their default (NaN) and will not "
-      "be updated with actual measurements from the robot.");
+      "is not configured in RSI XML. Effort state values will remain at their default (NaN) and "
+      "will not be updated with actual measurements from the robot.");
   }
 
   if (!has_velocity_command_interface_)
   {
     RCLCPP_WARN(
       logger_,
-      "Velocity command interfaces will be exported to ROS 2 Control, but control_signal.velocities "
-      "(or control_signal.ext_velocities) is not enabled in RSI XML. Velocity commands will not be "
-      "transmitted to the robot even if they are written to ROS 2 Control.");
+      "Velocity command interfaces will be exported to ROS 2 Control, but "
+      "control_signal.velocities (or control_signal.ext_velocities) is not enabled in RSI XML. "
+      "Velocity commands will not be transmitted to the robot even if they are written to ROS 2 "
+      "Control.");
   }
 
   if (!has_torque_command_interface_)
@@ -180,7 +182,7 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_states_[i]);
     state_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_states_[i]);
     state_interfaces.emplace_back(
@@ -207,7 +209,7 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]);
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
     command_interfaces.emplace_back(
       info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_commands_[i]);
     command_interfaces.emplace_back(
@@ -366,7 +368,7 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     const auto & positions = req_message.GetMeasuredPositions();
     const auto & gpio_values = req_message.GetGPIOValues();
 
-    std::copy(positions.cbegin(), positions.cend(), hw_states_.begin());
+    std::copy(positions.cbegin(), positions.cend(), hw_position_states_.begin());
     if (has_velocity_state_interface_)
     {
       const auto & velocities = req_message.GetMeasuredVelocities();
@@ -683,7 +685,8 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
   // We must first receive the initial position of the robot
   // We set a longer timeout, since the first message might not arrive all that fast
   Read(5 * READ_TIMEOUT_MS);
-  std::copy(hw_states_.cbegin(), hw_states_.cend(), hw_commands_.begin());
+  std::copy(
+    hw_position_states_.cbegin(), hw_position_states_.cend(), hw_position_commands_.begin());
   if (has_velocity_command_interface_)
   {
     std::copy(
@@ -761,7 +764,8 @@ void KukaRSIHardwareInterfaceBase::Write()
 {
   // Write values to hardware interface
   auto & control_signal = robot_ptr_->GetControlSignal();
-  control_signal.AddJointPositionValues(hw_commands_.cbegin(), hw_commands_.cend());
+  control_signal.AddJointPositionValues(
+    hw_position_commands_.cbegin(), hw_position_commands_.cend());
   if (has_velocity_command_interface_)
   {
     control_signal.AddVelocityValues(hw_velocity_commands_.cbegin(), hw_velocity_commands_.cend());
