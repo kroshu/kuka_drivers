@@ -95,9 +95,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     RCLCPP_WARN(
       logger_,
       "Velocity state interfaces will be exported to ROS 2 Control, but "
-      "motion_state.joints.velocities "
-      "is not configured in RSI XML. Velocity state values will remain at their default (NaN) and "
-      "will not be updated with actual measurements from the robot.");
+      "motion_state.joints.velocities is not configured in RSI XML. Velocity state values will remain at their default (NaN) and will not be updated with actual measurements from the robot.");
   }
 
   if (!has_torque_state_interface_)
@@ -425,6 +423,12 @@ void KukaRSIHardwareInterfaceBase::set_server_event(kuka_drivers_core::HardwareE
 bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
   const hardware_interface::ComponentInfo & joint) const
 {
+  return CheckJointCommandInterfaces(joint) && CheckJointStateInterfaces(joint);
+}
+
+bool KukaRSIHardwareInterfaceBase::CheckJointCommandInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
   bool has_position_command = false;
   bool has_velocity_command = false;
   bool has_effort_command = false;
@@ -477,6 +481,12 @@ bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
     return false;
   }
 
+  return true;
+}
+
+bool KukaRSIHardwareInterfaceBase::CheckJointStateInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
   bool has_position_state = false;
   bool has_velocity_state = false;
   bool has_effort_state = false;

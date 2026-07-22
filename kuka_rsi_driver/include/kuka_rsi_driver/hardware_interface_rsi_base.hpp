@@ -87,6 +87,12 @@ protected:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointCommandInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointStateInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
   virtual KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
