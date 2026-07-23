@@ -488,13 +488,6 @@ bool KukaRSIHardwareInterfaceBase::CheckJointCommandInterfaces(
     }
   }
 
-  if (!has_position_command)
-  {
-    RCLCPP_FATAL(
-      logger_, "POSITION command interface is required for joint %s", joint.name.c_str());
-    return false;
-  }
-
   return true;
 }
 
