@@ -133,6 +133,105 @@ To configure the client side, two configuration files need to be completed:
      - These must be listed in groups, as explained in the linked controller documentation.
      - Ensure that the interface names match those defined earlier.
 
+### RSI XML message configuration
+
+By default, the driver uses the default RSI XML element names inherited from the `kuka-external-control-sdk` (`RIst`, `AIPos`, `AK`, `EK`, etc.) and the provided `rsi_ethernet.xml` is already aligned with these defaults. If your RSI context file uses different XML element or attribute names (for example when adding a custom RSIX context), you can configure the driver to match by providing a YAML file.
+
+##### YAML configuration file
+
+An annotated example is provided at `kuka_rsi_driver/config/rsi_xml_config_example.yaml`. Copy and adapt it to match your setup:
+
+```yaml
+rsi_xml_config:
+  motion_state:                    # XML elements received from the KRC
+    cartesian:
+      xml_element: "RIst"
+    joints:
+      positions:                   # required: one position entry per joint, in URDF order
+        - joint_identifier: "joint_1"
+          xml_element: "AIPos"
+          xml_attribute: "A1"
+        # ... repeat for each joint
+      velocities:                  # optional: one velocity entry per joint
+        - joint_identifier: "joint_1"
+          xml_element: "AIVel"
+          xml_attribute: "A1"
+        # ... repeat for each joint
+      torques:                     # optional: one torque entry per joint
+        - joint_identifier: "joint_1"
+          xml_element: "AITor"
+          xml_attribute: "A1"
+        # ... repeat for each joint
+    gpio:                          # omit if no GPIO state interfaces
+      xml_element: "GPIO"
+      xml_attributes: ["01", "02"]
+  control_signal:                  # XML elements sent to the KRC
+    joints:
+      xml_element: "AK"
+    velocities:                    # optional, disabled by default
+      enabled: true
+      xml_element: "VK"
+    torques:                       # optional, disabled by default
+      enabled: true
+      xml_element: "TK"
+    ext_joints:                    # omit if no external axes
+      xml_element: "EK"
+      xml_attributes: ["E1"]
+    ext_velocities:                # optional external velocity mapping
+      xml_element: "EVK"
+      xml_attributes: ["E1"]
+    ext_torques:                   # optional external torque mapping
+      xml_element: "ETK"
+      xml_attributes: ["E1"]
+    gpio:                          # omit if no GPIO command interfaces
+      xml_element: "GPIO"
+```
+
+`Delay` (`<Delay D="..."/>`) and `IPOC` (`<IPOC>...</IPOC>`) are always parsed/sent as fixed RSI built-ins and are not configurable from this YAML mapping.
+
+Joint **positions are always required** in motion-state mapping (`motion_state.joints.positions`). Velocity and torque mappings (`motion_state.joints.velocities`, `motion_state.joints.torques`) are optional and can be enabled independently.
+
+Velocity and torque transmission are **disabled by default** for outgoing control signals. To include them in outgoing RSI messages, add `control_signal.velocities` / `control_signal.torques` (and optionally `ext_velocities` / `ext_torques` for external axes).
+
+Pass the absolute path to this file using the `rsi_xml_config_file` launch argument (see [Launch arguments](#launch-arguments)).
+
+> [!NOTE]
+> If `rsi_xml_config_file` is not set, the driver uses the SDK defaults. For a standard setup with the provided `rsi_ethernet.xml` and `rsi_joint_pos.rsix` files, no custom YAML file is needed.
+> The `kuka_rsi_simulator` can use the same file via its `rsi_xml_config_file` launch argument.
+
+#### Generating the KRC ethernet configuration file
+
+Instead of manually editing `rsi_ethernet.xml`, the `generate_krc_rsi_config` script can generate it automatically from the same YAML file:
+
+```bash
+ros2 run kuka_rsi_driver generate_krc_rsi_config.py \
+    --config /path/to/rsi_xml_config.yaml \
+    --client-ip <ROS_PC_IP> \
+    --client-port 59152 \
+    --output rsi_ethernet.xml
+```
+
+| Argument | Description | Default |
+|---|---|---|
+| `--config` | Path to the YAML config file | *(required)* |
+| `--client-ip` | IP address of the ROS PC as seen from the KRC | *(required)* |
+| `--client-port` | UDP port the driver listens on | `59152` |
+| `--output` | Output file path | `rsi_ethernet.xml` |
+
+Upload the generated file to the controller as described in [Update and upload configuration files](#update-and-upload-configuration-files).
+
+> [!NOTE]
+> In the SEND section, motion-state groups that use the default KRC element names are emitted using the KRC built-in shortcuts (`RIst` → `DEF_RIst`, `AIPos` → `DEF_AIPos`, `EIPos` → `DEF_EIPos`), and `Delay` is always emitted as `DEF_Delay` after all configurable SEND fields. Groups that use custom element/attribute names are expanded into individual, explicitly-indexed `<ELEMENT>` entries so the generated file matches your YAML exactly. Such custom SEND element names require a matching custom RSIX context configured on the KRC side.
+
+> [!NOTE]
+> Automatic detection of the number of internal and external axes relies on the default RSI position element names (`AIPos` for internal axes and `EIPos` for external axes). If custom position element names are used, axis types can no longer be inferred reliably from the RSI XML configuration. In such cases, the configuration for all internal and external axes must be specified explicitly, or the default naming convention should be preserved.
+
+> [!NOTE]
+> If torque or velocity command/state interfaces are not configured in the provided YAML file, they will still be exported to ROS 2 Control. However, their state values will remain at the default value (NaN) and will not be updated with measurements from the robot. Likewise, commands written to these interfaces will not be forwarded to the robot.
+
+> [!NOTE]
+> A configuration is considered custom whenever it does not use the default RSI names, or when it includes values beyond joint positions (`AIPos`) and cartesian positions (`RIst`). In these cases, the corresponding RSI context must be created and maintained by the user. We cannot provide a prebuilt RSI context for every possible custom use case.
+
 ## Usage
 
 ### Starting the driver
@@ -190,10 +289,12 @@ Both launch files support the following arguments:
   - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
 - `driver_version`: configures which driver to use. Possible values are `rsi_only`, `eki_rsi` and `mxa_rsi` (defaults to `rsi_only`)
 - `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi` or `mxa_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
+- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
+- `enable_rsi_monitoring`: If set to `true`, starts an additional non-invasive UDP port monitor node that passively monitors RSI communication and reports communication statistics when the driver is stopped (defaults to `false`).
 
 > [!NOTE]
 > The `rt_core` and `rt_prio`, parameters are not applied to asynchronous hardware interfaces. For async hardware configuration, use the `async_thread_priority` and `async_affinity` xacro arguments instead.
@@ -203,6 +304,8 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
+
+When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses Scapy to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
 
 ### Stopping external control
 
@@ -221,6 +324,15 @@ ros2 launch kuka_rsi_driver startup_with_rviz.launch.py
 ```bash
 ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py
 ```
+
+To run the simulator with a custom RSI XML mapping, pass the same config file used by the driver:
+
+```bash
+ros2 launch kuka_rsi_simulator kuka_rsi_simulator.launch.py \
+    rsi_xml_config_file:=/absolute/path/to/rsi_xml_config.yaml
+```
+
+If `rsi_xml_config_file` is left empty, the simulator uses the same defaults as the driver.
 
 After all components have started successfully, the system needs to be configured and activated to start the simulation. The robot will be visible in rviz after activation:
 
