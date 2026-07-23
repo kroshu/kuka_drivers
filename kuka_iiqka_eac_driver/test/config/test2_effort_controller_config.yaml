@@ -1,5 +1,6 @@
 test2/effort_controller:
   ros__parameters:
+    interface_name: effort
     joints:
     - test2_joint_1
     - test2_joint_2
@@ -7,28 +8,3 @@ test2/effort_controller:
     - test2_joint_4
     - test2_joint_5
     - test2_joint_6
-    gains:
-      test2_joint_1:
-        p: 5.0
-        i: 0.0
-        d: 0.1
-      test2_joint_2:
-        p: 5.0
-        i: 0.0
-        d: 0.1
-      test2_joint_3:
-        p: 5.0
-        i: 0.0
-        d: 0.1
-      test2_joint_4:
-        p: 5.0
-        i: 0.0
-        d: 0.1
-      test2_joint_5:
-        p: 5.0
-        i: 0.0
-        d: 0.1
-      test2_joint_6:
-        p: 5.0
-        i: 0.0
-        d: 0.1

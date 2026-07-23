@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(kuka_rsi_driver)
 
 # Default to C99
@@ -40,12 +40,18 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "KUKA_RSI_DRIVER_BUILDING_LIB
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(${PROJECT_NAME} hardware_interface kuka_drivers_core kuka-external-control-sdk)
-target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
+target_link_libraries(${PROJECT_NAME}
+  hardware_interface::hardware_interface
+  kuka_drivers_core::kuka_drivers_core
+  Kuka::kuka-external-control-sdk
+)
 
 # Shared library for robot_manager_base
 add_library(robot_manager_base STATIC src/robot_manager_base.cpp)
-ament_target_dependencies(robot_manager_base std_msgs kuka_drivers_core controller_manager_msgs)
+target_link_libraries(robot_manager_base
+  std_msgs::std_msgs
+  kuka_drivers_core::kuka_drivers_core
+  controller_manager_msgs::controller_manager_msgs)
 target_link_libraries(robot_manager_base kuka_drivers_core::communication_helpers)
 
 add_executable(robot_manager_node_extended src/robot_manager_node_extended.cpp)
