@@ -143,6 +143,7 @@ protected:
     std::vector<int> gpio_states_to_commands_map;
     bool is_active = false;
     bool msg_received = false;
+    bool is_async_hardware = false;
   };
 
   struct DiagnosticsState
@@ -150,6 +151,8 @@ protected:
     std::chrono::steady_clock::time_point last_msg_received_time{};
     uint64_t packet_loss_count = 0;
     uint64_t last_ipoc = 0;
+    uint32_t last_interpolation_count_command = 0;
+    bool interpolation_count_initialized = false;
   };
 
   struct ControlState
@@ -157,6 +160,7 @@ protected:
     StatusManager status_manager;
     double hw_control_mode_command = 0.0;
     double cycle_time_command = 0.0;
+    double interpolation_count_command = 0.0;
     kuka_drivers_core::ControlMode prev_control_mode =
       kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
     RsiCycleTime prev_cycle_time = RsiCycleTime::RSI_4MS;
@@ -177,11 +181,6 @@ protected:
   RuntimeState runtime_state_;
   DiagnosticsState diagnostics_state_;
   ControlState control_state_;
-
-  double interpolation_count_command_ = 0;
-  uint32_t last_interpolation_count_command_ = 0;
-  bool interpolation_count_initialized_ = false;
-  bool is_async_hardware_ = false;
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};

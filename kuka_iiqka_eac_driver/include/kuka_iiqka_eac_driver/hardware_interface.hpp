@@ -16,8 +16,8 @@
 #define KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <chrono>
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>

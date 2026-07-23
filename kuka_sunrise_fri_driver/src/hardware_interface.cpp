@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
 #include <limits>
+#include <memory>
 #include <thread>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
@@ -323,8 +323,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   {
     const uint32_t expected_count =
       (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
-      ? 0
-      : last_interpolation_count_command_ + 1;
+        ? 0
+        : last_interpolation_count_command_ + 1;
 
     if (current_count != expected_count)
     {
@@ -333,13 +333,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       {
         RCLCPP_DEBUG(
           rclcpp::get_logger("KukaFRIHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u",
-          expected_count, current_count);
+          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
+          current_count);
 
-        const auto retry_deadline =
-          std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        const auto retry_step =
-          std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+        const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
 
         while (current_count != expected_count)
@@ -366,8 +364,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       {
         RCLCPP_WARN(
           rclcpp::get_logger("KukaFRIHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u",
-          expected_count, current_count);
+          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
+          current_count);
       }
     }
   }
@@ -712,8 +710,8 @@ KukaFRIHardwareInterface::export_command_interfaces()
     interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
     &control_mode_);
   command_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::CONFIG_PREFIX,
-    hardware_interface::INTERPOLATION_COUNT, &interpolation_count_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &interpolation_count_);
   command_interfaces.emplace_back(
     interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);

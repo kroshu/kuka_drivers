@@ -151,11 +151,11 @@ open_loop_control: true
 
 Since ROS 2 Jazzy, `ros2_control` supports asynchronous hardware interfaces. With this feature enabled, multiple robots can be started within the same `controller_manager`, because each hardware interface can run in its own asynchronous execution context, the blocking `read()` methods no longer cause an issue.
 
-For a multi-robot setup, a dedicated robot description xacro should be created that loads both robot models in one file using launch arguments (for example robot model names, prefixes and optional namespace-specific parameters). This combined xacro is then passed as the single `robot_description` to the control node. It is important that the synchronous hardware interface is activated last, because all component activation steps acquire a lock that blocks the read-write loop of the synchronous thread, therefore activation would starve out the already active harware interface of the main thread.
+For a multi-robot setup, a dedicated robot description xacro should be created that loads both robot models in one file using launch arguments (for example robot model names, prefixes and optional namespace-specific parameters). This combined xacro is then passed as the single `robot_description` to the control node. It is important that the synchronous hardware interface is activated last, because all component activation steps acquire a lock that blocks the read-write loop of the synchronous thread, therefore activation would starve out the already active hardware interface of the main thread.
 
 A dedicated launch file is also required for this setup. It should declare the arguments of both robots, generate the combined xacro, start one `controller_manager`, and spawn the controllers for both robots with the correct names and configuration files. Configuration files still need to be adapted to the corresponding namespaces and prefixed joint names. An example setup is available in the `kuka_multi_robot_examples` package: [examples/kuka_multi_robot_examples](https://github.com/kroshu/examples/tree/master/kuka_multi_robot_examples).
 
-The robot hardware desciptions expose two configurable parameters to control the async execution behavior:
+The robot hardware descriptions expose two configurable parameters to control the async execution behavior:
 
 - `async_thread_priority` (default: `69`): sets the thread priority for the asynchronous hardware interface executor thread
 - `async_affinity` (default: `""` - empty, allows any core): pins the asynchronous hardware interface thread to specific CPU cores

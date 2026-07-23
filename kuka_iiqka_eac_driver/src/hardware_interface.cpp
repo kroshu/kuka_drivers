@@ -123,8 +123,8 @@ KukaEACHardwareInterface::export_command_interfaces()
     &hw_control_mode_command_);
 
   command_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::CONFIG_PREFIX,
-    hardware_interface::INTERPOLATION_COUNT, &interpolation_count_command_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &interpolation_count_command_);
 
   return command_interfaces;
 }
@@ -246,8 +246,8 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   {
     const uint32_t expected_count =
       (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
-      ? 0
-      : last_interpolation_count_command_ + 1;
+        ? 0
+        : last_interpolation_count_command_ + 1;
 
     if (current_count != expected_count)
     {
@@ -256,13 +256,11 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       {
         RCLCPP_DEBUG(
           rclcpp::get_logger("KukaEACHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u",
-          expected_count, current_count);
+          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
+          current_count);
 
-        const auto retry_deadline =
-          std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        const auto retry_step =
-          std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+        const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
 
         while (current_count != expected_count)
@@ -289,8 +287,8 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       {
         RCLCPP_WARN(
           rclcpp::get_logger("KukaEACHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u",
-          expected_count, current_count);
+          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
+          current_count);
       }
     }
   }

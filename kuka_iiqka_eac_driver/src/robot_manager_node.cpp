@@ -19,10 +19,10 @@
 
 #include "kuka_iiqka_eac_driver/robot_manager_node.hpp"
 
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/controller_names.hpp"
 #include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 
 using namespace controller_manager_msgs::srv;  // NOLINT
 using namespace lifecycle_msgs::msg;           // NOLINT

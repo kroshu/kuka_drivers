@@ -16,8 +16,8 @@
 #define KUKA_SUNRISE_FRI_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <atomic>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>

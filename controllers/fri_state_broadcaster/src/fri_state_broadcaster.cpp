@@ -14,8 +14,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
-#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "fri_state_broadcaster/fri_state_broadcaster.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 namespace kuka_controllers
 {
@@ -55,10 +55,10 @@ controller_interface::InterfaceConfiguration FRIStateBroadcaster::state_interfac
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
   const std::vector<std::string> state_interfaces = {
-    hardware_interface::SESSION_STATE,      hardware_interface::CONNECTION_QUALITY,
-    hardware_interface::SAFETY_STATE,       hardware_interface::COMMAND_MODE,
-    hardware_interface::CONTROL_MODE,       hardware_interface::OPERATION_MODE,
-    hardware_interface::DRIVE_STATE,        hardware_interface::OVERLAY_TYPE,
+    hardware_interface::SESSION_STATE,       hardware_interface::CONNECTION_QUALITY,
+    hardware_interface::SAFETY_STATE,        hardware_interface::COMMAND_MODE,
+    hardware_interface::CONTROL_MODE,        hardware_interface::OPERATION_MODE,
+    hardware_interface::DRIVE_STATE,         hardware_interface::OVERLAY_TYPE,
     hardware_interface::TRACKING_PERFORMANCE};
 
   for (const auto & robot_prefix : params_.robot_prefixes)
@@ -86,8 +86,7 @@ controller_interface::CallbackReturn FRIStateBroadcaster::on_configure(
     "~/fri_state", rclcpp::SystemDefaultsQoS());
 
   RCLCPP_INFO(
-    get_node()->get_logger(),
-    "FRI state broadcaster configured with %zu robot instance(s)",
+    get_node()->get_logger(), "FRI state broadcaster configured with %zu robot instance(s)",
     robot_prefixes_.size());
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -110,8 +109,8 @@ void FRIStateBroadcaster::AssignStateFromInterfaces(
   const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
   const size_t start_idx)
 {
-  state.session_state = static_cast<int32_t>(
-    state_interfaces[start_idx].get_optional().value_or(state.session_state));
+  state.session_state =
+    static_cast<int32_t>(state_interfaces[start_idx].get_optional().value_or(state.session_state));
 
   state.connection_quality = static_cast<int32_t>(
     state_interfaces[start_idx + 1].get_optional().value_or(state.connection_quality));
@@ -143,8 +142,7 @@ controller_interface::return_type FRIStateBroadcaster::update(
 {
   for (size_t idx = 0; idx < current_states_.size(); ++idx)
   {
-    AssignStateFromInterfaces(
-      current_states_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
+    AssignStateFromInterfaces(current_states_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
   }
 
   if (counter_++ == 10)
@@ -161,4 +159,3 @@ controller_interface::return_type FRIStateBroadcaster::update(
 
 PLUGINLIB_EXPORT_CLASS(
   kuka_controllers::FRIStateBroadcaster, controller_interface::ControllerInterface)
-

@@ -14,8 +14,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
-#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "fri_configuration_controller/fri_configuration_controller.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 namespace kuka_controllers
 {
@@ -58,8 +58,7 @@ FRIConfigurationController::command_interface_configuration() const
   {
     config.names.emplace_back(
       ComposeInterfaceName(robot_prefix, hardware_interface::RECEIVE_MULTIPLIER));
-    config.names.emplace_back(
-      ComposeInterfaceName(robot_prefix, hardware_interface::SEND_PERIOD));
+    config.names.emplace_back(ComposeInterfaceName(robot_prefix, hardware_interface::SEND_PERIOD));
   }
 
   return config;
@@ -77,8 +76,7 @@ controller_interface::CallbackReturn FRIConfigurationController::on_configure(
 {
   robot_prefixes_ = params_.robot_prefixes;
   RCLCPP_INFO(
-    get_node()->get_logger(),
-    "FRI configuration controller configured with %zu robot instance(s)",
+    get_node()->get_logger(), "FRI configuration controller configured with %zu robot instance(s)",
     robot_prefixes_.size());
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -107,8 +105,7 @@ controller_interface::return_type FRIConfigurationController::update(
     if (!command_interfaces_[cmd_idx].set_value(receive_multiplier_))
     {
       RCLCPP_WARN(
-        get_node()->get_logger(),
-        "Failed to set receive multiplier for robot '%s'",
+        get_node()->get_logger(), "Failed to set receive multiplier for robot '%s'",
         robot_prefixes_[idx].c_str());
       all_set = false;
     }
