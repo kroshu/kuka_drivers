@@ -42,8 +42,8 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   RCLCPP_INFO(
     logger_, "Robot model verification: %s", verify_robot_model_ ? "enabled" : "disabled");
 
-  cycle_time_command_ = 0.0;
-  hw_control_mode_command_ = 0.0;
+  control_state_.cycle_time_command = 0.0;
+  control_state_.hw_control_mode_command = 0.0;
 
   return CallbackReturn::SUCCESS;
 }
@@ -56,10 +56,12 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
   command_interfaces = KukaRSIHardwareInterfaceBase::export_command_interfaces();
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
+    &control_state_.hw_control_mode_command);
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME, &cycle_time_command_);
+    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
+    &control_state_.cycle_time_command);
 
   return command_interfaces;
 }
@@ -71,7 +73,7 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
 
   state_interfaces = KukaRSIHardwareInterfaceBase::export_state_interfaces();
 
-  status_manager_.RegisterStateInterfaces(state_interfaces);
+  control_state_.status_manager.RegisterStateInterfaces(state_interfaces);
 
   return state_interfaces;
 }
@@ -103,7 +105,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
     mxa_config.client_port);
 
   auto status = robot_ptr_->RegisterStatusResponseHandler(
-    std::make_unique<StatusUpdateHandler>(this, &status_manager_));
+    std::make_unique<StatusUpdateHandler>(this, &control_state_.status_manager));
   if (status.return_code != kuka::external::control::ReturnCode::OK)
   {
     RCLCPP_ERROR(logger_, "Registering status response handler failed: %s", status.message);
@@ -147,7 +149,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle
 return_type KukaMxaRsiHardwareInterface::read(
   const rclcpp::Time & time, const rclcpp::Duration & duration)
 {
-  status_manager_.UpdateStateInterfaces();
+  control_state_.status_manager.UpdateStateInterfaces();
 
   return KukaRSIHardwareInterfaceBase::read(time, duration);
 }
@@ -181,18 +183,18 @@ void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
 
 void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
 {
-  if (status_manager_.IsEmergencyStopActive())
+  if (control_state_.status_manager.IsEmergencyStopActive())
   {
     RCLCPP_ERROR(logger_, "Emergency stop detected!");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
-  else if (!status_manager_.DrivesPowered())
+  else if (!control_state_.status_manager.DrivesPowered())
   {
     RCLCPP_ERROR(logger_, "Drives are not powered!");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
   else if (
-    !status_manager_.IsMotionPossible() &&
+    !control_state_.status_manager.IsMotionPossible() &&
     this->get_lifecycle_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
     RCLCPP_ERROR(logger_, "Motion is not possible");
