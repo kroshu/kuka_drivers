@@ -49,6 +49,8 @@ public:
     change_state_client_ =
       this->create_client<lifecycle_msgs::srv::ChangeState>(managed_node + "/change_state");
 
+    // Run delayed transitions in a worker thread so the executor can keep spinning
+    // and respond quickly to shutdown while timing logic runs independently.
     worker_thread_ = std::thread([this]() { this->run(); });
   }
 
@@ -61,6 +63,34 @@ public:
   }
 
 private:
+  bool sleepInterruptible(double delay_s, const char * phase)
+  {
+    if (delay_s <= 0.0)
+    {
+      return rclcpp::ok();
+    }
+
+    const auto delay = std::chrono::duration<double>(delay_s);
+    const auto start = std::chrono::steady_clock::now();
+
+    while (rclcpp::ok() && (std::chrono::steady_clock::now() - start) < delay)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    if (!rclcpp::ok())
+    {
+      const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start);
+      RCLCPP_WARN(
+        this->get_logger(),
+        "Interrupted while waiting for %s: held %.3f s out of %.3f s",
+        phase, elapsed.count(), delay_s);
+      return false;
+    }
+
+    return true;
+  }
+
   bool changeState(uint8_t transition_id)
   {
     auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
@@ -88,7 +118,10 @@ private:
   void run()
   {
     // Wait for configure_delay seconds, then trigger configure
-    std::this_thread::sleep_for(std::chrono::duration<double>(configure_delay_));
+    if (!sleepInterruptible(configure_delay_, "configure delay"))
+    {
+      return;
+    }
 
     RCLCPP_INFO(this->get_logger(), "Sending 'configure' transition");
     if (!changeState(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE))
@@ -101,7 +134,10 @@ private:
     const double remaining_delay = activate_delay_ - configure_delay_;
     if (remaining_delay > 0.0)
     {
-      std::this_thread::sleep_for(std::chrono::duration<double>(remaining_delay));
+      if (!sleepInterruptible(remaining_delay, "activate delay"))
+      {
+        return;
+      }
     }
 
     RCLCPP_INFO(this->get_logger(), "Sending 'activate' transition");
