@@ -1,0 +1,4 @@
+/**/fri_configuration_controller:
+  ros__parameters:
+    # Empty string means unprefixed interfaces for single-robot compatibility.
+    robot_prefixes: [""]

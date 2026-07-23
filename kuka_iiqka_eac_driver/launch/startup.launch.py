@@ -208,7 +208,7 @@ def launch_setup(context, *args, **kwargs):
         "joint_group_impedance_controller": config_file("joint_impedance_controller_config.yaml"),
         "effort_controller": config_file("effort_controller_config.yaml"),
         "control_mode_handler": config_file("kuka_control_mode_handler_config.yaml"),
-        "event_broadcaster": None,
+        "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
     controller_spawners = [

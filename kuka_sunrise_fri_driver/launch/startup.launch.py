@@ -203,12 +203,12 @@ def launch_setup(context, *args, **kwargs):
         "joint_state_broadcaster": None,
         "external_torque_broadcaster": config_file("external_torque_broadcaster_config.yaml"),
         "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
-        "fri_configuration_controller": None,
-        "fri_state_broadcaster": None,
+        "fri_configuration_controller": config_file("fri_configuration_controller_config.yaml"),
+        "fri_state_broadcaster": config_file("fri_state_broadcaster_config.yaml"),
         "joint_group_impedance_controller": config_file("joint_impedance_controller_config.yaml"),
         "effort_controller": config_file("effort_controller_config.yaml"),
         "control_mode_handler": config_file("kuka_control_mode_handler_config.yaml"),
-        "event_broadcaster": None,
+        "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
     controller_spawners = [
