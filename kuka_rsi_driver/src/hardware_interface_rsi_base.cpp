@@ -54,8 +54,6 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
     }
   }
 
-  // Load the RSI XML config during init so that export_state_interfaces and
-  // export_command_interfaces can decide which optional interfaces to expose.
   if (const auto xml_config_it =
         info_.hardware_parameters.find(std::string(kRsiXmlConfigFileParam));
       xml_config_it != info_.hardware_parameters.end() && !xml_config_it->second.empty())
