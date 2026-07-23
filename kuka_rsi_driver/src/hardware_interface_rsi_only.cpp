@@ -55,15 +55,12 @@ CallbackReturn KukaRSIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
 
   if (optional_interface_flags_.has_velocity_command_interface)
   {
-    std::copy(
-      interface_data_.velocity_states.cbegin(), interface_data_.velocity_states.cend(),
-      interface_data_.velocity_commands.begin());
+    std::fill(
+      interface_data_.velocity_commands.begin(), interface_data_.velocity_commands.end(), 0.0);
   }
   if (optional_interface_flags_.has_torque_command_interface)
   {
-    std::copy(
-      interface_data_.torque_states.cbegin(), interface_data_.torque_states.cend(),
-      interface_data_.torque_commands.begin());
+    std::fill(interface_data_.torque_commands.begin(), interface_data_.torque_commands.end(), 0.0);
   }
 
   CopyGPIOStatesToCommands();
