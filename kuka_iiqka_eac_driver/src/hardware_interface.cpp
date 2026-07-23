@@ -46,73 +46,8 @@ CallbackReturn KukaEACHardwareInterface::on_init(const hardware_interface::Hardw
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
-    if (joint.command_interfaces.size() != 4)
+    if (!CheckJointInterfaces(joint))
     {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 4 command interface");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'POSITION' command interface as first");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.command_interfaces[1].name != hardware_interface::HW_IF_STIFFNESS)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'STIFFNESS' command interface as second");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.command_interfaces[2].name != hardware_interface::HW_IF_DAMPING)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'DAMPING' command interface as third");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.command_interfaces[3].name != hardware_interface::HW_IF_EFFORT)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'EFFORT' command interface as fourth");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces.size() != 3)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 3 state interface");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'POSITION' state interface as first");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_EFFORT)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'EFFORT' state interface as second");
-      return CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[2].name != hardware_interface::HW_IF_COMMANDED_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("KukaEACHardwareInterface"),
-        "expecting 'COMMANDED_POSITION' state interface as third");
       return CallbackReturn::ERROR;
     }
   }
@@ -370,6 +305,204 @@ void KukaEACHardwareInterface::set_server_event(kuka_drivers_core::HardwareEvent
 {
   std::lock_guard<std::mutex> lk(event_mutex_);
   last_event_ = event;
+}
+
+bool KukaEACHardwareInterface::CheckJointInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  return CheckJointCommandInterfaces(joint) && CheckJointStateInterfaces(joint);
+}
+
+bool KukaEACHardwareInterface::CheckJointCommandInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  bool has_position_command = false;
+  bool has_stiffness_command = false;
+  bool has_damping_command = false;
+  bool has_effort_command = false;
+
+  if (joint.command_interfaces.size() != 4)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 4 command interface");
+    return false;
+  }
+
+  for (const auto & interface_info : joint.command_interfaces)
+  {
+    if (interface_info.name == hardware_interface::HW_IF_POSITION)
+    {
+      if (has_position_command)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate POSITION command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_position_command = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_STIFFNESS)
+    {
+      if (has_stiffness_command)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate STIFFNESS command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_stiffness_command = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_DAMPING)
+    {
+      if (has_damping_command)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate DAMPING command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_damping_command = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
+    {
+      if (has_effort_command)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate EFFORT command interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_effort_command = true;
+    }
+    else
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "Unsupported command interface '%s' for joint %s", interface_info.name.c_str(),
+        joint.name.c_str());
+      return false;
+    }
+  }
+
+  if (!has_position_command)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "POSITION command interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  if (!has_stiffness_command)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "STIFFNESS command interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  if (!has_damping_command)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "DAMPING command interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  if (!has_effort_command)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "EFFORT command interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  return true;
+}
+
+bool KukaEACHardwareInterface::CheckJointStateInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  bool has_position_state = false;
+  bool has_effort_state = false;
+  bool has_commanded_position_state = false;
+
+  if (joint.state_interfaces.size() != 3)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"), "expecting exactly 3 state interface");
+    return false;
+  }
+
+  for (const auto & interface_info : joint.state_interfaces)
+  {
+    if (interface_info.name == hardware_interface::HW_IF_POSITION)
+    {
+      if (has_position_state)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate POSITION state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_position_state = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
+    {
+      if (has_effort_state)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate EFFORT state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_effort_state = true;
+    }
+    else if (interface_info.name == hardware_interface::HW_IF_COMMANDED_POSITION)
+    {
+      if (has_commanded_position_state)
+      {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "Duplicate COMMANDED_POSITION state interface for joint %s", joint.name.c_str());
+        return false;
+      }
+      has_commanded_position_state = true;
+    }
+    else
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("KukaEACHardwareInterface"),
+        "Unsupported state interface '%s' for joint %s", interface_info.name.c_str(),
+        joint.name.c_str());
+      return false;
+    }
+  }
+
+  if (!has_position_state)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "POSITION state interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  if (!has_effort_state)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "EFFORT state interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  if (!has_commanded_position_state)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("KukaEACHardwareInterface"),
+      "COMMANDED_POSITION state interface is required for joint %s", joint.name.c_str());
+    return false;
+  }
+
+  return true;
 }
 }  // namespace kuka_eac
 
