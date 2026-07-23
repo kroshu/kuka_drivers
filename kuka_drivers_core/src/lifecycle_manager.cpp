@@ -82,9 +82,8 @@ private:
     {
       const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start);
       RCLCPP_WARN(
-        this->get_logger(),
-        "Interrupted while waiting for %s: held %.3f s out of %.3f s",
-        phase, elapsed.count(), delay_s);
+        this->get_logger(), "Interrupted while waiting for %s: held %.3f s out of %.3f s", phase,
+        elapsed.count(), delay_s);
       return false;
     }
 
