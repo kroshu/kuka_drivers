@@ -363,9 +363,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       if (current_count != expected_count)
       {
         RCLCPP_WARN(
-          rclcpp::get_logger("KukaFRIHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
-          current_count);
+          rclcpp::get_logger("KukaFRIHardwareInterface"), "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          expected_count, current_count, is_async_hardware_ ? "async" : "sync");
       }
     }
   }
