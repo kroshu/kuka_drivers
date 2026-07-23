@@ -122,9 +122,7 @@ def launch_setup(context, *args, **kwargs):
 
     if use_external_axis_value:
         kl_support_package = kl_urdf_package_value or "kuka_kl_support"
-        robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(
-            robot_family_value
-        )
+        robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(robot_family_value)
 
         robot_model_macro_path = os.path.join(
             get_package_share_directory(robot_support_package),
@@ -389,9 +387,7 @@ def generate_launch_description():
             "use_external_axis",
             default_value="false",
             choices=["true", "false"],
-            description=(
-                "Compose robot_model and kl_model with reusable template xacro."
-            ),
+            description=("Compose robot_model and kl_model with reusable template xacro."),
         )
     )
     launch_arguments.append(DeclareLaunchArgument("kl_model", default_value="kl100_2"))
