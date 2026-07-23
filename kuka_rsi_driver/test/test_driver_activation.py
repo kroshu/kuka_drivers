@@ -15,7 +15,7 @@
 import unittest
 
 import launch
-import launch.actions
+import launch_ros.actions
 import launch_testing.actions
 import launch_testing.markers
 import pytest
@@ -53,22 +53,15 @@ def generate_test_description():
                     ]
                 )
             ),
-            launch.actions.TimerAction(
-                period=20.0,
-                actions=[
-                    launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "configure"],
-                        output="screen",
-                    ),
-                ],
-            ),
-            launch.actions.TimerAction(
-                period=25.0,
-                actions=[
-                    launch.actions.ExecuteProcess(
-                        cmd=["ros2", "lifecycle", "set", "robot_manager", "activate"],
-                        output="screen",
-                    ),
+            launch_ros.actions.Node(
+                package="kuka_drivers_core",
+                executable="lifecycle_manager",
+                parameters=[
+                    {
+                        "managed_node": "robot_manager",
+                        "configure_delay": 20.0,
+                        "activate_delay": 25.0,
+                    }
                 ],
             ),
             launch_testing.actions.ReadyToTest(),
