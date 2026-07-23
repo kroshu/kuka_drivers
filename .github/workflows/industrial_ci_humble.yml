@@ -17,6 +17,11 @@ on:
   pull_request:
     branches:
       - humble
+    paths-ignore:
+      - doc/**
+      - '**.md'
+      - LICENSE
+      - .github/workflows/deploy_wiki.yml
 
   schedule:
     # Run every Monday at 1PM UTC
