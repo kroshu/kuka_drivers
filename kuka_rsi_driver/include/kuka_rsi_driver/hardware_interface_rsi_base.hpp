@@ -16,6 +16,7 @@
 #define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -86,6 +87,12 @@ protected:
   KUKA_RSI_DRIVER_LOCAL bool CheckJointInterfaces(
     const hardware_interface::ComponentInfo & joint) const;
 
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointCommandInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointStateInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
   KUKA_RSI_DRIVER_LOCAL void CopyGPIOStatesToCommands();
 
   virtual KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
@@ -101,6 +108,59 @@ protected:
     std::string reason = "";
   };
 
+  struct InterfaceData
+  {
+    std::vector<double> position_states;
+    std::vector<double> velocity_states;
+    std::vector<double> torque_states;
+    std::vector<double> gpio_states;
+    std::vector<double> position_commands;
+    std::vector<double> velocity_commands;
+    std::vector<double> torque_commands;
+    std::vector<double> gpio_commands;
+  };
+
+  struct OptionalInterfaceFlags
+  {
+    bool has_velocity_state_interface = false;
+    bool has_torque_state_interface = false;
+    bool has_velocity_command_interface = false;
+    bool has_torque_command_interface = false;
+  };
+
+  struct EventState
+  {
+    double server_state =
+      static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
+    kuka_drivers_core::HardwareEvent last_event =
+      kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
+    std::mutex event_mutex;
+  };
+
+  struct RuntimeState
+  {
+    std::vector<int> gpio_states_to_commands_map;
+    bool is_active = false;
+    bool msg_received = false;
+  };
+
+  struct DiagnosticsState
+  {
+    std::chrono::steady_clock::time_point last_msg_received_time{};
+    uint64_t packet_loss_count = 0;
+    uint64_t last_ipoc = 0;
+  };
+
+  struct ControlState
+  {
+    StatusManager status_manager;
+    double hw_control_mode_command = 0.0;
+    double cycle_time_command = 0.0;
+    kuka_drivers_core::ControlMode prev_control_mode =
+      kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
+    RsiCycleTime prev_cycle_time = RsiCycleTime::RSI_4MS;
+  };
+
   // Methods common for EKI and MXA version
   CallbackReturn extended_activation(const rclcpp_lifecycle::State &);
   CallbackReturn extended_deactivation(const rclcpp_lifecycle::State &);
@@ -110,35 +170,12 @@ protected:
 
   std::unique_ptr<kuka::external::control::kss::rsi::Robot> robot_ptr_;
 
-  std::vector<double> hw_states_;
-  std::vector<double> hw_gpio_states_;
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_gpio_commands_;
-
-  double server_state_;
-  kuka_drivers_core::HardwareEvent last_event_ =
-    kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
-  std::mutex event_mutex_;
-
-  std::vector<int> gpio_states_to_commands_map_;
-
-  bool is_active_;
-  bool msg_received_;
-
-  // Variables for monitoring packet losses and timing
-  std::chrono::steady_clock::time_point last_msg_received_time_{};
-  uint64_t packet_loss_count_ = 0;
-  uint64_t last_ipoc_ = 0;
-
-  // EKI-MXA common variables
-  StatusManager status_manager_;
-
-  double hw_control_mode_command_;
-  double cycle_time_command_;
-
-  kuka_drivers_core::ControlMode prev_control_mode_ =
-    kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
-  RsiCycleTime prev_cycle_time_ = RsiCycleTime::RSI_4MS;
+  InterfaceData interface_data_;
+  OptionalInterfaceFlags optional_interface_flags_;
+  EventState event_state_;
+  RuntimeState runtime_state_;
+  DiagnosticsState diagnostics_state_;
+  ControlState control_state_;
 
   static constexpr std::chrono::milliseconds IDLE_SLEEP_DURATION{2};
   static constexpr std::chrono::milliseconds INIT_WAIT_DURATION{100};
@@ -153,8 +190,17 @@ private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(
     kuka::external::control::kss::Configuration & config) const;
 
+  KUKA_RSI_DRIVER_LOCAL bool LoadXmlConfig(
+    const std::string & path, kuka::external::control::kss::Configuration & config) const;
+
+  // Parsed XML config populated during on_init; applied to Configuration in SetupRobot.
+  std::optional<kuka::external::control::kss::MotionStateXmlConfiguration> motion_state_xml_config_;
+  std::optional<kuka::external::control::kss::ControlSignalXmlConfiguration>
+    control_signal_xml_config_;
+
   static constexpr std::string_view kTypeParamValue = "type";
   static constexpr std::string_view kIsExternalParamValue = "is_external";
+  static constexpr std::string_view kRsiXmlConfigFileParam = "rsi_xml_config_file";
 };
 }  // namespace kuka_rsi_driver
 

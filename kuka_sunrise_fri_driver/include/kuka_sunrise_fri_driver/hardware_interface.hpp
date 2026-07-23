@@ -100,6 +100,13 @@ public:
   };
 
 private:
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL bool CheckJointInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL bool CheckJointCommandInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+  KUKA_SUNRISE_FRI_DRIVER_LOCAL bool CheckJointStateInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
   KUKA_SUNRISE_FRI_DRIVER_LOCAL bool FRIConfigChanged();
 
   bool active_read_ = false;

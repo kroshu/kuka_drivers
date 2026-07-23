@@ -74,6 +74,13 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC void reset_cycle_count() { cycle_count_ = 0; }
 
 private:
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool CheckJointInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool CheckJointCommandInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+  KUKA_IIQKA_EAC_DRIVER_LOCAL bool CheckJointStateInterfaces(
+    const hardware_interface::ComponentInfo & joint) const;
+
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupRobot();
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
 
