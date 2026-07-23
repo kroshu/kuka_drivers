@@ -342,6 +342,9 @@ Upload the generated file to the controller as described in [Update and upload c
 > [!NOTE]
 > If torque or velocity command/state interfaces are not configured in the provided YAML file, they will still be exported to ROS 2 Control. However, their state values will remain at the default value (NaN) and will not be updated with measurements from the robot. Likewise, commands written to these interfaces will not be forwarded to the robot.
 
+> [!NOTE]
+> A configuration is considered custom whenever it does not use the default RSI names, or when it includes values beyond joint positions (`AIPos`) and cartesian positions (`RIst`). In these cases, the corresponding RSI context must be created and maintained by the user. We cannot provide a prebuilt RSI context for every possible custom use case.
+
 ## Usage
 
 ### Starting the driver
