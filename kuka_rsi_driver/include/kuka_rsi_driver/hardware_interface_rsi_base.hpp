@@ -15,6 +15,7 @@
 #ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 #define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_RSI_BASE_HPP_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -135,6 +136,10 @@ protected:
 
   double hw_control_mode_command_;
   double cycle_time_command_;
+  double interpolation_count_command_ = 0;
+  uint32_t last_interpolation_count_command_ = 0;
+  bool interpolation_count_initialized_ = false;
+  bool is_async_hardware_ = false;
 
   kuka_drivers_core::ControlMode prev_control_mode_ =
     kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;

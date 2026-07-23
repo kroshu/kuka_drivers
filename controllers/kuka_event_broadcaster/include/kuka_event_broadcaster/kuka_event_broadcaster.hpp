@@ -59,10 +59,16 @@ private:
   using Params = kuka_event_broadcaster::Params;
   using ParamListener = kuka_event_broadcaster::ParamListener;
 
+  static std::string ComposeInterfaceName(
+    const std::string & robot_prefix, const std::string & interface_group,
+    const std::string & interface_name);
+
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
   std::vector<std::string> event_robot_prefixes_;
   std::vector<uint8_t> last_events_;
+  // uint32_t can be casted to double without loss of precision, uint64_t cannot, so we use uint32_t for the interpolation count interface
+  uint32_t interpolation_count_{0};
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_publisher_;
   kuka_driver_interfaces::msg::HardwareEvent event_msg_;

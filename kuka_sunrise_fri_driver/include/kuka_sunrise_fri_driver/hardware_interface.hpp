@@ -16,6 +16,7 @@
 #define KUKA_SUNRISE_FRI_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <atomic>
+#include <cstdint>
 #include <condition_variable>
 #include <memory>
 #include <string>
@@ -112,6 +113,9 @@ private:
   // Command interface must be of type double, but controller can set only integers
   // this is a temporary solution, until runtime parameters are supported for hardware interfaces
   double control_mode_ = 0;  // default to undefined
+  double interpolation_count_ = 0;
+  uint32_t last_interpolation_count_command_ = 0;
+  bool interpolation_count_initialized_ = false;
   double receive_multiplier_ = 1;
   double send_period_ms_ = 10;
   int client_port_ = 30200;
@@ -160,6 +164,7 @@ private:
   std::atomic<bool> fri_started_{false};
   std::atomic<bool> control_activated_{false};
   std::atomic<bool> thread_running_{false};
+  bool is_async_hardware_ = false;
 
   void activateFrictionCompensation(double * values) const;
   void onError();

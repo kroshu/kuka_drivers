@@ -14,6 +14,8 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
+#include <limits>
+
 #include "kuka_event_broadcaster/kuka_event_broadcaster.hpp"
 
 namespace kuka_controllers
@@ -30,8 +32,30 @@ controller_interface::CallbackReturn EventBroadcaster::on_init()
 controller_interface::InterfaceConfiguration EventBroadcaster::command_interface_configuration()
   const
 {
-  return controller_interface::InterfaceConfiguration{
-    controller_interface::interface_configuration_type::NONE};
+  controller_interface::InterfaceConfiguration config;
+  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+
+  for (const auto & robot_prefix : params_.robot_prefixes)
+  {
+    config.names.emplace_back(ComposeInterfaceName(
+      robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT));
+  }
+
+  return config;
+}
+
+std::string EventBroadcaster::ComposeInterfaceName(
+  const std::string & robot_prefix, const std::string & interface_group,
+  const std::string & interface_name)
+{
+  if (robot_prefix.empty())
+  {
+    return interface_group + "/" + interface_name;
+  }
+  else
+  {
+    return robot_prefix + "_" + interface_group + "/" + interface_name;
+  }
 }
 
 controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_configuration() const
@@ -64,6 +88,7 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
 controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
   event_robot_prefixes_ = params_.robot_prefixes;
+  interpolation_count_ = 0;
 
   last_events_.assign(event_robot_prefixes_.size(), 0);
 
@@ -84,6 +109,30 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
+  if (interpolation_count_ == std::numeric_limits<uint32_t>::max())
+  {
+    interpolation_count_ = 0;
+  }
+  else
+  {
+    ++interpolation_count_;
+  }
+
+  bool all_counts_set = true;
+  for (size_t idx = 0; idx < command_interfaces_.size(); ++idx)
+  {
+    const bool count_set =
+      command_interfaces_[idx].set_value(static_cast<double>(interpolation_count_));
+    all_counts_set = all_counts_set && count_set;
+    if (!count_set)
+    {
+      RCLCPP_WARN_THROTTLE(
+        get_node()->get_logger(), *get_node()->get_clock(), 5000,
+        "Failed to set interpolation_count command interface for robot '%s'",
+        idx < event_robot_prefixes_.size() ? event_robot_prefixes_[idx].c_str() : "unknown");
+    }
+  }
+
   for (size_t i = 0; i < state_interfaces_.size(); ++i)
   {
     const auto current_event =
@@ -99,7 +148,8 @@ controller_interface::return_type EventBroadcaster::update(
     event_publisher_->publish(event_msg_);
   }
 
-  return controller_interface::return_type::OK;
+  return all_counts_set ? controller_interface::return_type::OK
+                        : controller_interface::return_type::ERROR;
 }
 }  // namespace kuka_controllers
 

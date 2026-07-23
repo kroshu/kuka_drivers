@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <vector>
+#include <limits>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
@@ -88,6 +89,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
   server_state_ = static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
 
   auto info = get_hardware_info();
+  is_async_hardware_ = info.is_async;
   interface_prefix_ = info.name + "/";
   auto it = info.hardware_parameters.find("interface_prefix");
   if (it != info.hardware_parameters.end())
@@ -138,6 +140,10 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
       &hw_gpio_commands_[i]);
   }
 
+  command_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX,
+    hardware_interface::INTERPOLATION_COUNT, &interpolation_count_command_);
+
   return command_interfaces;
 }
 
@@ -168,6 +174,61 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   {
     return return_type::OK;
   }
+
+  uint32_t current_count = static_cast<uint32_t>(interpolation_count_command_);
+  if (interpolation_count_initialized_)
+  {
+    const uint32_t expected_count =
+      (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
+      ? 0
+      : last_interpolation_count_command_ + 1;
+
+    if (current_count != expected_count)
+    {
+      // Async components may lag one cycle behind controller updates; retry up to 1 ms.
+      if (is_async_hardware_)
+      {
+        RCLCPP_DEBUG(
+          logger_,
+          "interpolation_count mismatch before write: expected %u, got %u",
+          expected_count, current_count);
+        const auto retry_deadline =
+          std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+        const auto retry_step =
+          std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::microseconds(200));
+
+        while (current_count != expected_count)
+        {
+          const auto now = std::chrono::steady_clock::now();
+          if (now >= retry_deadline)
+          {
+            break;
+          }
+
+          auto sleep_time = retry_step;
+          const auto remaining = retry_deadline - now;
+          if (remaining < sleep_time)
+          {
+            sleep_time = remaining;
+          }
+
+          std::this_thread::sleep_for(sleep_time);
+          current_count = static_cast<uint32_t>(interpolation_count_command_);
+        }
+      }
+
+      if (current_count != expected_count)
+      {
+        RCLCPP_WARN(
+          logger_,
+          "interpolation_count mismatch before write: expected %u, got %u",
+          expected_count, current_count);
+      }
+    }
+  }
+  interpolation_count_initialized_ = true;
+  last_interpolation_count_command_ = current_count;
 
   Write();
 
@@ -514,6 +575,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
 
   msg_received_ = false;
   is_active_ = true;
+  interpolation_count_initialized_ = false;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
@@ -546,6 +608,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   }
   is_active_ = false;
   msg_received_ = false;
+  interpolation_count_initialized_ = false;
   if (status_manager_.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");

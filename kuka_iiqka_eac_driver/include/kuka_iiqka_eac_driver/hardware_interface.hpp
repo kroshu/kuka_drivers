@@ -16,6 +16,7 @@
 #define KUKA_IIQKA_EAC_DRIVER__HARDWARE_INTERFACE_HPP_
 
 #include <chrono>
+#include <cstdint>
 #include <cmath>
 #include <memory>
 #include <mutex>
@@ -88,6 +89,9 @@ private:
   std::vector<double> hw_torque_states_;
 
   double hw_control_mode_command_ = 0;
+  double interpolation_count_command_ = 0;
+  uint32_t last_interpolation_count_command_ = 0;
+  bool interpolation_count_initialized_ = false;
   double server_state_ = 0;
   int cycle_count_ = 0;
   std::string interface_prefix_;
@@ -100,6 +104,7 @@ private:
     kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED;
 
   bool msg_received_;
+  bool is_async_hardware_ = false;
 };
 }  // namespace kuka_eac
 
