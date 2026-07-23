@@ -1,0 +1,103 @@
+@startuml
+concise "KRC-s" as KRC
+concise "Sync Thread" as TA
+concise "Async Thread" as TB
+
+@0
+TA is R
+TB is W
+
+@0.5
+KRC -> TA
+TA is U
+TB is I
+
+
+@1.0
+TA is W
+
+@1.5
+TA is R
+
+@3.5
+TB is R
+
+@4.0
+KRC -> TB
+TB is W
+
+@4.5
+TB is I
+KRC -> TA
+TA is U
+
+@5.0
+TA is W
+
+@5.5
+TA is R
+
+@7.5
+TB is R
+
+@8.0
+KRC -> TB
+TB is W
+
+@8.5
+TB is I
+KRC -> TA
+TA is U
+
+@9.0
+TA is W
+
+@9.5
+TA is R
+
+@11.5
+TB is R
+
+@12.5
+KRC -> TA
+TA is U
+KRC -> TB
+TB is W
+
+@13.0
+TA is W
+TB is I
+
+@13.5
+TA is R
+
+@15.5
+TB is R
+
+@16.0
+KRC -> TB
+TB is W
+
+@16.5
+TB is I
+KRC -> TA
+TA is U
+
+@17.0
+TA is W
+
+@17.5
+TA is R
+
+@19.5
+TB is R
+
+@20.0
+KRC -> TB
+TB is W
+
+@20.5
+TB is I
+KRC -> TA
+TA is U
+@enduml
