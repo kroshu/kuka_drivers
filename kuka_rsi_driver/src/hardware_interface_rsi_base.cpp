@@ -258,15 +258,14 @@ return_type KukaRSIHardwareInterfaceBase::read(const rclcpp::Time &, const rclcp
 return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   // If control is not started or a request is missed, do not send back anything
-<<<<<<< HEAD
   if (
-    !msg_received_ ||
+    !runtime_state_.msg_received ||
     this->lifecycle_state_.id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
-=======
-  if (!runtime_state_.msg_received)
->>>>>>> d6bf0d4 (Custom RSI XML parsing (#348))
   {
-    return return_type::OK;
+    if (!runtime_state_.msg_received)
+    {
+      return return_type::OK;
+    }
   }
 
   Write();

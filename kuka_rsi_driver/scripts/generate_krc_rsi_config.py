@@ -293,7 +293,7 @@ def build_krc_xml(
     # Stop is always first
     ET.SubElement(elements_recv, "ELEMENT", TAG="Stop", TYPE="BOOL", INDX="1", HOLDON="0")
 
-    indx = 2
+    index = 2
 
     # Internal joint command entries
     joints_cmd_cfg = cs_cfg.get("joints", {}) or {}
@@ -307,8 +307,8 @@ def build_krc_xml(
 
     for attr in joint_cmd_attrs:
         tag = f"{joint_cmd_elem}.{attr}"
-        ET.SubElement(elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(indx), HOLDON="1")
-        indx += 1
+        ET.SubElement(elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(index), HOLDON="1")
+        index += 1
 
     # External joint command entries
     ext_joints_cmd_cfg = cs_cfg.get("ext_joints", None)
@@ -322,38 +322,38 @@ def build_krc_xml(
         for attr in ext_joint_cmd_attrs:
             tag = f"{ext_joint_cmd_elem}.{attr}"
             ET.SubElement(
-                elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(indx), HOLDON="1"
+                elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(index), HOLDON="1"
             )
-            indx += 1
+            index += 1
 
     # Optional command signals
-    indx = _add_receive_signal(
+    index = _add_receive_signal(
         elements_recv,
-        indx,
+        index,
         cs_cfg,
         "velocities",
         _DEFAULT_VELOCITY_CMD_ELEMENT,
         [f"A{i}" for i in range(1, n_internal + 1)],
     )
-    indx = _add_receive_signal(
+    index = _add_receive_signal(
         elements_recv,
-        indx,
+        index,
         cs_cfg,
         "ext_velocities",
         _DEFAULT_EXT_VELOCITY_CMD_ELEMENT,
         [f"E{i}" for i in range(1, n_external + 1)],
     )
-    indx = _add_receive_signal(
+    index = _add_receive_signal(
         elements_recv,
-        indx,
+        index,
         cs_cfg,
         "torques",
         _DEFAULT_TORQUE_CMD_ELEMENT,
         [f"A{i}" for i in range(1, n_internal + 1)],
     )
-    indx = _add_receive_signal(
+    index = _add_receive_signal(
         elements_recv,
-        indx,
+        index,
         cs_cfg,
         "ext_torques",
         _DEFAULT_EXT_TORQUE_CMD_ELEMENT,
@@ -373,9 +373,9 @@ def build_krc_xml(
                 raise ValueError("control_signal.gpio.xml_attributes contains invalid value.")
             tag = f"{gpio_cmd_elem}.{attr}"
             ET.SubElement(
-                elements_recv, "ELEMENT", TAG=tag, TYPE="BOOL", INDX=str(indx), HOLDON="1"
+                elements_recv, "ELEMENT", TAG=tag, TYPE="BOOL", INDX=str(index), HOLDON="1"
             )
-            indx += 1
+            index += 1
 
     return root
 

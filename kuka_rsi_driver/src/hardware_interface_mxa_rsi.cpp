@@ -193,13 +193,8 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
   else if (
-<<<<<<< HEAD
-    !status_manager_.IsMotionPossible() &&
-    this->lifecycle_state_.id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
-=======
     !control_state_.status_manager.IsMotionPossible() &&
     this->get_lifecycle_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
->>>>>>> d6bf0d4 (Custom RSI XML parsing (#348))
   {
     RCLCPP_ERROR(logger_, "Motion is not possible");
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
