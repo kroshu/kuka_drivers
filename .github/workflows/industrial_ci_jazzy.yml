@@ -9,20 +9,10 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - doc/**
-      - '**.md'
-      - LICENSE
-      - .github/workflows/deploy_wiki.yml
-  # When there is a pull request against master
+
   pull_request:
     branches:
       - master
-    paths-ignore:
-      - doc/**
-      - '**.md'
-      - LICENSE
-      - .github/workflows/deploy_wiki.yml
 
   schedule:
     # Run every Monday at 1PM UTC
