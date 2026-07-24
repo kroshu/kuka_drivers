@@ -9,5 +9,8 @@ This package and HW interface is heavily influenced and originated by https://gi
 - `kl_support_package:=<package>` (default fallback: `kuka_kl_support`)
 - `kl_prefix:=<prefix>` (default: `rail_`)
 
+When you change `kl_prefix`, replace `rail_` with the new prefix in
+`config/joint_trajectory_controller_config_6_axis_kl.yaml`.
+
 When external-axis mode is enabled and `jtc_config` is empty, the launch file selects
 `config/joint_trajectory_controller_config_6_axis_kl.yaml` automatically.
