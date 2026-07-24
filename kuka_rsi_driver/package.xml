@@ -34,7 +34,7 @@
   <exec_depend>python3-yaml</exec_depend>
 
   <test_depend>kuka_rsi_simulator</test_depend>
-  <test_depend>ros2lifecycle</test_depend>
+  <test_depend>launch_ros</test_depend>
   <test_depend>launch_testing_ament_cmake</test_depend>
 
   <export>
