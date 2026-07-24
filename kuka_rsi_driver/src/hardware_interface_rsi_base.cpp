@@ -288,17 +288,17 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
 
     if (current_count != expected_count)
     {
-      // Async components may lag one cycle behind controller updates; retry up to 1 ms.
       if (runtime_state_.is_async_hardware)
       {
-        RCLCPP_DEBUG(
+        RCLCPP_INFO(
           logger_, "interpolation_count mismatch before write: expected %u, got %u", expected_count,
           current_count);
         const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
         const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
 
-        while (current_count != expected_count)
+        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only one cycle behind 
+        while (current_count == expected_count - 1)
         {
           const auto now = std::chrono::steady_clock::now();
           if (now >= retry_deadline)
