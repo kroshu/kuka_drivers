@@ -28,13 +28,11 @@ namespace urdf_validator
 
 bool ValidateJointCommandInterfaces(
   const hardware_interface::ComponentInfo & joint,
-  const std::vector<std::string> & expected_interfaces,
-  const rclcpp::Logger & logger);
+  const std::vector<std::string> & expected_interfaces, const rclcpp::Logger & logger);
 
 bool ValidateJointStateInterfaces(
   const hardware_interface::ComponentInfo & joint,
-  const std::vector<std::string> & expected_interfaces,
-  const rclcpp::Logger & logger);
+  const std::vector<std::string> & expected_interfaces, const rclcpp::Logger & logger);
 
 }  // namespace urdf_validator
 

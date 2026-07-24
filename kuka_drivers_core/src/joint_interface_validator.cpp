@@ -29,8 +29,7 @@ namespace
 bool ValidateInterfaces(
   const hardware_interface::ComponentInfo & joint,
   const std::vector<hardware_interface::InterfaceInfo> & interfaces_to_check,
-  const std::vector<std::string> & expected_interfaces,
-  const char * interface_type,
+  const std::vector<std::string> & expected_interfaces, const char * interface_type,
   const rclcpp::Logger & logger)
 {
   if (interfaces_to_check.size() != expected_interfaces.size())
@@ -85,8 +84,7 @@ bool ValidateInterfaces(
 
 bool ValidateJointCommandInterfaces(
   const hardware_interface::ComponentInfo & joint,
-  const std::vector<std::string> & expected_interfaces,
-  const rclcpp::Logger & logger)
+  const std::vector<std::string> & expected_interfaces, const rclcpp::Logger & logger)
 {
   return ValidateInterfaces(
     joint, joint.command_interfaces, expected_interfaces, "command", logger);
@@ -94,11 +92,9 @@ bool ValidateJointCommandInterfaces(
 
 bool ValidateJointStateInterfaces(
   const hardware_interface::ComponentInfo & joint,
-  const std::vector<std::string> & expected_interfaces,
-  const rclcpp::Logger & logger)
+  const std::vector<std::string> & expected_interfaces, const rclcpp::Logger & logger)
 {
-  return ValidateInterfaces(
-    joint, joint.state_interfaces, expected_interfaces, "state", logger);
+  return ValidateInterfaces(joint, joint.state_interfaces, expected_interfaces, "state", logger);
 }
 
 }  // namespace urdf_validator
