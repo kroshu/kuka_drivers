@@ -39,6 +39,7 @@ def _ros2_control_macro_file_from_family(robot_family):
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
+    prefix = LaunchConfiguration("prefix")
     use_external_axis = LaunchConfiguration("use_external_axis")
     kl_model = LaunchConfiguration("kl_model")
     kl_support_package = LaunchConfiguration("kl_support_package")
@@ -70,7 +71,10 @@ def launch_setup(context, *args, **kwargs):
     rt_prio = LaunchConfiguration("rt_prio")
     lock_memory = LaunchConfiguration("lock_memory")
     enable_rsi_monitoring = LaunchConfiguration("enable_rsi_monitoring")
-    if ns.perform(context) == "":
+    prefix_value = prefix.perform(context)
+    if prefix_value != "":
+        tf_prefix = prefix_value
+    elif ns.perform(context) == "":
         tf_prefix = ""
     else:
         tf_prefix = ns.perform(context) + "_"
@@ -315,7 +319,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         parameters=[
             driver_config,
-            {"robot_model": effective_robot_model, "use_gpio": use_gpio},
+            {"robot_model": tf_prefix + effective_robot_model, "use_gpio": use_gpio},
         ],
         prefix=prefix_cmd,
     )
@@ -398,6 +402,16 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "prefix",
+            default_value="",
+            description=(
+                "Joint name prefix used in URDF/xacro (for multi-robot setups). "
+                "If empty, namespace + '_' is used when namespace is set."
+            ),
+        )
+    )
     launch_arguments.append(
         DeclareLaunchArgument(
             "use_external_axis",
