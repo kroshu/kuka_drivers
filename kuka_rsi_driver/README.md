@@ -6,7 +6,7 @@ This package and HW interface is heavily influenced and originated by https://gi
 `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template:
 - `use_external_axis:=true`
 - `kl_model:=<model>` (default: `kl100_2`)
-- `kl_urdf_package:=<package>` (default fallback: `kuka_kl_support`)
+- `kl_support_package:=<package>` (default fallback: `kuka_kl_support`)
 - `kl_prefix:=<prefix>` (default: `rail_`)
 
 When external-axis mode is enabled and `jtc_config` is empty, the launch file selects

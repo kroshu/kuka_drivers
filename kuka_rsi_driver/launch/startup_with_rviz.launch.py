@@ -22,18 +22,24 @@ from launch.actions.include_launch_description import IncludeLaunchDescription
 from launch.launch_description_sources.python_launch_description_source import (
     PythonLaunchDescriptionSource,
 )
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 
 
-def generate_launch_description():
+def launch_setup(context, *args, **kwargs):
     rviz_config = LaunchConfiguration("rviz_config")
-    rviz_config_launch_arg = DeclareLaunchArgument(
-        "rviz_config",
-        default_value=os.path.join(
-            get_package_share_directory("kuka_resources"), "config", "view_6_axis_urdf.rviz"
-        ),
-    )
+    use_external_axis = LaunchConfiguration("use_external_axis")
+
+    rviz_config_value = rviz_config.perform(context)
+    if rviz_config_value.strip() == "":
+        rviz_file = (
+            "view_6_axis_kl_urdf.rviz"
+            if use_external_axis.perform(context).lower() == "true"
+            else "view_6_axis_urdf.rviz"
+        )
+        rviz_config_value = os.path.join(
+            get_package_share_directory("kuka_resources"), "config", rviz_file
+        )
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -41,16 +47,29 @@ def generate_launch_description():
         )
     )
 
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="log",
+        arguments=["-d", rviz_config_value, "--ros-args", "--log-level", "error"],
+    )
+
+    return [startup_launch, rviz_node]
+
+
+def generate_launch_description():
+    rviz_config_launch_arg = DeclareLaunchArgument("rviz_config", default_value="")
+    use_external_axis_launch_arg = DeclareLaunchArgument(
+        "use_external_axis",
+        default_value="false",
+        choices=["true", "false"],
+    )
+
     return LaunchDescription(
         [
             rviz_config_launch_arg,
-            startup_launch,
-            Node(
-                package="rviz2",
-                executable="rviz2",
-                name="rviz2",
-                output="log",
-                arguments=["-d", rviz_config, "--ros-args", "--log-level", "error"],
-            ),
+            use_external_axis_launch_arg,
+            OpaqueFunction(function=launch_setup),
         ]
     )

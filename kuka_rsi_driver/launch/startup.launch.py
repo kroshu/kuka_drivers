@@ -39,11 +39,12 @@ def _ros2_control_macro_file_from_family(robot_family):
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
-    urdf_package = LaunchConfiguration("urdf_package")
     use_external_axis = LaunchConfiguration("use_external_axis")
     kl_model = LaunchConfiguration("kl_model")
-    kl_urdf_package = LaunchConfiguration("kl_urdf_package")
+    kl_support_package = LaunchConfiguration("kl_support_package")
     kl_prefix = LaunchConfiguration("kl_prefix")
+    kl_ros2_control_macro_file = LaunchConfiguration("kl_ros2_control_macro_file")
+    kl_ros2_control_joints_macro = LaunchConfiguration("kl_ros2_control_joints_macro")
     mode = LaunchConfiguration("mode")
     use_gpio = LaunchConfiguration("use_gpio")
     driver_version = LaunchConfiguration("driver_version")
@@ -107,15 +108,14 @@ def launch_setup(context, *args, **kwargs):
 
     robot_model_value = robot_model.perform(context)
     robot_family_value = robot_family.perform(context)
-    urdf_package_value = urdf_package.perform(context)
     use_external_axis_value = use_external_axis.perform(context) == "true"
     kl_model_value = kl_model.perform(context)
-    kl_urdf_package_value = kl_urdf_package.perform(context)
+    kl_support_package_value = kl_support_package.perform(context)
     kl_prefix_value = kl_prefix.perform(context)
+    kl_ros2_control_macro_file_value = kl_ros2_control_macro_file.perform(context)
+    kl_ros2_control_joints_macro_value = kl_ros2_control_joints_macro.perform(context)
 
-    robot_support_package = (
-        urdf_package_value if urdf_package_value else f"kuka_{robot_family_value}_support"
-    )
+    robot_support_package = f"kuka_{robot_family_value}_support"
     urdf_source = PathJoinSubstitution(
         [FindPackageShare(robot_support_package), "urdf", robot_model_value + ".urdf.xacro"]
     )
@@ -123,7 +123,7 @@ def launch_setup(context, *args, **kwargs):
     template_xacro_args = []
 
     if use_external_axis_value:
-        kl_support_package = kl_urdf_package_value or "kuka_kl_support"
+        kl_support_package = kl_support_package_value or "kuka_kl_support"
         robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(robot_family_value)
 
         robot_model_macro_path = os.path.join(
@@ -134,7 +134,7 @@ def launch_setup(context, *args, **kwargs):
         if not os.path.isfile(robot_model_macro_path):
             raise RuntimeError(
                 f"Robot model macro file was not found: {robot_model_macro_path}. "
-                "Check robot_model/robot_family/urdf_package values."
+                "Check robot_model/robot_family values."
             )
 
         robot_ros2_control_macro_path = os.path.join(
@@ -155,13 +155,13 @@ def launch_setup(context, *args, **kwargs):
         if not os.path.isfile(kl_model_macro_path):
             raise RuntimeError(
                 f"KL model macro file was not found: {kl_model_macro_path}. "
-                "Check kl_model/kl_urdf_package values."
+                "Check kl_model/kl_support_package values."
             )
 
         kl_ros2_control_macro_path = os.path.join(
             get_package_share_directory(kl_support_package),
             "urdf",
-            "kl_ros2_control_macro.xacro",
+            kl_ros2_control_macro_file_value,
         )
         if not os.path.isfile(kl_ros2_control_macro_path):
             raise RuntimeError(
@@ -182,14 +182,20 @@ def launch_setup(context, *args, **kwargs):
             "robot_family:=",
             robot_family_value,
             " ",
-            "kl_urdf_package:=",
+            "kl_support_package:=",
             kl_support_package,
             " ",
             "robot_ros2_control_macro_file:=",
             robot_ros2_control_macro_file,
             " ",
+            "kl_ros2_control_macro_file:=",
+            kl_ros2_control_macro_file_value,
+            " ",
             "kl_model:=",
-            kl_model_value,    
+            kl_model_value,
+            " ",
+            "kl_ros2_control_joints_macro:=",
+            kl_ros2_control_joints_macro_value,
             " ",
             "rsi_xml_config_file:=",
             rsi_xml_config_file,
@@ -394,16 +400,6 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
     launch_arguments.append(
         DeclareLaunchArgument(
-            "urdf_package",
-            default_value="",
-            description=(
-                "Package containing the URDF xacro for robot_model. "
-                "If empty, falls back to kuka_<robot_family>_support."
-            ),
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
             "use_external_axis",
             default_value="false",
             choices=["true", "false"],
@@ -413,11 +409,29 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("kl_model", default_value="kl100_2"))
     launch_arguments.append(
         DeclareLaunchArgument(
-            "kl_urdf_package",
+            "kl_support_package",
             default_value="",
             description=(
                 "Package containing KL model and KL ros2_control xacro macros. "
                 "If empty, falls back to kuka_kl_support."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_macro_file",
+            default_value="kl_ros2_control_macro.xacro",
+            description=(
+                "External-axis ros2_control macro file inside <kl_support_package>/urdf."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_joints_macro",
+            default_value="kuka_kl_ros2_control_joints",
+            description=(
+                "External-axis ros2_control joints macro name used by the composed URDF template."
             ),
         )
     )
