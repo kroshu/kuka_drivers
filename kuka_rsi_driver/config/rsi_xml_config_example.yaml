@@ -1,0 +1,133 @@
+# Example RSI XML message configuration for a standard 6-axis KSS robot.
+#
+# Pass the path to this file (or a copy of it) to the driver via the
+# 'rsi_xml_config_file' hardware parameter in your robot's URDF/xacro.
+# If this parameter is not set, the SDK defaults are used
+# (RIst / AIPos / AK / EK element names), so for a standard setup this
+# file is only needed if you want to customise the XML element/attribute names.
+#
+# The generator script can produce the matching KRC ethernet XML:
+#   ros2 run kuka_rsi_driver generate_krc_rsi_config \
+#       --config rsi_xml_config_example.yaml \
+#       --client-ip 192.168.1.100 \
+#       --output rsi_ethernet.xml
+
+rsi_xml_config:
+
+  # -----------------------------------------------------------------
+  # motion_state — describes the XML elements in messages sent by the
+  # KRC to the PC (incoming to the driver).
+  # Omit this section to use the SDK defaults.
+  # -----------------------------------------------------------------
+  motion_state:
+
+    # Cartesian actual position element (KRC built-in: DEF_RIst)
+    cartesian:
+      enabled: true   # optional; set to false if not needed
+      xml_element: "RIst"
+      xml_attributes: ["X", "Y", "Z", "A", "B", "C"]   # optional; shown here for clarity
+
+    # Per-joint position mapping (KRC built-in: DEF_AIPos for internal axes).
+    # Must contain one entry per joint, in the same order as the URDF joints.
+    # Position values are always required.
+    joints:
+      positions:
+        - joint_identifier: "joint_1"
+          xml_element: "AIPos"
+          xml_attribute: "A1"
+        - joint_identifier: "joint_2"
+          xml_element: "AIPos"
+          xml_attribute: "A2"
+        - joint_identifier: "joint_3"
+          xml_element: "AIPos"
+          xml_attribute: "A3"
+        - joint_identifier: "joint_4"
+          xml_element: "AIPos"
+          xml_attribute: "A4"
+        - joint_identifier: "joint_5"
+          xml_element: "AIPos"
+          xml_attribute: "A5"
+        - joint_identifier: "joint_6"
+          xml_element: "AIPos"
+          xml_attribute: "A6"
+
+    # Optional per-joint velocity mapping.
+    # If provided, this must also contain one entry per joint.
+      # velocities:
+      #   - joint_identifier: "joint_1"
+      #     xml_element: "AIVel"
+      #     xml_attribute: "A1"
+      #   # ... repeat for each joint
+
+    # Optional per-joint torque mapping.
+    # If provided, this must also contain one entry per joint.
+      # torques:
+      #   - joint_identifier: "joint_1"
+      #     xml_element: "AITor"
+      #     xml_attribute: "A1"
+      #   # ... repeat for each joint
+
+    # GPIO state values (custom signals, one attribute per GPIO state interface).
+    # Comment out or remove if no GPIO state interfaces are configured.
+    # gpio:
+    #   xml_element: "GPIO"
+    #   xml_attributes: ["01", "02"]
+
+    # Delay and IPOC are fixed RSI built-ins (<Delay D="..."/> and <IPOC>...</IPOC>)
+    # and are always parsed by the SDK. They are not configurable.
+
+  # -----------------------------------------------------------------
+  # control_signal — describes the XML elements in messages sent by
+  # the PC to the KRC (outgoing from the driver).
+  # Omit this section to use the SDK defaults.
+  # -----------------------------------------------------------------
+  control_signal:
+
+    # Internal joint position corrections
+    joints:
+      xml_element: "AK"
+      # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated if omitted
+
+    # Internal joint velocity commands.
+    # Disabled by default for backward compatibility.
+    # Uncomment to enable.
+    # velocities:
+    #   enabled: true
+    #   xml_element: "VK"
+    #   # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated
+
+    # Internal joint torque commands.
+    # Disabled by default for backward compatibility.
+    # Uncomment to enable.
+    # torques:
+    #   enabled: true
+    #   xml_element: "TK"
+    #   # xml_attributes: ["A1", "A2", "A3", "A4", "A5", "A6"]   # optional; auto-generated
+
+    # External joint position corrections.
+    # Comment out or remove if no external axes are configured.
+    # ext_joints:
+    #   xml_element: "EK"
+    #   xml_attributes: ["E1"]
+
+    # External joint velocity commands.
+    # Independent from internal velocities: enabled only when this section is present.
+    # ext_velocities:
+    #   enabled: true
+    #   xml_element: "EVK"
+    #   # xml_attributes: ["E1"]   # optional; auto-generated
+
+    # External joint torque commands.
+    # Independent from internal torques: only enabled when this section is present.
+    # ext_torques:
+    #   enabled: true
+    #   xml_element: "ETK"
+    #   # xml_attributes: ["E1"]   # optional; auto-generated
+
+    # GPIO command values (one attribute per GPIO command interface).
+    # Comment out or remove if no GPIO command interfaces are configured.
+    # gpio:
+    #   xml_element: "GPIO"
+
+    # IPOC is always emitted as a fixed RSI built-in (<IPOC>...</IPOC>)
+    # and is not configurable here.
