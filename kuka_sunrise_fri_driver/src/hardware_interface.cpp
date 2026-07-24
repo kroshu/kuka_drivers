@@ -339,7 +339,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
         const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
 
-        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only one cycle behind 
+        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only
+        // one cycle behind
         while (current_count == expected_count - 1)
         {
           const auto now = std::chrono::steady_clock::now();
@@ -363,7 +364,8 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       if (current_count != expected_count)
       {
         RCLCPP_WARN(
-          rclcpp::get_logger("KukaFRIHardwareInterface"), "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          rclcpp::get_logger("KukaFRIHardwareInterface"),
+          "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
           expected_count, current_count, is_async_hardware_ ? "async" : "sync");
       }
     }

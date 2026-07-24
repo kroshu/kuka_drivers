@@ -389,6 +389,15 @@ bool RobotManagerBase::ValidateCycleTime(CycleTime cycle_time)
 
 bool RobotManagerBase::ChangeCycleTime(CycleTime cycle_time)
 {
+  if (robot_models_.size() != 1)
+  {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Update rate of controller manager is set to higher rate for multi-robot setup. Cycle time "
+      "change will not influence controller update rates.");
+    return true;
+  }
+
   int ms = CycleTimeToInt(cycle_time);
   int desired_rate_ = 1000 / ms;  // Convert ms to Hz
   auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();

@@ -297,7 +297,8 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
         const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
 
-        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only one cycle behind 
+        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only
+        // one cycle behind
         while (current_count == expected_count - 1)
         {
           const auto now = std::chrono::steady_clock::now();
