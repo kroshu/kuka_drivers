@@ -59,6 +59,7 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration("yaw")
     roundtrip_time = LaunchConfiguration("roundtrip_time")
     verify_robot_model = LaunchConfiguration("verify_robot_model")
+    rsi_xml_config_file = LaunchConfiguration("rsi_xml_config_file")
     ns = LaunchConfiguration("namespace")
     controller_config = LaunchConfiguration("controller_config")
     jtc_config = LaunchConfiguration("jtc_config")
@@ -67,6 +68,7 @@ def launch_setup(context, *args, **kwargs):
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
     lock_memory = LaunchConfiguration("lock_memory")
+    enable_rsi_monitoring = LaunchConfiguration("enable_rsi_monitoring")
     if ns.perform(context) == "":
         tf_prefix = ""
     else:
@@ -187,7 +189,10 @@ def launch_setup(context, *args, **kwargs):
             robot_ros2_control_macro_file,
             " ",
             "kl_model:=",
-            kl_model_value,
+            kl_model_value,    
+            " ",
+            "rsi_xml_config_file:=",
+            rsi_xml_config_file,
         ]
         effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
 
@@ -365,6 +370,21 @@ def launch_setup(context, *args, **kwargs):
         robot_state_publisher,
     ] + controller_spawners
 
+    if enable_rsi_monitoring.perform(context) == "true":
+        monitor_rsi_port = int(client_port.perform(context))
+        nodes_to_start.append(
+            Node(
+                namespace=ns,
+                package="kuka_rsi_driver",
+                executable="rsi_monitor_node.py",
+                parameters=[
+                    {
+                        "rsi_port": monitor_rsi_port,
+                    }
+                ],
+            )
+        )
+
     return nodes_to_start
 
 
@@ -431,6 +451,17 @@ def generate_launch_description():
             "verify_robot_model", default_value="true", choices=["true", "false"]
         )
     )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "rsi_xml_config_file",
+            default_value="",
+            description=(
+                "Absolute path to an RSI XML config YAML file. "
+                "When set, configures the XML element/attribute names used in RSI messages. "
+                "Leave empty to use the SDK defaults."
+            ),
+        )
+    )
     launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(
@@ -471,6 +502,11 @@ def generate_launch_description():
                 "Comma-separated CPU core indices for taskset pinning of non-RT threads "
                 "(e.g. '2,3,4'). Leave empty to disable pinning."
             ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "enable_rsi_monitoring", default_value="false", choices=["true", "false"]
         )
     )
     launch_arguments.append(
