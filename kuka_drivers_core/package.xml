@@ -17,6 +17,7 @@
   <depend>rclcpp_lifecycle</depend>
   <depend>lifecycle_msgs</depend>
   <depend>controller_manager</depend>
+  <depend>hardware_interface</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -20,6 +20,7 @@
 
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/joint_interface_validator.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
 #include "kuka_rsi_driver/rsi_xml_configuration_parser.hpp"
 
@@ -443,108 +444,21 @@ bool KukaRSIHardwareInterfaceBase::CheckJointInterfaces(
 bool KukaRSIHardwareInterfaceBase::CheckJointCommandInterfaces(
   const hardware_interface::ComponentInfo & joint) const
 {
-  bool has_position_command = false;
-  bool has_velocity_command = false;
-  bool has_effort_command = false;
-
-  for (const auto & interface_info : joint.command_interfaces)
-  {
-    if (interface_info.name == hardware_interface::HW_IF_POSITION)
-    {
-      if (has_position_command)
-      {
-        RCLCPP_FATAL(
-          logger_, "Duplicate POSITION command interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_position_command = true;
-    }
-    else if (interface_info.name == hardware_interface::HW_IF_VELOCITY)
-    {
-      if (has_velocity_command)
-      {
-        RCLCPP_FATAL(
-          logger_, "Duplicate VELOCITY command interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_velocity_command = true;
-    }
-    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
-    {
-      if (has_effort_command)
-      {
-        RCLCPP_FATAL(
-          logger_, "Duplicate EFFORT command interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_effort_command = true;
-    }
-    else
-    {
-      RCLCPP_FATAL(
-        logger_, "Unsupported command interface '%s' for joint %s", interface_info.name.c_str(),
-        joint.name.c_str());
-      return false;
-    }
-  }
-
-  return true;
+  const std::vector<std::string> expected_interfaces = {
+    hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY,
+    hardware_interface::HW_IF_EFFORT};
+  return kuka_drivers_core::urdf_validator::ValidateJointCommandInterfaces(
+    joint, expected_interfaces, logger_);
 }
 
 bool KukaRSIHardwareInterfaceBase::CheckJointStateInterfaces(
   const hardware_interface::ComponentInfo & joint) const
 {
-  bool has_position_state = false;
-  bool has_velocity_state = false;
-  bool has_effort_state = false;
-
-  for (const auto & interface_info : joint.state_interfaces)
-  {
-    if (interface_info.name == hardware_interface::HW_IF_POSITION)
-    {
-      if (has_position_state)
-      {
-        RCLCPP_FATAL(
-          logger_, "Duplicate POSITION state interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_position_state = true;
-    }
-    else if (interface_info.name == hardware_interface::HW_IF_VELOCITY)
-    {
-      if (has_velocity_state)
-      {
-        RCLCPP_FATAL(
-          logger_, "Duplicate VELOCITY state interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_velocity_state = true;
-    }
-    else if (interface_info.name == hardware_interface::HW_IF_EFFORT)
-    {
-      if (has_effort_state)
-      {
-        RCLCPP_FATAL(logger_, "Duplicate EFFORT state interface for joint %s", joint.name.c_str());
-        return false;
-      }
-      has_effort_state = true;
-    }
-    else
-    {
-      RCLCPP_FATAL(
-        logger_, "Unsupported state interface '%s' for joint %s", interface_info.name.c_str(),
-        joint.name.c_str());
-      return false;
-    }
-  }
-
-  if (!has_position_state)
-  {
-    RCLCPP_FATAL(logger_, "POSITION state interface is required for joint %s", joint.name.c_str());
-    return false;
-  }
-
-  return true;
+  const std::vector<std::string> expected_interfaces = {
+    hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY,
+    hardware_interface::HW_IF_EFFORT};
+  return kuka_drivers_core::urdf_validator::ValidateJointStateInterfaces(
+    joint, expected_interfaces, logger_);
 }
 
 void KukaRSIHardwareInterfaceBase::CopyGPIOStatesToCommands()
