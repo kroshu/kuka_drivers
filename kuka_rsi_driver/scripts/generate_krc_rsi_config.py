@@ -307,7 +307,9 @@ def build_krc_xml(
 
     for attr in joint_cmd_attrs:
         tag = f"{joint_cmd_elem}.{attr}"
-        ET.SubElement(elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(index), HOLDON="1")
+        ET.SubElement(
+            elements_recv, "ELEMENT", TAG=tag, TYPE="DOUBLE", INDX=str(index), HOLDON="1"
+        )
         index += 1
 
     # External joint command entries
