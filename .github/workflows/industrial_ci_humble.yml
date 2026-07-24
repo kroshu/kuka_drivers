@@ -9,11 +9,7 @@ on:
   push:
     branches:
       - humble
-    paths-ignore:
-      - doc/**
-      - '**.md'
-      - LICENSE
-      - .github/workflows/deploy_wiki.yml
+
   pull_request:
     branches:
       - humble
