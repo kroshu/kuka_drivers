@@ -20,11 +20,13 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
-#include "kuka_driver_interfaces/msg/fri_state.hpp"
+#include "hardware_interface/loaned_state_interface.hpp"
+#include "kuka_driver_interfaces/msg/fri_state_array.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 
+#include "fri_state_broadcaster/fri_state_broadcaster_parameters.hpp"
 #include "fri_state_broadcaster/visibility_control.h"
 
 namespace kuka_controllers
@@ -53,9 +55,26 @@ public:
   FRI_STATE_BROADCASTER_PUBLIC controller_interface::CallbackReturn on_init() override;
 
 private:
+  static std::string ComposeInterfaceName(
+    const std::string & robot_prefix, const std::string & interface_name);
+
+  static void AssignStateFromInterfaces(
+    kuka_driver_interfaces::msg::FRIState & state,
+    const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
+    size_t start_idx);
+
+  using Params = fri_state_broadcaster::Params;
+  using ParamListener = fri_state_broadcaster::ParamListener;
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+
   int counter_ = 0;
-  rclcpp::Publisher<kuka_driver_interfaces::msg::FRIState>::SharedPtr robot_state_publisher_;
-  kuka_driver_interfaces::msg::FRIState state_msg_;
+  rclcpp::Publisher<kuka_driver_interfaces::msg::FRIStateArray>::SharedPtr state_publisher_;
+  std::vector<std::string> robot_prefixes_;
+  std::vector<kuka_driver_interfaces::msg::FRIState> current_states_;
+  kuka_driver_interfaces::msg::FRIStateArray state_msg_;
+
+  static constexpr size_t STATE_INTERFACE_COUNT = 9;
 };
 }  // namespace kuka_controllers
 #endif  // FRI_STATE_BROADCASTER__FRI_STATE_BROADCASTER_HPP_

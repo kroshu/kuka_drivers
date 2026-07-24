@@ -1,115 +1,85 @@
-# iiQka driver (RSI)
+# KSS and iiQKA.OS2 drivers (RSI)
 
-## Setup
+This guide provides instructions for setting up and using the RSI-based ROS 2 driver for KUKA robots running on **KUKA System Software (KSS)** and **iiQKA.OS2**.
 
-### Test setup
+The driver supports three configurations on both KSS and iiQKA.OS2:
 
-Tested configurations:
+- `rsi_only`: Uses only the RSI channel.
+- `eki_rsi`: Uses EKI for non-real-time startup/status handling and RSI for cyclic control.
+- `mxa_rsi`: Uses mxAutomation for non-real-time startup/status handling and RSI for cyclic control.
 
-| Controller | Robot              | iiQKA.OS2 Version | RSI Version |
-|------------|--------------------|-------------------|-------------|
-| KR C5 OPS  | &ndash;            | 9.1.0             | 6.1.2       |
-| KR C5      | KR 16 R1610-2      | 9.1.0             | 6.1.2       |
+The integration of EKI and mxA not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers.
 
-### Client side
+It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
+
+## Test setups
+
+The following tables contain the exact versions used for testing the driver.
+
+### KSS tested configurations
+
+| Controller | Robot                | KSS Version | EthernetKRL Version | RSI Version |
+|------------|----------------------|-------------|---------------------|-------------|
+| KR C4 OPS  | &ndash;              | 8.6.11      | 3.1.4               | 4.1.3       |
+| KR C5 OPS  | &ndash;              | 8.7.5       | 3.2.5               | 5.0.2       |
+| KR C5      | KR 120 R2700-2 Dummy | 8.7.5       | 3.2.5               | 5.0.2       |
+| KR C5      | KR 6 R900-2          | 8.7.5       | 3.2.5               | 5.0.2       |
+
+### iiQKA.OS2 tested configurations
+
+| Controller | Robot         | iiQKA.OS2 Version | RSI Version |
+|------------|---------------|-------------------|-------------|
+| KR C5 OPS  | &ndash;       | 9.1.0             | 6.1.2       |
+| KR C5      | KR 16 R1610-2 | 9.1.0             | 6.1.2       |
+
+
+## Client-side setup
 
 It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
 
-To set up the controller with iiQWorks.Sim (which is necessary if RSI is not yet installed), a Windows machine is also required.
+To be able to connect to RSI running on the controller, a fixed IP in the subnet of the RSI interface is required on the Linux machine.
 
-#### Client IP configuration
+## Controller-side setup (OS-specific)
 
-- Use the KRC's built in DHCP server (KSI) to connect to the windows machine (in this case leave the subnet settings as default) or set a fixed IP in the subnet of the KLI interface. This is required to connect to iiQWorks.Sim and transfer the project to the KRC
-- Set a fixed IP in the subnet of the KLI interface for the real-time machine, which is required to send commands via the RSI interface.
+To set up the controller with WorkVisual/iiQWorks.Sim, a Windows machine is also required with a fixed IP in the subnet of the KLI interface for transferring the project.
 
-### Controller side
+### KSS setup
 
-These instructions were tested with RSI 6.0.0 (on iiQKA.OS2)
+Use the SDK setup guide for all KSS controller-side steps (network, file deployment, wrappers):
 
-#### Controller network configuration
+- [External Control Setup for KSS](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/kss_setup.md)
 
-RSI can only communicate via the KLI network. Make sure that the controller network and the **PC with ROS** is connected to the same subnet.
+Setups for all three versions (`rsi_only`, `eki_rsi`, `mxa_rsi`) are available in this file.
 
-1. Log in as **Expert**, **Safety Maintenance Technician** or **Administrator** on the smartped and in the main menu bar navigate to **Network** menu (**System > System settings > Network**).
+### iiQKA.OS2 setup (RSI 6.x)
 
-2. Change network settings:
-    - Set the **Allocation** to manual, to connect the ROS PC directly with the controller
-    - Set the **IP address** and the **Subnet mask** to the chosen address
+Use the SDK setup guide for all iiQKA.OS2 controller-side steps (network, file deployment, wrappers):
 
-3. After pressing **Apply** the new network address should be configured.
+- [External Control Setup for iiQKA.OS2](https://github.com/kroshu/kuka-external-control-sdk/blob/master/kuka_external_control_sdk/doc/iiqka_os2_setup.md)
 
-#### RSI configuration
+Setups for all three versions (`rsi_only`, `eki_rsi`, `mxa_rsi`) are available in this file.
 
-Configure your project in iiQWorks.Sim with the following steps:
-
-1. Add the desired RSI version (6.0.0 or above) to iiQWorks.Sim
-    - Download RSI option package from the **Software Repository** in **iiQworks.Cockpit**
-    - Open the Option Package Manager by the manage button in the **Add-ons** (**File > Options > Add-on > KUKA Option packages > Manage**)
-    - By clicking on the **plus sign** add the downloaded option package from your file system (it should be a **.kop** file).
-
-2. After adding the desired robot from the eCatalog by dragging it to the layout configure the option packages to use.
-    - In the **Component properties**, under **Option packages configuration** add the desired option packages with the plus sign.
-
-3. After adding the RSI option package under the **Home** page in the **devices** tab under **Option packages > iiQka.RobotSensorInterface**, there are two menu options available:
-    - The first one is a list of available context files. You can import, export and create new context files. The files can be visualized and edited with **RSIVisual**.
-    - The second is a list of ethernet configuration files. You can import, export and create new context files. The files can be visualized and edited with **XML editor**.
-
-4. Under the **Program** page the KRL program files are available
-
-#### Update and upload configuration files
-
-Several files required for RSI can be found in the [`kuka-external-control-sdk`](https://github.com/kroshu/kuka-external-control-sdk) repository, located in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
-
-- `Program/RSI/rsi_joint_pos.src`: This contains the KRL program that starts external control with 4 ms cycle time.
-- `Program/RSI/rsi_helper.dat` and `Program/RSI/rsi_helper.src`: These are used for configuring the RSI context based on the current robot position.
-- `RobotSensorInterface/Context/ros_rsi.rsix`: This contains the RSI context (can be visualized with **RSIVisual**). It can be modified for example to add GPIO handling ([See further documentation on this here](#io-configuration)), or to add filtering behaviour, but that is not recommended and should be implemented on the client side instead.
-  - RSI context files for KSS systems (RSI < 6.0.0) are currently not importable to iiQWorks.Sim.
-- `RobotSensorInterface/Ethernet_configuration/rsi_ethernet.xml`: specifies the data transferred via RSI and contains the IP configuration of the client machine:
-  - The `IP_NUMBER` tag should be modified so that it corresponds to the IP address previously added for your (real-time) PC.
-  - The `PORT` might be left as it is (59152), but can be also changed if a different port is to be used on the client machine.
-
-Upload files to the controller:
-
-1. Connect to the KRC with iiQWorks.Sim
-2. Log in as **Expert** or **Administrator** on the controller and change the operation mode to **T1**.
-3. Import the `rsi_joint_pos.src`, `rsi_helper.dat` and `rsi_helper.src` files to `Program` folder under **Program** page in iiQWorks.Sim.
-4. Import the `rsi_joint_pos.rsix` file under **Context** field in the **Home** page.
-5. Import the `rsi_ethernet.xml` file under **Ethernet configurations** field in the **Home** page.
-6. Move to the **Configuration** page and deploy the configuration.
-
-## Configuration
-
-Important to note that for the iiQKA.OS2 you can use the same RSI driver as for the KSS OS, as they use the same [SDK implementation](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/kss).
+## Driver configuration
 
 ### Startup configuration
 
 The following configuration files are available in the `config` directory of the package:
 
-- `driver_config.yaml`: : contains runtime parameters of the `robot_manager` node
+- `driver_config.yaml`: contains runtime parameters of the `robot_manager` node
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
-#### IP configuration
-
-The following parameters must be set in the driver configuration file:
-
-- `client_ip`: IP address of the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
-- `client_port`: port of the real-time communication on the client machine, should be identical to the one set in `ros_rsi_ethernet.xml`
 
 ### Runtime parameters
 
-The parameters in the driver configuration file can be also changed during runtime using the parameter interface of the `robot_manager` node:
+The parameters in the driver configuration file can be changed during runtime using the parameter interface of the `robot_manager` node:
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
 - `cycle_time`: The cycle time of RSI communication either 1 (4ms) or 2 (12ms). It can't be changed in active state.
 
-### IP Configuration
+### I/O configuration
 
-The IP address of the client machine must be provided as a launch argument. For further information see section [launch arguments](#launch-arguments).
-
-#### I/O configuration
-
-The iiQKA.OS2 robot system supports the use of inputs and outputs to control grippers, conveyor belts, or to read sensor data. The RSI system also supports controlling these I/Os in real time. The I/Os are defined from the robot controller’s point of view: an `input` can only have state interfaces in ROS Control, while an `output` can have both state and command interfaces. In the iiQKA.OS2 robot system, I/Os can be configured with different types according to their size and representation.
+KSS and iiQKA.OS2 support inputs and outputs for real-time usage through RSI. The I/Os are defined from the robot controller's point of view: an `input` can only have state interfaces in ROS Control, while an `output` can have both state and command interfaces.
 
 RSI groups the I/Os into three categories:
 
@@ -123,33 +93,8 @@ Generally, only a few constraints are imposed on naming the I/Os:
 - The names must be unique across both the state and command interfaces.
 - Since `outputs` can have both state and command interfaces, if these interfaces are configured with the same name, they are considered connected. In this case, the system will handle them by first reading the state of the `output`, then writing to it via the command interface.
 
-##### Controller side configuration
 
-To configure the controller side, two additional files are available in the `kuka_external_control_sdk/krc_setup/iiqka_os2` directory:
-
-1. The `RobotSensorInterface/Context/rsi_gpio_joint_pos.rsix` file offers an example of how to set up the different I/Os. For detailed instructions, please refer to the RSI manual on KUKA Xpert.
-   - The file can be edited via RSI Visual in iiQWorks.Sim.
-   - All I/Os should be connected to the inputs or outputs of the Ethernet RSI object.
-
-2. The Ethernet RSI object requires the `RobotSensorInterface/Ethernet_configuration/rsi_gpio_ethernet.xml` configuration file.
-   - The `<SEND>` object contains all parameters that are sent to the client.
-   - The `<RECEIVE>` object contains all the parameters that are received from the client.
-   - To add a new I/O element the following parameters must be set:
-     - `TAG`: Contains the aforementioned unique key. The tag format is: `GPIO.UniqueKey`. It must start with `GPIO`, followed by a `.`, and then the `key`.
-     - `TYPE`: The type can be one of the following: `BOOL`, `DOUBLE`, or `LONG`.
-     - `INDX`: This must match the configuration of the I/O object in RSI Visual for the Ethernet object. This is the only parameter that connects the XML file entries to those in the `.rsix` file.
-     - `HOLDON`: This is only used in the `<RECEIVE>` object. It sets the behavior of the output when packets are missed:
-       - `0`: The output is reset.
-       - `1`: The most recent valid value remains at the output.
-   - A sample configuration for one I/O element:
-
-      ```xml
-      <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
-      ```
-
-3. To run the GPIO example, a `Program/RSI/rsi_gpio_example.src` file has been added.
-
-##### Client side configuration
+#### Client side I/O configuration
 
 To configure the client side, two configuration files need to be completed:
 
@@ -163,6 +108,7 @@ To configure the client side, two configuration files need to be completed:
      - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `initial_value`: Initial value of the interface. The value must be in a number format for every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
+  - To set up the provided example, uncomment the constructed interfaces in the `gpio_config.xacro` config file.
    - An example with both state and command interfaces with all parameters:
 
       ```xml
@@ -187,70 +133,11 @@ To configure the client side, two configuration files need to be completed:
      - These must be listed in groups, as explained in the linked controller documentation.
      - Ensure that the interface names match those defined earlier.
 
-### External axes configuration
-
-Both iiQKA.OS2 and the RSI option package support adding external axes to the robot. We provide an [example](https://github.com/kroshu/examples/blob/master/kuka_external_axis_examples) that integrates a single linear axis. This example, together with the structure and documentation, should help users implement their own external‑axis configurations.
-
-#### Controller-side configuration
-
-Use the files in [`kuka_external_control_sdk/krc_setup/iiqka_os2`](https://github.com/kroshu/kuka-external-control-sdk/tree/master/kuka_external_control_sdk/krc_setup/iiqka_os2) when configuring the controller side.
-
-##### Context
-
-The `RobotSensorInterface/Context/rsi_ext_axis_example.rsix` contains an example setup with one linear external axis:
-
-![External Axis Example Context](resources/rsi_ext_axis_example_context.png)
-
-Compared to the original context:
-
-![Original Context](resources/rsi_joint_pos_context.png)
-
-The following changes were required:
-
-- Add the `AxisCorrExt` object.
-- Connect `Ethernet` object's `Out8` output to the first input of `AxisCorrExt`.
-- Update the `LowerLimE1` and `UpperLimE1` parameters of `AxisCorrExt`.
-- Update the `MaxE1` parameter of the `AxisCorrMon` object.
-
-To create a new custom context:
-
-- Connect the next `OutX` output of the `Ethernet` object to the corresponding `CorrEX` input of `AxisCorrExt` for each external axis.
-- Adjust limits (`MaxEX`, `LowerLimX`, `UpperLimX`) accordingly.
-
-##### Ethernet configuration
-
-The configuration file referenced by the Ethernet object must also be updated. See the example in: `RobotSensorInterface/Ethernet configuration/rsi_ext_axis_ethernet.xml`.
-
-The only difference from the original configuration is an additional line in the `RECEIVE` block:
-
-```xml
-<ELEMENT TAG="EK.E1" TYPE="DOUBLE" INDX="8" HOLDON="1" />
-```
-
-This allows RSI to parse data from the driver.
-
-> [!IMPORTANT]
-> Use a consistent naming convention for external-axis values (`TAG="EK.EX"`), incrementing `X` for each axis. Ensure `INDX` values also increase sequentially.
-
-> [!IMPORTANT]
-> When using GPIOs, list external axes before adding GPIO message configuration. The correct order is: internal axes &rarr; external axes &rarr; GPIOs.
-
-##### Program
-
-To adapt the KRL program for the external-axis example, update the `CONTEXT_NAME` variable in `Program/RSI/rsi_joint_pos.dat` to `rsi_ext_axis_example`. For custom setups, use the name of the corresponding context file.
-
-#### Client-side configuration
-
-See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axes-configuration) for all client-side configuration steps.
-
-> [!NOTE]
-> The driver supports only __revolute__ and __prismatic__ external joints.
-
 ### RSI XML message configuration
 
 By default, the driver uses the default RSI XML element names inherited from the `kuka-external-control-sdk` (`RIst`, `AIPos`, `AK`, `EK`, etc.) and the provided `rsi_ethernet.xml` is already aligned with these defaults. If your RSI context file uses different XML element or attribute names (for example when adding a custom RSIX context), you can configure the driver to match by providing a YAML file.
 
-#### YAML configuration file
+##### YAML configuration file
 
 An annotated example is provided at `kuka_rsi_driver/config/rsi_xml_config_example.yaml`. Copy and adapt it to match your setup:
 
@@ -349,7 +236,7 @@ Upload the generated file to the controller as described in [Update and upload c
 
 ### Starting the driver
 
-1. To start the driver, two launch file are available, with and without `rviz`. To launch (without `rviz`), run:
+1. To start the driver, two launch files are available, with and without `rviz`. To launch (without `rviz`), run:
 
     ```bash
     ros2 launch kuka_rsi_driver startup.launch.py
@@ -361,7 +248,7 @@ Upload the generated file to the controller as described in [Update and upload c
     - There is no need to set the Client IP, since the driver automatically listens on the `0.0.0.0` address.
     - After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller, see further steps (before this only a collapsed robot is visible in `rviz`):
 
-2. Configure and activate all components the driver:
+2. Configure and activate all components of the driver:
 
     ```bash
     ros2 lifecycle set robot_manager configure
@@ -369,32 +256,48 @@ Upload the generated file to the controller as described in [Update and upload c
     ```
 
     - The hardware interface is now waiting for the robot controller to connect, the timeout for this is currently 10 seconds
-3. In the **Programming** menu, under the **Navigator** tab start the `Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
-   - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
-On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
+3. Start external control according to your `driver_version`:
+  - `rsi_only`: start the RSI program manually on the controller and execute `RSI_MOVECORR()`.
+    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
+  - `eki_rsi` or `mxa_rsi`: RSI program is automatically selected and started
 
-#### Launch arguments
+
+On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
+
+### Launch arguments
 
 Both launch files support the following arguments:
 
 - `client_port`: port of the client machine (default: 59152)
+- `controller_ip`: The IP address of the KUKA Line Interface (KLI) - not used for `rsi_only` setup
 - `mxa_client_port`: port of the client machine where mxAutomation packets are received (default: 1337)
-- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-is-verified) of the `kuka_robot_descriptions` repository.
+- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `use_gpio`: if set to `false` the usage of I/Os are disabled (defaults to `true`).
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `mode` is set to 'mock')
-- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
-- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml`).
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 4000 us, only used if `mode` is set to 'mock')
+- `controller_config_dir`: the directory that contains all controller configuration files (defaults to `kuka_rsi_driver/config`). The driver expects the following file names in this directory:
+  - `ros2_controller_config_rsi_only.yaml` (used when `driver_version:=rsi_only`)
+  - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
+  - `joint_trajectory_controller_config.yaml`
+  - `kuka_event_broadcaster_config.yaml`
+  - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
+  - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
+  - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
+- `driver_version`: configures which driver to use. Possible values are `rsi_only`, `eki_rsi` and `mxa_rsi` (defaults to `rsi_only`)
+- `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi` or `mxa_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
+- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 - `rt_core`: CPU core index for taskset pinning of the realtime control thread. (default: -1 = do not pin)
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
-- `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
 - `enable_rsi_monitoring`: If set to `true`, starts an additional non-invasive UDP port monitor node that passively monitors RSI communication and reports communication statistics when the driver is stopped (defaults to `false`).
+
+> [!NOTE]
+> The `rt_core` and `rt_prio`, parameters are not applied to asynchronous hardware interfaces. For async hardware configuration, use the `async_thread_priority` and `async_affinity` xacro arguments instead.
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 
@@ -438,7 +341,65 @@ ros2 lifecycle set robot_manager configure
 ros2 lifecycle set robot_manager activate
 ```
 
+
+## External axes configuration
+
+Both KSS and the RSI option package support adding external axes to the robot. We provide an [example](https://github.com/kroshu/examples/blob/master/kuka_external_axis_examples) that integrates a single linear axis. This example, together with the structure and documentation, should help users implement their own external‑axis configurations.
+
+### Controller-side configuration
+
+#### Context
+
+The `Config/User/Common/SensorInterface/rsi_ext_axis_example.rsix` contains an example setup with one linear external axis.
+
+Compared to the original context the following changes were required:
+
+- Add the `AxisCorrExt` object.
+- Connect `Ethernet` object's `Out8` output to the first input of `AxisCorrExt`.
+- Update the `LowerLimE1` and `UpperLimE1` parameters of `AxisCorrExt`.
+- Update the `MaxE1` parameter of the `AxisCorrMon` object.
+
+To create a new custom context:
+
+- Connect the next `OutX` output of the `Ethernet` object to the corresponding `CorrEX` input of `AxisCorrExt` for each external axis.
+- Adjust limits (`MaxEX`, `LowerLimX`, `UpperLimX`) accordingly.
+
+#### Ethernet configuration
+
+The configuration file referenced by the Ethernet object must also be updated. See the example in: `Config/User/Common/SensorInterface/rsi_ext_axis_ethernet.xml`.
+
+The only difference from the original configuration is an additional line in the `RECEIVE` block:
+
+```xml
+<ELEMENT TAG="EK.E1" TYPE="DOUBLE" INDX="8" HOLDON="1" />
+```
+
+This allows RSI to parse data from the driver.
+
+> [!IMPORTANT]
+> Use a consistent naming convention for external-axis values (`TAG="EK.EX"`), incrementing `X` for each axis. Ensure `INDX` values also increase sequentially.
+
+> [!IMPORTANT]
+> When using GPIOs, list external axes before adding GPIO message configuration. The correct order is: internal axes &rarr; external axes &rarr; GPIOs.
+
+#### Program
+
+To adapt the KRL program for the external-axis example:
+
+- KSS: update the RSI context name in `KRC/R1/Program/RSI/rsi_joint_pos_4ms.src` or `KRC/R1/Program/RSI/rsi_joint_pos_12ms.src` to `rsi_ext_axis_example`.
+- iiQKA.OS2: update the `CONTEXT_NAME` variable in `Program/RSI/rsi_joint_pos.dat` to `rsi_ext_axis_example`.
+
+For custom setups, use the name of the corresponding context file.
+
+### Client-side configuration
+
+See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axes-configuration) for all client-side configuration steps.
+
+> [!NOTE]
+> The driver supports only __revolute__ and __prismatic__ external joints.
+
+
 ## Known issues and limitations
 
 - In case of an error on the controller side, the driver is not deactivated
-- Cartesian position control mode not yet supported
+- Cartesian position control mode is not yet supported

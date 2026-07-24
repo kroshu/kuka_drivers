@@ -177,6 +177,15 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
   event_state_.server_state =
     static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
 
+  auto info = get_hardware_info();
+  runtime_state_.is_async_hardware = info.is_async;
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -204,7 +213,8 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
   }
 
   state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &event_state_.server_state);
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &event_state_.server_state);
 
   return state_interfaces;
 }
@@ -232,6 +242,10 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
       hardware_interface::IO_PREFIX, info_.gpios[0].command_interfaces[i].name,
       &interface_data_.gpio_commands[i]);
   }
+
+  command_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &control_state_.interpolation_count_command);
 
   return command_interfaces;
 }
@@ -263,6 +277,58 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   {
     return return_type::OK;
   }
+
+  uint32_t current_count = static_cast<uint32_t>(control_state_.interpolation_count_command);
+  if (diagnostics_state_.interpolation_count_initialized)
+  {
+    const uint32_t expected_count =
+      (diagnostics_state_.last_interpolation_count_command == std::numeric_limits<uint32_t>::max())
+        ? 0
+        : diagnostics_state_.last_interpolation_count_command + 1;
+
+    if (current_count != expected_count)
+    {
+      if (runtime_state_.is_async_hardware)
+      {
+        RCLCPP_INFO(
+          logger_, "interpolation_count mismatch before write: expected %u, got %u", expected_count,
+          current_count);
+        const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+        const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::microseconds(200));
+
+        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only
+        // one cycle behind
+        while (current_count == expected_count - 1)
+        {
+          const auto now = std::chrono::steady_clock::now();
+          if (now >= retry_deadline)
+          {
+            break;
+          }
+
+          auto sleep_time = retry_step;
+          const auto remaining = retry_deadline - now;
+          if (remaining < sleep_time)
+          {
+            sleep_time = remaining;
+          }
+
+          std::this_thread::sleep_for(sleep_time);
+          current_count = static_cast<uint32_t>(control_state_.interpolation_count_command);
+        }
+      }
+
+      if (current_count != expected_count)
+      {
+        RCLCPP_WARN(
+          logger_, "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          expected_count, current_count, runtime_state_.is_async_hardware ? "async" : "sync");
+      }
+    }
+  }
+  diagnostics_state_.interpolation_count_initialized = true;
+  diagnostics_state_.last_interpolation_count_command = current_count;
 
   Write();
 
@@ -721,6 +787,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
 
   runtime_state_.msg_received = false;
   runtime_state_.is_active = true;
+  diagnostics_state_.interpolation_count_initialized = false;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
@@ -753,6 +820,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   }
   runtime_state_.is_active = false;
   runtime_state_.msg_received = false;
+  diagnostics_state_.interpolation_count_initialized = false;
   if (control_state_.status_manager.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");

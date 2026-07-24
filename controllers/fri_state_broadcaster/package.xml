@@ -12,12 +12,13 @@
 
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>controller_interface</depend>
   <depend>pluginlib</depend>
   <depend>kuka_driver_interfaces</depend>
   <depend>kuka_drivers_core</depend>
+  <depend>generate_parameter_library</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

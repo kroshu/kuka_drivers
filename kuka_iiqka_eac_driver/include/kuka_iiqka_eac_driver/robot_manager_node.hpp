@@ -22,11 +22,11 @@
 
 #include "controller_manager_msgs/srv/set_hardware_component_state.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "rclcpp/client.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int32.hpp"
-#include "std_msgs/msg/u_int8.hpp"
 
 #include "kuka_drivers_core/controller_handler.hpp"
 #include "kuka_drivers_core/ros2_base_lc_node.hpp"
@@ -51,9 +51,9 @@ public:
     const rclcpp_lifecycle::State &) override;
 
 private:
-  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr msg);
+  void EventSubscriptionCallback(const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr msg);
   bool onControlModeChangeRequest(int control_mode);
-  bool onRobotModelChangeRequest(const std::string & robot_model);
+  bool onRobotModelsChangeRequest(const std::vector<std::string> & robot_models);
 
   rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr
     change_hardware_state_client_;
@@ -61,7 +61,7 @@ private:
     change_controller_state_client_;
   rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::CallbackGroup::SharedPtr event_cbg_;
-  std::string robot_model_;
+  std::vector<std::string> robot_models_;
 
   kuka_drivers_core::ControllerHandler controller_handler_;
   kuka_drivers_core::ControlMode control_mode_ =
@@ -77,7 +77,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr is_configured_pub_;
   std_msgs::msg::Bool is_configured_msg_;
 
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr event_subscriber_;
+  rclcpp::Subscription<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_subscriber_;
 };
 
 }  // namespace kuka_eac

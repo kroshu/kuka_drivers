@@ -1,0 +1,6 @@
+kuka_control_mode_handler:
+  robot_prefixes:
+    type: string_array
+    # Keep one entry by default; empty string means unprefixed single-robot behavior.
+    default_value: [""]
+    description: List of robot prefixes whose control_mode command interfaces are updated together.

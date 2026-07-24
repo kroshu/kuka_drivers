@@ -40,7 +40,7 @@ The startup procedure for any system in ROS can be defined using a launch file, 
 The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The hardware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meaning:
 
 - `unconfigured`: all necessary components are started, but no connection is needed to the robot
-- `configured`: The driver has valid parameters configured, external control can be initiated. It is possible to change most parameters (with the exception of IP addresses and robot model) in this state without having to clean up the `robot_manager` node. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#3-configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
+- `configured`: The driver has valid parameters configured, external control can be initiated. It is possible to change most parameters (with the exception of IP addresses and robot model) in this state without having to clean up the `robot_manager` node. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#3-configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
 - `active`: external control is running with cyclic real-time communication, controllers are active
 
 To achieve these synchronized states, the state transitions of the system do the following steps (implemented by the launch file and the `robot_manager` node):
@@ -149,8 +149,50 @@ open_loop_control: true
 
 ## Multi-robot scenario
 
-As the robot controllers manage the timing of the drivers, it does not make sense to add more robots to the same control loop, as it would only lead to timeouts on the controller side. Therefore to start the drivers of multiple robots, all components have to be duplicated. This can be achieved by using the `namespace` argument of the launch files (which is available for all drivers) to avoid name collisions. This will add a namespace to all nodes and controllers of the driver and will also modify the `prefix` argument of the robot description macro to `namespace_`. To adapt to the new namespace and prefix, the configurations files of the driver must also be modified to reflect the new node and joint names. An example of this can found in the [`iiqka_moveit_example`](https://github.com/kroshu/examples/blob/master/iiqka_moveit_example) package, that starts two robots with `test1` and `test2` namespaces and modified configuration files.
+Since ROS 2 Jazzy, `ros2_control` supports asynchronous hardware interfaces. With this feature enabled, multiple robots can be started within the same `controller_manager`, because each hardware interface can run in its own asynchronous execution context, the blocking `read()` methods no longer cause an issue.
+
+For a multi-robot setup, a dedicated robot description xacro should be created that loads both robot models in one file using launch arguments (for example robot model names, prefixes and optional namespace-specific parameters). This combined xacro is then passed as the single `robot_description` to the control node. It is important that the synchronous hardware interface is activated last, because all component activation steps acquire a lock that blocks the read-write loop of the synchronous thread, therefore activation would starve out the already active hardware interface of the main thread.
+
+A dedicated launch file is also required for this setup. It should declare the arguments of both robots, generate the combined xacro, start one `controller_manager`, and spawn the controllers for both robots with the correct names and configuration files. Configuration files still need to be adapted to the corresponding namespaces and prefixed joint names. An example setup is available in the `kuka_multi_robot_examples` package: [examples/kuka_multi_robot_examples](https://github.com/kroshu/examples/tree/master/kuka_multi_robot_examples).
+
+The robot hardware descriptions expose two configurable parameters to control the async execution behavior:
+
+- `async_thread_priority` (default: `69`): sets the thread priority for the asynchronous hardware interface executor thread
+- `async_affinity` (default: `""` - empty, allows any core): pins the asynchronous hardware interface thread to specific CPU cores
+
+To plan with Moveit and a dual-arm setup, the moveit configuration also has to be modified. As here the URDF and SRDF files are not in the moveit support package, using MoveitConfigsBuilder is not recommended, the configuration files have to be loaded manually one by one. It is possible to create new configuration files with the resource names updated, or to remap the existing resource names from the launch files. An example for this second approach is also available in the `kuka_multi_robot_examples` package.
+
+### Dual-arm timing scenarios
+
+The following timing constraints apply in all cases due to `ros2_control` behavior:
+- Main-thread `read` starts immediately after `write` finishes, so this thread is not idle.
+- Async-thread `read` is called at a fixed rate (defined by the controller manager update rate), so there is an idle period after every `write`.
+- KRCs send motion states every 4 ms, but jitter is possible.
+- `update` runs only on the main thread, but it also updates the async hardware interface.
+
+Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads.
+
+**Scenario 1:**
+The async thread receives robot state 2 ms after `read` is triggered.
+Outcome: both robots can be controlled smoothly, and jitter does not affect stability.
+![alt text](resources/dual_arm_timing/scenario1.png)
+
+**Scenario 2:**
+The async thread receives robot state 0.5 ms after `read` is triggered.
+Outcome: both robots can be controlled smoothly, but the system is not jitter-resistant.
+![alt text](resources/dual_arm_timing/scenario2.png)
+
+**Scenario 3:**
+The async thread receives robot state 0.5 ms after `read` is triggered, and `read` scheduling is delayed for one cycle.
+Issue: the packet arrives while the thread is still idle. `read` is then called afterwards and skips this packet (which also causes a one-tick delay for all subsequent packets).
+![alt text](resources/dual_arm_timing/scenario3.png)
+
+**Scenario 4:**
+The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.5 ms late.
+Issue: due to the late packet, `update` is executed for the second time before this `write`. In the next cycle, no `update` is executed before `write`, causing a robot jerk.
+![alt text](resources/dual_arm_timing/scenario4.png)
+
 
 ## Detailed setup and startup instructions
 
-For detailed information about the drivers, visit the dedicated wiki pages for [KSS](https://github.com/kroshu/kuka_drivers/wiki/2_KSS_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/4_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC) or [iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/3_iiQKA.OS2_RSI) robots.
+For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).

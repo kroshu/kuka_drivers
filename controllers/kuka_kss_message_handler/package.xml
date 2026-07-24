@@ -16,6 +16,7 @@
   <depend>std_msgs</depend>
   <depend>kuka_drivers_core</depend>
   <depend>kuka_driver_interfaces</depend>
+  <depend>generate_parameter_library</depend>
 
   <test_depend>controller_manager</test_depend>
   <test_depend>ros2_control_test_assets</test_depend>

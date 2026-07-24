@@ -20,7 +20,23 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn ControlModeHandler::on_init()
 {
+  param_listener_ = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener_->get_params();
   return controller_interface::CallbackReturn::SUCCESS;
+}
+
+std::string ControlModeHandler::ComposeInterfaceName(
+  const std::string & robot_prefix, const std::string & interface_group,
+  const std::string & interface_name)
+{
+  if (robot_prefix.empty())
+  {
+    return interface_group + "/" + interface_name;
+  }
+  else
+  {
+    return robot_prefix + "_" + interface_group + "/" + interface_name;
+  }
 }
 
 controller_interface::InterfaceConfiguration ControlModeHandler::command_interface_configuration()
@@ -28,8 +44,13 @@ controller_interface::InterfaceConfiguration ControlModeHandler::command_interfa
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names.emplace_back(
-    std::string(hardware_interface::CONFIG_PREFIX) + "/" + hardware_interface::CONTROL_MODE);
+
+  for (const auto & robot_prefix : params_.robot_prefixes)
+  {
+    config.names.emplace_back(ComposeInterfaceName(
+      robot_prefix, hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE));
+  }
+
   return config;
 }
 
@@ -75,9 +96,16 @@ controller_interface::CallbackReturn ControlModeHandler::on_deactivate(
 controller_interface::return_type ControlModeHandler::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  return command_interfaces_[0].set_value(static_cast<double>(control_mode_.load()))
-           ? controller_interface::return_type::OK
-           : controller_interface::return_type::ERROR;
+  const auto control_mode = static_cast<double>(control_mode_.load());
+  bool all_control_modes_set = true;
+
+  for (auto & command_interface : command_interfaces_)
+  {
+    all_control_modes_set = command_interface.set_value(control_mode) && all_control_modes_set;
+  }
+
+  return all_control_modes_set ? controller_interface::return_type::OK
+                               : controller_interface::return_type::ERROR;
 }
 
 }  // namespace kuka_controllers

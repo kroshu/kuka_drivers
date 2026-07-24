@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -35,10 +37,7 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration("yaw")
     roundtrip_time = LaunchConfiguration("roundtrip_time")
     qos_config = LaunchConfiguration("qos_config")
-    controller_config = LaunchConfiguration("controller_config")
-    jtc_config = LaunchConfiguration("jtc_config")
-    jic_config = LaunchConfiguration("jic_config")
-    ec_config = LaunchConfiguration("ec_config")
+    controller_config_dir = LaunchConfiguration("controller_config_dir")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
@@ -131,6 +130,12 @@ def launch_setup(context, *args, **kwargs):
     driver_config = (
         get_package_share_directory("kuka_iiqka_eac_driver") + "/config/driver_config.yaml"
     )
+    config_dir_path = controller_config_dir.perform(context)
+
+    def config_file(filename):
+        return os.path.join(config_dir_path, filename)
+
+    controller_config_file = config_file("ros2_controller_config.yaml")
 
     control_node = Node(
         namespace=ns,
@@ -138,7 +143,7 @@ def launch_setup(context, *args, **kwargs):
         executable="control_node",
         parameters=[
             robot_description,
-            controller_config,
+            controller_config_file,
             {
                 "cpu_affinity": int(rt_core.perform(context)),
                 "thread_priority": int(rt_prio.perform(context)),
@@ -158,7 +163,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             driver_config,
             {
-                "robot_model": robot_model,
+                "robot_models": [robot_model.perform(context)],
                 "controller_ip": controller_ip,
             },
         ],
@@ -199,11 +204,11 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-        "joint_trajectory_controller": jtc_config,
-        "joint_group_impedance_controller": jic_config,
-        "effort_controller": ec_config,
-        "control_mode_handler": None,
-        "event_broadcaster": None,
+        "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
+        "joint_group_impedance_controller": config_file("joint_impedance_controller_config.yaml"),
+        "effort_controller": config_file("effort_controller_config.yaml"),
+        "control_mode_handler": config_file("kuka_control_mode_handler_config.yaml"),
+        "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
     controller_spawners = [
@@ -243,30 +248,8 @@ def generate_launch_description():
     )
     launch_arguments.append(
         DeclareLaunchArgument(
-            "controller_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/ros2_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "jtc_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/joint_trajectory_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "jic_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/joint_impedance_controller_config.yaml",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "ec_config",
-            default_value=get_package_share_directory("kuka_iiqka_eac_driver")
-            + "/config/effort_controller_config.yaml",
+            "controller_config_dir",
+            default_value=get_package_share_directory("kuka_iiqka_eac_driver") + "/config",
         )
     )
     launch_arguments.append(

@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -119,12 +120,16 @@ private:
   // Command interface must be of type double, but controller can set only integers
   // this is a temporary solution, until runtime parameters are supported for hardware interfaces
   double control_mode_ = 0;  // default to undefined
+  double interpolation_count_ = 0;
+  uint32_t last_interpolation_count_command_ = 0;
+  bool interpolation_count_initialized_ = false;
   double receive_multiplier_ = 1;
   double send_period_ms_ = 10;
   int client_port_ = 30200;
   std::string client_ip_ = "0.0.0.0";
   int receive_counter_ = 0;
   bool torque_command_mode_ = false;
+  std::string interface_prefix_;
 
   // State and command interfaces
   std::vector<double> hw_position_commands_;
@@ -166,6 +171,7 @@ private:
   std::atomic<bool> fri_started_{false};
   std::atomic<bool> control_activated_{false};
   std::atomic<bool> thread_running_{false};
+  bool is_async_hardware_ = false;
 
   void activateFrictionCompensation(double * values) const;
   void onError();

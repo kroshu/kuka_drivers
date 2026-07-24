@@ -1,0 +1,4 @@
+/**/kss_message_handler:
+  ros__parameters:
+    # Empty string means unprefixed interfaces/topic identity for single-robot compatibility.
+    robot_prefixes: [""]
