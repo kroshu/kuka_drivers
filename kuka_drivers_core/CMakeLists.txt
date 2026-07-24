@@ -20,21 +20,23 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(controller_manager REQUIRED)
+find_package(hardware_interface REQUIRED)
 
 add_library(kuka_drivers_core SHARED
   src/ros2_base_node.cpp
   src/ros2_base_lc_node.cpp
   src/parameter_handler.cpp
   src/controller_handler.cpp
+  src/joint_interface_validator.cpp
 )
-ament_target_dependencies(kuka_drivers_core rclcpp rclcpp_lifecycle lifecycle_msgs)
+ament_target_dependencies(kuka_drivers_core rclcpp rclcpp_lifecycle lifecycle_msgs hardware_interface)
 
 add_executable(control_node
   src/control_node.cpp)
 ament_target_dependencies(control_node rclcpp rclcpp_lifecycle controller_manager)
 
 ament_export_targets(export_kuka_drivers_core HAS_LIBRARY_TARGET)
-ament_export_dependencies(rclcpp rclcpp_lifecycle lifecycle_msgs)
+ament_export_dependencies(rclcpp rclcpp_lifecycle lifecycle_msgs hardware_interface)
 ament_export_libraries(${PROJECT_NAME})
 
 add_library(communication_helpers SHARED
