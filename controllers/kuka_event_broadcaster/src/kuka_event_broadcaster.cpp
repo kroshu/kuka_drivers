@@ -129,7 +129,7 @@ controller_interface::return_type EventBroadcaster::update(
       RCLCPP_WARN_THROTTLE(
         get_node()->get_logger(), *get_node()->get_clock(), 5000,
         "Failed to set interpolation_count command interface for robot '%s'",
-        idx < event_robot_prefixes_.size() ? event_robot_prefixes_[idx].c_str() : "unknown");
+        event_robot_prefixes_[idx].c_str());
     }
   }
 
