@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
 #include <cmath>
 #include <exception>
 
@@ -91,6 +90,7 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 
   status_msg_.robot_names = robot_prefixes_;
   status_msg_.statuses = current_statuses_;
+  status_publish_counter_ = 0;
 
   // RSI cycle time: default to 4ms, as 12 ms is not supported for iiQKA.OS2
   cycle_time_.store(static_cast<double>(kuka_driver_interfaces::msg::KssStatus::RSI_4MS));
@@ -101,14 +101,6 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
   // Status publisher for all robots. One message contains all robot statuses.
   status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
     "~/status", rclcpp::SystemDefaultsQoS());
-
-  timer_ = get_node()->create_wall_timer(
-    STATUS_PUBLISH_INTERVAL,
-    [this]
-    {
-      status_msg_.statuses = current_statuses_;
-      status_publisher_->publish(status_msg_);
-    });
 
   RCLCPP_INFO(
     get_node()->get_logger(),
@@ -138,6 +130,13 @@ ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
   {
     AssignStatusFromInterfaces(
       current_statuses_[idx], state_interfaces_, idx * STATE_INTERFACE_COUNT);
+  }
+
+  if (++status_publish_counter_ >= STATUS_PUBLISH_TICK_COUNT)
+  {
+    status_msg_.statuses = current_statuses_;
+    status_publisher_->publish(status_msg_);
+    status_publish_counter_ = 0;
   }
 
   return all_cycle_time_set ? ReturnType::OK : ReturnType::ERROR;

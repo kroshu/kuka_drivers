@@ -206,7 +206,7 @@ All three real-time driver families expose a `runtime_config/interpolation_count
 
 - The `kuka_event_broadcaster` updates it once per controller update cycle (and resets it to avoid overflow)
 - Hardware interfaces use it as a sequencing check before `write()` to detect when controller updates and hardware writes are no longer progressing in the expected order.
-- For async hardware, the drivers allow a maximum 1 ms retry window before reporting a mismatch warning, thus fixing communication jitter up to 1ms.
+- For async hardware, the drivers tolerate a one-cycle asynchronous lag with a maximum 1 ms retry window, that can fix communication jitter up to 1 ms. If this condition is not met, or it is still unresolved after the retry window, a mismatch warning is reported.
   - If tick with 0 `update` calls happens first, `write` is delayed so that `update` can be still called
   - If tick with 2 `update` calls happens first, one `update` result will be lost, but all consequent ticks will wait for a new value
 

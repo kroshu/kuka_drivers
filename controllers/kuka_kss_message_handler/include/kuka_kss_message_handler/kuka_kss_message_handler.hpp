@@ -120,14 +120,14 @@ private:
   std::atomic<double> cycle_time_;
 
   rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatusArray>::SharedPtr status_publisher_;
-  rclcpp::TimerBase::SharedPtr timer_;
   std::vector<std::string> robot_prefixes_;
   std::vector<kuka_driver_interfaces::msg::KssStatus> current_statuses_;
   kuka_driver_interfaces::msg::KssStatusArray status_msg_;
+  size_t status_publish_counter_ = 0;
 
   static constexpr size_t STATE_INTERFACE_COUNT = STATE_INTERFACE_NAMES.size();
 
-  static constexpr std::chrono::milliseconds STATUS_PUBLISH_INTERVAL{1'000};
+  static constexpr size_t STATUS_PUBLISH_TICK_COUNT = 50;
   static constexpr int WARN_THROTTLE_DURATION_MS = 1000;
 };
 
