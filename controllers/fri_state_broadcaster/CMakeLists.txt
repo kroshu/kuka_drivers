@@ -39,8 +39,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "FRI_STATE_BROADCASTER_BUILDI
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-pluginlib_export_plugin_description_file(controller_interface controller_plugins.xml)
-
 install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}

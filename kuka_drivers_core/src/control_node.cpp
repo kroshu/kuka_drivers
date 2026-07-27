@@ -111,8 +111,6 @@ int main(int argc, char ** argv)
           param.sched_priority);
       }
 
-      // Wait for the clock to be available before starting the control loop
-      controller_manager->get_clock()->wait_until_started();
 
       try
       {

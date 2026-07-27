@@ -35,7 +35,7 @@ The following tables contain the exact versions used for testing the driver.
 
 ## Client-side setup
 
-It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime) wiki page.
+It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
 
 To be able to connect to RSI running on the controller, a fixed IP in the subnet of the RSI interface is required on the Linux machine.
 
@@ -137,7 +137,7 @@ To configure the client side, two configuration files need to be completed:
 
 By default, the driver uses the default RSI XML element names inherited from the `kuka-external-control-sdk` (`RIst`, `AIPos`, `AK`, `EK`, etc.) and the provided `rsi_ethernet.xml` is already aligned with these defaults. If your RSI context file uses different XML element or attribute names (for example when adding a custom RSIX context), you can configure the driver to match by providing a YAML file.
 
-##### YAML configuration file
+#### YAML configuration file
 
 An annotated example is provided at `kuka_rsi_driver/config/rsi_xml_config_example.yaml`. Copy and adapt it to match your setup:
 
