@@ -290,9 +290,6 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
     {
       if (runtime_state_.is_async_hardware)
       {
-        RCLCPP_INFO(
-          logger_, "interpolation_count mismatch before write: expected %u, got %u", expected_count,
-          current_count);
         const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
         const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));

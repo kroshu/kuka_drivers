@@ -330,11 +330,6 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
     {
       if (is_async_hardware_)
       {
-        RCLCPP_INFO(
-          rclcpp::get_logger("KukaFRIHardwareInterface"),
-          "interpolation_count mismatch before write: expected %u, got %u", expected_count,
-          current_count);
-
         const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
         const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           std::chrono::microseconds(200));
