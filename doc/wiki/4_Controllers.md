@@ -82,7 +82,7 @@ Hardware interfaces do not support parameters that can be changed in runtime. To
 The `ControlModeHandler` can update the `control_mode` command interface of a hardware. It listens on the `~/control_mode` topic and makes control mode changes possible without having to reactivate the driver.
 The control mode is [defined as an enum](https://github.com/kroshu/kuka_drivers/blob/master/kuka_drivers_core/include/kuka_drivers_core/control_mode.hpp) in the `kuka_drivers_core` package, the subscription therefore is of an unsigned integer type.
 
-In multi-robot mode, one `ControlModeHandler` instance can update multiple prefixed
+In multi-robot mode, one `ControlModeHandler` instance updates multiple prefixed
 `control_mode` command interfaces, but it still accepts only a single shared `~/control_mode`
 input topic. Therefore the same control mode is applied to all configured robots.
 
@@ -98,7 +98,7 @@ __Optional Parameters__:
 
 The `SendPeriodMilliSec` parameter of FRI defines the period with which the controller sends state updates, while the `ReceiveMultiplier` defines the answer rate factor (ratio of receiving states and sending commands). These are parameters of the hardware interface, which can be modified in connected state, when control is not active. To support changing these parameters after startup, the `FRIConfigurationController` subscribes to the `~/set_fri_config` topic. Sending a message containing the desired integer values of `send_period_ms` (cycle time) and `receive_multiplier` updates the parameters of the hardware interface.
 
-In multi-robot mode, one `FRIConfigurationController` instance can update multiple prefixed command interfaces, but it still accepts only a single shared `~/set_fri_config` input topic. Therefore the same FRI configuration is applied to all configured robots.
+In multi-robot mode, one `FRIConfigurationController` instance updates multiple prefixed command interfaces, but it still accepts only a single shared `~/set_fri_config` input topic. Therefore the same FRI configuration is applied to all configured robots.
 
 __Required Parameters__: None
 
