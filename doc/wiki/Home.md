@@ -179,18 +179,29 @@ Outcome: both robots can be controlled smoothly, and jitter does not affect stab
 
 **Scenario 2:**
 The async thread receives robot state 0.5 ms after `read` is triggered.
-Outcome: both robots can be controlled smoothly, but the system is not jitter-resistant.
+Outcome: both robots can be controlled smoothly, but the system is not jitter-resistant. (This scenario is the jitter-free version of scenarios 3 and 4)
 ![alt text](resources/dual_arm_timing/scenario2.png)
 
 **Scenario 3:**
 The async thread receives robot state 0.5 ms after `read` is triggered, and `read` scheduling is delayed for one cycle.
-Issue: the packet arrives while the thread is still idle. `read` is then called afterwards and skips this packet (which also causes a one-tick delay for all subsequent packets).
+Issue: the packet arrives while the thread is still idle. `read` is then called afterwards and skips this packet (which also causes a one-tick delay for all subsequent packets and thus terminates the RSI connection).
+Solution: To minimize the detached thread sleep time, the controller manager update rate is set to a high value for multi-robot setup, which eliminates this error. The update rate of the `joint_trajectory_controller` has to be configured specifically to not inherit this high rate. As the blocking read of the main thread still defines the timing, the actual rate will not change.
 ![alt text](resources/dual_arm_timing/scenario3.png)
 
 **Scenario 4:**
 The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.5 ms late.
 Issue: due to the late packet, `update` is executed for the second time before this `write`. In the next cycle, no `update` is executed before `write`, causing a robot jerk.
 ![alt text](resources/dual_arm_timing/scenario4.png)
+Solution: if `update` has not yet been called since last `write`, delay current `write` with a maximum of 1 ms. This is implemented using the internal interface `interpolation_count`
+
+#### Interpolation count - internal interface
+
+All three real-time driver families expose a `runtime_config/interpolation_count` command interface.
+
+- The `kuka_event_broadcaster` updates it once per controller update cycle (and resets it to avoid overflow)
+- Hardware interfaces use it as a sequencing check before `write()` to detect when controller updates and hardware writes are no longer progressing in the expected order.
+- For async hardware, the drivers allow a maximum 1 ms retry window before reporting a mismatch warning, thus fixing communication jitter up to 1ms.
+
 
 
 ## Detailed setup and startup instructions

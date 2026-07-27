@@ -50,6 +50,10 @@ __Optional Parameters__:
 The `EventBroadcaster` publishes server state change events as a map-like message on
 `~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`.
 
+The same controller also updates the `runtime_config/interpolation_count` command interface once
+per controller update cycle. This counter is used by the hardware interfaces as a lightweight
+sequencing diagnostic to detect mismatches between controller updates and hardware writes, which is relevant for multi-robot timing.
+
 - Single robot (default): uses `state/server_state` interface and publishes one message per event.
 - Multi robot (with `robot_prefixes`): uses state interfaces `<robot_prefix>_state/server_state` and publishes one message per changed robot event.
 
