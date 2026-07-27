@@ -106,13 +106,27 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
   control_mode_pub_->publish(message);
 
   // Configure hardware interfaces
-  for (const auto & robot_model : robot_models_)
+  for (size_t idx = 0; idx < robot_models_.size(); ++idx)
   {
+    const auto & robot_model = robot_models_[idx];
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE))
     {
       RCLCPP_ERROR(
         get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
+
+      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
+      {
+        const auto & rollback_model = robot_models_[rollback_idx];
+        if (!kuka_drivers_core::changeHardwareState(
+              change_hardware_state_client_, rollback_model, State::PRIMARY_STATE_UNCONFIGURED))
+        {
+          RCLCPP_ERROR(
+            get_logger(), "Could not roll back hardware interface '%s' after configure failure",
+            rollback_model.c_str());
+        }
+      }
+
       return FAILURE;
     }
   }
@@ -151,19 +165,20 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
   }
 
   // Clean up hardware interfaces
+  bool all_cleaned = true;
   for (const auto & robot_model : robot_models_)
   {
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_UNCONFIGURED))
     {
       RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface '%s'", robot_model.c_str());
-      return FAILURE;
+      all_cleaned = false;
     }
   }
 
   is_configured_msg_.data = false;
   is_configured_pub_->publish(is_configured_msg_);
-  return SUCCESS;
+  return all_cleaned ? SUCCESS : FAILURE;
 }
 
 void RobotManagerNode::EventSubscriptionCallback(
@@ -211,12 +226,26 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
   // Join observe thread, necessary if previous activation failed
   terminate_ = false;
   // Activate hardware interfaces
-  for (const auto & robot_model : robot_models_)
+  for (size_t idx = 0; idx < robot_models_.size(); ++idx)
   {
+    const auto & robot_model = robot_models_[idx];
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_ACTIVE, 5000))
     {
       RCLCPP_ERROR(get_logger(), "Could not activate hardware interface '%s'", robot_model.c_str());
+
+      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
+      {
+        const auto & rollback_model = robot_models_[rollback_idx];
+        if (!kuka_drivers_core::changeHardwareState(
+              change_hardware_state_client_, rollback_model, State::PRIMARY_STATE_INACTIVE, 3000))
+        {
+          RCLCPP_ERROR(
+            get_logger(), "Could not roll back hardware interface '%s' after activate failure",
+            rollback_model.c_str());
+        }
+      }
+
       return FAILURE;
     }
   }
@@ -251,6 +280,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interfaces
   // Deactivation was not stable with 2000 ms timeout
+  bool all_deactivated = true;
   for (const auto & robot_model : robot_models_)
   {
     if (!kuka_drivers_core::changeHardwareState(
@@ -258,8 +288,13 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     {
       RCLCPP_ERROR(
         get_logger(), "Could not deactivate hardware interface '%s'", robot_model.c_str());
-      return ERROR;
+      all_deactivated = false;
     }
+  }
+
+  if (!all_deactivated)
+  {
+    return ERROR;
   }
 
   // Stop RT controllers

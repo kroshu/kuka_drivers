@@ -136,14 +136,29 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     return FAILURE;
   }
   // Configure hardware interfaces
-  for (const auto & robot_model : robot_models_)
+  for (size_t idx = 0; idx < robot_models_.size(); ++idx)
   {
+    const auto & robot_model = robot_models_[idx];
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model,
           lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
     {
       RCLCPP_ERROR(
         get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
+
+      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
+      {
+        const auto & rollback_model = robot_models_[rollback_idx];
+        if (!kuka_drivers_core::changeHardwareState(
+              change_hardware_state_client_, rollback_model,
+              lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED))
+        {
+          RCLCPP_ERROR(
+            get_logger(), "Could not roll back hardware interface '%s' after configure failure",
+            rollback_model.c_str());
+        }
+      }
+
       return FAILURE;
     }
   }
@@ -169,6 +184,7 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
 {
+  bool controller_stop_successful = true;
   // Stop non-RT controllers
   // With best effort strictness, cleanup succeeds if specific controller is not active
   if (!kuka_drivers_core::changeControllerState(
@@ -178,11 +194,12 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
         SwitchController::Request::BEST_EFFORT))
   {
     RCLCPP_ERROR(get_logger(), "Could not stop controllers");
-    return ERROR;
+    controller_stop_successful = false;
   }
 
   // Cleanup hardware interfaces
   // If they are inactive, cleanup will also succeed
+  bool all_cleaned = true;
   for (const auto & robot_model : robot_models_)
   {
     if (!kuka_drivers_core::changeHardwareState(
@@ -190,7 +207,7 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
           lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED))
     {
       RCLCPP_ERROR(get_logger(), "Could not clean up hardware interface '%s'", robot_model.c_str());
-      return FAILURE;
+      all_cleaned = false;
     }
   }
 
@@ -201,7 +218,12 @@ RobotManagerNode::on_cleanup(const rclcpp_lifecycle::State &)
     is_configured_pub_->on_deactivate();
   }
 
-  return SUCCESS;
+  if (!controller_stop_successful)
+  {
+    return ERROR;
+  }
+
+  return all_cleaned ? SUCCESS : FAILURE;
 }
 
 // TODO(Svastits): can we check if necessary 5s has passed after deactivation?
@@ -209,13 +231,28 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 {
   // Activate hardware interfaces
-  for (const auto & robot_model : robot_models_)
+  for (size_t idx = 0; idx < robot_models_.size(); ++idx)
   {
+    const auto & robot_model = robot_models_[idx];
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model,
           lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
     {
       RCLCPP_ERROR(get_logger(), "Could not activate hardware interface '%s'", robot_model.c_str());
+
+      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
+      {
+        const auto & rollback_model = robot_models_[rollback_idx];
+        if (!kuka_drivers_core::changeHardwareState(
+              change_hardware_state_client_, rollback_model,
+              lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
+        {
+          RCLCPP_ERROR(
+            get_logger(), "Could not roll back hardware interface '%s' after activate failure",
+            rollback_model.c_str());
+        }
+      }
+
       return FAILURE;
     }
   }
@@ -248,6 +285,7 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
   // Deactivate hardware interfaces
   // If they are inactive, deactivation will also succeed
+  bool all_deactivated = true;
   for (const auto & robot_model : robot_models_)
   {
     if (!kuka_drivers_core::changeHardwareState(
@@ -256,8 +294,13 @@ RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
     {
       RCLCPP_ERROR(
         get_logger(), "Could not deactivate hardware interface '%s'", robot_model.c_str());
-      return ERROR;
+      all_deactivated = false;
     }
+  }
+
+  if (!all_deactivated)
+  {
+    return ERROR;
   }
 
   // Stop RT controllers
