@@ -14,6 +14,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
+#include <exception>
+
 #include "fri_state_broadcaster/fri_state_broadcaster.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
@@ -22,8 +24,16 @@ namespace kuka_controllers
 
 controller_interface::CallbackReturn FRIStateBroadcaster::on_init()
 {
-  auto param_listener = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener->get_params();
+  try
+  {
+    auto param_listener = std::make_shared<ParamListener>(get_node());
+    params_ = param_listener->get_params();
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    return controller_interface::CallbackReturn::ERROR;
+  }
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -54,16 +64,9 @@ controller_interface::InterfaceConfiguration FRIStateBroadcaster::state_interfac
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  const std::vector<std::string> state_interfaces = {
-    hardware_interface::SESSION_STATE,       hardware_interface::CONNECTION_QUALITY,
-    hardware_interface::SAFETY_STATE,        hardware_interface::COMMAND_MODE,
-    hardware_interface::CONTROL_MODE,        hardware_interface::OPERATION_MODE,
-    hardware_interface::DRIVE_STATE,         hardware_interface::OVERLAY_TYPE,
-    hardware_interface::TRACKING_PERFORMANCE};
-
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    for (const auto & interface : state_interfaces)
+    for (const auto * interface : STATE_INTERFACE_NAMES)
     {
       config.names.emplace_back(ComposeInterfaceName(robot_prefix, interface));
     }

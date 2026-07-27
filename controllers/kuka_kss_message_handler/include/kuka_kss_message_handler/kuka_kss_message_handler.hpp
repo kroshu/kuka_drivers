@@ -28,6 +28,7 @@
 
 #include "kuka_driver_interfaces/msg/kss_status.hpp"
 #include "kuka_driver_interfaces/msg/kss_status_array.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_kss_message_handler/kuka_kss_message_handler_parameters.hpp"
 #include "kuka_kss_message_handler/visibility_control.h"
 
@@ -84,6 +85,13 @@ private:
       &kuka_driver_interfaces::msg::KssStatus::motion_possible, 6},
     std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::robot_stopped, 8}};
 
+  static constexpr std::array<const char *, 9> STATE_INTERFACE_NAMES = {
+    hardware_interface::CONTROL_MODE,    hardware_interface::CYCLE_TIME,
+    hardware_interface::DRIVES_POWERED,  hardware_interface::EMERGENCY_STOP,
+    hardware_interface::GUARD_STOP,      hardware_interface::IN_MOTION,
+    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
+    hardware_interface::ROBOT_STOPPED};
+
   KUKA_KSS_MESSAGE_HANDLER_LOCAL static std::string ComposeInterfaceName(
     const std::string & robot_name, const std::string & interface_group,
     const std::string & interface_name);
@@ -117,7 +125,7 @@ private:
   std::vector<kuka_driver_interfaces::msg::KssStatus> current_statuses_;
   kuka_driver_interfaces::msg::KssStatusArray status_msg_;
 
-  static constexpr size_t STATE_INTERFACE_COUNT = 9;
+  static constexpr size_t STATE_INTERFACE_COUNT = STATE_INTERFACE_NAMES.size();
 
   static constexpr std::chrono::milliseconds STATUS_PUBLISH_INTERVAL{1'000};
   static constexpr int WARN_THROTTLE_DURATION_MS = 1000;

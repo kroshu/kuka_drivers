@@ -15,6 +15,7 @@
 #ifndef FRI_STATE_BROADCASTER__FRI_STATE_BROADCASTER_HPP_
 #define FRI_STATE_BROADCASTER__FRI_STATE_BROADCASTER_HPP_
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@
 #include "controller_interface/controller_interface.hpp"
 #include "hardware_interface/loaned_state_interface.hpp"
 #include "kuka_driver_interfaces/msg/fri_state_array.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
@@ -73,7 +75,13 @@ private:
   std::vector<kuka_driver_interfaces::msg::FRIState> current_states_;
   kuka_driver_interfaces::msg::FRIStateArray state_msg_;
 
-  static constexpr size_t STATE_INTERFACE_COUNT = 9;
+  static constexpr std::array<const char *, 9> STATE_INTERFACE_NAMES = {
+    hardware_interface::SESSION_STATE,       hardware_interface::CONNECTION_QUALITY,
+    hardware_interface::SAFETY_STATE,        hardware_interface::COMMAND_MODE,
+    hardware_interface::CONTROL_MODE,        hardware_interface::OPERATION_MODE,
+    hardware_interface::DRIVE_STATE,         hardware_interface::OVERLAY_TYPE,
+    hardware_interface::TRACKING_PERFORMANCE};
+  static constexpr size_t STATE_INTERFACE_COUNT = STATE_INTERFACE_NAMES.size();
 };
 }  // namespace kuka_controllers
 #endif  // FRI_STATE_BROADCASTER__FRI_STATE_BROADCASTER_HPP_

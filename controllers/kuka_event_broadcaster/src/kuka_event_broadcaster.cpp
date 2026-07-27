@@ -14,6 +14,7 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
+#include <exception>
 #include <limits>
 
 #include "kuka_event_broadcaster/kuka_event_broadcaster.hpp"
@@ -22,8 +23,16 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn EventBroadcaster::on_init()
 {
-  auto param_listener = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener->get_params();
+  try
+  {
+    auto param_listener = std::make_shared<ParamListener>(get_node());
+    params_ = param_listener->get_params();
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    return controller_interface::CallbackReturn::ERROR;
+  }
   event_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::HardwareEvent>(
     "~/hardware_event", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;
@@ -69,17 +78,8 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
   //  behavior.
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    if (robot_prefix.empty())
-    {
-      config.names.emplace_back(
-        std::string(hardware_interface::STATE_PREFIX) + "/" + hardware_interface::SERVER_STATE);
-    }
-    else
-    {
-      config.names.emplace_back(
-        robot_prefix + "_" + std::string(hardware_interface::STATE_PREFIX) + "/" +
-        hardware_interface::SERVER_STATE);
-    }
+    config.names.emplace_back(ComposeInterfaceName(
+      robot_prefix, hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE));
   }
 
   return config;

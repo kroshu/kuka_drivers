@@ -14,14 +14,24 @@
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
+#include <exception>
+
 #include "kuka_control_mode_handler/kuka_control_mode_handler.hpp"
 
 namespace kuka_controllers
 {
 controller_interface::CallbackReturn ControlModeHandler::on_init()
 {
-  auto param_listener = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener->get_params();
+  try
+  {
+    auto param_listener = std::make_shared<ParamListener>(get_node());
+    params_ = param_listener->get_params();
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    return controller_interface::CallbackReturn::ERROR;
+  }
   return controller_interface::CallbackReturn::SUCCESS;
 }
 

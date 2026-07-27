@@ -14,6 +14,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
+#include <exception>
+
 #include "fri_configuration_controller/fri_configuration_controller.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
@@ -21,8 +23,16 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn FRIConfigurationController::on_init()
 {
-  auto param_listener = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener->get_params();
+  try
+  {
+    auto param_listener = std::make_shared<ParamListener>(get_node());
+    params_ = param_listener->get_params();
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
   auto callback = [this](const kuka_driver_interfaces::msg::FriConfiguration::SharedPtr msg)
   {

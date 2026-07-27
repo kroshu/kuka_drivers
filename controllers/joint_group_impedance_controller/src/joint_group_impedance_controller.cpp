@@ -14,6 +14,8 @@
 
 #include "pluginlib/class_list_macros.hpp"
 
+#include <exception>
+
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
 #include "joint_group_impedance_controller/joint_group_impedance_controller.hpp"
@@ -25,7 +27,15 @@ JointGroupImpedanceController::JointGroupImpedanceController() : ForwardControll
 
 void JointGroupImpedanceController::declare_parameters()
 {
-  param_listener_ = std::make_shared<ParamListener>(get_node());
+  try
+  {
+    param_listener_ = std::make_shared<ParamListener>(get_node());
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    param_listener_.reset();
+  }
 }
 
 controller_interface::CallbackReturn JointGroupImpedanceController::read_parameters()

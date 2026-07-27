@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <exception>
 
 #include "pluginlib/class_list_macros.hpp"
 
@@ -25,8 +26,16 @@ namespace kuka_controllers
 
 CallbackReturn KssMessageHandler::on_init()
 {
-  auto param_listener = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener->get_params();
+  try
+  {
+    auto param_listener = std::make_shared<ParamListener>(get_node());
+    params_ = param_listener->get_params();
+  }
+  catch (const std::exception & ex)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
+    return CallbackReturn::ERROR;
+  }
   return CallbackReturn::SUCCESS;
 }
 
@@ -63,16 +72,9 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
   InterfaceConfig config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  const std::vector<std::string> state_interfaces = {
-    hardware_interface::CONTROL_MODE,    hardware_interface::CYCLE_TIME,
-    hardware_interface::DRIVES_POWERED,  hardware_interface::EMERGENCY_STOP,
-    hardware_interface::GUARD_STOP,      hardware_interface::IN_MOTION,
-    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
-    hardware_interface::ROBOT_STOPPED};
-
   for (const auto & robot_prefix : params_.robot_prefixes)
   {
-    for (const auto & interface : state_interfaces)
+    for (const auto * interface : STATE_INTERFACE_NAMES)
     {
       config.names.emplace_back(
         ComposeInterfaceName(robot_prefix, hardware_interface::STATE_PREFIX, interface));
