@@ -22,8 +22,8 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn EventBroadcaster::on_init()
 {
-  param_listener_ = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener_->get_params();
+  auto param_listener = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener->get_params();
   event_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::HardwareEvent>(
     "~/hardware_event", rclcpp::SystemDefaultsQoS());
   return controller_interface::CallbackReturn::SUCCESS;

@@ -65,7 +65,6 @@ private:
 
   using Params = fri_state_broadcaster::Params;
   using ParamListener = fri_state_broadcaster::ParamListener;
-  std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
   int counter_ = 0;

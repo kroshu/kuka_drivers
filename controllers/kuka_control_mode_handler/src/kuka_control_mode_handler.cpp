@@ -20,8 +20,8 @@ namespace kuka_controllers
 {
 controller_interface::CallbackReturn ControlModeHandler::on_init()
 {
-  param_listener_ = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener_->get_params();
+  auto param_listener = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener->get_params();
   return controller_interface::CallbackReturn::SUCCESS;
 }
 

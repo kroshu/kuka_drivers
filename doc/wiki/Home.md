@@ -160,7 +160,7 @@ The robot hardware descriptions expose two configurable parameters to control th
 - `async_thread_priority` (default: `69`): sets the thread priority for the asynchronous hardware interface executor thread
 - `async_affinity` (default: `""` - empty, allows any core): pins the asynchronous hardware interface thread to specific CPU cores
 
-To plan with Moveit and a dual-arm setup, the moveit configuration also has to be modified. As here the URDF and SRDF files are not in the moveit support package, using MoveitConfigsBuilder is not recommended, the configuration files have to be loaded manually one by one. It is possible to create new configuration files with the resource names updated, or to remap the existing resource names from the launch files. An example for this second approach is also available in the `kuka_multi_robot_examples` package.
+To plan with Moveit and a multi-arm setup, the moveit configuration also has to be modified. As here the URDF and SRDF files are not in the moveit support package, using MoveitConfigsBuilder is not recommended, the configuration files have to be loaded manually one by one. It is possible to create new configuration files with the resource names updated, or to remap the existing resource names from the launch files. An example for this second approach (with 2 robot arms) is also available in the `kuka_multi_robot_examples` package.
 
 ### Dual-arm timing scenarios
 
@@ -171,6 +171,12 @@ The following timing constraints apply in all cases due to `ros2_control` behavi
 - `update` runs only on the main thread, but it also updates the async hardware interface.
 
 Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads.
+
+Legend: 
+- R = hardware interface `read`
+- U = controller `update`
+- W = hardware interface `write`
+- I = thread is idle
 
 **Scenario 1:**
 The async thread receives robot state 2 ms after `read` is triggered.
@@ -190,7 +196,7 @@ Solution: To minimize the detached thread sleep time, the controller manager upd
 
 **Scenario 4:**
 The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.5 ms late.
-Issue: due to the late packet, `update` is executed for the second time before this `write`. In the next cycle, no `update` is executed before `write`, causing a robot jerk.
+Issue: the late packet causes an extra `update` execution before `write`. Consequently, one set of commands produced by `update` is never transmitted via `write`. In the subsequent cycle, `write` sends stale data without an intervening `update`, potentially causing a robot jerk. (For example, in case of a simple motion with constant velocity interpolated, the first tick will produce double velocity, while the second a cycle with 0 velocity)
 ![alt text](resources/dual_arm_timing/scenario4.png)
 Solution: if `update` has not yet been called since last `write`, delay current `write` with a maximum of 1 ms. This is implemented using the internal interface `interpolation_count`
 
@@ -201,7 +207,6 @@ All three real-time driver families expose a `runtime_config/interpolation_count
 - The `kuka_event_broadcaster` updates it once per controller update cycle (and resets it to avoid overflow)
 - Hardware interfaces use it as a sequencing check before `write()` to detect when controller updates and hardware writes are no longer progressing in the expected order.
 - For async hardware, the drivers allow a maximum 1 ms retry window before reporting a mismatch warning, thus fixing communication jitter up to 1ms.
-
 
 
 ## Detailed setup and startup instructions

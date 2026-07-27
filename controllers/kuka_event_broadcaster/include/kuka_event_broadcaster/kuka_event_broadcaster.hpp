@@ -63,7 +63,6 @@ private:
     const std::string & robot_prefix, const std::string & interface_group,
     const std::string & interface_name);
 
-  std::shared_ptr<ParamListener> param_listener_;
   Params params_;
   std::vector<std::string> event_robot_prefixes_;
   std::vector<uint8_t> last_events_;

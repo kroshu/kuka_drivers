@@ -62,7 +62,6 @@ private:
 
   using Params = kuka_control_mode_handler::Params;
   using ParamListener = kuka_control_mode_handler::ParamListener;
-  std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
   rclcpp::Subscription<std_msgs::msg::UInt32>::SharedPtr control_mode_subscriber_;

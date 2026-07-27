@@ -59,7 +59,6 @@ private:
 
   using Params = fri_configuration_controller::Params;
   using ParamListener = fri_configuration_controller::ParamListener;
-  std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
   rclcpp::Subscription<kuka_driver_interfaces::msg::FriConfiguration>::SharedPtr fri_config_sub_;

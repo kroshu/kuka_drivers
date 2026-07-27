@@ -105,7 +105,6 @@ private:
 
   using Params = kuka_kss_message_handler::Params;
   using ParamListener = kuka_kss_message_handler::ParamListener;
-  std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
   // Cycle time
