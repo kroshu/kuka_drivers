@@ -111,7 +111,6 @@ int main(int argc, char ** argv)
           param.sched_priority);
       }
 
-
       try
       {
         while (rclcpp::ok())

@@ -27,15 +27,7 @@ JointGroupImpedanceController::JointGroupImpedanceController() : ForwardControll
 
 void JointGroupImpedanceController::declare_parameters()
 {
-  try
-  {
-    param_listener_ = std::make_shared<ParamListener>(get_node());
-  }
-  catch (const std::exception & ex)
-  {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
-    param_listener_.reset();
-  }
+  param_listener_ = std::make_shared<ParamListener>(get_node());
 }
 
 controller_interface::CallbackReturn JointGroupImpedanceController::read_parameters()
