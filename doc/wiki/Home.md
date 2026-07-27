@@ -172,7 +172,7 @@ The following timing constraints apply in all cases due to `ros2_control` behavi
 
 Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads.
 
-Legend: 
+Legend:
 - R = hardware interface `read`
 - U = controller `update`
 - W = hardware interface `write`

@@ -8,7 +8,7 @@ TA is R
 TB is I
 
 @0.5
-KRC -> TA
+KRC -[#0066cc]> TA
 TA is U
 
 @1.0
@@ -19,14 +19,14 @@ TB is R
 TA is R
 
 @3.0
-KRC -> TB
+KRC -[#ff6600]> TB
 TB is W
 
 @3.5
 TB is I
 
 @4.5
-KRC -> TA
+KRC -[#0066cc]> TA
 TA is U
 
 @5.0
@@ -37,14 +37,14 @@ TB is R
 TA is R
 
 @7.0
-KRC -> TB
+KRC -[#ff6600]> TB
 TB is W
 
 @7.5
 TB is I
 
 @8.5
-KRC -> TA
+KRC -[#0066cc]> TA
 TA is U
 
 @9.0
@@ -55,14 +55,14 @@ TB is R
 TA is R
 
 @11.0
-KRC -> TB
+KRC -[#ff6600]> TB
 TB is W
 
 @11.5
 TB is I
 
 @12.5
-KRC -> TA
+KRC -[#0066cc]> TA
 TA is U
 
 @13.0
@@ -73,14 +73,14 @@ TB is R
 TA is R
 
 @15.0
-KRC -> TB
+KRC -[#ff6600]> TB
 TB is W
 
 @15.5
 TB is I
 
 @16.5
-KRC -> TA
+KRC -[#0066cc]> TA
 TA is U
 
 @17.0
@@ -91,7 +91,7 @@ TB is R
 TA is R
 
 @19.0
-KRC -> TB
+KRC -[#ff6600]> TB
 TB is W
 
 @19.5

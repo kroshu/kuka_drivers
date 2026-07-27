@@ -128,8 +128,7 @@ ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
     {
       RCLCPP_WARN_THROTTLE(
         get_node()->get_logger(), *get_node()->get_clock(), WARN_THROTTLE_DURATION_MS,
-        "Failed to set cycle time command interface for robot '%s'",
-        robot_prefixes_[idx].c_str());
+        "Failed to set cycle time command interface for robot '%s'", robot_prefixes_[idx].c_str());
     }
   }
 
