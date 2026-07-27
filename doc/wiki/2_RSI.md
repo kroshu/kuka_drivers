@@ -282,11 +282,19 @@ Both launch files support the following arguments:
 - `controller_config_dir`: the directory that contains all controller configuration files (defaults to `kuka_rsi_driver/config`). The driver expects the following file names in this directory:
   - `ros2_controller_config_rsi_only.yaml` (used when `driver_version:=rsi_only`)
   - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
-  - `joint_trajectory_controller_config.yaml`
+  - `joint_trajectory_controller_config.yaml` (or `joint_trajectory_controller_config_6_axis_kl.yaml` if `use_external_axis` is set to true)
   - `kuka_event_broadcaster_config.yaml`
   - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
   - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
   - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
+- `use_external_axis`: if set to `true`, enables KL (linear track) composition using the `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template (defaults to `false`)
+- `kl_model`: the KL model to use when `use_external_axis` is enabled (default: `kl100_2`)
+- `kl_support_package`: the ROS package providing the KL description (default: `kuka_kl_support`)
+- `kl_prefix`: the prefix applied to KL joints and links (default: `rail_`). When changed, `rail_` must be replaced manually with the new value in `kuka_rsi_driver/config/joint_trajectory_controller_config_6_axis_kl.yaml` and in any other configuration files that reference KL joint names (e.g. RViz, MoveIt, or Gazebo config files). The effective external-axis prefix will eventually be `namespace_ + kl_prefix`.
+- `kl_ros2_control_macro_file`: path to the `ros2_control` xacro macro file for the KL unit (default: `kl_ros2_control_macro.xacro`). Override this to use a third-party rail package that provides its own `ros2_control` macro entry point.
+- `kl_ros2_control_joints_macro`: name of the `ros2_control` joints macro within `kl_ros2_control_macro_file` (default: `kuka_kl_ros2_control_joints`). Override together with `kl_ros2_control_macro_file` for third-party rail packages.
+- `kl_srdf_macro_file`: path to the SRDF xacro macro file for the KL unit (default: `kl_macro.xacro`). Override for third-party rail packages that provide their own SRDF macro.
+- `kl_srdf_adjacent_links_macro`: name of the adjacent links macro within `kl_srdf_macro_file`, used to suppress collision checking between the rail and robot links (default: `kl_srdf_adjacent_links`). Override together with `kl_srdf_macro_file` for third-party rail packages.
 - `driver_version`: configures which driver to use. Possible values are `rsi_only`, `eki_rsi` and `mxa_rsi` (defaults to `rsi_only`)
 - `verify_robot_model`: If set to `true` and `driver_version` is set to `eki_rsi` or `mxa_rsi`, the driver will verify that the robot model specified in the launch arguments matches the configuration reported by the controller. If set to `false`, the reported configuration won't be checked (defaults to `true`).
 - `rsi_xml_config_file`: Absolute path to an RSI XML config YAML file. When set, configures the XML element and attribute names used in RSI messages to match the provided file. Leave empty to use the SDK defaults (defaults to empty string). See [RSI XML message configuration](#rsi-xml-message-configuration) for details.
@@ -393,7 +401,7 @@ For custom setups, use the name of the corresponding context file.
 
 ### Client-side configuration
 
-See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axes-configuration) for all client-side configuration steps.
+See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axis-support) for all client-side configuration steps. The relevant launch arguments for enabling KL composition are described in the [Launch arguments](#launch-arguments) section (`use_external_axis`, `kl_model`, `kl_prefix`, and the third-party integration parameters).
 
 > [!NOTE]
 > The driver supports only __revolute__ and __prismatic__ external joints.

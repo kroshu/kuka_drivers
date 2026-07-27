@@ -27,10 +27,24 @@ from launch.substitutions import (
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
 
+COMPOSED_TEMPLATE_XACRO = "robot_with_external_axis_template.urdf.xacro"
+
+
+def _ros2_control_macro_file_from_family(robot_family):
+    if robot_family.startswith("lbr_"):
+        return f"{robot_family}_ros2_control_macro.xacro"
+    return f"kr_{robot_family}_ros2_control_macro.xacro"
+
 
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
+    use_external_axis = LaunchConfiguration("use_external_axis")
+    kl_model = LaunchConfiguration("kl_model")
+    kl_support_package = LaunchConfiguration("kl_support_package")
+    kl_prefix = LaunchConfiguration("kl_prefix")
+    kl_ros2_control_macro_file = LaunchConfiguration("kl_ros2_control_macro_file")
+    kl_ros2_control_joints_macro = LaunchConfiguration("kl_ros2_control_joints_macro")
     mode = LaunchConfiguration("mode")
     use_gpio = LaunchConfiguration("use_gpio")
     driver_version = LaunchConfiguration("driver_version")
@@ -80,73 +94,176 @@ def launch_setup(context, *args, **kwargs):
         core_list_str = ",".join(str(c) for c in cores)
         prefix_cmd = f"taskset -c {core_list_str}"
 
-    # Get URDF via xacro
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
+    robot_model_value = robot_model.perform(context)
+    robot_family_value = robot_family.perform(context)
+    use_external_axis_value = use_external_axis.perform(context) == "true"
+    kl_model_value = kl_model.perform(context)
+    kl_support_package_value = kl_support_package.perform(context)
+    kl_prefix_value = kl_prefix.perform(context)
+    kl_ros2_control_macro_file_value = kl_ros2_control_macro_file.perform(context)
+    kl_ros2_control_joints_macro_value = kl_ros2_control_joints_macro.perform(context)
+
+    robot_support_package = f"kuka_{robot_family_value}_support"
+    urdf_source = PathJoinSubstitution(
+        [FindPackageShare(robot_support_package), "urdf", robot_model_value + ".urdf.xacro"]
+    )
+    effective_robot_model = robot_model_value
+    template_xacro_args = []
+
+    if use_external_axis_value:
+        kl_support_package = kl_support_package_value or "kuka_kl_support"
+        robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(robot_family_value)
+
+        robot_model_macro_path = os.path.join(
+            get_package_share_directory(robot_support_package),
+            "urdf",
+            robot_model_value + "_macro.xacro",
+        )
+        if not os.path.isfile(robot_model_macro_path):
+            raise RuntimeError(
+                f"Robot model macro file was not found: {robot_model_macro_path}. "
+                "Check robot_model/robot_family values."
+            )
+
+        robot_ros2_control_macro_path = os.path.join(
+            get_package_share_directory(robot_support_package),
+            "urdf",
+            robot_ros2_control_macro_file,
+        )
+        if not os.path.isfile(robot_ros2_control_macro_path):
+            raise RuntimeError(
+                f"Robot ros2_control macro file was not found: {robot_ros2_control_macro_path}."
+            )
+
+        kl_model_macro_path = os.path.join(
+            get_package_share_directory(kl_support_package),
+            "urdf",
+            kl_model_value + "_macro.xacro",
+        )
+        if not os.path.isfile(kl_model_macro_path):
+            raise RuntimeError(
+                f"KL model macro file was not found: {kl_model_macro_path}. "
+                "Check kl_model/kl_support_package values."
+            )
+
+        kl_ros2_control_macro_path = os.path.join(
+            get_package_share_directory(kl_support_package),
+            "urdf",
+            kl_ros2_control_macro_file_value,
+        )
+        if not os.path.isfile(kl_ros2_control_macro_path):
+            raise RuntimeError(
+                f"KL ros2_control macro file was not found: {kl_ros2_control_macro_path}."
+            )
+
+        urdf_source = PathJoinSubstitution(
+            [FindPackageShare("kuka_resources"), "urdf", COMPOSED_TEMPLATE_XACRO]
+        )
+        template_xacro_args = [
             " ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare(f"kuka_{robot_family.perform(context)}_support"),
-                    "urdf",
-                    robot_model.perform(context) + ".urdf.xacro",
-                ]
-            ),
+            "robot_model:=",
+            robot_model_value,
             " ",
-            "mode:=",
-            mode,
+            "robot_support_package:=",
+            robot_support_package,
             " ",
-            "use_gpio:=",
-            use_gpio,
+            "robot_family:=",
+            robot_family_value,
             " ",
-            "driver_version:=",
-            driver_version,
+            "kl_support_package:=",
+            kl_support_package,
             " ",
-            "client_port:=",
-            client_port,
+            "robot_ros2_control_macro_file:=",
+            robot_ros2_control_macro_file,
             " ",
-            "mxa_client_port:=",
-            mxa_client_port,
+            "kl_ros2_control_macro_file:=",
+            kl_ros2_control_macro_file_value,
             " ",
-            "client_ip:=",
-            client_ip,
+            "kl_model:=",
+            kl_model_value,
             " ",
-            "controller_ip:=",
-            controller_ip,
-            " ",
-            "prefix:=",
-            tf_prefix,
-            " ",
-            "x:=",
-            x,
-            " ",
-            "y:=",
-            y,
-            " ",
-            "z:=",
-            z,
-            " ",
-            "roll:=",
-            roll,
-            " ",
-            "pitch:=",
-            pitch,
-            " ",
-            "yaw:=",
-            yaw,
-            " ",
-            "roundtrip_time:=",
-            roundtrip_time,
-            " ",
-            "verify_robot_model:=",
-            verify_robot_model,
+            "kl_ros2_control_joints_macro:=",
+            kl_ros2_control_joints_macro_value,
             " ",
             "rsi_xml_config_file:=",
             rsi_xml_config_file,
-        ],
-        on_stderr="capture",
+        ]
+        effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
+
+    jtc_config_param = (
+        "joint_trajectory_controller_config_6_axis_kl.yaml"
+        if use_external_axis_value
+        else "joint_trajectory_controller_config.yaml"
     )
 
+    # Get URDF via xacro
+    xacro_arguments = [
+        PathJoinSubstitution([FindExecutable(name="xacro")]),
+        " ",
+        urdf_source,
+        " ",
+        "mode:=",
+        mode,
+        " ",
+        "use_gpio:=",
+        use_gpio,
+        " ",
+        "driver_version:=",
+        driver_version,
+        " ",
+        "client_port:=",
+        client_port,
+        " ",
+        "mxa_client_port:=",
+        mxa_client_port,
+        " ",
+        "client_ip:=",
+        client_ip,
+        " ",
+        "controller_ip:=",
+        controller_ip,
+        " ",
+        "prefix:=",
+        tf_prefix,
+        " ",
+        "x:=",
+        x,
+        " ",
+        "y:=",
+        y,
+        " ",
+        "z:=",
+        z,
+        " ",
+        "roll:=",
+        roll,
+        " ",
+        "pitch:=",
+        pitch,
+        " ",
+        "yaw:=",
+        yaw,
+        " ",
+        "roundtrip_time:=",
+        roundtrip_time,
+        " ",
+        "verify_robot_model:=",
+        verify_robot_model,
+    ]
+    if use_external_axis_value:
+        xacro_arguments.extend(
+            [
+                " ",
+                "kl_prefix:=",
+                kl_prefix_value,
+                " ",
+                "composed_model:=",
+                effective_robot_model,
+            ]
+        )
+        xacro_arguments.extend(template_xacro_args)
+
+    robot_description_content = Command(xacro_arguments, on_stderr="capture")
     robot_description = {"robot_description": robot_description_content}
 
     # The driver config contains only parameters that can be changed after startup
@@ -174,7 +291,7 @@ def launch_setup(context, *args, **kwargs):
                 "thread_priority": int(rt_prio.perform(context)),
                 "lock_memory": lock_memory.perform(context) == "true",
                 "hardware_components_initial_state": {
-                    "unconfigured": [tf_prefix + robot_model.perform(context)]
+                    "unconfigured": [tf_prefix + effective_robot_model]
                 },
             },
         ],
@@ -191,7 +308,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         parameters=[
             driver_config,
-            {"robot_models": [robot_model.perform(context)], "use_gpio": use_gpio},
+            {"robot_models": [effective_robot_model], "use_gpio": use_gpio},
         ],
         prefix=prefix_cmd,
     )
@@ -230,7 +347,7 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-        "joint_trajectory_controller": config_file("joint_trajectory_controller_config.yaml"),
+        "joint_trajectory_controller": config_file(jtc_config_param),
         "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
@@ -274,6 +391,44 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "use_external_axis",
+            default_value="false",
+            choices=["true", "false"],
+            description=("Compose robot_model and kl_model with reusable template xacro."),
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("kl_model", default_value="kl100_2"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_support_package",
+            default_value="",
+            description=(
+                "Package containing KL model and KL ros2_control xacro macros. "
+                "If empty, falls back to kuka_kl_support."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_macro_file",
+            default_value="kl_ros2_control_macro.xacro",
+            description=(
+                "External-axis ros2_control macro file inside <kl_support_package>/urdf."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_joints_macro",
+            default_value="kuka_kl_ros2_control_joints",
+            description=(
+                "External-axis ros2_control joints macro name used by the composed URDF template."
+            ),
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("kl_prefix", default_value="rail_"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
