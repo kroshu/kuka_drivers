@@ -258,11 +258,13 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 RobotManagerNode::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  // Deactivate hardware interfaces
+  // Deactivate hardware interfaces in reverse order to avoid blocking sync
+  // hardware while async hardware is being deactivated
   // Deactivation was not stable with 2000 ms timeout
   bool all_deactivated = true;
-  for (const auto & robot_model : robot_models_)
+  for (auto it = robot_models_.rbegin(); it != robot_models_.rend(); ++it)
   {
+    const auto & robot_model = *it;
     if (!kuka_drivers_core::changeHardwareState(
           change_hardware_state_client_, robot_model, State::PRIMARY_STATE_INACTIVE, 3000))
     {
