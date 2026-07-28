@@ -246,16 +246,22 @@ def build_krc_xml(
 
     # Cartesian motion state
     cartesian_cfg = ms_cfg.get("cartesian", {}) or {}
-    cartesian_elem = cartesian_cfg.get("xml_element", _DEFAULT_CARTESIAN_ELEMENT)
-    if not isinstance(cartesian_elem, str) or not cartesian_elem:
-        raise ValueError("motion_state.cartesian.xml_element must be a non-empty string.")
-    cartesian_attrs = cartesian_cfg.get("xml_attributes", _DEFAULT_CARTESIAN_ATTRIBUTES)
-    if not isinstance(cartesian_attrs, list) or len(cartesian_attrs) != 6:
-        raise ValueError("motion_state.cartesian.xml_attributes must be a list with 6 entries.")
-    for attr in cartesian_attrs:
-        if not isinstance(attr, str) or not attr:
-            raise ValueError("motion_state.cartesian.xml_attributes contains invalid value.")
-    _emit_send_group(cartesian_elem, [f"{cartesian_elem}.{attr}" for attr in cartesian_attrs])
+    cartesian_enabled = cartesian_cfg.get("enabled", True)
+    if not isinstance(cartesian_enabled, bool):
+        raise ValueError("'motion_state.cartesian.enabled' must be boolean when provided.")
+    if cartesian_cfg and cartesian_enabled:
+        cartesian_elem = cartesian_cfg.get("xml_element", _DEFAULT_CARTESIAN_ELEMENT)
+        if not isinstance(cartesian_elem, str) or not cartesian_elem:
+            raise ValueError("motion_state.cartesian.xml_element must be a non-empty string.")
+        cartesian_attrs = cartesian_cfg.get("xml_attributes", _DEFAULT_CARTESIAN_ATTRIBUTES)
+        if not isinstance(cartesian_attrs, list) or len(cartesian_attrs) != 6:
+            raise ValueError(
+                "motion_state.cartesian.xml_attributes must be a list with 6 entries."
+            )
+        for attr in cartesian_attrs:
+            if not isinstance(attr, str) or not attr:
+                raise ValueError("motion_state.cartesian.xml_attributes contains invalid value.")
+        _emit_send_group(cartesian_elem, [f"{cartesian_elem}.{attr}" for attr in cartesian_attrs])
 
     # Joint motion-state mappings. Contiguous runs that share an xml_element are
     # emitted together so default elements collapse into their DEF_ shortcut.
