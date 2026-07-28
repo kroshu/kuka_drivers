@@ -301,7 +301,7 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
         expected_count, current_count, runtime_state_.is_async_hardware,
         [this]() { return static_cast<uint32_t>(control_state_.interpolation_count_command); });
 
-      if (current_count != expected_count)
+      if (current_count != expected_count && runtime_state_.is_active)
       {
         RCLCPP_WARN(
           logger_, "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
