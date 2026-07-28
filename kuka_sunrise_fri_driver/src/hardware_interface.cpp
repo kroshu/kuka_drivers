@@ -198,6 +198,10 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       }
       control_activated_ = true;
       RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
+      {
+        std::lock_guard<std::mutex> lk(event_mutex_);
+        last_event_ = kuka_drivers_core::HardwareEvent::CONTROL_STARTED;
+      }
       thread_running_ = false;
     });
 
@@ -235,6 +239,10 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   }
   fri_started_ = false;
   interpolation_count_initialized_ = false;
+  {
+    std::lock_guard<std::mutex> lk(event_mutex_);
+    last_event_ = kuka_drivers_core::HardwareEvent::CONTROL_STOPPED;
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -320,7 +328,9 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
   }
 
   uint32_t current_count = static_cast<uint32_t>(interpolation_count_);
-  if (interpolation_count_initialized_)
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && interpolation_count_initialized_)
   {
     const uint32_t expected_count =
       (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
@@ -366,8 +376,11 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
       }
     }
   }
-  interpolation_count_initialized_ = true;
-  last_interpolation_count_command_ = current_count;
+  if (current_count > 0)
+  {
+    interpolation_count_initialized_ = true;
+    last_interpolation_count_command_ = current_count;
+  }
 
   // Call the appropriate callback for the actual state (e.g. updateCommand)
   //  in active state this updates the command to be sent based on the command interfaces

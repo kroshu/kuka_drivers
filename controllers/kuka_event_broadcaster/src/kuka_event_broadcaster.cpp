@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 
+#include <algorithm>
 #include <exception>
 #include <limits>
 
@@ -100,12 +102,16 @@ controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp
   interpolation_count_ = 0;
 
   last_events_.assign(event_robot_prefixes_.size(), 0);
+  control_started_.assign(event_robot_prefixes_.size(), false);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn EventBroadcaster::on_activate(const rclcpp_lifecycle::State &)
 {
+  // Reset control_started_ flags on re-activation
+  std::fill(control_started_.begin(), control_started_.end(), false);
+  interpolation_count_ = 0;
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -118,6 +124,48 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
+  // First, check for state changes and update control_started_ flags
+  for (size_t i = 0; i < state_interfaces_.size(); ++i)
+  {
+    const auto current_event =
+      static_cast<uint8_t>(state_interfaces_[i].get_optional().value_or(last_events_[i]));
+
+    // Track CONTROL_STARTED event
+    if (current_event ==
+        static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED))
+    {
+      control_started_[i] = true;
+    }
+    // Reset on CONTROL_STOPPED or ERROR
+    else if (
+      current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED) ||
+      current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::ERROR))
+    {
+      control_started_[i] = false;
+    }
+
+    if (current_event != last_events_[i])
+    {
+      last_events_[i] = current_event;
+      event_msg_.robot_name = event_robot_prefixes_[i];
+      event_msg_.event = current_event;
+      if (event_publisher_->trylock())
+      {
+        event_publisher_->msg_ = event_msg_;
+        event_publisher_->unlockAndPublish();
+      }
+    }
+  }
+
+  // Only increment and set interpolation_count when all hardware interfaces have started control
+  const bool all_control_started =
+    std::all_of(control_started_.begin(), control_started_.end(), [](bool v) { return v; });
+
+  if (!all_control_started)
+  {
+    return controller_interface::return_type::OK;
+  }
+
   if (interpolation_count_ == std::numeric_limits<uint32_t>::max())
   {
     interpolation_count_ = 0;
@@ -139,25 +187,6 @@ controller_interface::return_type EventBroadcaster::update(
         get_node()->get_logger(), *get_node()->get_clock(), 5000,
         "Failed to set interpolation_count command interface for robot '%s'",
         event_robot_prefixes_[idx].c_str());
-    }
-  }
-
-  for (size_t i = 0; i < state_interfaces_.size(); ++i)
-  {
-    const auto current_event =
-      static_cast<uint8_t>(state_interfaces_[i].get_optional().value_or(last_events_[i]));
-    if (current_event == last_events_[i])
-    {
-      continue;
-    }
-
-    last_events_[i] = current_event;
-    event_msg_.robot_name = event_robot_prefixes_[i];
-    event_msg_.event = current_event;
-    if (event_publisher_->trylock())
-    {
-      event_publisher_->msg_ = event_msg_;
-      event_publisher_->unlockAndPublish();
     }
   }
 

@@ -280,7 +280,9 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   }
 
   uint32_t current_count = static_cast<uint32_t>(control_state_.interpolation_count_command);
-  if (diagnostics_state_.interpolation_count_initialized)
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && diagnostics_state_.interpolation_count_initialized)
   {
     const uint32_t expected_count =
       (diagnostics_state_.last_interpolation_count_command == std::numeric_limits<uint32_t>::max())
@@ -325,8 +327,11 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
       }
     }
   }
-  diagnostics_state_.interpolation_count_initialized = true;
-  diagnostics_state_.last_interpolation_count_command = current_count;
+  if (current_count > 0)
+  {
+    diagnostics_state_.interpolation_count_initialized = true;
+    diagnostics_state_.last_interpolation_count_command = current_count;
+  }
 
   Write();
 

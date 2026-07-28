@@ -243,7 +243,9 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   }
 
   uint32_t current_count = static_cast<uint32_t>(interpolation_count_command_);
-  if (interpolation_count_initialized_)
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && interpolation_count_initialized_)
   {
     const uint32_t expected_count =
       (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
@@ -289,8 +291,11 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
       }
     }
   }
-  interpolation_count_initialized_ = true;
-  last_interpolation_count_command_ = current_count;
+  if (current_count > 0)
+  {
+    interpolation_count_initialized_ = true;
+    last_interpolation_count_command_ = current_count;
+  }
 
   robot_ptr_->GetControlSignal().AddJointPositionValues(
     hw_position_commands_.begin(), hw_position_commands_.end());
