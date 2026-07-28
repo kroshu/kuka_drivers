@@ -260,6 +260,11 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_cleanup(const rclcpp_lifecycle::
 
 return_type KukaRSIHardwareInterfaceBase::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  {
+    std::lock_guard<std::mutex> lk(event_state_.event_mutex);
+    event_state_.server_state = static_cast<double>(event_state_.last_event);
+  }
+
   // The first packet is received at activation, Read() should not be called before
   // Add short sleep to avoid RT thread eating CPU
   if (!runtime_state_.is_active)
@@ -469,9 +474,6 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
-
-  std::lock_guard<std::mutex> lk(event_state_.event_mutex);
-  event_state_.server_state = static_cast<double>(event_state_.last_event);
 }
 
 void KukaRSIHardwareInterfaceBase::set_server_event(kuka_drivers_core::HardwareEvent event)
