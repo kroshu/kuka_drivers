@@ -247,6 +247,8 @@ def build_krc_xml(
     # Cartesian motion state
     cartesian_cfg = ms_cfg.get("cartesian", {}) or {}
     cartesian_enabled = cartesian_cfg.get("enabled", True)
+    if not isinstance(cartesian_enabled, bool):
+        raise ValueError("'motion_state.cartesian.enabled' must be boolean when provided.")
     if cartesian_cfg and cartesian_enabled:
         cartesian_elem = cartesian_cfg.get("xml_element", _DEFAULT_CARTESIAN_ELEMENT)
         if not isinstance(cartesian_elem, str) or not cartesian_elem:
