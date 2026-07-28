@@ -18,6 +18,7 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/hardware_interface_utils.hpp"
 #include "kuka_drivers_core/joint_interface_validator.hpp"
 
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
@@ -339,33 +340,9 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
 
     if (current_count != expected_count)
     {
-      if (is_async_hardware_)
-      {
-        const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-          std::chrono::microseconds(200));
-
-        // Async components may lag one cycle behind controller updates; retry up to 1 ms if only
-        // one cycle behind
-        while (current_count == expected_count - 1)
-        {
-          const auto now = std::chrono::steady_clock::now();
-          if (now >= retry_deadline)
-          {
-            break;
-          }
-
-          auto sleep_time = retry_step;
-          const auto remaining = retry_deadline - now;
-          if (remaining < sleep_time)
-          {
-            sleep_time = remaining;
-          }
-
-          std::this_thread::sleep_for(sleep_time);
-          current_count = static_cast<uint32_t>(interpolation_count_);
-        }
-      }
+      current_count = kuka_drivers_core::hardware_interface_utils::WaitForInterpolationCount(
+        expected_count, current_count, is_async_hardware_,
+        [this]() { return static_cast<uint32_t>(interpolation_count_); });
 
       if (current_count != expected_count)
       {

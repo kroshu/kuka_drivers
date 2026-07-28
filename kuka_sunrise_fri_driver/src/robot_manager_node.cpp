@@ -145,20 +145,9 @@ RobotManagerNode::on_configure(const rclcpp_lifecycle::State &)
     {
       RCLCPP_ERROR(
         get_logger(), "Could not configure hardware interface '%s'", robot_model.c_str());
-
-      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
-      {
-        const auto & rollback_model = robot_models_[rollback_idx];
-        if (!kuka_drivers_core::changeHardwareState(
-              change_hardware_state_client_, rollback_model,
-              lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED))
-        {
-          RCLCPP_ERROR(
-            get_logger(), "Could not roll back hardware interface '%s' after configure failure",
-            rollback_model.c_str());
-        }
-      }
-
+      kuka_drivers_core::rollbackHardwareStates(
+        change_hardware_state_client_, robot_models_, idx,
+        lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED, get_logger(), "configure");
       return FAILURE;
     }
   }
@@ -239,20 +228,9 @@ RobotManagerNode::on_activate(const rclcpp_lifecycle::State &)
           lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE))
     {
       RCLCPP_ERROR(get_logger(), "Could not activate hardware interface '%s'", robot_model.c_str());
-
-      for (size_t rollback_idx = 0; rollback_idx < idx; ++rollback_idx)
-      {
-        const auto & rollback_model = robot_models_[rollback_idx];
-        if (!kuka_drivers_core::changeHardwareState(
-              change_hardware_state_client_, rollback_model,
-              lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE))
-        {
-          RCLCPP_ERROR(
-            get_logger(), "Could not roll back hardware interface '%s' after activate failure",
-            rollback_model.c_str());
-        }
-      }
-
+      kuka_drivers_core::rollbackHardwareStates(
+        change_hardware_state_client_, robot_models_, idx,
+        lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE, get_logger(), "activate");
       return FAILURE;
     }
   }
