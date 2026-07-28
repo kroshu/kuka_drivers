@@ -124,6 +124,8 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
+  bool reset_interpolation_count = false;
+
   // First, check for state changes and update control_active_ flags
   for (size_t i = 0; i < state_interfaces_.size(); ++i)
   {
@@ -142,6 +144,7 @@ controller_interface::return_type EventBroadcaster::update(
     {
       control_active_[i] = false;
       interpolation_count_ = 0;
+      reset_interpolation_count = true;
     }
 
     if (current_event != last_events_[i])
@@ -161,18 +164,20 @@ controller_interface::return_type EventBroadcaster::update(
   const bool all_control_started =
     std::all_of(control_active_.begin(), control_active_.end(), [](bool v) { return v; });
 
-  if (!all_control_started)
+  if (all_control_started)
+  {
+    if (interpolation_count_ == std::numeric_limits<uint32_t>::max())
+    {
+      interpolation_count_ = 0;
+    }
+    else
+    {
+      ++interpolation_count_;
+    }
+  }
+  else if (!reset_interpolation_count)
   {
     return controller_interface::return_type::OK;
-  }
-
-  if (interpolation_count_ == std::numeric_limits<uint32_t>::max())
-  {
-    interpolation_count_ = 0;
-  }
-  else
-  {
-    ++interpolation_count_;
   }
 
   bool all_counts_set = true;
