@@ -141,6 +141,7 @@ controller_interface::return_type EventBroadcaster::update(
       current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::ERROR))
     {
       control_started_[i] = false;
+      interpolation_count_ = 0;
     }
 
     if (current_event != last_events_[i])
