@@ -102,15 +102,15 @@ controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp
   interpolation_count_ = 0;
 
   last_events_.assign(event_robot_prefixes_.size(), 0);
-  control_started_.assign(event_robot_prefixes_.size(), false);
+  control_active_.assign(event_robot_prefixes_.size(), false);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn EventBroadcaster::on_activate(const rclcpp_lifecycle::State &)
 {
-  // Reset control_started_ flags on re-activation
-  std::fill(control_started_.begin(), control_started_.end(), false);
+  // Reset control_active_ flags on re-activation
+  std::fill(control_active_.begin(), control_active_.end(), false);
   interpolation_count_ = 0;
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -124,7 +124,7 @@ controller_interface::CallbackReturn EventBroadcaster::on_deactivate(
 controller_interface::return_type EventBroadcaster::update(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // First, check for state changes and update control_started_ flags
+  // First, check for state changes and update control_active_ flags
   for (size_t i = 0; i < state_interfaces_.size(); ++i)
   {
     const auto current_event =
@@ -133,14 +133,14 @@ controller_interface::return_type EventBroadcaster::update(
     // Track CONTROL_STARTED event
     if (current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED))
     {
-      control_started_[i] = true;
+      control_active_[i] = true;
     }
     // Reset on CONTROL_STOPPED or ERROR
     else if (
       current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED) ||
       current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::ERROR))
     {
-      control_started_[i] = false;
+      control_active_[i] = false;
       interpolation_count_ = 0;
     }
 
@@ -159,7 +159,7 @@ controller_interface::return_type EventBroadcaster::update(
 
   // Only increment and set interpolation_count when all hardware interfaces have started control
   const bool all_control_started =
-    std::all_of(control_started_.begin(), control_started_.end(), [](bool v) { return v; });
+    std::all_of(control_active_.begin(), control_active_.end(), [](bool v) { return v; });
 
   if (!all_control_started)
   {

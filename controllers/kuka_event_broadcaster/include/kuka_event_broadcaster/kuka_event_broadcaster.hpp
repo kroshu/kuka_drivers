@@ -67,7 +67,7 @@ private:
   Params params_;
   std::vector<std::string> event_robot_prefixes_;
   std::vector<uint8_t> last_events_;
-  std::vector<bool> control_started_;
+  std::vector<bool> control_active_;
   // uint32_t can be casted to double without loss of precision, uint64_t cannot, so we use uint32_t
   // for the interpolation count interface
   uint32_t interpolation_count_{0};
