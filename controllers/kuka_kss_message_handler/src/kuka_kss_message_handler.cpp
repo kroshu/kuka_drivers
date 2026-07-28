@@ -105,8 +105,11 @@ CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
     std::bind(&KssMessageHandler::RsiCycleTimeChangedCallback, this, std::placeholders::_1));
 
   // Status publisher for all robots. One message contains all robot statuses.
-  status_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
+  auto status_publisher = get_node()->create_publisher<kuka_driver_interfaces::msg::KssStatusArray>(
     "~/status", rclcpp::SystemDefaultsQoS());
+  status_publisher_ = std::make_shared<
+    realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::KssStatusArray>>(
+    status_publisher);
 
   RCLCPP_INFO(
     get_node()->get_logger(),
@@ -140,8 +143,12 @@ ReturnType KssMessageHandler::update(const rclcpp::Time &, const rclcpp::Duratio
 
   if (++status_publish_counter_ >= STATUS_PUBLISH_TICK_COUNT)
   {
-    status_msg_.statuses = current_statuses_;
-    status_publisher_->publish(status_msg_);
+    if (status_publisher_->trylock())
+    {
+      status_msg_.statuses = current_statuses_;
+      status_publisher_->msg_ = status_msg_;
+      status_publisher_->unlockAndPublish();
+    }
     status_publish_counter_ = 0;
   }
 

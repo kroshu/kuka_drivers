@@ -27,6 +27,7 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include "fri_state_broadcaster/fri_state_broadcaster_parameters.hpp"
 #include "fri_state_broadcaster/visibility_control.h"
@@ -70,7 +71,8 @@ private:
   Params params_;
 
   int counter_ = 0;
-  rclcpp::Publisher<kuka_driver_interfaces::msg::FRIStateArray>::SharedPtr state_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::FRIStateArray>>
+    state_publisher_;
   std::vector<std::string> robot_prefixes_;
   std::vector<kuka_driver_interfaces::msg::FRIState> current_states_;
   kuka_driver_interfaces::msg::FRIStateArray state_msg_;

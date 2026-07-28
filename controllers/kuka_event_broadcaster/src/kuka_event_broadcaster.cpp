@@ -33,8 +33,11 @@ controller_interface::CallbackReturn EventBroadcaster::on_init()
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to initialize parameters: %s", ex.what());
     return controller_interface::CallbackReturn::ERROR;
   }
-  event_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::HardwareEvent>(
+  auto event_publisher = get_node()->create_publisher<kuka_driver_interfaces::msg::HardwareEvent>(
     "~/hardware_event", rclcpp::SystemDefaultsQoS());
+  event_publisher_ =
+    std::make_shared<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::HardwareEvent>>(
+      event_publisher);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -151,7 +154,11 @@ controller_interface::return_type EventBroadcaster::update(
     last_events_[i] = current_event;
     event_msg_.robot_name = event_robot_prefixes_[i];
     event_msg_.event = current_event;
-    event_publisher_->publish(event_msg_);
+    if (event_publisher_->trylock())
+    {
+      event_publisher_->msg_ = event_msg_;
+      event_publisher_->unlockAndPublish();
+    }
   }
 
   return all_counts_set ? controller_interface::return_type::OK

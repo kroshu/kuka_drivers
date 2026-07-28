@@ -10,6 +10,7 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
 find_package(kuka_driver_interfaces REQUIRED)
+find_package(realtime_tools REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 include_directories(include)
@@ -26,7 +27,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core kuka_driver_interfaces
+ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_drivers_core kuka_driver_interfaces realtime_tools
 )
 target_link_libraries(${PROJECT_NAME} kuka_event_broadcaster_parameters)
 

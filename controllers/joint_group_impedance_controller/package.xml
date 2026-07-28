@@ -17,6 +17,7 @@
   <depend>forward_command_controller</depend>
   <depend>pluginlib</depend>
   <depend>kuka_drivers_core</depend>
+  <depend>realtime_tools</depend>
   <depend>generate_parameter_library</depend>
 
   <export>

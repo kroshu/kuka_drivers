@@ -31,6 +31,7 @@
 #include "kuka_drivers_core/hardware_interface_types.hpp"
 #include "kuka_kss_message_handler/kuka_kss_message_handler_parameters.hpp"
 #include "kuka_kss_message_handler/visibility_control.h"
+#include "realtime_tools/realtime_publisher.hpp"
 
 namespace kuka_controllers
 {
@@ -119,7 +120,8 @@ private:
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr cycle_time_subscription_;
   std::atomic<double> cycle_time_;
 
-  rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatusArray>::SharedPtr status_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::KssStatusArray>>
+    status_publisher_;
   std::vector<std::string> robot_prefixes_;
   std::vector<kuka_driver_interfaces::msg::KssStatus> current_statuses_;
   kuka_driver_interfaces::msg::KssStatusArray status_msg_;

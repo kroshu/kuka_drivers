@@ -11,6 +11,7 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(kuka_driver_interfaces REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
+find_package(realtime_tools REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(
@@ -30,7 +31,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_driver_interfaces kuka_drivers_core)
+ament_target_dependencies(${PROJECT_NAME} controller_interface kuka_driver_interfaces kuka_drivers_core realtime_tools)
 target_link_libraries(${PROJECT_NAME} fri_state_broadcaster_parameters)
 
 # Causes the visibility macros to use dllexport rather than dllimport,

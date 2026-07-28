@@ -91,8 +91,11 @@ controller_interface::CallbackReturn FRIStateBroadcaster::on_configure(
   state_msg_.states = current_states_;
 
   // Single publisher for all robots. One message contains all robot states.
-  state_publisher_ = get_node()->create_publisher<kuka_driver_interfaces::msg::FRIStateArray>(
+  auto state_publisher = get_node()->create_publisher<kuka_driver_interfaces::msg::FRIStateArray>(
     "~/fri_state", rclcpp::SystemDefaultsQoS());
+  state_publisher_ =
+    std::make_shared<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::FRIStateArray>>(
+      state_publisher);
 
   RCLCPP_INFO(
     get_node()->get_logger(), "FRI state broadcaster configured with %zu robot instance(s)",
@@ -156,8 +159,12 @@ controller_interface::return_type FRIStateBroadcaster::update(
 
   if (counter_++ == 10)
   {
-    state_msg_.states = current_states_;
-    state_publisher_->publish(state_msg_);
+    if (state_publisher_->trylock())
+    {
+      state_msg_.states = current_states_;
+      state_publisher_->msg_ = state_msg_;
+      state_publisher_->unlockAndPublish();
+    }
     counter_ = 0;
   }
 

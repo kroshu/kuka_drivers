@@ -25,6 +25,7 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include "kuka_event_broadcaster/kuka_event_broadcaster_parameters.hpp"
 
@@ -70,7 +71,8 @@ private:
   // for the interpolation count interface
   uint32_t interpolation_count_{0};
 
-  rclcpp::Publisher<kuka_driver_interfaces::msg::HardwareEvent>::SharedPtr event_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::HardwareEvent>>
+    event_publisher_;
   kuka_driver_interfaces::msg::HardwareEvent event_msg_;
 };
 }  // namespace kuka_controllers
