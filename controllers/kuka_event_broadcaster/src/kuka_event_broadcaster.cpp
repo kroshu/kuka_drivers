@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_drivers_core/hardware_event.hpp"
-#include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_event_broadcaster/kuka_event_broadcaster.hpp"
 
 #include <algorithm>
 #include <exception>
 #include <limits>
 
-#include "kuka_event_broadcaster/kuka_event_broadcaster.hpp"
+#include "kuka_drivers_core/hardware_event.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 namespace kuka_controllers
 {

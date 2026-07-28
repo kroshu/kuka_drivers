@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_control_mode_handler/kuka_control_mode_handler.hpp"
 
 #include <exception>
 
-#include "kuka_control_mode_handler/kuka_control_mode_handler.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
 
 namespace kuka_controllers
 {

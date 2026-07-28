@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "pluginlib/class_list_macros.hpp"
+#include "fri_configuration_controller/fri_configuration_controller.hpp"
 
 #include <exception>
 
-#include "fri_configuration_controller/fri_configuration_controller.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "pluginlib/class_list_macros.hpp"
 
 namespace kuka_controllers
 {
