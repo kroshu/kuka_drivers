@@ -46,8 +46,8 @@ inline uint32_t WaitForInterpolationCount(
   }
 
   const auto retry_deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-  const auto retry_step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-    std::chrono::microseconds(200));
+  const auto retry_step =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::microseconds(200));
 
   // Async components may lag one cycle behind controller updates; retry up to 1 ms
   while (current_count == expected_count - 1)

@@ -131,8 +131,7 @@ controller_interface::return_type EventBroadcaster::update(
       static_cast<uint8_t>(state_interfaces_[i].get_optional().value_or(last_events_[i]));
 
     // Track CONTROL_STARTED event
-    if (current_event ==
-        static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED))
+    if (current_event == static_cast<uint8_t>(kuka_drivers_core::HardwareEvent::CONTROL_STARTED))
     {
       control_started_[i] = true;
     }
