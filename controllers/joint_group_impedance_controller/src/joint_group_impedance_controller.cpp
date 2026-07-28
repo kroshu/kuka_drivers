@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "pluginlib/class_list_macros.hpp"
+#include "joint_group_impedance_controller/joint_group_impedance_controller.hpp"
+
+#include <exception>
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
-
-#include "joint_group_impedance_controller/joint_group_impedance_controller.hpp"
+#include "pluginlib/class_list_macros.hpp"
 
 namespace kuka_controllers
 {
@@ -88,8 +89,12 @@ controller_interface::CallbackReturn JointGroupImpedanceController::on_init()
 controller_interface::CallbackReturn JointGroupImpedanceController::on_configure(
   const rclcpp_lifecycle::State & previous_state)
 {
-  commanded_joint_pos_publisher_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
-    "~/commanded_positions", rclcpp::SystemDefaultsQoS());
+  auto commanded_joint_pos_publisher =
+    get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
+      "~/commanded_positions", rclcpp::SystemDefaultsQoS());
+  commanded_joint_pos_publisher_ =
+    std::make_shared<realtime_tools::RealtimePublisher<std_msgs::msg::Float64MultiArray>>(
+      commanded_joint_pos_publisher);
 
   auto ret = forward_command_controller::ForwardControllersBase::on_configure(previous_state);
   // Parameters are read in base class configuration
@@ -118,7 +123,11 @@ controller_interface::return_type JointGroupImpedanceController::update(
       state_interfaces_[i].get_optional().value_or(commanded_joint_pos_.data[i]);
   }
 
-  commanded_joint_pos_publisher_->publish(commanded_joint_pos_);
+  if (commanded_joint_pos_publisher_->trylock())
+  {
+    commanded_joint_pos_publisher_->msg_ = commanded_joint_pos_;
+    commanded_joint_pos_publisher_->unlockAndPublish();
+  }
 
   return forward_command_controller::ForwardControllersBase::update(time, period);
 }

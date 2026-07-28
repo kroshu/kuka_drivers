@@ -17,6 +17,8 @@
 
 #include <array>
 #include <atomic>
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -25,7 +27,11 @@
 #include "std_msgs/msg/u_int8.hpp"
 
 #include "kuka_driver_interfaces/msg/kss_status.hpp"
+#include "kuka_driver_interfaces/msg/kss_status_array.hpp"
+#include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_kss_message_handler/kuka_kss_message_handler_parameters.hpp"
 #include "kuka_kss_message_handler/visibility_control.h"
+#include "realtime_tools/realtime_publisher.hpp"
 
 namespace kuka_controllers
 {
@@ -37,10 +43,7 @@ using ReturnType = controller_interface::return_type;
 class KssMessageHandler : public controller_interface::ControllerInterface
 {
 public:
-  KUKA_KSS_MESSAGE_HANDLER_PUBLIC CallbackReturn on_init() override
-  {
-    return CallbackReturn::SUCCESS;
-  }
+  KUKA_KSS_MESSAGE_HANDLER_PUBLIC CallbackReturn on_init() override;
 
   KUKA_KSS_MESSAGE_HANDLER_PUBLIC CallbackReturn
   on_activate(const rclcpp_lifecycle::State &) override
@@ -65,52 +68,68 @@ public:
   update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
+  using UInt8StatusMember = uint8_t kuka_driver_interfaces::msg::KssStatus::*;
+  using BoolStatusMember = bool kuka_driver_interfaces::msg::KssStatus::*;
+
+  static constexpr std::array<std::pair<UInt8StatusMember, size_t>, 3> UINT8_STATUS_FIELDS = {
+    std::pair<UInt8StatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::control_mode, 0},
+    std::pair<UInt8StatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::cycle_time, 1},
+    std::pair<UInt8StatusMember, size_t>{
+      &kuka_driver_interfaces::msg::KssStatus::operation_mode, 7}};
+
+  static constexpr std::array<std::pair<BoolStatusMember, size_t>, 6> BOOL_STATUS_FIELDS = {
+    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::drives_powered, 2},
+    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::emergency_stop, 3},
+    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::guard_stop, 4},
+    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::in_motion, 5},
+    std::pair<BoolStatusMember, size_t>{
+      &kuka_driver_interfaces::msg::KssStatus::motion_possible, 6},
+    std::pair<BoolStatusMember, size_t>{&kuka_driver_interfaces::msg::KssStatus::robot_stopped, 8}};
+
+  static constexpr std::array<const char *, 9> STATE_INTERFACE_NAMES = {
+    hardware_interface::CONTROL_MODE,    hardware_interface::CYCLE_TIME,
+    hardware_interface::DRIVES_POWERED,  hardware_interface::EMERGENCY_STOP,
+    hardware_interface::GUARD_STOP,      hardware_interface::IN_MOTION,
+    hardware_interface::MOTION_POSSIBLE, hardware_interface::OPERATION_MODE,
+    hardware_interface::ROBOT_STOPPED};
+
+  KUKA_KSS_MESSAGE_HANDLER_LOCAL static std::string ComposeInterfaceName(
+    const std::string & robot_name, const std::string & interface_group,
+    const std::string & interface_name);
+  KUKA_KSS_MESSAGE_HANDLER_LOCAL static void AssignStatusFromInterfaces(
+    kuka_driver_interfaces::msg::KssStatus & status,
+    const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
+    size_t start_idx);
+
+  template <typename T>
+  static T ReadInterfaceValue(
+    const hardware_interface::LoanedStateInterface & state_interface, const T fallback_value)
+  {
+    return static_cast<T>(
+      state_interface.get_optional().value_or(static_cast<double>(fallback_value)));
+  }
+
   KUKA_KSS_MESSAGE_HANDLER_LOCAL void RsiCycleTimeChangedCallback(
     const std_msgs::msg::UInt8::SharedPtr msg);
+
+  using Params = kuka_kss_message_handler::Params;
+  using ParamListener = kuka_kss_message_handler::ParamListener;
+  Params params_;
 
   // Cycle time
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr cycle_time_subscription_;
   std::atomic<double> cycle_time_;
 
-  // Status
-  class Status
-  {
-  public:
-    Status & operator=(
-      const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces);
+  std::shared_ptr<realtime_tools::RealtimePublisher<kuka_driver_interfaces::msg::KssStatusArray>>
+    status_publisher_;
+  std::vector<std::string> robot_prefixes_;
+  std::vector<kuka_driver_interfaces::msg::KssStatus> current_statuses_;
+  kuka_driver_interfaces::msg::KssStatusArray status_msg_;
+  size_t status_publish_counter_ = 0;
 
-    const kuka_driver_interfaces::msg::KssStatus & GetMessage() const
-    {
-      return prev_status_message_;
-    }
+  static constexpr size_t STATE_INTERFACE_COUNT = STATE_INTERFACE_NAMES.size();
 
-    bool StatusChanged() const { return status_message_ != prev_status_message_; }
-
-    void UpdateMessage() { prev_status_message_ = status_message_; }
-
-  private:
-    kuka_driver_interfaces::msg::KssStatus status_message_;
-    kuka_driver_interfaces::msg::KssStatus prev_status_message_;
-
-    const std::array<std::pair<uint8_t *, size_t>, 3> UINT8_MAPPINGS = {
-      std::pair<uint8_t *, size_t>{&status_message_.control_mode, 0},
-      std::pair<uint8_t *, size_t>{&status_message_.cycle_time, 1},
-      std::pair<uint8_t *, size_t>{&status_message_.operation_mode, 7}};
-
-    const std::array<std::pair<bool *, size_t>, 6> BOOL_MAPPINGS = {
-      std::pair<bool *, size_t>{&status_message_.drives_powered, 2},
-      std::pair<bool *, size_t>{&status_message_.emergency_stop, 3},
-      std::pair<bool *, size_t>{&status_message_.guard_stop, 4},
-      std::pair<bool *, size_t>{&status_message_.in_motion, 5},
-      std::pair<bool *, size_t>{&status_message_.motion_possible, 6},
-      std::pair<bool *, size_t>{&status_message_.robot_stopped, 8}};
-  };
-
-  rclcpp::Publisher<kuka_driver_interfaces::msg::KssStatus>::SharedPtr status_publisher_;
-  rclcpp::TimerBase::SharedPtr timer_;
-  Status status_;
-
-  static constexpr std::chrono::milliseconds STATUS_PUBLISH_INTERVAL{1'000};
+  static constexpr size_t STATUS_PUBLISH_TICK_COUNT = 50;
   static constexpr int WARN_THROTTLE_DURATION_MS = 1000;
 };
 

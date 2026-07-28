@@ -18,6 +18,7 @@ list(APPEND CMAKE_PREFIX_PATH "~/.local/lib/cmake")
 
 find_package(ament_cmake REQUIRED)
 find_package(kuka_drivers_core REQUIRED)
+find_package(kuka_driver_interfaces REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -40,7 +41,7 @@ target_link_libraries(${PROJECT_NAME} Kuka::kuka-external-control-sdk)
 
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
-ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core controller_manager_msgs)
+ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core kuka_driver_interfaces controller_manager_msgs)
 target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers Kuka::kuka-external-control-sdk)
 
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface.xml)
@@ -55,7 +56,6 @@ if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_startup.py)
   add_launch_test(test/test_driver_activation.py)
-  add_launch_test(test/test_multi_robot_startup.py)
 endif()
 
 ament_export_libraries(

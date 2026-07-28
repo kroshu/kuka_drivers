@@ -12,7 +12,7 @@ Tested configurations:
 
 ### Client side
 
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime)).
 - Set a fixed IP in the subnet of the KONI interface for the real-time machine.
 
 ### Controller side
@@ -70,7 +70,7 @@ This starts the 3 core components of every driver (described in the [Non-real-ti
 - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupPositionController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/master/kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
-- [`kuka_control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#kuka_control_mode_handler) (no configuration file)
+- [`kuka_control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#kuka_control_mode_handler) (no configuration file)
 
 After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
 
@@ -104,6 +104,9 @@ Both launch files support the following arguments:
 - `rt_prio`: The realtime priority of the thread that runs the control loop [0-99] (default: 70)
 - `non_rt_cores`: Comma-separated CPU core indices for taskset pinning of non-RT threads (e.g. '2,3,4'). Leave empty to disable pinning. (defaults to empty string)
 - `lock_memory`: Whether to lock memory of the control loop with mlockall to avoid paging (defaults to true)
+
+> [!NOTE]
+> The `rt_core` and `rt_prio`, parameters are not applied to asynchronous hardware interfaces. For async hardware configuration, use the `async_thread_priority` and `async_affinity` xacro arguments instead.
 
 The `startup_with_rviz.launch.py` additionally contains one argument:
 

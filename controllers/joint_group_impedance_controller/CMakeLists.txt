@@ -9,6 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(forward_command_controller)
 find_package(kuka_drivers_core)
+find_package(realtime_tools REQUIRED)
 find_package(generate_parameter_library)
 
 include_directories(include)
@@ -25,7 +26,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
-ament_target_dependencies(${PROJECT_NAME} forward_command_controller kuka_drivers_core
+ament_target_dependencies(${PROJECT_NAME} forward_command_controller kuka_drivers_core realtime_tools
 )
 target_link_libraries(${PROJECT_NAME} joint_group_impedance_controller_parameters)
 

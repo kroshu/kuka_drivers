@@ -14,9 +14,9 @@
 
 #include "kuka_rsi_driver/rsi_xml_configuration_parser.hpp"
 
-#include <utility>
-
 #include <yaml-cpp/yaml.h>
+
+#include <utility>
 
 namespace kuka_rsi_driver
 {

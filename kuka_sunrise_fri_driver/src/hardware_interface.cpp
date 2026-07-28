@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <limits>
 #include <memory>
+#include <thread>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/hardware_interface_utils.hpp"
 #include "kuka_drivers_core/joint_interface_validator.hpp"
 
 #include "kuka_sunrise_fri_driver/hardware_interface.hpp"
@@ -35,6 +38,15 @@ CallbackReturn KukaFRIHardwareInterface::on_init(
   controller_ip_ = info_.hardware_parameters.at("controller_ip");
   client_ip_ = info_.hardware_parameters.at("client_ip");
   client_port_ = std::stoi(info_.hardware_parameters.at("client_port"));
+
+  auto info = get_hardware_info();
+  is_async_hardware_ = info.is_async;
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
 
   hw_position_states_.resize(info_.joints.size());
   hw_commanded_position_states_.resize(info_.joints.size());
@@ -187,6 +199,10 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
       }
       control_activated_ = true;
       RCLCPP_INFO(rclcpp::get_logger("KukaFRIHardwareInterface"), "Activated control");
+      {
+        std::lock_guard<std::mutex> lk(event_mutex_);
+        last_event_ = kuka_drivers_core::HardwareEvent::CONTROL_STARTED;
+      }
       thread_running_ = false;
     });
 
@@ -204,6 +220,7 @@ CallbackReturn KukaFRIHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
   {
     return CallbackReturn::FAILURE;
   }
+  interpolation_count_initialized_ = false;
   return CallbackReturn::SUCCESS;
 }
 
@@ -222,6 +239,11 @@ CallbackReturn KukaFRIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
     return CallbackReturn::ERROR;
   }
   fri_started_ = false;
+  interpolation_count_initialized_ = false;
+  {
+    std::lock_guard<std::mutex> lk(event_mutex_);
+    last_event_ = kuka_drivers_core::HardwareEvent::CONTROL_STOPPED;
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -306,6 +328,37 @@ hardware_interface::return_type KukaFRIHardwareInterface::write(
     return hardware_interface::return_type::OK;
   }
 
+  uint32_t current_count = static_cast<uint32_t>(interpolation_count_);
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && interpolation_count_initialized_)
+  {
+    const uint32_t expected_count =
+      (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
+        ? 0
+        : last_interpolation_count_command_ + 1;
+
+    if (current_count != expected_count)
+    {
+      current_count = kuka_drivers_core::hardware_interface_utils::WaitForInterpolationCount(
+        expected_count, current_count, is_async_hardware_,
+        [this]() { return static_cast<uint32_t>(interpolation_count_); });
+
+      if (current_count != expected_count)
+      {
+        RCLCPP_WARN(
+          rclcpp::get_logger("KukaFRIHardwareInterface"),
+          "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          expected_count, current_count, is_async_hardware_ ? "async" : "sync");
+      }
+    }
+  }
+  if (current_count > 0)
+  {
+    interpolation_count_initialized_ = true;
+    last_interpolation_count_command_ = current_count;
+  }
+
   // Call the appropriate callback for the actual state (e.g. updateCommand)
   //  in active state this updates the command to be sent based on the command interfaces
   client_application_.client_app_update();
@@ -387,32 +440,32 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SESSION_STATE,
     &robot_state_.session_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONNECTION_QUALITY,
-    &robot_state_.connection_quality_);
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX,
+    hardware_interface::CONNECTION_QUALITY, &robot_state_.connection_quality_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::SAFETY_STATE,
     &robot_state_.safety_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::COMMAND_MODE,
     &robot_state_.command_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::CONTROL_MODE,
     &robot_state_.control_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::OPERATION_MODE,
     &robot_state_.operation_mode_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::DRIVE_STATE,
     &robot_state_.drive_state_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX, hardware_interface::OVERLAY_TYPE,
     &robot_state_.overlay_type_);
   state_interfaces.emplace_back(
-    hardware_interface::FRI_STATE_PREFIX, hardware_interface::TRACKING_PERFORMANCE,
-    &robot_state_.tracking_performance_);
+    interface_prefix_ + hardware_interface::FRI_STATE_PREFIX,
+    hardware_interface::TRACKING_PERFORMANCE, &robot_state_.tracking_performance_);
 
   // Register I/O outputs (read access)
   for (auto & output : gpio_outputs_)
@@ -438,7 +491,8 @@ std::vector<hardware_interface::StateInterface> KukaFRIHardwareInterface::export
   }
 
   state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &server_state_);
   return state_interfaces;
 }
 
@@ -448,12 +502,17 @@ KukaFRIHardwareInterface::export_command_interfaces()
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &control_mode_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
+    &control_mode_);
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &interpolation_count_);
+  command_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::RECEIVE_MULTIPLIER,
     &receive_multiplier_);
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD, &send_period_ms_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::SEND_PERIOD,
+    &send_period_ms_);
 
   // Register I/O inputs (write access)
   for (auto & input : gpio_inputs_)

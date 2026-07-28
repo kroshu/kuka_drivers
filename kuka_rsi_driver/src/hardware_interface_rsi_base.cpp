@@ -20,6 +20,7 @@
 
 #include "kuka_drivers_core/hardware_event.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/hardware_interface_utils.hpp"
 #include "kuka_drivers_core/joint_interface_validator.hpp"
 #include "kuka_rsi_driver/hardware_interface_rsi_base.hpp"
 #include "kuka_rsi_driver/rsi_xml_configuration_parser.hpp"
@@ -178,6 +179,15 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_init(
   event_state_.server_state =
     static_cast<double>(kuka_drivers_core::HardwareEvent::HARDWARE_EVENT_UNSPECIFIED);
 
+  auto info = get_hardware_info();
+  runtime_state_.is_async_hardware = info.is_async;
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -205,7 +215,8 @@ KukaRSIHardwareInterfaceBase::export_state_interfaces()
   }
 
   state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &event_state_.server_state);
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &event_state_.server_state);
 
   return state_interfaces;
 }
@@ -234,6 +245,10 @@ KukaRSIHardwareInterfaceBase::export_command_interfaces()
       &interface_data_.gpio_commands[i]);
   }
 
+  command_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &control_state_.interpolation_count_command);
+
   return command_interfaces;
 }
 
@@ -245,6 +260,11 @@ CallbackReturn KukaRSIHardwareInterfaceBase::on_cleanup(const rclcpp_lifecycle::
 
 return_type KukaRSIHardwareInterfaceBase::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  {
+    std::lock_guard<std::mutex> lk(event_state_.event_mutex);
+    event_state_.server_state = static_cast<double>(event_state_.last_event);
+  }
+
   // The first packet is received at activation, Read() should not be called before
   // Add short sleep to avoid RT thread eating CPU
   if (!runtime_state_.is_active)
@@ -263,6 +283,36 @@ return_type KukaRSIHardwareInterfaceBase::write(const rclcpp::Time &, const rclc
   if (!runtime_state_.msg_received)
   {
     return return_type::OK;
+  }
+
+  uint32_t current_count = static_cast<uint32_t>(control_state_.interpolation_count_command);
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && diagnostics_state_.interpolation_count_initialized)
+  {
+    const uint32_t expected_count =
+      (diagnostics_state_.last_interpolation_count_command == std::numeric_limits<uint32_t>::max())
+        ? 0
+        : diagnostics_state_.last_interpolation_count_command + 1;
+
+    if (current_count != expected_count)
+    {
+      current_count = kuka_drivers_core::hardware_interface_utils::WaitForInterpolationCount(
+        expected_count, current_count, runtime_state_.is_async_hardware,
+        [this]() { return static_cast<uint32_t>(control_state_.interpolation_count_command); });
+
+      if (current_count != expected_count && runtime_state_.is_active)
+      {
+        RCLCPP_WARN(
+          logger_, "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          expected_count, current_count, runtime_state_.is_async_hardware ? "async" : "sync");
+      }
+    }
+  }
+  if (current_count > 0)
+  {
+    diagnostics_state_.interpolation_count_initialized = true;
+    diagnostics_state_.last_interpolation_count_command = current_count;
   }
 
   Write();
@@ -424,9 +474,6 @@ void KukaRSIHardwareInterfaceBase::Read(const int64_t request_timeout)
     RCLCPP_ERROR(logger_, "Failed to receive motion state %s", motion_state_status.message);
     set_server_event(kuka_drivers_core::HardwareEvent::ERROR);
   }
-
-  std::lock_guard<std::mutex> lk(event_state_.event_mutex);
-  event_state_.server_state = static_cast<double>(event_state_.last_event);
 }
 
 void KukaRSIHardwareInterfaceBase::set_server_event(kuka_drivers_core::HardwareEvent event)
@@ -635,6 +682,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_activation(const rclcpp_li
 
   runtime_state_.msg_received = false;
   runtime_state_.is_active = true;
+  diagnostics_state_.interpolation_count_initialized = false;
 
   RCLCPP_INFO(logger_, "Received position data from robot controller!");
 
@@ -667,6 +715,7 @@ CallbackReturn KukaRSIHardwareInterfaceBase::extended_deactivation(const rclcpp_
   }
   runtime_state_.is_active = false;
   runtime_state_.msg_received = false;
+  diagnostics_state_.interpolation_count_initialized = false;
   if (control_state_.status_manager.DrivesPowered())
   {
     RCLCPP_INFO(logger_, "Turning off drives");

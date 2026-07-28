@@ -90,6 +90,7 @@ CallbackReturn KukaRSIHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
 
   runtime_state_.is_active = false;
   runtime_state_.msg_received = false;
+  set_server_event(kuka_drivers_core::HardwareEvent::CONTROL_STOPPED);
 
   RCLCPP_INFO(logger_, "Stop requested!");
   return CallbackReturn::SUCCESS;

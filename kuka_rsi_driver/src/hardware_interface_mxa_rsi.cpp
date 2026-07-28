@@ -56,11 +56,11 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
   command_interfaces = KukaRSIHardwareInterfaceBase::export_command_interfaces();
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
     &control_state_.hw_control_mode_command);
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
     &control_state_.cycle_time_command);
 
   return command_interfaces;
@@ -73,7 +73,7 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
 
   state_interfaces = KukaRSIHardwareInterfaceBase::export_state_interfaces();
 
-  control_state_.status_manager.RegisterStateInterfaces(state_interfaces);
+  control_state_.status_manager.RegisterStateInterfaces(state_interfaces, interface_prefix_);
 
   return state_interfaces;
 }

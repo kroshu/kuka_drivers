@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "forward_command_controller/multi_interface_forward_command_controller.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include "joint_group_impedance_controller/joint_group_impedance_controller_parameters.hpp"
 #include "joint_group_impedance_controller/visibility_control.h"
@@ -49,7 +50,7 @@ private:
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
-  std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>>
+  std::shared_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Float64MultiArray>>
     commanded_joint_pos_publisher_;
   std_msgs::msg::Float64MultiArray commanded_joint_pos_;
 };

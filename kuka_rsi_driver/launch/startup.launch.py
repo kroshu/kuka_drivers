@@ -62,9 +62,7 @@ def launch_setup(context, *args, **kwargs):
     verify_robot_model = LaunchConfiguration("verify_robot_model")
     rsi_xml_config_file = LaunchConfiguration("rsi_xml_config_file")
     ns = LaunchConfiguration("namespace")
-    controller_config = LaunchConfiguration("controller_config")
-    jtc_config = LaunchConfiguration("jtc_config")
-    gpio_config = LaunchConfiguration("gpio_config")
+    controller_config_dir = LaunchConfiguration("controller_config_dir")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
@@ -95,16 +93,6 @@ def launch_setup(context, *args, **kwargs):
         # Build the string "2,3,4" for taskset
         core_list_str = ",".join(str(c) for c in cores)
         prefix_cmd = f"taskset -c {core_list_str}"
-
-    if not controller_config.perform(context):
-        rel_path_to_config_file = (
-            "/config/ros2_controller_config_rsi_only.yaml"
-            if driver_version.perform(context) == "rsi_only"
-            else "/config/ros2_controller_config_extended.yaml"
-        )
-        controller_config = (
-            get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
-        )
 
     robot_model_value = robot_model.perform(context)
     robot_family_value = robot_family.perform(context)
@@ -202,16 +190,11 @@ def launch_setup(context, *args, **kwargs):
         ]
         effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
 
-    jtc_config_param = jtc_config
-    if jtc_config.perform(context) == "":
-        jtc_config_file = (
-            "joint_trajectory_controller_config_6_axis_kl.yaml"
-            if use_external_axis_value
-            else "joint_trajectory_controller_config.yaml"
-        )
-        jtc_config_param = (
-            get_package_share_directory("kuka_rsi_driver") + "/config/" + jtc_config_file
-        )
+    jtc_config_param = (
+        "joint_trajectory_controller_config_6_axis_kl.yaml"
+        if use_external_axis_value
+        else "joint_trajectory_controller_config.yaml"
+    )
 
     # Get URDF via xacro
     xacro_arguments = [
@@ -285,6 +268,16 @@ def launch_setup(context, *args, **kwargs):
 
     # The driver config contains only parameters that can be changed after startup
     driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
+    config_dir_path = controller_config_dir.perform(context)
+
+    def config_file(filename):
+        return os.path.join(config_dir_path, filename)
+
+    controller_config_file = (
+        config_file("ros2_controller_config_rsi_only.yaml")
+        if driver_version.perform(context) == "rsi_only"
+        else config_file("ros2_controller_config_extended.yaml")
+    )
 
     control_node = Node(
         namespace=ns,
@@ -292,7 +285,7 @@ def launch_setup(context, *args, **kwargs):
         executable="control_node",
         parameters=[
             robot_description,
-            controller_config,
+            controller_config_file,
             {
                 "cpu_affinity": int(rt_core.perform(context)),
                 "thread_priority": int(rt_prio.perform(context)),
@@ -315,7 +308,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         parameters=[
             driver_config,
-            {"robot_model": effective_robot_model, "use_gpio": use_gpio},
+            {"robot_models": [effective_robot_model], "use_gpio": use_gpio},
         ],
         prefix=prefix_cmd,
     )
@@ -354,16 +347,16 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = {
         "joint_state_broadcaster": None,
-        "joint_trajectory_controller": jtc_config_param,
-        "event_broadcaster": None,
+        "joint_trajectory_controller": config_file(jtc_config_param),
+        "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
     if use_gpio.perform(context) == "true":
-        controllers["gpio_controller"] = gpio_config
+        controllers["gpio_controller"] = config_file("gpio_controller_config.yaml")
 
     if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
-        controllers["control_mode_handler"] = None
-        controllers["kss_message_handler"] = None
+        controllers["control_mode_handler"] = config_file("kuka_control_mode_handler_config.yaml")
+        controllers["kss_message_handler"] = config_file("kuka_kss_message_handler_config.yaml")
 
     controller_spawners = [
         controller_spawner(name, prefix_cmd, param_file)
@@ -479,19 +472,8 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(
-            "jtc_config",
-            default_value="",
-            description=(
-                "Optional JTC config file. Empty selects defaults from kuka_rsi_driver config: "
-                "6-axis for standard setups, 6-axis+KL for use_external_axis=true."
-            ),
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "gpio_config",
-            default_value=get_package_share_directory("kuka_rsi_driver")
-            + "/config/gpio_controller_config.yaml",
+            "controller_config_dir",
+            default_value=get_package_share_directory("kuka_rsi_driver") + "/config",
         )
     )
     launch_arguments.append(

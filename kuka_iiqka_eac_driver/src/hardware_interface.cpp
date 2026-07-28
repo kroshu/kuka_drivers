@@ -14,13 +14,16 @@
 
 #include <grpcpp/create_channel.h>
 #include <chrono>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "kuka_drivers_core/control_mode.hpp"
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/hardware_interface_utils.hpp"
 #include "kuka_drivers_core/joint_interface_validator.hpp"
 
 #include "kuka_iiqka_eac_driver/event_observer.hpp"
@@ -60,6 +63,15 @@ CallbackReturn KukaEACHardwareInterface::on_init(
     info_.hardware_parameters.at("controller_ip").c_str(),
     info_.hardware_parameters.at("client_ip").c_str());
 
+  auto info = get_hardware_info();
+  is_async_hardware_ = info.is_async;
+  interface_prefix_ = info.name + "/";
+  auto it = info.hardware_parameters.find("interface_prefix");
+  if (it != info.hardware_parameters.end())
+  {
+    interface_prefix_ = it->second;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -81,7 +93,8 @@ std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export
   }
 
   state_interfaces.emplace_back(
-    hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE, &server_state_);
+    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
+    &server_state_);
 
   return state_interfaces;
 }
@@ -108,7 +121,12 @@ KukaEACHardwareInterface::export_command_interfaces()
   }
 
   command_interfaces.emplace_back(
-    hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE, &hw_control_mode_command_);
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
+    &hw_control_mode_command_);
+
+  command_interfaces.emplace_back(
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
+    &interpolation_count_command_);
 
   return command_interfaces;
 }
@@ -163,6 +181,7 @@ CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::Sta
     "External control session started successfully");
 
   cycle_count_ = 0;
+  interpolation_count_initialized_ = false;
   return CallbackReturn::SUCCESS;
 }
 
@@ -175,6 +194,7 @@ CallbackReturn KukaEACHardwareInterface::on_deactivate(const rclcpp_lifecycle::S
   // StopControlling sometimes calls a blocking read, which could conflict with the read() method,
   // but resource manager handles locking (resources_lock_), so is not necessary here
   robot_ptr_->StopControlling();
+  interpolation_count_initialized_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -221,6 +241,37 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   if (!msg_received_)
   {
     return return_type::OK;
+  }
+
+  uint32_t current_count = static_cast<uint32_t>(interpolation_count_command_);
+  // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
+  // report CONTROL_STARTED
+  if (current_count > 0 && interpolation_count_initialized_)
+  {
+    const uint32_t expected_count =
+      (last_interpolation_count_command_ == std::numeric_limits<uint32_t>::max())
+        ? 0
+        : last_interpolation_count_command_ + 1;
+
+    if (current_count != expected_count)
+    {
+      current_count = kuka_drivers_core::hardware_interface_utils::WaitForInterpolationCount(
+        expected_count, current_count, is_async_hardware_,
+        [this]() { return static_cast<uint32_t>(interpolation_count_command_); });
+
+      if (current_count != expected_count)
+      {
+        RCLCPP_WARN(
+          rclcpp::get_logger("KukaEACHardwareInterface"),
+          "interpolation_count mismatch before write: expected %u, got %u, hardware is %s",
+          expected_count, current_count, is_async_hardware_ ? "async" : "sync");
+      }
+    }
+  }
+  if (current_count > 0)
+  {
+    interpolation_count_initialized_ = true;
+    last_interpolation_count_command_ = current_count;
   }
 
   robot_ptr_->GetControlSignal().AddJointPositionValues(

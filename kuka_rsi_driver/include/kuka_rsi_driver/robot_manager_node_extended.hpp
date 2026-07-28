@@ -18,8 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "kuka_driver_interfaces/msg/hardware_event.hpp"
 #include "std_msgs/msg/u_int32.hpp"
-#include "std_msgs/msg/u_int8.hpp"
 
 #include "robot_manager_base.hpp"
 
@@ -38,7 +38,8 @@ public:
   CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
 
 private:
-  void EventSubscriptionCallback(const std_msgs::msg::UInt8::SharedPtr message) override;
+  void EventSubscriptionCallback(
+    const kuka_driver_interfaces::msg::HardwareEvent::SharedPtr message) override;
 
   bool OnControlModeChangeRequestAdditionalTasks(const int control_mode) override;
 

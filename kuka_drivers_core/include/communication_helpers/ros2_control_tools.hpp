@@ -64,6 +64,33 @@ inline bool changeControllerState(
   }
   return true;
 }
+
+/**
+ * @brief Rollback hardware interface states after a failure.
+ * @param client The SetHardwareComponentState service client.
+ * @param robot_models Vector of robot model names.
+ * @param failed_idx Index of the robot that failed (rollback robots 0 to failed_idx-1).
+ * @param target_state The state to rollback to.
+ * @param logger Logger to use for error messages.
+ * @param operation Description of the failed operation (for error messages).
+ * @param timeout_ms Timeout for state change in milliseconds (default matches changeHardwareState).
+ */
+inline void rollbackHardwareStates(
+  rclcpp::Client<controller_manager_msgs::srv::SetHardwareComponentState>::SharedPtr client,
+  const std::vector<std::string> & robot_models, size_t failed_idx, uint8_t target_state,
+  const rclcpp::Logger & logger, const std::string & operation, int timeout_ms = 2000)
+{
+  for (size_t rollback_idx = 0; rollback_idx < failed_idx; ++rollback_idx)
+  {
+    const auto & rollback_model = robot_models[rollback_idx];
+    if (!changeHardwareState(client, rollback_model, target_state, timeout_ms))
+    {
+      RCLCPP_ERROR(
+        logger, "Could not roll back hardware interface '%s' after %s failure",
+        rollback_model.c_str(), operation.c_str());
+    }
+  }
+}
 }  // namespace kuka_drivers_core
 
 #endif  // COMMUNICATION_HELPERS__ROS2_CONTROL_TOOLS_HPP_
