@@ -84,6 +84,12 @@ FRIConfigurationController::state_interface_configuration() const
 controller_interface::CallbackReturn FRIConfigurationController::on_configure(
   const rclcpp_lifecycle::State &)
 {
+  if (params_.robot_prefixes.empty())
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'robot_prefixes' must not be empty");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
   robot_prefixes_ = params_.robot_prefixes;
   RCLCPP_INFO(
     get_node()->get_logger(), "FRI configuration controller configured with %zu robot instance(s)",

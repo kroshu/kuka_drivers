@@ -47,8 +47,8 @@ __Optional Parameters__:
 
 ### 2.2. `kuka_event_broadcaster`
 
-The `EventBroadcaster` publishes server state change events as a map-like message on
-`~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`.
+The `EventBroadcaster` publishes server state change events on
+`~/hardware_event` using `kuka_driver_interfaces::msg::HardwareEvent`, which contains a robot ID (prefix) and the event as an integer (enum).
 
 The same controller also updates the `runtime_config/interpolation_count` command interface once
 per controller update cycle. This counter is used by the hardware interfaces as a lightweight

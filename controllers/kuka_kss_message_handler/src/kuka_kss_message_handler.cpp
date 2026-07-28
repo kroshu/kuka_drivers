@@ -85,6 +85,12 @@ InterfaceConfig KssMessageHandler::state_interface_configuration() const
 
 CallbackReturn KssMessageHandler::on_configure(const rclcpp_lifecycle::State &)
 {
+  if (params_.robot_prefixes.empty())
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'robot_prefixes' must not be empty");
+    return CallbackReturn::ERROR;
+  }
+
   robot_prefixes_ = params_.robot_prefixes;
   current_statuses_.assign(robot_prefixes_.size(), kuka_driver_interfaces::msg::KssStatus{});
 

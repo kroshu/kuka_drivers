@@ -170,7 +170,7 @@ The following timing constraints apply in all cases due to `ros2_control` behavi
 - KRCs send motion states every 4 ms, but jitter is possible.
 - `update` runs only on the main thread, but it also updates the async hardware interface.
 
-Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads.
+Note: for simplicity, in cases where it does not affect the outcome, `read` is triggered at the same time for both threads. The same scenarios can be extended to any number of robots, the graphs show a multi-robot scenario to make understanding easier.
 
 Legend:
 - R = hardware interface `read`
@@ -195,7 +195,7 @@ Solution: To minimize the detached thread sleep time, the controller manager upd
 ![alt text](resources/dual_arm_timing/scenario3.png)
 
 **Scenario 4:**
-The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.5 ms late.
+The async thread receives robot state 0.5 ms after `read` is triggered. Main-thread `update` starts 0.5 ms after the state is received on the async thread. One packet is 0.7 ms late.
 Issue: the late packet causes an extra `update` execution before `write`. Consequently, one set of commands produced by `update` is never transmitted via `write`. In the subsequent cycle, `write` sends stale data without an intervening `update`, potentially causing a robot jerk. (For example, in case of a simple motion with constant velocity interpolated, the first tick will produce double velocity, while the second a cycle with 0 velocity)
 ![alt text](resources/dual_arm_timing/scenario4.png)
 Solution: if `update` has not yet been called since last `write`, delay current `write` with a maximum of 1 ms. This is implemented using the internal interface `interpolation_count`

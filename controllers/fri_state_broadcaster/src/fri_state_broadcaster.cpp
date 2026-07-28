@@ -78,6 +78,12 @@ controller_interface::InterfaceConfiguration FRIStateBroadcaster::state_interfac
 controller_interface::CallbackReturn FRIStateBroadcaster::on_configure(
   const rclcpp_lifecycle::State &)
 {
+  if (params_.robot_prefixes.empty())
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'robot_prefixes' must not be empty");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
   robot_prefixes_ = params_.robot_prefixes;
   current_states_.assign(robot_prefixes_.size(), kuka_driver_interfaces::msg::FRIState{});
 

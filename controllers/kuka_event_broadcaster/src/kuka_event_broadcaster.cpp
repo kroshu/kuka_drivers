@@ -87,6 +87,12 @@ controller_interface::InterfaceConfiguration EventBroadcaster::state_interface_c
 
 controller_interface::CallbackReturn EventBroadcaster::on_configure(const rclcpp_lifecycle::State &)
 {
+  if (params_.robot_prefixes.empty())
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'robot_prefixes' must not be empty");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
   event_robot_prefixes_ = params_.robot_prefixes;
   interpolation_count_ = 0;
 
