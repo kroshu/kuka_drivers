@@ -66,6 +66,9 @@ public:
   KUKA_RSI_DRIVER_PUBLIC
   return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
+  KUKA_RSI_DRIVER_PUBLIC
+  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
+
   KUKA_RSI_DRIVER_PUBLIC void mxa_init(const InitializationData &);
 
 private:
@@ -73,6 +76,8 @@ private:
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
     const kuka::external::control::kss::Configuration &) override;
+
+  KUKA_RSI_DRIVER_LOCAL bool IsImpedanceModeActive() const;
 
   InitSequenceReport init_report_;
   std::mutex init_mtx_;

@@ -138,7 +138,62 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
-  return KukaRSIHardwareInterfaceBase::extended_activation(state);
+  if (!IsImpedanceModeActive())
+  {
+    return KukaRSIHardwareInterfaceBase::extended_activation(state);
+  }
+
+  // Impedance mode: start KRL program via mxA but do not open RSI connection
+  ResetDiagnostics();
+
+  if (control_state_.status_manager.IsEmergencyStopActive())
+  {
+    RCLCPP_ERROR(logger_, "Emergency stop is active. Cannot activate hardware interface.");
+    return CallbackReturn::FAILURE;
+  }
+
+  if (!control_state_.status_manager.IsKrcInExtMode())
+  {
+    RCLCPP_ERROR(logger_, "KRC not in EXT. Switch to EXT to activate.");
+    return CallbackReturn::FAILURE;
+  }
+
+  if (!control_state_.status_manager.DrivesPowered())
+  {
+    RCLCPP_INFO(logger_, "Turning on drives");
+    robot_ptr_->TurnOnDrives();
+
+    auto start_time = std::chrono::steady_clock::now();
+    while (!control_state_.status_manager.DrivesPowered())
+    {
+      if (std::chrono::steady_clock::now() - start_time > DRIVES_POWERED_TIMEOUT)
+      {
+        RCLCPP_ERROR(logger_, "Timeout waiting for drives to power on. Check robot state.");
+        return CallbackReturn::FAILURE;
+      }
+      control_state_.status_manager.UpdateStateInterfaces();
+      std::this_thread::sleep_for(DRIVES_POWERED_CHECK_INTERVAL);
+    }
+    RCLCPP_INFO(logger_, "Drives successfully powered on");
+  }
+
+  const auto control_mode =
+    static_cast<kuka::external::control::ControlMode>(control_state_.hw_control_mode_command);
+
+  auto control_status = robot_ptr_->StartControlling(control_mode);
+  if (control_status.return_code == kuka::external::control::ReturnCode::ERROR)
+  {
+    RCLCPP_ERROR(logger_, "Starting impedance control failed: %s", control_status.message);
+    return CallbackReturn::FAILURE;
+  }
+
+  control_state_.prev_control_mode =
+    static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
+
+  runtime_state_.is_active = true;
+  RCLCPP_INFO(logger_, "Impedance control activated (no RSI connection)");
+
+  return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & state)
@@ -151,7 +206,27 @@ return_type KukaMxaRsiHardwareInterface::read(
 {
   control_state_.status_manager.UpdateStateInterfaces();
 
+  if (IsImpedanceModeActive())
+  {
+    if (!runtime_state_.is_active)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    return return_type::OK;
+  }
+
   return KukaRSIHardwareInterfaceBase::read(time, duration);
+}
+
+return_type KukaMxaRsiHardwareInterface::write(
+  const rclcpp::Time & time, const rclcpp::Duration & duration)
+{
+  if (IsImpedanceModeActive())
+  {
+    return return_type::OK;
+  }
+
+  return KukaRSIHardwareInterfaceBase::write(time, duration);
 }
 
 void KukaMxaRsiHardwareInterface::mxa_init(const InitializationData & init_data)
@@ -202,6 +277,13 @@ void KukaMxaRsiHardwareInterface::Read(const int64_t request_timeout)
   }
 
   KukaRSIHardwareInterfaceBase::Read(request_timeout);
+}
+
+bool KukaMxaRsiHardwareInterface::IsImpedanceModeActive() const
+{
+  auto mode = static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
+  return mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL ||
+         mode == kuka_drivers_core::ControlMode::CARTESIAN_IMPEDANCE_CONTROL;
 }
 
 void KukaMxaRsiHardwareInterface::CreateRobotInstance(
