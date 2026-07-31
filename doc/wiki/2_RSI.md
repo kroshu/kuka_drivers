@@ -263,7 +263,7 @@ Upload the generated file to the controller as described in [Update and upload c
   - `eki_rsi` or `mxa_rsi`: RSI program is automatically selected and started
 
 
-On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
+On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
 
 ### Launch arguments
 
