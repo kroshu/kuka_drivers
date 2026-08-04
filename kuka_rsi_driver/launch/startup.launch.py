@@ -36,6 +36,33 @@ def _ros2_control_macro_file_from_family(robot_family):
     return f"kr_{robot_family}_ros2_control_macro.xacro"
 
 
+def _validate_kl_rated_travel(raw_value):
+    try:
+        value = float(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid kl_rated_travel '{raw_value}': expected a float value.") from exc
+
+    if value < 0.25 or value > 30.0:
+        raise RuntimeError(
+            f"Invalid kl_rated_travel '{raw_value}': must be within [0.25, 30.0] meters."
+        )
+
+    if value <= 2.0:
+        step_count = round(value / 0.25)
+        is_valid_step = abs(value - step_count * 0.25) < 1e-9
+    else:
+        step_count = round((value - 2.0) / 0.5)
+        is_valid_step = abs(value - (2.0 + step_count * 0.5)) < 1e-9
+
+    if not is_valid_step:
+        raise RuntimeError(
+            "Invalid kl_rated_travel '{}': valid values are 0.25..2.0 in 0.25 steps, "
+            "then 2.5..30.0 in 0.5 steps.".format(raw_value)
+        )
+
+    return f"{value:g}"
+
+
 def launch_setup(context, *args, **kwargs):
     robot_model = LaunchConfiguration("robot_model")
     robot_family = LaunchConfiguration("robot_family")
@@ -45,6 +72,7 @@ def launch_setup(context, *args, **kwargs):
     kl_prefix = LaunchConfiguration("kl_prefix")
     kl_ros2_control_macro_file = LaunchConfiguration("kl_ros2_control_macro_file")
     kl_ros2_control_joints_macro = LaunchConfiguration("kl_ros2_control_joints_macro")
+    kl_rated_travel = LaunchConfiguration("kl_rated_travel")
     mode = LaunchConfiguration("mode")
     use_gpio = LaunchConfiguration("use_gpio")
     driver_version = LaunchConfiguration("driver_version")
@@ -102,6 +130,7 @@ def launch_setup(context, *args, **kwargs):
     kl_prefix_value = kl_prefix.perform(context)
     kl_ros2_control_macro_file_value = kl_ros2_control_macro_file.perform(context)
     kl_ros2_control_joints_macro_value = kl_ros2_control_joints_macro.perform(context)
+    kl_rated_travel_value = _validate_kl_rated_travel(kl_rated_travel.perform(context))
 
     robot_support_package = f"kuka_{robot_family_value}_support"
     urdf_source = PathJoinSubstitution(
@@ -187,6 +216,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "rsi_xml_config_file:=",
             rsi_xml_config_file,
+            " ",
+            "kl_rated_travel:=",
+            kl_rated_travel_value,
         ]
         effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
 
@@ -429,6 +461,16 @@ def generate_launch_description():
         )
     )
     launch_arguments.append(DeclareLaunchArgument("kl_prefix", default_value="rail_"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_rated_travel",
+            default_value="2.0",
+            description=(
+                "Rated travel of the KL linear unit in meters. "
+                "Valid range: 0.25 to 30.0. Steps: 0.25m to 2.0m, then 0.5m."
+            ),
+        )
+    )
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
