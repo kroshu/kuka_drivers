@@ -1,4 +1,4 @@
-# Copyright 2023 KUKA Hungaria Kft.
+# Copyright 2026 KUKA Hungaria Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -183,9 +183,6 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "kl_ros2_control_joints_macro:=",
             kl_ros2_control_joints_macro_value,
-            " ",
-            "rsi_xml_config_file:=",
-            rsi_xml_config_file,
         ]
         effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
 
@@ -248,7 +245,11 @@ def launch_setup(context, *args, **kwargs):
         " ",
         "verify_robot_model:=",
         verify_robot_model,
+        " ",
+        "rsi_xml_config_file:=",
+        rsi_xml_config_file,
     ]
+
     if use_external_axis_value:
         xacro_arguments.extend(
             [
