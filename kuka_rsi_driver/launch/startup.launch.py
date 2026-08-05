@@ -111,7 +111,6 @@ def launch_setup(context, *args, **kwargs):
     template_xacro_args = []
 
     if use_external_axis_value:
-        kl_support_package = kl_support_package_value or "kuka_kl_support"
         robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(robot_family_value)
 
         robot_model_macro_path = os.path.join(
@@ -136,7 +135,7 @@ def launch_setup(context, *args, **kwargs):
             )
 
         kl_model_macro_path = os.path.join(
-            get_package_share_directory(kl_support_package),
+            get_package_share_directory(kl_support_package_value),
             "urdf",
             kl_model_value + "_macro.xacro",
         )
@@ -147,7 +146,7 @@ def launch_setup(context, *args, **kwargs):
             )
 
         kl_ros2_control_macro_path = os.path.join(
-            get_package_share_directory(kl_support_package),
+            get_package_share_directory(kl_support_package_value),
             "urdf",
             kl_ros2_control_macro_file_value,
         )
@@ -171,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
             robot_family_value,
             " ",
             "kl_support_package:=",
-            kl_support_package,
+            kl_support_package_value,
             " ",
             "robot_ros2_control_macro_file:=",
             robot_ros2_control_macro_file,
@@ -404,10 +403,10 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "kl_support_package",
-            default_value="",
+            default_value="kuka_kl_support",
             description=(
                 "Package containing KL model and KL ros2_control xacro macros. "
-                "If empty, falls back to kuka_kl_support."
+                "Defaults to kuka_kl_support."
             ),
         )
     )
