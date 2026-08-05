@@ -10,8 +10,6 @@ The driver supports three configurations on both KSS and iiQKA.OS2:
 
 The integration of EKI and mxA not only helps the initiation of external control but also unlocks additional capabilities via ROS 2 controllers.
 
-It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
-
 ## Test setups
 
 The following tables contain the exact versions used for testing the driver.
@@ -27,10 +25,11 @@ The following tables contain the exact versions used for testing the driver.
 
 ### iiQKA.OS2 tested configurations
 
-| Controller | Robot         | iiQKA.OS2 Version | RSI Version |
-|------------|---------------|-------------------|-------------|
-| KR C5 OPS  | &ndash;       | 9.1.0             | 6.1.2       |
-| KR C5      | KR 16 R1610-2 | 9.1.0             | 6.1.2       |
+| Controller    | Robot           | iiQKA.OS2 Version | RSI Version |
+|---------------|-----------------|-------------------|-------------|
+| KR C5 OPS     | &ndash;         | 9.1.0             | 6.1.2       |
+| KR C5         | KR 16 R1610-2   | 9.1.0             | 6.1.2       |
+| KR C5 micro-2 | LBR iisy 3 R760 | 9.3.0             | 6.3.0       |
 
 
 ## Client-side setup
@@ -313,7 +312,7 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 **Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
 
-When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses Scapy to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
+When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses [Scapy](https://scapy.net/) to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
 
 ### Stopping external control
 
@@ -409,5 +408,5 @@ See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_de
 
 ## Known issues and limitations
 
-- In case of an error on the controller side, the driver is not deactivated
-- Cartesian position control mode is not yet supported
+- When using the RSI-only driver, controller-side errors do not deactivate the driver.
+- Cartesian position control mode is not yet supported.
