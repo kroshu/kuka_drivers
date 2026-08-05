@@ -106,9 +106,13 @@ The repository contains a few other packages aside from the 3 drivers:
 
 ## MoveIt integration
 
-The `ros2_control` framework supports MoveIt out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package, `iiqka_moveit_example`, is provided to help developers. The `iiqka_moveit_example` package is located in the [`examples`](https://github.com/kroshu/examples) repository. This contains basic examples of using MoveIt with the driver. Additionally, it contains a [launch file](https://github.com/kroshu/examples/blob/master/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](https://github.com/kroshu/examples/blob/master/iiqka_moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
+The `ros2_control` framework supports MoveIt out-of-the-box, as the `joint_trajectory_controller` can interpolate the trajectories planned by it. Setting up Moveit is a little more complex, therefore an example package, `moveit_example`, is provided to help developers. The `moveit_example` package is located in the [`examples`](https://github.com/kroshu/examples) repository. This contains basic examples of using MoveIt with the driver. Additionally, it contains a [launch file](https://github.com/kroshu/examples/blob/master/moveit_example/launch/launch_trajectory_publisher.launch.py) that commands 4 goal positions near the home position cyclically (the points and parameters can be modified in [this](https://github.com/kroshu/examples/blob/master/moveit_example/config/dummy_publisher.yaml) configuration file). This can be used to test moving any robot with the driver, and is the recommended way instead of the `rqt_joint_trajectory_controller`, which commands very jerky trajectories due to batching.
 
+<<<<<<< HEAD
 As mentioned earlier, the package contains a [launch file](https://github.com/kroshu/examples/blob/humble/iiqka_moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
+=======
+As mentioned earlier, the package contains a [launch file](https://github.com/kroshu/examples/blob/master/moveit_example/launch/moveit_planning_example.launch.py) that starts the iiQKA driver, `rviz`, and the `move_group` server with the required configuration. The `robot_manager` lifecycle node should be configured and activated after startup.
+>>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362))
 
 After activation, the Motion Planning plugin can be added (`Add` -> `moveit_ros_visualisation` -> `MotionPlanning`) to plan trajectories from the `rviz` GUI. (`Planning group` in the `Planning` tab should be changed to `manipulator`.)
 
@@ -141,7 +145,11 @@ The joint position values commanded are available on the topic `/joint_group_imp
 
 Additionally the `trajectory_execution.allowed_start_tolerfance` parameter in `moveit_controllers.yaml` (found in the moveit support packages) should be increased based on the actual displacement between commanded and measured joint values.
 
+<<<<<<< HEAD
 If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/examples/blob/humble/iiqka_moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
+=======
+If you would like to only move the robot by sending a goal to the `joint_trajectory_controller` for interpolation (e.g. with the [example trajectory publisher](https://github.com/kroshu/examples/blob/master/moveit_example/launch/launch_trajectory_publisher.launch.py)), the following line should be added to the controller configuration file:
+>>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362))
 
 ```yaml
 open_loop_control: true

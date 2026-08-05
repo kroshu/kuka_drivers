@@ -75,15 +75,106 @@ def launch_setup(context, *args, **kwargs):
         core_list_str = ",".join(str(c) for c in cores)
         prefix_cmd = f"taskset -c {core_list_str}"
 
+<<<<<<< HEAD
     if not controller_config.perform(context):
         rel_path_to_config_file = (
             "/config/ros2_controller_config_rsi_only.yaml"
             if driver_version.perform(context) == "rsi_only"
             else "/config/ros2_controller_config_extended.yaml"
+=======
+    robot_model_value = robot_model.perform(context)
+    robot_family_value = robot_family.perform(context)
+    use_external_axis_value = use_external_axis.perform(context) == "true"
+    kl_model_value = kl_model.perform(context)
+    kl_support_package_value = kl_support_package.perform(context)
+    kl_prefix_value = kl_prefix.perform(context)
+    kl_ros2_control_macro_file_value = kl_ros2_control_macro_file.perform(context)
+    kl_ros2_control_joints_macro_value = kl_ros2_control_joints_macro.perform(context)
+
+    robot_support_package = f"kuka_{robot_family_value}_support"
+    urdf_source = PathJoinSubstitution(
+        [FindPackageShare(robot_support_package), "urdf", robot_model_value + ".urdf.xacro"]
+    )
+    effective_robot_model = robot_model_value
+    template_xacro_args = []
+
+    if use_external_axis_value:
+        robot_ros2_control_macro_file = _ros2_control_macro_file_from_family(robot_family_value)
+
+        robot_model_macro_path = os.path.join(
+            get_package_share_directory(robot_support_package),
+            "urdf",
+            robot_model_value + "_macro.xacro",
+>>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362))
         )
         controller_config = (
             get_package_share_directory("kuka_rsi_driver") + rel_path_to_config_file
         )
+<<<<<<< HEAD
+=======
+        if not os.path.isfile(robot_ros2_control_macro_path):
+            raise RuntimeError(
+                f"Robot ros2_control macro file was not found: {robot_ros2_control_macro_path}."
+            )
+
+        kl_model_macro_path = os.path.join(
+            get_package_share_directory(kl_support_package_value),
+            "urdf",
+            kl_model_value + "_macro.xacro",
+        )
+        if not os.path.isfile(kl_model_macro_path):
+            raise RuntimeError(
+                f"KL model macro file was not found: {kl_model_macro_path}. "
+                "Check kl_model/kl_support_package values."
+            )
+
+        kl_ros2_control_macro_path = os.path.join(
+            get_package_share_directory(kl_support_package_value),
+            "urdf",
+            kl_ros2_control_macro_file_value,
+        )
+        if not os.path.isfile(kl_ros2_control_macro_path):
+            raise RuntimeError(
+                f"KL ros2_control macro file was not found: {kl_ros2_control_macro_path}."
+            )
+
+        urdf_source = PathJoinSubstitution(
+            [FindPackageShare("kuka_resources"), "urdf", COMPOSED_TEMPLATE_XACRO]
+        )
+        template_xacro_args = [
+            " ",
+            "robot_model:=",
+            robot_model_value,
+            " ",
+            "robot_support_package:=",
+            robot_support_package,
+            " ",
+            "robot_family:=",
+            robot_family_value,
+            " ",
+            "kl_support_package:=",
+            kl_support_package_value,
+            " ",
+            "robot_ros2_control_macro_file:=",
+            robot_ros2_control_macro_file,
+            " ",
+            "kl_ros2_control_macro_file:=",
+            kl_ros2_control_macro_file_value,
+            " ",
+            "kl_model:=",
+            kl_model_value,
+            " ",
+            "kl_ros2_control_joints_macro:=",
+            kl_ros2_control_joints_macro_value,
+        ]
+        effective_robot_model = f"{robot_model_value}_with_{kl_model_value}"
+
+    jtc_config_param = (
+        "joint_trajectory_controller_config_6_axis_kl.yaml"
+        if use_external_axis_value
+        else "joint_trajectory_controller_config.yaml"
+    )
+>>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362))
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -260,6 +351,47 @@ def generate_launch_description():
     launch_arguments = []
     launch_arguments.append(DeclareLaunchArgument("robot_model", default_value="kr6_r700_sixx"))
     launch_arguments.append(DeclareLaunchArgument("robot_family", default_value="agilus"))
+<<<<<<< HEAD
+=======
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "use_external_axis",
+            default_value="false",
+            choices=["true", "false"],
+            description=("Compose robot_model and kl_model with reusable template xacro."),
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("kl_model", default_value="kl100_2"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_support_package",
+            default_value="kuka_kl_support",
+            description=(
+                "Package containing KL model and KL ros2_control xacro macros. "
+                "Defaults to kuka_kl_support."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_macro_file",
+            default_value="kl_ros2_control_macro.xacro",
+            description=(
+                "External-axis ros2_control macro file inside <kl_support_package>/urdf."
+            ),
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "kl_ros2_control_joints_macro",
+            default_value="kuka_kl_ros2_control_joints",
+            description=(
+                "External-axis ros2_control joints macro name used by the composed URDF template."
+            ),
+        )
+    )
+    launch_arguments.append(DeclareLaunchArgument("kl_prefix", default_value="rail_"))
+>>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
         DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
