@@ -397,7 +397,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "kl_support_package",
-            default_value="",
+            default_value="kuka_kl_support",
             description=(
                 "Package containing KL model and KL ros2_control xacro macros. "
                 "If empty, falls back to kuka_kl_support."
