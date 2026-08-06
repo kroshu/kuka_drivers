@@ -347,12 +347,15 @@ def launch_setup(context, *args, **kwargs):
     }
 
     if use_gpio.perform(context) == "true":
-        controllers.update({"gpio_controller" : config_file("gpio_controller_config.yaml")})
+        controllers.update({"gpio_controller": config_file("gpio_controller_config.yaml")})
 
     if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
-        controllers.update({"control_mode_handler" : None, "kss_message_handler" : None})
+        controllers.update({"control_mode_handler": None, "kss_message_handler": None})
 
-    controller_spawners = [controller_spawner(name, prefix_cmd, param_file) for name, param_file in controllers.items()]
+    controller_spawners = [
+        controller_spawner(name, prefix_cmd, param_file)
+        for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
         control_node,
