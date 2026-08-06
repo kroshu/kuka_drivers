@@ -372,16 +372,9 @@ Upload the generated file to the controller as described in [Update and upload c
 3. In the **Programming** menu, under the **Navigator** tab start the `Program\ros_rsi.src` program on the controller and execute the line of `RSI_MOVECORR()`
    - in T1, a warning (*!!! Attention - Sensor correction goes active !!!*) should be visible after reaching `RSI_MOVECORR()`, which should be confirmed to start this step
 
-On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
-
-<<<<<<< HEAD:doc/wiki/3_iiQKA.OS2_RSI.md
-#### Launch arguments
-=======
-
 On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
 
 ### Launch arguments
->>>>>>> 0ba6158 (Align docs to pkg name change, fix conflicting default for kl_support_package arg (#362)):doc/wiki/2_RSI.md
 
 Both launch files support the following arguments:
 
