@@ -53,7 +53,7 @@ def generate_test_description():
 
 class TestDriverStartupWithExternalAxis(unittest.TestCase):
     def test_read_stdout(self, proc_output):
-        proc_output.assertWaitFor("Robot initialized", timeout=5)
+        proc_output.assertWaitFor("got segment base", timeout=5)
         proc_output.assertWaitFor(
             "Successful initialization of hardware 'kr10_r1100_2_with_kl100_2'",
             timeout=5,
