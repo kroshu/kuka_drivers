@@ -463,7 +463,6 @@ def generate_launch_description():
             ),
         )
     )
-    launch_arguments.append(DeclareLaunchArgument("controller_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config_dir",
