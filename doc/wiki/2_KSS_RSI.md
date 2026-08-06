@@ -324,8 +324,12 @@ Both launch files support the following arguments:
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
 - `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#custom-mock-hardware), (defaults to 2500 us, only used if `mode` is set to 'mock')
-- `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_rsi_driver/config/ros2_controller_config.yaml`)
-- `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_rsi_driver/config/joint_trajectory_controller_config.yaml` or `kuka_rsi_driver/config/joint_trajectory_controller_config_6_axis_kl.yaml` if `use_external_axis` is set to true)
+- `controller_config_dir`: the directory that contains all controller configuration files (defaults to `kuka_rsi_driver/config`). The driver expects the following file names in this directory:
+  - `gpio_controller_config.yaml` (used when `use_gpio:=true`)
+  - `joint_trajectory_controller_config_6_axis_kl.yaml` (used when `use_external_axis:=true`)
+  - `joint_trajectory_controller_config.yaml` (used_when `use_external_axis:=false`)
+  - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi`/`driver_version:=mxa_rsi`)
+  - `ros2_controller_config_rsi_only.yaml` (used when `driver_version:=rsi_only`)
 - `use_external_axis`: if set to `true`, enables KL (linear track) composition using the `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template (defaults to `false`)
 - `kl_model`: the KL model to use when `use_external_axis` is enabled (default: `kl100_2`)
 - `kl_support_package`: the ROS package providing the KL description (default: `kuka_kl_support`)
@@ -490,7 +494,7 @@ To adapt the KRL program for the external-axis example, update the RSI context n
 
 ### Client-side configuration
 
-See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axis-support) for all client-side configuration steps. The relevant launch arguments for enabling KL composition are described in the [Launch arguments](#launch-arguments) section (`use_external_axis`, `kl_model`, `kl_prefix`, and the third-party integration parameters).
+See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/humble/README.md#external-axis-support) for all client-side configuration steps. The relevant launch arguments for enabling KL composition are described in the [Launch arguments](#launch-arguments) section (`use_external_axis`, `kl_model`, `kl_prefix`, and the third-party integration parameters).
 
 > [!NOTE]
 > The driver supports only __revolute__ and __prismatic__ external joints.
