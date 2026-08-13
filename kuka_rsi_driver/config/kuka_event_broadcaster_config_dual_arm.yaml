@@ -1,0 +1,3 @@
+/**/event_broadcaster:
+  ros__parameters:
+    robot_prefixes: [robot1, robot2]
