@@ -17,8 +17,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
-from launch.event_handlers import OnShutdown
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import (
     Command,
     FindExecutable,
@@ -248,7 +247,6 @@ def launch_setup(context, *args, **kwargs):
     def config_file(filename):
         return os.path.join(config_dir_path, filename)
 
-
     controller_config_file = (
         config_file("ros2_controller_config_dual_arm.yaml")
         if driver_version.perform(context) == "rsi_only"
@@ -278,8 +276,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     use_gpio = (
-        robot1_use_gpio.perform(context) == "true"
-        or robot2_use_gpio.perform(context) == "true"
+        robot1_use_gpio.perform(context) == "true" or robot2_use_gpio.perform(context) == "true"
     )
 
     robot_manager_node = LifecycleNode(
