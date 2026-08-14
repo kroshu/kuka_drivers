@@ -18,7 +18,8 @@ import tempfile
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.event_handlers import OnShutdown
 from launch.substitutions import (
     Command,
     FindExecutable,
@@ -225,6 +226,16 @@ def launch_setup(context, *args, **kwargs):
         )
         event_broadcaster_config_file = temp_file.name
 
+    def cleanup_event_broadcaster_config_file(event, context):
+        try:
+            os.remove(event_broadcaster_config_file)
+        except OSError:
+            pass
+
+    cleanup_event_broadcaster_config_on_shutdown = RegisterEventHandler(
+        OnShutdown(on_shutdown=cleanup_event_broadcaster_config_file)
+    )
+
     controller_config_file = config_file("ros2_controller_config_dual_arm.yaml")
 
     robot1_hw_name = robot1_prefix_value + robot1_model_value
@@ -315,7 +326,7 @@ def launch_setup(context, *args, **kwargs):
         control_node,
         robot_manager_node,
         robot_state_publisher,
-    ] + controller_spawners
+    ] + controller_spawners + [cleanup_event_broadcaster_config_on_shutdown]
 
     return nodes_to_start
 
