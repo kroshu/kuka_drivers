@@ -39,7 +39,7 @@ def generate_launch_description():
 
     startup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [get_package_share_directory("kuka_multi_robot_examples"), "/launch/startup.launch.py"]
+            [get_package_share_directory("kuka_resources"), "/launch/startup.launch.py"]
         )
     )
 
