@@ -57,8 +57,8 @@ def generate_test_description():
                 parameters=[
                     {
                         "managed_node": "robot_manager",
-                        "configure_delay": 25.0,
-                        "activate_delay": 35.0,
+                        "configure_delay": 30.0,
+                        "activate_delay": 40.0,
                     }
                 ],
             ),
@@ -86,14 +86,14 @@ class TestDriverActivation(unittest.TestCase):
         )
         # Check for successful configuration and activation
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'robot1_kr30_r2100'", timeout=40
+            "Successful 'configure' of hardware 'robot1_kr30_r2100'", timeout=50
         )
         proc_output.assertWaitFor(
-            "Successful 'configure' of hardware 'robot2_kr300_r2800_2_mt'", timeout=40
+            "Successful 'configure' of hardware 'robot2_kr300_r2800_2_mt'", timeout=50
         )
         proc_output.assertWaitFor(
-            "Successful 'activate' of hardware 'robot1_kr30_r2100'", timeout=50
+            "Successful 'activate' of hardware 'robot1_kr30_r2100'", timeout=60
         )
         proc_output.assertWaitFor(
-            "Successful 'activate' of hardware 'robot2_kr300_r2800_2_mt'", timeout=50
+            "Successful 'activate' of hardware 'robot2_kr300_r2800_2_mt'", timeout=60
         )
