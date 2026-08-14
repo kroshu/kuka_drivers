@@ -239,7 +239,11 @@ def launch_setup(context, *args, **kwargs):
     )
 
     try:
-        controller_config_file = config_file("ros2_controller_config_dual_arm.yaml")
+        controller_config_file = (
+            config_file("ros2_controller_config_dual_arm.yaml")
+            if driver_version.perform(context) == "rsi_only"
+            else config_file("ros2_controller_config_extended_dual_arm.yaml")
+        )
 
         robot1_hw_name = robot1_prefix_value + robot1_model_value
         robot2_hw_name = robot2_prefix_value + robot2_model_value
@@ -327,6 +331,14 @@ def launch_setup(context, *args, **kwargs):
 
         if use_gpio:
             controllers["gpio_controller"] = config_file("gpio_controller_config_dual_arm.yaml")
+
+        if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
+            controllers["control_mode_handler"] = config_file(
+                "kuka_control_mode_handler_config_dual_arm.yaml"
+            )
+            controllers["kss_message_handler"] = config_file(
+                "kuka_kss_message_handler_config_dual_arm.yaml"
+            )
 
         controller_spawners = [
             controller_spawner(name, prefix_cmd, param_file)
