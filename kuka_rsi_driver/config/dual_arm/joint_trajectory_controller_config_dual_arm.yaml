@@ -22,3 +22,4 @@
     action_monitor_rate: 20.0
     allow_nonzero_velocity_at_trajectory_end: true
     allow_partial_joints_goal: true
+    update_rate: 250

@@ -336,7 +336,7 @@ def generate_launch_description():
     launch_arguments.append(
         DeclareLaunchArgument(
             "controller_config_dir",
-            default_value=get_package_share_directory("kuka_rsi_driver") + "/config",
+            default_value=get_package_share_directory("kuka_rsi_driver") + "/config/dual_arm",
         )
     )
     launch_arguments.append(
