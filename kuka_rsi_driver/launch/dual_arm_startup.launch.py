@@ -119,94 +119,132 @@ def launch_setup(context, *args, **kwargs):
                 [FindPackageShare("kuka_resources"), "urdf", DUAL_ARM_TEMPLATE_XACRO]
             ),
             " ",
-            "mode:=", mode,
+            "mode:=",
+            mode,
             " ",
-            "driver_version:=", driver_version,
+            "driver_version:=",
+            driver_version,
             " ",
-            "robot1_model:=", robot1_model,
+            "robot1_model:=",
+            robot1_model,
             " ",
-            "robot1_family:=", robot1_family,
+            "robot1_family:=",
+            robot1_family,
             " ",
-            "robot1_prefix:=", robot1_prefix,
+            "robot1_prefix:=",
+            robot1_prefix,
             " ",
-            "robot1_x:=", robot1_x,
+            "robot1_x:=",
+            robot1_x,
             " ",
-            "robot1_y:=", robot1_y,
+            "robot1_y:=",
+            robot1_y,
             " ",
-            "robot1_z:=", robot1_z,
+            "robot1_z:=",
+            robot1_z,
             " ",
-            "robot1_roll:=", robot1_roll,
+            "robot1_roll:=",
+            robot1_roll,
             " ",
-            "robot1_pitch:=", robot1_pitch,
+            "robot1_pitch:=",
+            robot1_pitch,
             " ",
-            "robot1_yaw:=", robot1_yaw,
+            "robot1_yaw:=",
+            robot1_yaw,
             " ",
-            "robot1_client_ip:=", robot1_client_ip,
+            "robot1_client_ip:=",
+            robot1_client_ip,
             " ",
-            "robot1_client_port:=", robot1_client_port,
+            "robot1_client_port:=",
+            robot1_client_port,
             " ",
-            "robot1_mxa_client_port:=", robot1_mxa_client_port,
+            "robot1_mxa_client_port:=",
+            robot1_mxa_client_port,
             " ",
-            "robot1_controller_ip:=", robot1_controller_ip,
+            "robot1_controller_ip:=",
+            robot1_controller_ip,
             " ",
-            "robot1_roundtrip_time:=", robot1_roundtrip_time,
+            "robot1_roundtrip_time:=",
+            robot1_roundtrip_time,
             " ",
-            "robot1_use_gpio:=", robot1_use_gpio,
+            "robot1_use_gpio:=",
+            robot1_use_gpio,
             " ",
-            "robot1_verify_robot_model:=", robot1_verify_robot_model,
+            "robot1_verify_robot_model:=",
+            robot1_verify_robot_model,
             " ",
-            "robot1_rsi_xml_config_file:=", robot1_rsi_xml_config_file,
+            "robot1_rsi_xml_config_file:=",
+            robot1_rsi_xml_config_file,
             " ",
-            "robot1_async_thread_priority:=", robot1_async_thread_priority,
+            "robot1_async_thread_priority:=",
+            robot1_async_thread_priority,
             " ",
-            "robot1_async_affinity:=", robot1_async_affinity,
+            "robot1_async_affinity:=",
+            robot1_async_affinity,
             " ",
-            "robot2_model:=", robot2_model,
+            "robot2_model:=",
+            robot2_model,
             " ",
-            "robot2_family:=", robot2_family,
+            "robot2_family:=",
+            robot2_family,
             " ",
-            "robot2_prefix:=", robot2_prefix,
+            "robot2_prefix:=",
+            robot2_prefix,
             " ",
-            "robot2_x:=", robot2_x,
+            "robot2_x:=",
+            robot2_x,
             " ",
-            "robot2_y:=", robot2_y,
+            "robot2_y:=",
+            robot2_y,
             " ",
-            "robot2_z:=", robot2_z,
+            "robot2_z:=",
+            robot2_z,
             " ",
-            "robot2_roll:=", robot2_roll,
+            "robot2_roll:=",
+            robot2_roll,
             " ",
-            "robot2_pitch:=", robot2_pitch,
+            "robot2_pitch:=",
+            robot2_pitch,
             " ",
-            "robot2_yaw:=", robot2_yaw,
+            "robot2_yaw:=",
+            robot2_yaw,
             " ",
-            "robot2_client_ip:=", robot2_client_ip,
+            "robot2_client_ip:=",
+            robot2_client_ip,
             " ",
-            "robot2_client_port:=", robot2_client_port,
+            "robot2_client_port:=",
+            robot2_client_port,
             " ",
-            "robot2_mxa_client_port:=", robot2_mxa_client_port,
+            "robot2_mxa_client_port:=",
+            robot2_mxa_client_port,
             " ",
-            "robot2_controller_ip:=", robot2_controller_ip,
+            "robot2_controller_ip:=",
+            robot2_controller_ip,
             " ",
-            "robot2_roundtrip_time:=", robot2_roundtrip_time,
+            "robot2_roundtrip_time:=",
+            robot2_roundtrip_time,
             " ",
-            "robot2_use_gpio:=", robot2_use_gpio,
+            "robot2_use_gpio:=",
+            robot2_use_gpio,
             " ",
-            "robot2_verify_robot_model:=", robot2_verify_robot_model,
+            "robot2_verify_robot_model:=",
+            robot2_verify_robot_model,
             " ",
-            "robot2_rsi_xml_config_file:=", robot2_rsi_xml_config_file,
+            "robot2_rsi_xml_config_file:=",
+            robot2_rsi_xml_config_file,
             " ",
-            "robot2_async_thread_priority:=", robot2_async_thread_priority,
+            "robot2_async_thread_priority:=",
+            robot2_async_thread_priority,
             " ",
-            "robot2_async_affinity:=", robot2_async_affinity,
+            "robot2_async_affinity:=",
+            robot2_async_affinity,
         ],
         on_stderr="capture",
     )
 
     robot_description = {"robot_description": robot_description_content}
 
-    driver_config = (
-        get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
-    )
+    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
     config_dir_path = controller_config_dir.perform(context)
 
     def config_file(filename):
@@ -404,13 +442,17 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot1_yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("robot1_roundtrip_time", default_value="4000"))
     launch_arguments.append(
-        DeclareLaunchArgument("robot1_verify_robot_model", default_value="true", choices=["true", "false"])
+        DeclareLaunchArgument(
+            "robot1_verify_robot_model", default_value="true", choices=["true", "false"]
+        )
     )
     launch_arguments.append(DeclareLaunchArgument("robot1_rsi_xml_config_file", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument("robot1_use_gpio", default_value="false", choices=["true", "false"])
     )
-    launch_arguments.append(DeclareLaunchArgument("robot1_async_thread_priority", default_value="69"))
+    launch_arguments.append(
+        DeclareLaunchArgument("robot1_async_thread_priority", default_value="69")
+    )
     launch_arguments.append(DeclareLaunchArgument("robot1_async_affinity", default_value="[]"))
 
     # Robot 2 arguments
@@ -429,13 +471,17 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("robot2_yaw", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("robot2_roundtrip_time", default_value="4000"))
     launch_arguments.append(
-        DeclareLaunchArgument("robot2_verify_robot_model", default_value="true", choices=["true", "false"])
+        DeclareLaunchArgument(
+            "robot2_verify_robot_model", default_value="true", choices=["true", "false"]
+        )
     )
     launch_arguments.append(DeclareLaunchArgument("robot2_rsi_xml_config_file", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument("robot2_use_gpio", default_value="false", choices=["true", "false"])
     )
-    launch_arguments.append(DeclareLaunchArgument("robot2_async_thread_priority", default_value="69"))
+    launch_arguments.append(
+        DeclareLaunchArgument("robot2_async_thread_priority", default_value="69")
+    )
     launch_arguments.append(DeclareLaunchArgument("robot2_async_affinity", default_value="[]"))
 
     return LaunchDescription(launch_arguments + [OpaqueFunction(function=launch_setup)])

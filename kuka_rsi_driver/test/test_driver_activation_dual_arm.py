@@ -50,7 +50,6 @@ def generate_test_description():
                     "robot2_y": "2.2",
                 }.items(),
             ),
-
             launch_ros.actions.Node(
                 package="kuka_drivers_core",
                 executable="lifecycle_manager",
