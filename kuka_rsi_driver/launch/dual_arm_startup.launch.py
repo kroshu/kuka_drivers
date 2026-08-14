@@ -263,6 +263,11 @@ def launch_setup(context, *args, **kwargs):
             prefix=prefix_cmd,
         )
 
+        use_gpio = (
+            robot1_use_gpio.perform(context) == "true"
+            or robot2_use_gpio.perform(context) == "true"
+        )
+
         robot_manager_node = LifecycleNode(
             name=["robot_manager"],
             namespace=ns,
@@ -276,7 +281,7 @@ def launch_setup(context, *args, **kwargs):
                 driver_config,
                 {
                     "robot_models": [robot1_hw_name, robot2_hw_name],
-                    "use_gpio": False,
+                    "use_gpio": use_gpio,
                 },
             ],
             prefix=prefix_cmd,
@@ -319,6 +324,9 @@ def launch_setup(context, *args, **kwargs):
             ),
             "event_broadcaster": event_broadcaster_config_file,
         }
+
+        if use_gpio:
+            controllers["gpio_controller"] = config_file("gpio_controller_config_dual_arm.yaml")
 
         controller_spawners = [
             controller_spawner(name, prefix_cmd, param_file)
