@@ -1,0 +1,98 @@
+# Copyright 2024 KUKA Hungaria Kft.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import unittest
+
+import launch
+import launch_ros.actions
+import launch_testing.actions
+import launch_testing.markers
+import pytest
+from ament_index_python.packages import get_package_share_directory
+from launch.actions.include_launch_description import IncludeLaunchDescription
+from launch.launch_description_sources.python_launch_description_source import (
+    PythonLaunchDescriptionSource,
+)
+
+
+# Launch driver startup
+@pytest.mark.launch_test
+@launch_testing.markers.keep_alive
+def generate_test_description():
+    return launch.LaunchDescription(
+        [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    [
+                        get_package_share_directory("kuka_rsi_driver"),
+                        "/launch/",
+                        "dual_arm_startup.launch.py",
+                    ]
+                ),
+                launch_arguments={
+                    "mode": "mock",
+                    "driver_version": "rsi_only",
+                    "robot1_family": "iontec",
+                    "robot1_model": "kr30_r2100",
+                    "robot2_family": "fortec",
+                    "robot2_model": "kr300_r2800_2_mt",
+                    "robot2_y": "2.2",
+                }.items(),
+            ),
+            launch_ros.actions.Node(
+                package="kuka_drivers_core",
+                executable="lifecycle_manager",
+                parameters=[
+                    {
+                        "managed_node": "robot_manager",
+                        "configure_delay": 30.0,
+                        "activate_delay": 40.0,
+                    }
+                ],
+            ),
+            launch_testing.actions.ReadyToTest(),
+        ]
+    )
+
+
+class TestDriverActivation(unittest.TestCase):
+    def test_read_stdout(self, proc_output):
+        # Check for successful initialization
+        proc_output.assertWaitFor("Robot initialized", timeout=5)
+        proc_output.assertWaitFor(
+            "Successful initialization of hardware 'robot1_kr30_r2100'", timeout=5
+        )
+        proc_output.assertWaitFor(
+            "Successful initialization of hardware 'robot2_kr300_r2800_2_mt'", timeout=5
+        )
+        # Check whether disabling automatic activation was successful
+        proc_output.assertWaitFor(
+            "Setting component 'robot1_kr30_r2100' to 'unconfigured' state.", timeout=5
+        )
+        proc_output.assertWaitFor(
+            "Setting component 'robot2_kr300_r2800_2_mt' to 'unconfigured' state.", timeout=5
+        )
+        # Check for successful configuration and activation
+        proc_output.assertWaitFor(
+            "Successful 'configure' of hardware 'robot1_kr30_r2100'", timeout=50
+        )
+        proc_output.assertWaitFor(
+            "Successful 'configure' of hardware 'robot2_kr300_r2800_2_mt'", timeout=50
+        )
+        proc_output.assertWaitFor(
+            "Successful 'activate' of hardware 'robot1_kr30_r2100'", timeout=60
+        )
+        proc_output.assertWaitFor(
+            "Successful 'activate' of hardware 'robot2_kr300_r2800_2_mt'", timeout=60
+        )

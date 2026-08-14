@@ -79,6 +79,7 @@ if(BUILD_TESTING)
   add_launch_test(test/test_driver_startup_mxa_rsi.py)
   add_launch_test(test/test_driver_startup_with_external_axis.py)
   add_launch_test(test/test_driver_activation.py)
+  add_launch_test(test/test_driver_activation_dual_arm.py)
 endif()
 
 ## EXPORTS
