@@ -14,7 +14,6 @@
 
 
 import os
-import tempfile
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -38,7 +37,6 @@ def launch_setup(context, *args, **kwargs):
     driver_version = LaunchConfiguration("driver_version")
     ns = LaunchConfiguration("namespace")
     controller_config_dir = LaunchConfiguration("controller_config_dir")
-    event_broadcaster_robot_prefixes = LaunchConfiguration("event_broadcaster_robot_prefixes")
     non_rt_cores = LaunchConfiguration("non_rt_cores")
     rt_core = LaunchConfiguration("rt_core")
     rt_prio = LaunchConfiguration("rt_prio")
@@ -250,144 +248,114 @@ def launch_setup(context, *args, **kwargs):
     def config_file(filename):
         return os.path.join(config_dir_path, filename)
 
-    event_broadcaster_prefix_values = [
-        prefix.strip()
-        for prefix in event_broadcaster_robot_prefixes.perform(context).split(",")
-        if prefix.strip()
-    ]
-    event_broadcaster_prefix_yaml = ", ".join(event_broadcaster_prefix_values)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as temp_file:
-        temp_file.write(
-            "/**/event_broadcaster:\n"
-            "  ros__parameters:\n"
-            f"    robot_prefixes: [{event_broadcaster_prefix_yaml}]\n"
-        )
-        event_broadcaster_config_file = temp_file.name
 
-    def cleanup_event_broadcaster_config_file(event, context):
-        try:
-            os.remove(event_broadcaster_config_file)
-        except OSError:
-            pass
-
-    # Register the cleanup handler before any setup that could raise, so the file is
-    # still removed on early shutdown.
-    cleanup_event_broadcaster_config_on_shutdown = RegisterEventHandler(
-        OnShutdown(on_shutdown=cleanup_event_broadcaster_config_file)
+    controller_config_file = (
+        config_file("ros2_controller_config_dual_arm.yaml")
+        if driver_version.perform(context) == "rsi_only"
+        else config_file("ros2_controller_config_extended_dual_arm.yaml")
     )
 
-    try:
-        controller_config_file = (
-            config_file("ros2_controller_config_dual_arm.yaml")
+    robot1_hw_name = robot1_prefix_value + robot1_model_value
+    robot2_hw_name = robot2_prefix_value + robot2_model_value
+
+    control_node = Node(
+        namespace=ns,
+        package="kuka_drivers_core",
+        executable="control_node",
+        parameters=[
+            robot_description,
+            controller_config_file,
+            {
+                "cpu_affinity": int(rt_core.perform(context)),
+                "thread_priority": int(rt_prio.perform(context)),
+                "lock_memory": lock_memory.perform(context) == "true",
+                "hardware_components_initial_state": {
+                    "unconfigured": [robot1_hw_name, robot2_hw_name]
+                },
+            },
+        ],
+        prefix=prefix_cmd,
+    )
+
+    use_gpio = (
+        robot1_use_gpio.perform(context) == "true"
+        or robot2_use_gpio.perform(context) == "true"
+    )
+
+    robot_manager_node = LifecycleNode(
+        name=["robot_manager"],
+        namespace=ns,
+        package="kuka_rsi_driver",
+        executable=(
+            "robot_manager_node_rsi_only"
             if driver_version.perform(context) == "rsi_only"
-            else config_file("ros2_controller_config_extended_dual_arm.yaml")
-        )
+            else "robot_manager_node_extended"
+        ),
+        parameters=[
+            driver_config,
+            {
+                "robot_models": [robot1_hw_name, robot2_hw_name],
+                "use_gpio": use_gpio,
+            },
+        ],
+        prefix=prefix_cmd,
+    )
 
-        robot1_hw_name = robot1_prefix_value + robot1_model_value
-        robot2_hw_name = robot2_prefix_value + robot2_model_value
+    robot_state_publisher = Node(
+        namespace=ns,
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="both",
+        parameters=[robot_description],
+        prefix=prefix_cmd,
+    )
 
-        control_node = Node(
-            namespace=ns,
-            package="kuka_drivers_core",
-            executable="control_node",
-            parameters=[
-                robot_description,
-                controller_config_file,
-                {
-                    "cpu_affinity": int(rt_core.perform(context)),
-                    "thread_priority": int(rt_prio.perform(context)),
-                    "lock_memory": lock_memory.perform(context) == "true",
-                    "hardware_components_initial_state": {
-                        "unconfigured": [robot1_hw_name, robot2_hw_name]
-                    },
-                },
-            ],
-            prefix=prefix_cmd,
-        )
-
-        use_gpio = (
-            robot1_use_gpio.perform(context) == "true"
-            or robot2_use_gpio.perform(context) == "true"
-        )
-
-        robot_manager_node = LifecycleNode(
-            name=["robot_manager"],
-            namespace=ns,
-            package="kuka_rsi_driver",
-            executable=(
-                "robot_manager_node_rsi_only"
-                if driver_version.perform(context) == "rsi_only"
-                else "robot_manager_node_extended"
-            ),
-            parameters=[
-                driver_config,
-                {
-                    "robot_models": [robot1_hw_name, robot2_hw_name],
-                    "use_gpio": use_gpio,
-                },
-            ],
-            prefix=prefix_cmd,
-        )
-
-        robot_state_publisher = Node(
-            namespace=ns,
-            package="robot_state_publisher",
-            executable="robot_state_publisher",
-            output="both",
-            parameters=[robot_description],
-            prefix=prefix_cmd,
-        )
-
-        # Spawn controllers
-        def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
-            arg_list = [
-                controller_name,
-                "-c",
-                "controller_manager",
-                "-n",
-                ns,
-            ]
-            if param_file:
-                arg_list.extend(["--param-file", param_file])
-            if not activate:
-                arg_list.append("--inactive")
-
-            return Node(
-                package="controller_manager",
-                executable="spawner",
-                prefix=prefix_cmd,
-                arguments=arg_list,
-            )
-
-        controllers = {
-            "joint_state_broadcaster": None,
-            "joint_trajectory_controller": config_file(
-                "joint_trajectory_controller_config_dual_arm.yaml"
-            ),
-            "event_broadcaster": event_broadcaster_config_file,
-        }
-
-        if use_gpio:
-            controllers["gpio_controller"] = config_file("gpio_controller_config_dual_arm.yaml")
-
-        if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
-            controllers["control_mode_handler"] = config_file(
-                "kuka_control_mode_handler_config_dual_arm.yaml"
-            )
-            controllers["kss_message_handler"] = config_file(
-                "kuka_kss_message_handler_config_dual_arm.yaml"
-            )
-
-        controller_spawners = [
-            controller_spawner(name, prefix_cmd, param_file)
-            for name, param_file in controllers.items()
+    # Spawn controllers
+    def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
+        arg_list = [
+            controller_name,
+            "-c",
+            "controller_manager",
+            "-n",
+            ns,
         ]
-    except Exception:
-        os.remove(event_broadcaster_config_file)
-        raise
+        if param_file:
+            arg_list.extend(["--param-file", param_file])
+        if not activate:
+            arg_list.append("--inactive")
+
+        return Node(
+            package="controller_manager",
+            executable="spawner",
+            prefix=prefix_cmd,
+            arguments=arg_list,
+        )
+
+    controllers = {
+        "joint_state_broadcaster": None,
+        "joint_trajectory_controller": config_file(
+            "joint_trajectory_controller_config_dual_arm.yaml"
+        ),
+        "event_broadcaster": config_file("kuka_event_broadcaster_config_dual_arm.yaml"),
+    }
+
+    if use_gpio:
+        controllers["gpio_controller"] = config_file("gpio_controller_config_dual_arm.yaml")
+
+    if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
+        controllers["control_mode_handler"] = config_file(
+            "kuka_control_mode_handler_config_dual_arm.yaml"
+        )
+        controllers["kss_message_handler"] = config_file(
+            "kuka_kss_message_handler_config_dual_arm.yaml"
+        )
+
+    controller_spawners = [
+        controller_spawner(name, prefix_cmd, param_file)
+        for name, param_file in controllers.items()
+    ]
 
     nodes_to_start = [
-        cleanup_event_broadcaster_config_on_shutdown,
         control_node,
         robot_manager_node,
         robot_state_publisher,
@@ -413,12 +381,6 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "controller_config_dir",
             default_value=get_package_share_directory("kuka_rsi_driver") + "/config/dual_arm",
-        )
-    )
-    launch_arguments.append(
-        DeclareLaunchArgument(
-            "event_broadcaster_robot_prefixes",
-            default_value="robot1,robot2",
         )
     )
     launch_arguments.append(DeclareLaunchArgument("rt_core", default_value="-1"))
