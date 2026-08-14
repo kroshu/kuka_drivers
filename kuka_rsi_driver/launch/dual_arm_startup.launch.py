@@ -232,101 +232,108 @@ def launch_setup(context, *args, **kwargs):
         except OSError:
             pass
 
+    # Register the cleanup handler before any setup that could raise, so the file is
+    # still removed on early shutdown.
     cleanup_event_broadcaster_config_on_shutdown = RegisterEventHandler(
         OnShutdown(on_shutdown=cleanup_event_broadcaster_config_file)
     )
 
-    controller_config_file = config_file("ros2_controller_config_dual_arm.yaml")
+    try:
+        controller_config_file = config_file("ros2_controller_config_dual_arm.yaml")
 
-    robot1_hw_name = robot1_prefix_value + robot1_model_value
-    robot2_hw_name = robot2_prefix_value + robot2_model_value
+        robot1_hw_name = robot1_prefix_value + robot1_model_value
+        robot2_hw_name = robot2_prefix_value + robot2_model_value
 
-    control_node = Node(
-        namespace=ns,
-        package="kuka_drivers_core",
-        executable="control_node",
-        parameters=[
-            robot_description,
-            controller_config_file,
-            {
-                "cpu_affinity": int(rt_core.perform(context)),
-                "thread_priority": int(rt_prio.perform(context)),
-                "lock_memory": lock_memory.perform(context) == "true",
-                "hardware_components_initial_state": {
-                    "unconfigured": [robot1_hw_name, robot2_hw_name]
+        control_node = Node(
+            namespace=ns,
+            package="kuka_drivers_core",
+            executable="control_node",
+            parameters=[
+                robot_description,
+                controller_config_file,
+                {
+                    "cpu_affinity": int(rt_core.perform(context)),
+                    "thread_priority": int(rt_prio.perform(context)),
+                    "lock_memory": lock_memory.perform(context) == "true",
+                    "hardware_components_initial_state": {
+                        "unconfigured": [robot1_hw_name, robot2_hw_name]
+                    },
                 },
-            },
-        ],
-        prefix=prefix_cmd,
-    )
-
-    robot_manager_node = LifecycleNode(
-        name=["robot_manager"],
-        namespace=ns,
-        package="kuka_rsi_driver",
-        executable=(
-            "robot_manager_node_rsi_only"
-            if driver_version.perform(context) == "rsi_only"
-            else "robot_manager_node_extended"
-        ),
-        parameters=[
-            driver_config,
-            {
-                "robot_models": [robot1_hw_name, robot2_hw_name],
-                "use_gpio": False,
-            },
-        ],
-        prefix=prefix_cmd,
-    )
-
-    robot_state_publisher = Node(
-        namespace=ns,
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        output="both",
-        parameters=[robot_description],
-        prefix=prefix_cmd,
-    )
-
-    # Spawn controllers
-    def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
-        arg_list = [
-            controller_name,
-            "-c",
-            "controller_manager",
-            "-n",
-            ns,
-        ]
-        if param_file:
-            arg_list.extend(["--param-file", param_file])
-        if not activate:
-            arg_list.append("--inactive")
-
-        return Node(
-            package="controller_manager",
-            executable="spawner",
+            ],
             prefix=prefix_cmd,
-            arguments=arg_list,
         )
 
-    controllers = {
-        "joint_state_broadcaster": None,
-        "joint_trajectory_controller": config_file(
-            "joint_trajectory_controller_config_dual_arm.yaml"
-        ),
-        "event_broadcaster": event_broadcaster_config_file,
-    }
+        robot_manager_node = LifecycleNode(
+            name=["robot_manager"],
+            namespace=ns,
+            package="kuka_rsi_driver",
+            executable=(
+                "robot_manager_node_rsi_only"
+                if driver_version.perform(context) == "rsi_only"
+                else "robot_manager_node_extended"
+            ),
+            parameters=[
+                driver_config,
+                {
+                    "robot_models": [robot1_hw_name, robot2_hw_name],
+                    "use_gpio": False,
+                },
+            ],
+            prefix=prefix_cmd,
+        )
 
-    controller_spawners = [
-        controller_spawner(name, prefix_cmd, param_file)
-        for name, param_file in controllers.items()
-    ]
+        robot_state_publisher = Node(
+            namespace=ns,
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            output="both",
+            parameters=[robot_description],
+            prefix=prefix_cmd,
+        )
+
+        # Spawn controllers
+        def controller_spawner(controller_name, prefix_cmd, param_file=None, activate=False):
+            arg_list = [
+                controller_name,
+                "-c",
+                "controller_manager",
+                "-n",
+                ns,
+            ]
+            if param_file:
+                arg_list.extend(["--param-file", param_file])
+            if not activate:
+                arg_list.append("--inactive")
+
+            return Node(
+                package="controller_manager",
+                executable="spawner",
+                prefix=prefix_cmd,
+                arguments=arg_list,
+            )
+
+        controllers = {
+            "joint_state_broadcaster": None,
+            "joint_trajectory_controller": config_file(
+                "joint_trajectory_controller_config_dual_arm.yaml"
+            ),
+            "event_broadcaster": event_broadcaster_config_file,
+        }
+
+        controller_spawners = [
+            controller_spawner(name, prefix_cmd, param_file)
+            for name, param_file in controllers.items()
+        ]
+    except Exception:
+        os.remove(event_broadcaster_config_file)
+        raise
 
     nodes_to_start = [
+        cleanup_event_broadcaster_config_on_shutdown,
         control_node,
         robot_manager_node,
         robot_state_publisher,
-    ] + controller_spawners + [cleanup_event_broadcaster_config_on_shutdown]
+    ] + controller_spawners
 
     return nodes_to_start
 
