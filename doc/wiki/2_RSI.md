@@ -314,6 +314,16 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses [Scapy](https://scapy.net/) to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
 
+### Dual-arm launch
+
+It is also possible to start a dual-arm setup with a single launch file:
+```bash
+ros2 launch kuka_rsi_driver dual_arm_startup.launch.py
+```
+
+The driver has to be configured and activated the same way, as for a single arm.
+The same launch arguments are also available for this, the names prefixed with `robot1_` and  `robot2_` (e.g. `robot1_family`).
+
 ### Stopping external control
 
 To stop external control, all components have to be deactivated with `ros2 lifecycle set robot_manager deactivate`
