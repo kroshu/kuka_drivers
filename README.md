@@ -15,7 +15,27 @@ It is also recommended to use a client machine with a real-time kernel, as all t
 
 ## Installation
 
-The driver is not available as a binary package, building from source is necessary.
+### Installation as binary package
+
+The driver is also available as a binary package. Installing the `kuka_drivers` metapackage will only install the packages strictly necessary for using the drivers. To install all available robot models, the `kuka_robot_descriptions` package should be also installed.
+
+```bash
+sudo apt install ros-jazzy-kuka-drivers
+sudo apt install ros-jazzy-kuka-robot-descriptions
+```
+
+If due to lack of resources this is not intended, it is also possible to install support packages only for a single robot family.
+```bash
+sudo apt install ros-jazzy-kuka-drivers
+sudo apt install ros-jazzy-kuka-agilus-support
+```
+
+> [!NOTE]
+> As the ROS2 packages are not immediately available via apt after the release, it is possible that the installed version lacks some features already available on the development branch.
+
+### Installation from source
+
+The driver can be also built from source. The main advantage of this is to get features before they are released and available for installation. All configuration options should also be available if using the released binary packages.
 
 Create ROS2 workspace (if not already created).
 

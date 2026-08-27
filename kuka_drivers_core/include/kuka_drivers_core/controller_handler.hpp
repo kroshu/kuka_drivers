@@ -16,9 +16,7 @@
 #define KUKA_DRIVERS_CORE__CONTROLLER_HANDLER_HPP_
 
 #include <map>
-#include <set>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "control_mode.hpp"
@@ -27,13 +25,8 @@
 namespace kuka_drivers_core
 {
 /**
- * @brief This class is responsible for tracking the active controllers
- *  and on control mode change offer the controllers name that
- *  need to be activated and deactivated.
- * The following three public function has to be called in the following order:
- *  - GetControllersForSwitch() or GetControllersForDeactivation()
- *  - ApproveControllerActivation()
- *  - ApproveControllerDeactivation()
+ * @brief This class provides controller name lookup for a given control mode, making control mode
+ * changes easier to handle.
  */
 class ControllerHandler
 {
@@ -45,27 +38,6 @@ private:
   };
 
   /**
-   * @brief Controller names that's have to be active in all control modes
-   */
-  std::set<std::string> fixed_controllers_;
-
-  /**
-   * @brief The currently active controllers that not include the fixed controllers
-   * The controllers are stored in an std::set type
-   */
-  std::set<std::string> active_controllers_;
-
-  /**
-   * @brief These controllers will be activated after they get approved
-   */
-  std::set<std::string> activate_controllers_;
-
-  /**
-   * @brief These controllers will be deactivated after they get approved
-   */
-  std::set<std::string> deactivate_controllers_;
-
-  /**
    * @brief Look up table for which controllers are needed for each control mode
    */
   std::map<ControlMode, ControllerTypes> control_mode_map_;
@@ -73,10 +45,8 @@ private:
 public:
   /**
    * @brief Construct a new control mode handler object
-   *
-   * @param fixed_controllers: Controllers that have to be active in all control modes
    */
-  explicit ControllerHandler(std::vector<std::string> fixed_controllers = {});
+  ControllerHandler() = default;
 
   /**
    * @brief Destroy the control mode handler object
@@ -94,38 +64,6 @@ public:
    */
   bool UpdateControllerName(
     const ControllerType controller_type, const std::string & controller_name);
-
-  /**
-   * @brief Calculates the controllers that have to be activated and deactivated for the control
-   * mode change
-   *
-   * @param new_control_mode: The new control mode. It is based on Controller_handler::control_mode
-   * enum.
-   * @return std::pair<std::vector<std::string>, std::vector<std::string>>:
-   * Two vectors, first has the controllers to activate, second has the controllers to deactivate
-   * @exception std::out_of_range: new_control_mode attribute is invalid
-   */
-  std::pair<std::vector<std::string>, std::vector<std::string>> GetControllersForSwitch(
-    ControlMode new_control_mode);
-
-  /**
-   * @brief Returns all controllers that has active state (used for driver deactivation)
-   *
-   * @return std::vector<std::string>: Vector that contains controllers for deactivation
-   */
-  std::vector<std::string> GetControllersForDeactivation();
-
-  /**
-   * @brief Approves that the controller activation was successful
-   *
-   */
-  void ApproveControllerActivation();
-
-  /**
-   * @brief Approves that the controller deactivation was successful
-   *
-   */
-  bool ApproveControllerDeactivation();
 
   std::vector<std::string> GetControllersForMode(ControlMode control_mode);
 };
