@@ -34,7 +34,7 @@ The following tables contain the exact versions used for testing the driver.
 
 ## Client-side setup
 
-It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](https://github.com/kroshu/kuka_drivers/wiki/5_Realtime) wiki page.
+It is recommended to run the driver on a real-time capable client machine. Detailed instructions for setting up the `PREEMPT_RT` path are available on the [Realtime](5_Realtime.md) page.
 
 To be able to connect to RSI running on the controller, a fixed IP in the subnet of the RSI interface is required on the Linux machine.
 
@@ -241,7 +241,7 @@ Upload the generated file to the controller as described in [Update and upload c
     ros2 launch kuka_rsi_driver startup.launch.py
     ```
 
-    - This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
+    - This starts the 3 core components of every driver (described in the [Non-real-time interface](Home.md#non-real-time-interface) section of the project overview) and the following controllers:
       - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
       - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_rsi_driver/config/joint_trajectory_controller_config.yaml))
     - There is no need to set the Client IP, since the driver automatically listens on the `0.0.0.0` address.
@@ -262,7 +262,7 @@ Upload the generated file to the controller as described in [Update and upload c
   - `eki_rsi` or `mxa_rsi`: RSI program is automatically selected and started
 
 
-On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
+On successful activation the brakes of the robot will be released and external control is started. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `moveit_example` package instead (found in examples repo, usage is described in the [Additional packages](Home.md#moveit-integration) section of the project overview).
 
 ### Launch arguments
 

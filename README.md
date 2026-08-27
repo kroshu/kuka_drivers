@@ -71,6 +71,6 @@ source ~/ros2_ws/install/setup.bash
 
 ## Getting Started
 
-Documentation of this project can be found on the repository's [Wiki](https://github.com/kroshu/kuka_drivers/wiki) page.
+Documentation of this project can be found in the [doc/wiki](doc/wiki/Home.md) folder.
 
 If you find something confusing, not working, or would like to contribute, please read our [contributing guide](CONTRIBUTING.md) before opening an issue or creating a pull request.

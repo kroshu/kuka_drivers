@@ -155,6 +155,6 @@ The class can also handle controllers that should be active in every control mod
 
 ## Type definitions and modified control node
 
-Additionally common type definitions are included for control modes (see details on the [wiki](https://github.com/kroshu/kuka_drivers/wiki#control-mode-definitions)) and hardware interface types.
+Additionally common type definitions are included for control modes (see details in the [documentation](../doc/wiki/Home.md#control-mode-definitions)) and hardware interface types.
 
-The package also contains the [modified `control_node`](https://github.com/kroshu/kuka_drivers/wiki#real-time-interface) that instantiates the `controller_manager` without managing the timing.
+The package also contains the [modified `control_node`](../doc/wiki/Home.md#real-time-interface) that instantiates the `controller_manager` without managing the timing.

@@ -40,7 +40,7 @@ The startup procedure for any system in ROS can be defined using a launch file, 
 The last issue should be certainly prevented from happening, therefore it was decided to extend the default startup procedure with a [lifecycle interface](https://design.ros2.org/articles/node_lifecycle.html), that synchronizes all components of the driver. The hardware interfaces and controllers already have a lifecycle interface, but by default they are loaded and activated at startup. This configuration was modified to only load the hardware interfaces and controllers, configuration and activation is handled by a custom a lifecycle node, called `robot_manager`. The 3 states of the `robot_manager` node have the following meaning:
 
 - `unconfigured`: all necessary components are started, but no connection is needed to the robot
-- `configured`: The driver has valid parameters configured, external control can be initiated. It is possible to change most parameters (with the exception of IP addresses and robot model) in this state without having to clean up the `robot_manager` node. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](https://github.com/kroshu/kuka_drivers/wiki/4_Controllers#3-configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
+- `configured`: The driver has valid parameters configured, external control can be initiated. It is possible to change most parameters (with the exception of IP addresses and robot model) in this state without having to clean up the `robot_manager` node. Connection to the robot might be needed. (All of the parameters have default values in the driver, which are set on the robot controller during configuration.) A few [configuration controllers](4_Controllers.md#3-configuration-controllers) might be active, that handle the runtime parameters of the hardware interface.
 - `active`: external control is running with cyclic real-time communication, controllers are active
 
 To achieve these synchronized states, the state transitions of the system do the following steps (implemented by the launch file and the `robot_manager` node):
@@ -153,4 +153,4 @@ As the robot controllers manage the timing of the drivers, it does not make sens
 
 ## Detailed setup and startup instructions
 
-For detailed information about the drivers, visit the dedicated wiki pages for [KSS & iiQKA.OS2](https://github.com/kroshu/kuka_drivers/wiki/2_RSI), [Sunrise](https://github.com/kroshu/kuka_drivers/wiki/3_Sunrise_FRI), [iiQKA](https://github.com/kroshu/kuka_drivers/wiki/1_iiQKA_EAC).
+For detailed information about the drivers, visit the dedicated pages for [KSS & iiQKA.OS2](2_RSI.md), [Sunrise](3_Sunrise_FRI.md), [iiQKA](1_iiQKA_EAC.md).
