@@ -12,18 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "kuka_drivers_core/controller_handler.hpp"
 
 namespace kuka_drivers_core
 {
-ControllerHandler::ControllerHandler(std::vector<std::string> fixed_controllers)
-: fixed_controllers_(fixed_controllers.begin(), fixed_controllers.end())
-{
-}
-
 bool ControllerHandler::UpdateControllerName(
   const ControllerType controller_type, const std::string & controller_name)
 {
@@ -64,88 +58,6 @@ bool ControllerHandler::UpdateControllerName(
       RCLCPP_INFO(rclcpp::get_logger("ControllerHandler"), "Invalid Controller type");
       return false;
   }
-  return true;
-}
-
-std::pair<std::vector<std::string>, std::vector<std::string>>
-ControllerHandler::GetControllersForSwitch(ControlMode new_control_mode)
-{
-  if (control_mode_map_.find(new_control_mode) == control_mode_map_.end())
-  {
-    // Not valid control mode, throw exception
-    throw std::out_of_range("Attribute new_control_mode is out of range");
-  }
-
-  if (new_control_mode == ControlMode::CONTROL_MODE_UNSPECIFIED)
-  {
-    throw std::logic_error("CONTROL_MODE_UNSPECIFIED is not valid control mode");
-  }
-
-  // Set controllers which should be activated and deactivated
-  activate_controllers_.clear();
-  auto control_mode_controllers = control_mode_map_.at(new_control_mode);
-  activate_controllers_.insert(control_mode_controllers.standard_controller);
-  if (!control_mode_controllers.impedance_controller.empty())
-  {
-    activate_controllers_.insert(control_mode_controllers.impedance_controller);
-  }
-
-  activate_controllers_.insert(fixed_controllers_.begin(), fixed_controllers_.end());
-
-  deactivate_controllers_ = active_controllers_;
-
-  // Goes through every controllers that should be activated
-  for (auto activate_controllers_it = activate_controllers_.begin();
-       activate_controllers_it != activate_controllers_.end();)
-  {
-    // Finds the controller in the deactivate controllers
-    auto deactivate_controllers_it = deactivate_controllers_.find(*activate_controllers_it);
-    if (deactivate_controllers_it != deactivate_controllers_.end())
-    {
-      // Delete those controllers which not need to be activated or deactivated.
-      activate_controllers_it = activate_controllers_.erase(activate_controllers_it);
-      deactivate_controllers_.erase(deactivate_controllers_it);
-    }
-    else
-    {
-      ++activate_controllers_it;
-    }
-  }
-
-  return std::make_pair(
-    std::vector<std::string>(activate_controllers_.begin(), activate_controllers_.end()),
-    std::vector<std::string>(deactivate_controllers_.begin(), deactivate_controllers_.end()));
-}
-
-std::vector<std::string> ControllerHandler::GetControllersForDeactivation()
-{
-  deactivate_controllers_ = active_controllers_;
-  return std::vector<std::string>(deactivate_controllers_.begin(), deactivate_controllers_.end());
-}
-
-void ControllerHandler::ApproveControllerActivation()
-{
-  if (!activate_controllers_.empty())
-  {
-    active_controllers_.insert(activate_controllers_.begin(), activate_controllers_.end());
-    activate_controllers_.clear();
-  }
-}
-
-bool ControllerHandler::ApproveControllerDeactivation()
-{
-  for (auto && controller : deactivate_controllers_)
-  {
-    auto active_controller_it = active_controllers_.find(controller);
-    if (active_controller_it == active_controllers_.end())
-    {
-      // We should not reach this, active controllers should always contain the ones to deactivate
-      return false;
-    }
-    active_controllers_.erase(active_controller_it);
-  }
-  deactivate_controllers_.clear();
-
   return true;
 }
 
