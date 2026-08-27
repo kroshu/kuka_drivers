@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(controller_manager REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
 find_package(hardware_interface REQUIRED)
 
 add_library(kuka_drivers_core SHARED
@@ -47,11 +48,11 @@ ament_export_libraries(${PROJECT_NAME})
 add_library(communication_helpers SHARED
   include/communication_helpers/ros2_control_tools.hpp
   include/communication_helpers/service_tools.hpp)
-ament_target_dependencies(communication_helpers rclcpp)
+ament_target_dependencies(communication_helpers rclcpp controller_manager_msgs)
 set_target_properties(communication_helpers PROPERTIES LINKER_LANGUAGE CXX)
 
 ament_export_targets(communication_helpers HAS_LIBRARY_TARGET)
-ament_export_dependencies(rclcpp)
+ament_export_dependencies(rclcpp controller_manager_msgs)
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}/

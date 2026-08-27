@@ -145,13 +145,9 @@ To modify the callback that is called for validating every parameter change, one
 
 ## Control mode handler
 
-The package also contains the `ControllerHandler` class, which is responsible for tracking the active controllers and on control mode changes return the controller names that need to be activated and deactivated based on the control mode definitions.
+The package also contains the `ControllerHandler` class, which provides the controller names that need to be activated for a given control mode.
 
-There is a defined set of controllers that must be active for every control mode, the `GetControllersForSwitch()` method determines the switches necessary in case of a control mode change. The method returns the names of the controllers to be switched, to make this possible, the names of the controllers should be provided for every controller type with the `UpdateControllerName()` method.
-
-If the switch was successful, the `ApproveControllerActivation()` and `ApproveControllerDeactivation()` methods should be called to update the internal state of the `ControllerHandler` class.
-
-The class can also handle controllers that should be active in every control mode (e.g. `joint_state_broadcaster`), these should be be given in the constructor as the `fixed_controllers` argument (std::vector).
+The `GetControllersForMode()` method returns the controllers needed for the requested control mode. The names of the controllers should be provided for every controller type with the `UpdateControllerName()` method.
 
 ## Type definitions and modified control node
 
