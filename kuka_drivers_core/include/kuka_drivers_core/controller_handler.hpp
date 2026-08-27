@@ -25,7 +25,8 @@
 namespace kuka_drivers_core
 {
 /**
- * @brief This class provides controller name lookup for a given control mode, making control mode changes easier to handle.
+ * @brief This class provides controller name lookup for a given control mode, making control mode
+ * changes easier to handle.
  */
 class ControllerHandler
 {
