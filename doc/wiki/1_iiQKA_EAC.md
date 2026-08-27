@@ -12,7 +12,7 @@ Tested configurations:
 
 ### Client side
 
-- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](https://github.com/kroshu/kuka_drivers/wiki/6_Realtime)).
+- It is recommended to use the driver on a real-time capable client machine (further information about setting up the PREEMPT_RT patch can be found [here](5_Realtime.md)).
 - Set a fixed IP in the subnet of the KONI interface for the real-time machine.
 
 ### Controller side
@@ -64,13 +64,13 @@ To start the driver, two launch file are available, with and without `rviz`. To 
 ros2 launch kuka_iiqka_eac_driver startup.launch.py client_ip:=0.0.0.0 controller_ip:=0.0.0.0
 ```
 
-This starts the 3 core components of every driver (described in the [Non-real-time interface](https://github.com/kroshu/kuka_drivers/wiki#non-real-time-interface) section of the project overview) and the following controllers:
+This starts the 3 core components of every driver (described in the [Non-real-time interface](Home.md#non-real-time-interface) section of the project overview) and the following controllers:
 
 - `joint_state_broadcaster` (no configuration file, all state interfaces are published)
 - `joint_trajectory_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_iiqka_eac_driver/config/joint_trajectory_controller_config.yaml))
 - `joint_group_impedance_controller` ([configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_iiqka_eac_driver/config/joint_impedance_controller_config.yaml))
 - `effort_controller` (of type `JointGroupEffortController`, [configuration file](https://github.com/kroshu/kuka_drivers/tree/humble/kuka_iiqka_eac_driver/config/effort_controller_config.yaml))
-- [`kuka_control_mode_handler`](https://github.com/kroshu/kuka_drivers/wiki/5_Controllers#kuka_control_mode_handler) (no configuration file)
+- [`kuka_control_mode_handler`](4_Controllers.md#kuka_control_mode_handler) (no configuration file)
 
 After successful startup, the `robot_manager` node has to be activated to start the cyclic communication with the robot controller (before this only a collapsed robot is visible in `rviz`):
 
@@ -79,7 +79,7 @@ After successful startup, the `robot_manager` node has to be activated to start 
   ros2 lifecycle set robot_manager activate
   ```
 
-On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `iiqka_moveit_example` package instead (usage is described in the [Additional packages](https://github.com/kroshu/kuka_drivers/wiki#moveit-integration) section of the project overview).
+On successful activation the brakes of the robot will be released and external control is started using the requested control mode. To test moving the robot, the `rqt_joint_trajectory_controller` is not recommended, use the launch file in the `moveit_example` package instead (usage is described in the [Additional packages](Home.md#moveit-integration) section of the project overview).
 
 It is important to note, that the commanded and measures torques have a different meaning: the `effort` command interface accepts values that should be superimposed on internal gravity compensation, while the state interface provides the actually measured torques (sum on internal and external effects).
 
