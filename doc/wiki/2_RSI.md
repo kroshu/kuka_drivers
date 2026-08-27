@@ -92,6 +92,37 @@ Generally, only a few constraints are imposed on naming the I/Os:
 - The names must be unique across both the state and command interfaces.
 - Since `outputs` can have both state and command interfaces, if these interfaces are configured with the same name, they are considered connected. In this case, the system will handle them by first reading the state of the `output`, then writing to it via the command interface.
 
+#### Controller side configuration
+
+Example GPIO configuration files are available in the `kuka_external_control_sdk/krc_setup` directory for both operating systems:
+
+| File | KSS | iiQKA.OS2 |
+|------|-----|-----------|
+| RSI context | `kss/Config/User/Common/SensorInterface/rsi_gpio_joint_pos.rsix` | `iiqka_os2/RobotSensorInterface/Context/rsi_gpio_joint_pos.rsix` |
+| Ethernet config | `kss/Config/User/Common/SensorInterface/rsi_gpio_ethernet.xml` | `iiqka_os2/RobotSensorInterface/Ethernet_configuration/rsi_gpio_ethernet.xml` |
+| Example program | `kss/KRC/R1/Program/rsi_gpio_example.src` | `iiqka_os2/Program/RSI/rsi_gpio_example.src` |
+
+**RSI context file (`rsi_gpio_joint_pos.rsix`):**
+- Provides an example of how to set up the different I/Os. For detailed instructions, refer to the RSI manual on KUKA Xpert.
+- Can be edited via RSI Visual in WorkVisual (KSS) or iiQWorks.App Builder (iiQKA.OS2).
+- All I/Os should be connected to the inputs or outputs of the Ethernet RSI object.
+
+**Ethernet configuration file (`rsi_gpio_ethernet.xml`):**
+- The `<SEND>` object contains all parameters that are sent to the client.
+- The `<RECEIVE>` object contains all the parameters that are received from the client.
+- To add a new I/O element the following parameters must be set:
+  - `TAG`: Contains the aforementioned unique key. The tag format is: `GPIO.UniqueKey`. It must start with `GPIO`, followed by a `.`, and then the `key`.
+  - `TYPE`: The type can be one of the following: `BOOL`, `DOUBLE`, or `LONG`.
+  - `INDX`: This must match the configuration of the I/O object in RSI Visual for the Ethernet object. This is the only parameter that connects the XML file entries to those in the `.rsix` file.
+  - `HOLDON`: This is only used in the `<RECEIVE>` object. It sets the behavior of the output when packets are missed:
+    - `0`: The output is reset.
+    - `1`: The most recent valid value remains at the output.
+- A sample configuration for one I/O element:
+
+   ```xml
+   <ELEMENT TAG="GPIO.OUTPUT_01" TYPE="DOUBLE" INDX="1" HOLDON="1" />
+   ```
+
 
 #### Client side I/O configuration
 
