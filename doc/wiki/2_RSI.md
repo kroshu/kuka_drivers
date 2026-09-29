@@ -129,7 +129,7 @@ Example GPIO configuration files are available in the `kuka_external_control_sdk
 
 To configure the client side, two configuration files need to be completed:
 
-1. The `kuka_rsi_driver/config/gpio_config.xacro` file is an extension to the robot's URDF and contains a `<gpio>` tag as part of the ROS Control parameters.
+1. The `kuka_rsi_driver/config/gpio_config.xacro` file defines a `gpio_config` macro containing a `<gpio>` tag. Pass its path (or the path of a custom GPIO xacro) via the `gpio_config` launch argument to add the configured interfaces to the robot's `<ros2_control>` block. An empty path leaves the GPIO interfaces unconfigured.
    - The GPIO object must be called `gpio`.
    - The state and command interfaces must be configured according to the example provided in the file.
    - For each interface, several additional parameters are available:
@@ -139,7 +139,7 @@ To configure the client side, two configuration files need to be completed:
      - `min`: Minimum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `max`: Maximum value for limit checking. (If not used or used incorrectly, `limits` is set to `false`.)
      - `initial_value`: Initial value of the interface. The value must be in a number format for every data type. Mostly useful for outputs without a state interface, as this value is otherwise overridden during the first cycle.
-  - To set up the provided example, uncomment the constructed interfaces in the `gpio_config.xacro` config file.
+    - Adapt the example interfaces in `gpio_config.xacro` to match the I/Os configured on the robot controller.
    - An example with both state and command interfaces with all parameters:
 
       ```xml
@@ -305,7 +305,7 @@ Both launch files support the following arguments:
 - `mxa_client_port`: port of the client machine where mxAutomation packets are received (default: 1337)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
-- `use_gpio`: if set to `false` the usage of I/Os are disabled (defaults to `true`).
+- `gpio_config`: path to a GPIO xacro file defining a `gpio_config` macro (for example, `$(find kuka_rsi_driver)/config/gpio_config.xacro`). Empty by default, which disables GPIO interfaces and the GPIO controller.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
@@ -315,7 +315,7 @@ Both launch files support the following arguments:
   - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
   - `joint_trajectory_controller_config.yaml` (or `joint_trajectory_controller_config_6_axis_kl.yaml` if `use_external_axis` is set to true)
   - `kuka_event_broadcaster_config.yaml`
-  - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
+  - `gpio_controller_config.yaml` (used only if a GPIO config path is supplied)
   - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
   - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
 - `use_external_axis`: if set to `true`, enables KL (linear track) composition using the `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template (defaults to `false`)
