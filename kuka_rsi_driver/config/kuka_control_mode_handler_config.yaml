@@ -1,4 +1,0 @@
-/**/control_mode_handler:
-  ros__parameters:
-    # Empty string means unprefixed interfaces for single-robot compatibility.
-    robot_prefixes: [""]
