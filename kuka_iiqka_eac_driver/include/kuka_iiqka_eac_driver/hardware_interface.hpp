@@ -49,11 +49,16 @@ public:
   KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
   on_init(const hardware_interface::HardwareComponentInterfaceParams & params) override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
-  export_state_interfaces() override;
+  // The joint state/command interfaces are declared in the URDF's <ros2_control> block (and
+  // validated in on_init() below), so the default on_export_state_interfaces()/
+  // on_export_command_interfaces() already builds and registers them - only the interfaces
+  // that AREN'T declared per-joint (server_state, control_mode, interpolation_count) need
+  // declaring here.
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_state_interface_descriptions() override;
 
-  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
-  export_command_interfaces() override;
+  KUKA_IIQKA_EAC_DRIVER_PUBLIC std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_command_interface_descriptions() override;
 
   KUKA_IIQKA_EAC_DRIVER_PUBLIC CallbackReturn
   on_configure(const rclcpp_lifecycle::State & previous_state) override;
@@ -86,6 +91,25 @@ private:
   KUKA_IIQKA_EAC_DRIVER_LOCAL bool SetupQoS();
 
   std::unique_ptr<kuka::external::control::iiqka::Robot> robot_ptr_;
+
+  // Interface names, built once in on_init() (matching kassow_kord_hardware_interface's
+  // convention) instead of concatenating "<joint>/<interface>" fresh on every read()/write()
+  // cycle. set_state()/get_command() still do a name lookup per call - only the string-building
+  // is cached, not the resolved handle.
+  struct JointInterfaceNames
+  {
+    std::string position_state;
+    std::string effort_state;
+    std::string commanded_position_state;
+    std::string position_command;
+    std::string effort_command;
+    std::string stiffness_command;
+    std::string damping_command;
+  };
+  std::vector<JointInterfaceNames> joint_interface_names_;
+  std::string server_state_name_;
+  std::string control_mode_name_;
+  std::string interpolation_count_name_;
 
   std::vector<double> hw_position_commands_;
   std::vector<double> hw_torque_commands_;
