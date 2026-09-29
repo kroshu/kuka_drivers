@@ -347,13 +347,8 @@ def launch_setup(context, *args, **kwargs):
         "event_broadcaster": None,
     }
 
-<<<<<<< HEAD
-    if use_gpio.perform(context) == "true":
-        controllers.update({"gpio_controller": config_file("gpio_controller_config.yaml")})
-=======
     if use_gpio:
-        controllers["gpio_controller"] = config_file("gpio_controller_config.yaml")
->>>>>>> 8329595 (Adapt driver to `gpio_config` argument (#377))
+        controllers.update({"gpio_controller": config_file("gpio_controller_config.yaml")})
 
     if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
         controllers.update({"control_mode_handler": None, "kss_message_handler": None})
