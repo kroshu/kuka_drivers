@@ -305,7 +305,7 @@ Both launch files support the following arguments:
 - `mxa_client_port`: port of the client machine where mxAutomation packets are received (default: 1337)
 - `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
-- `use_gpio`: if set to `false` the usage of I/Os are disabled (defaults to `true`).
+- `gpio_config`: path to a GPIO xacro file defining a `gpio_config` macro (for example, `$(find kuka_rsi_driver)/config/gpio_config.xacro`). Empty by default, which disables GPIO interfaces and the GPIO controller. For dual-arm launch, use `robot1_gpio_config` and `robot2_gpio_config` independently.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
@@ -315,7 +315,7 @@ Both launch files support the following arguments:
   - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
   - `joint_trajectory_controller_config.yaml` (or `joint_trajectory_controller_config_6_axis_kl.yaml` if `use_external_axis` is set to true)
   - `kuka_event_broadcaster_config.yaml`
-  - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
+  - `gpio_controller_config.yaml` (used only if a GPIO config path is supplied)
   - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
   - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
 - `use_external_axis`: if set to `true`, enables KL (linear track) composition using the `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template (defaults to `false`)

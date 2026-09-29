@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
     kl_ros2_control_macro_file = LaunchConfiguration("kl_ros2_control_macro_file")
     kl_ros2_control_joints_macro = LaunchConfiguration("kl_ros2_control_joints_macro")
     mode = LaunchConfiguration("mode")
-    use_gpio = LaunchConfiguration("use_gpio")
+    gpio_config = LaunchConfiguration("gpio_config")
     driver_version = LaunchConfiguration("driver_version")
     client_ip = LaunchConfiguration("client_ip")
     client_port = LaunchConfiguration("client_port")
@@ -201,8 +201,8 @@ def launch_setup(context, *args, **kwargs):
         "mode:=",
         mode,
         " ",
-        "use_gpio:=",
-        use_gpio,
+        "gpio_config:=",
+        gpio_config,
         " ",
         "driver_version:=",
         driver_version,
@@ -297,6 +297,7 @@ def launch_setup(context, *args, **kwargs):
         ],
         prefix=prefix_cmd,
     )
+    use_gpio = bool(gpio_config.perform(context))
     robot_manager_node = LifecycleNode(
         name=["robot_manager"],
         namespace=ns,
@@ -351,7 +352,7 @@ def launch_setup(context, *args, **kwargs):
         "event_broadcaster": config_file("kuka_event_broadcaster_config.yaml"),
     }
 
-    if use_gpio.perform(context) == "true":
+    if use_gpio:
         controllers["gpio_controller"] = config_file("gpio_controller_config.yaml")
 
     if driver_version.perform(context) in {"eki_rsi", "mxa_rsi"}:
@@ -431,7 +432,7 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("kl_prefix", default_value="rail_"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
     launch_arguments.append(
-        DeclareLaunchArgument("use_gpio", default_value="false", choices=["true", "false"])
+        DeclareLaunchArgument("gpio_config", default_value="")
     )
     launch_arguments.append(
         DeclareLaunchArgument(
