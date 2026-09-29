@@ -431,9 +431,7 @@ def generate_launch_description():
     )
     launch_arguments.append(DeclareLaunchArgument("kl_prefix", default_value="rail_"))
     launch_arguments.append(DeclareLaunchArgument("mode", default_value="hardware"))
-    launch_arguments.append(
-        DeclareLaunchArgument("gpio_config", default_value="")
-    )
+    launch_arguments.append(DeclareLaunchArgument("gpio_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument(
             "driver_version",

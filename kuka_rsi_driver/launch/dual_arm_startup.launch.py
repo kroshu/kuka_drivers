@@ -275,8 +275,8 @@ def launch_setup(context, *args, **kwargs):
         prefix=prefix_cmd,
     )
 
-    use_gpio = (
-        bool(robot1_gpio_config.perform(context)) or bool(robot2_gpio_config.perform(context))
+    use_gpio = bool(robot1_gpio_config.perform(context)) or bool(
+        robot2_gpio_config.perform(context)
     )
 
     robot_manager_node = LifecycleNode(
@@ -406,9 +406,7 @@ def generate_launch_description():
         )
     )
     launch_arguments.append(DeclareLaunchArgument("robot1_rsi_xml_config_file", default_value=""))
-    launch_arguments.append(
-        DeclareLaunchArgument("robot1_gpio_config", default_value="")
-    )
+    launch_arguments.append(DeclareLaunchArgument("robot1_gpio_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument("robot1_async_thread_priority", default_value="69")
     )
@@ -435,9 +433,7 @@ def generate_launch_description():
         )
     )
     launch_arguments.append(DeclareLaunchArgument("robot2_rsi_xml_config_file", default_value=""))
-    launch_arguments.append(
-        DeclareLaunchArgument("robot2_gpio_config", default_value="")
-    )
+    launch_arguments.append(DeclareLaunchArgument("robot2_gpio_config", default_value=""))
     launch_arguments.append(
         DeclareLaunchArgument("robot2_async_thread_priority", default_value="69")
     )
