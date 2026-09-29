@@ -55,11 +55,16 @@ public:
   CallbackReturn on_init(
     const hardware_interface::HardwareComponentInterfaceParams & params) override;
 
+  // Joint and gpio state/command interfaces are declared in the URDF and already picked up by
+  // the default on_export_state_interfaces()/on_export_command_interfaces(); only server_state
+  // and interpolation_count aren't tied to a joint/gpio and need explicit declaration here.
   KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_state_interface_descriptions() override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_command_interface_descriptions() override;
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
 
@@ -160,7 +165,6 @@ protected:
     StatusManager status_manager;
     double hw_control_mode_command = 0.0;
     double cycle_time_command = 0.0;
-    double interpolation_count_command = 0.0;
     kuka_drivers_core::ControlMode prev_control_mode =
       kuka_drivers_core::ControlMode::CONTROL_MODE_UNSPECIFIED;
     RsiCycleTime prev_cycle_time = RsiCycleTime::RSI_4MS;
@@ -193,6 +197,21 @@ protected:
 
   // Interface prefix for state and command interfaces, enabling multi-robot support
   std::string interface_prefix_;
+
+  // Interface names, built once in on_init() (matching kassow_kord_hardware_interface's
+  // convention) instead of concatenating "<joint>/<interface>" fresh on every read()/write()
+  // cycle. set_state()/get_command() still do a name lookup per call - only the string-building
+  // is cached, not the resolved handle.
+  std::vector<std::string> joint_position_state_names_;
+  std::vector<std::string> joint_velocity_state_names_;
+  std::vector<std::string> joint_effort_state_names_;
+  std::vector<std::string> joint_position_command_names_;
+  std::vector<std::string> joint_velocity_command_names_;
+  std::vector<std::string> joint_effort_command_names_;
+  std::vector<std::string> gpio_state_names_;
+  std::vector<std::string> gpio_command_names_;
+  std::string server_state_name_;
+  std::string interpolation_count_name_;
 
 private:
   KUKA_RSI_DRIVER_LOCAL void ConfigureJoints(

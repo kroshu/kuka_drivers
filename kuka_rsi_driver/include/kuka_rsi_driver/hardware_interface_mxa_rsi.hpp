@@ -50,10 +50,12 @@ public:
     const hardware_interface::HardwareComponentInterfaceParams & params) override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_command_interface_descriptions() override;
 
   KUKA_RSI_DRIVER_PUBLIC
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_state_interface_descriptions() override;
 
   KUKA_RSI_DRIVER_PUBLIC CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -80,6 +82,9 @@ private:
 
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
+
+  std::string control_mode_command_name_;
+  std::string cycle_time_command_name_;
 };
 }  // namespace kuka_rsi_driver
 
