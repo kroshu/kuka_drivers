@@ -107,6 +107,11 @@ if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/test_driver_activation.py)
   add_launch_test(test/test_driver_startup.py)
+
+  find_package(ament_cmake_gmock REQUIRED)
+  ament_add_gmock(test_hardware_interface_exports test/test_hardware_interface_exports.cpp)
+  target_link_libraries(test_hardware_interface_exports ${PROJECT_NAME})
+  ament_target_dependencies(test_hardware_interface_exports hardware_interface kuka_drivers_core)
 endif()
 
 ament_package()

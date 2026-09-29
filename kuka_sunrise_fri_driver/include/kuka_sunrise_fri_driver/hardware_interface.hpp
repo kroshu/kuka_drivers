@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "pluginlib/class_list_macros.hpp"
@@ -49,8 +50,11 @@ enum class IOTypes
   BOOLEAN = 2,
 };
 
+// "bool" (not "boolean") to match hardware_interface::HandleDataType's string parsing - the
+// data_type XML attribute now also has to satisfy the framework's own default GPIO auto-export,
+// not just this driver's own on_init() parsing.
 static std::unordered_map<std::string, IOTypes> const types = {
-  {"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"boolean", IOTypes::BOOLEAN}};
+  {"analog", IOTypes::ANALOG}, {"digital", IOTypes::DIGITAL}, {"bool", IOTypes::BOOLEAN}};
 
 class KukaFRIHardwareInterface : public hardware_interface::SystemInterface,
                                  public KUKA::FRI::LBRClient
@@ -74,10 +78,14 @@ public:
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
-  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::StateInterface>
-  export_state_interfaces() override;
-  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::CommandInterface>
-  export_command_interfaces() override;
+  // Joint and gpio state/command interfaces are declared in the URDF and already picked up by
+  // the default on_export_state_interfaces()/on_export_command_interfaces(); only the FRI status
+  // fields, server_state and the runtime_config commands aren't tied to a joint/gpio and need
+  // explicit declaration here.
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_state_interface_descriptions() override;
+  KUKA_SUNRISE_FRI_DRIVER_PUBLIC std::vector<hardware_interface::InterfaceDescription>
+  export_unlisted_command_interface_descriptions() override;
 
   KUKA_SUNRISE_FRI_DRIVER_PUBLIC hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
@@ -256,6 +264,31 @@ private:
 
   std::vector<GPIOWriter> gpio_inputs_;
   std::vector<GPIOReader> gpio_outputs_;
+
+  // Interface names, built once in on_init() (matching kassow_kord_hardware_interface's
+  // convention) instead of concatenating "<joint>/<interface>" fresh on every read()/write()
+  // cycle. set_state()/get_command() still do a name lookup per call - only the string-building
+  // is cached, not the resolved handle.
+  std::vector<std::string> joint_position_state_names_;
+  std::vector<std::string> joint_effort_state_names_;
+  std::vector<std::string> joint_external_torque_state_names_;
+  std::vector<std::string> joint_commanded_position_state_names_;
+  std::vector<std::string> joint_position_command_names_;
+  std::vector<std::string> joint_stiffness_command_names_;
+  std::vector<std::string> joint_damping_command_names_;
+  std::vector<std::string> joint_effort_command_names_;
+  std::vector<std::string> gpio_output_names_;
+  std::vector<std::string> gpio_input_names_;
+
+  // Fixed-name FRI status state interfaces plus server_state: cached name plus a pointer to the
+  // source value, so read() can push all of them in a single loop.
+  std::vector<std::pair<std::string, double *>> fixed_state_interfaces_;
+  std::string server_state_name_;
+
+  std::string control_mode_command_name_;
+  std::string interpolation_count_command_name_;
+  std::string receive_multiplier_command_name_;
+  std::string send_period_command_name_;
 };
 }  // namespace kuka_sunrise_fri_driver
 
