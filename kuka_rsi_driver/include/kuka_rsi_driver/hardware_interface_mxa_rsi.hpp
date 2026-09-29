@@ -78,6 +78,9 @@ private:
   std::mutex init_mtx_;
   std::condition_variable init_cv_;
 
+  std::vector<double> hw_stiffness_commands_;
+  std::vector<double> hw_damping_commands_;
+
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
 };

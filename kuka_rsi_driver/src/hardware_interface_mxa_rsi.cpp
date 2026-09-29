@@ -45,6 +45,9 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   control_state_.cycle_time_command = 0.0;
   control_state_.hw_control_mode_command = 0.0;
 
+  hw_stiffness_commands_.assign(info_.joints.size(), 0.0);
+  hw_damping_commands_.assign(info_.joints.size(), 0.0);
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -62,6 +65,14 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
   command_interfaces.emplace_back(
     interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
     &control_state_.cycle_time_command);
+
+  for (size_t i = 0; i < info_.joints.size(); ++i)
+  {
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+    command_interfaces.emplace_back(
+      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+  }
 
   return command_interfaces;
 }
@@ -138,6 +149,21 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::State & state)
 {
+  // Impedance must be applied before the robot is active; the controller locks
+  // the values once RSI streaming starts.
+  const auto control_mode =
+    static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
+  if (control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL)
+  {
+    auto status = robot_ptr_->SetImpedance(hw_stiffness_commands_, hw_damping_commands_);
+    if (status.return_code != kuka::external::control::ReturnCode::OK)
+    {
+      RCLCPP_ERROR(logger_, "Setting impedance failed: %s", status.message);
+      return CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger_, "Impedance parameters applied");
+  }
+
   return KukaRSIHardwareInterfaceBase::extended_activation(state);
 }
 
