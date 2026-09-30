@@ -82,6 +82,14 @@ RobotManagerBase::RobotManagerBase() : kuka_drivers_core::ROS2BaseLCNode("robot_
       return true;
     });
 
+  this->registerStaticParameter<bool>(
+    "mxa_impedance_enabled", false, kuka_drivers_core::ParameterSetAccessRights{true, false},
+    [this](const bool enabled)
+    {
+      mxa_impedance_enabled_ = enabled;
+      return true;
+    });
+
   set_param_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "controller_manager/set_parameters", rclcpp::SystemDefaultsQoS(), cbg_);
 
@@ -344,7 +352,11 @@ bool RobotManagerBase::OnControlModeChangeRequest(const int control_mode)
   }
 
   RCLCPP_INFO(logger, "Control mode change requested");
-  if (target_control_mode != kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL)
+  const bool supported_control_mode =
+    target_control_mode == kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL ||
+    (mxa_impedance_enabled_ &&
+     target_control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL);
+  if (!supported_control_mode)
   {
     RCLCPP_ERROR(logger, "Tried to change to a not implemented control mode");
     return false;

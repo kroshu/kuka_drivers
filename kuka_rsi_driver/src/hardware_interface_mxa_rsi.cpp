@@ -13,9 +13,13 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cmath>
+#include <limits>
 #include <regex>
 #include <thread>
 #include <vector>
+
+#include <yaml-cpp/yaml.h>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
@@ -26,6 +30,42 @@
 
 namespace kuka_rsi_driver
 {
+namespace
+{
+bool parse_impedance_values(
+  const std::string & yaml_values, const std::string & name, std::vector<double> & values,
+  std::string & error)
+{
+  try
+  {
+    const auto parsed_values = YAML::Load(yaml_values);
+    if (!parsed_values.IsSequence())
+    {
+      error = name + " must be a YAML sequence";
+      return false;
+    }
+
+    for (const auto & value : parsed_values)
+    {
+      const double parsed_value = value.as<double>();
+      if (
+        !std::isfinite(parsed_value) || parsed_value < 0.0 ||
+        parsed_value > std::numeric_limits<float>::max())
+      {
+        error = name + " values must be finite and non-negative";
+        return false;
+      }
+      values.push_back(parsed_value);
+    }
+  }
+  catch (const YAML::Exception & exception)
+  {
+    error = name + " could not be parsed: " + exception.what();
+    return false;
+  }
+  return true;
+}
+}  // namespace
 
 CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   const hardware_interface::HardwareComponentInterfaceParams & params)
@@ -45,8 +85,44 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   control_state_.cycle_time_command = 0.0;
   control_state_.hw_control_mode_command = 0.0;
 
-  hw_stiffness_commands_.assign(info_.joints.size(), 0.0);
-  hw_damping_commands_.assign(info_.joints.size(), 0.0);
+  const auto stiffness_param = info_.hardware_parameters.find("joint_stiffness");
+  const auto damping_param = info_.hardware_parameters.find("joint_damping");
+  if ((stiffness_param == info_.hardware_parameters.end()) !=
+      (damping_param == info_.hardware_parameters.end()))
+  {
+    RCLCPP_ERROR(logger_, "Both joint_stiffness and joint_damping must be configured together");
+    return CallbackReturn::ERROR;
+  }
+
+  if (stiffness_param == info_.hardware_parameters.end())
+  {
+    hw_stiffness_commands_.assign(info_.joints.size(), 0.0);
+    hw_damping_commands_.assign(info_.joints.size(), 0.0);
+  }
+  else
+  {
+    std::string error;
+    if (!parse_impedance_values(
+          stiffness_param->second, "joint_stiffness", hw_stiffness_commands_, error) ||
+        !parse_impedance_values(damping_param->second, "joint_damping", hw_damping_commands_, error))
+    {
+      RCLCPP_ERROR(logger_, "%s", error.c_str());
+      return CallbackReturn::ERROR;
+    }
+
+    const bool both_empty = hw_stiffness_commands_.empty() && hw_damping_commands_.empty();
+    if ((!both_empty &&
+         (hw_stiffness_commands_.size() != info_.joints.size() ||
+          hw_damping_commands_.size() != info_.joints.size())) ||
+        (hw_stiffness_commands_.empty() != hw_damping_commands_.empty()))
+    {
+      RCLCPP_ERROR(
+        logger_, "joint_stiffness and joint_damping must both contain one value per axis (%zu)",
+        info_.joints.size());
+      return CallbackReturn::ERROR;
+    }
+    impedance_parameters_configured_ = !both_empty;
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -155,6 +231,13 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
   if (control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL)
   {
+    if (!impedance_parameters_configured_)
+    {
+      RCLCPP_ERROR(
+        logger_, "Joint impedance requested, but joint_stiffness and joint_damping are not configured");
+      return CallbackReturn::ERROR;
+    }
+
     auto status = robot_ptr_->SetImpedance(hw_stiffness_commands_, hw_damping_commands_);
     if (status.return_code != kuka::external::control::ReturnCode::OK)
     {

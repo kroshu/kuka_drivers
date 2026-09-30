@@ -52,6 +52,8 @@ def launch_setup(context, *args, **kwargs):
     client_port = LaunchConfiguration("client_port")
     mxa_client_port = LaunchConfiguration("mxa_client_port")
     controller_ip = LaunchConfiguration("controller_ip")
+    joint_stiffness = LaunchConfiguration("joint_stiffness")
+    joint_damping = LaunchConfiguration("joint_damping")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -250,6 +252,18 @@ def launch_setup(context, *args, **kwargs):
         rsi_xml_config_file,
     ]
 
+    if driver_version.perform(context) == "mxa_rsi" and robot_family_value == "lbr_iisy":
+        xacro_arguments.extend(
+            [
+                " ",
+                "joint_stiffness:=",
+                joint_stiffness,
+                " ",
+                "joint_damping:=",
+                joint_damping,
+            ]
+        )
+
     if use_external_axis_value:
         xacro_arguments.extend(
             [
@@ -308,7 +322,14 @@ def launch_setup(context, *args, **kwargs):
         ),
         parameters=[
             driver_config,
-            {"robot_models": [effective_robot_model], "use_gpio": use_gpio},
+            {
+                "robot_models": [effective_robot_model],
+                "use_gpio": use_gpio,
+                "mxa_impedance_enabled": (
+                    driver_version.perform(context) == "mxa_rsi"
+                    and robot_family_value == "lbr_iisy"
+                ),
+            },
         ],
         prefix=prefix_cmd,
     )
@@ -446,6 +467,20 @@ def generate_launch_description():
     launch_arguments.append(DeclareLaunchArgument("client_port", default_value="59152"))
     launch_arguments.append(DeclareLaunchArgument("mxa_client_port", default_value="1337"))
     launch_arguments.append(DeclareLaunchArgument("controller_ip", default_value="0.0.0.0"))
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "joint_stiffness",
+            default_value="[]",
+            description="Per-axis MXA joint stiffness values for LBR iisy; set before activation.",
+        )
+    )
+    launch_arguments.append(
+        DeclareLaunchArgument(
+            "joint_damping",
+            default_value="[]",
+            description="Per-axis MXA joint damping values for LBR iisy; set before activation.",
+        )
+    )
     launch_arguments.append(DeclareLaunchArgument("x", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("y", default_value="0"))
     launch_arguments.append(DeclareLaunchArgument("z", default_value="0"))
