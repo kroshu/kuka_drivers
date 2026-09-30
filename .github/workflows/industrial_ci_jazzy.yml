@@ -26,7 +26,7 @@ jobs:
       BUILDER: colcon
       ANALYZER: sonarqube
       TEST_COVERAGE: true
-      UPSTREAM_WORKSPACE: 'github:kroshu/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#master'
+      UPSTREAM_WORKSPACE: 'github:kuka-ros/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#feature/kuka_official' #TODO: change to master after merge successful
       ROS_DISTRO: jazzy
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
@@ -36,6 +36,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       ANALYZER_TOKEN: ${{ secrets.ANALYZER_TOKEN }}
       DEBUG_BASH: true
+      AFTER_SETUP_UPSTREAM_WORKSPACE: 'git -C "$HOME/upstream_ws/src/kuka-external-control-sdk" submodule update --init --recursive'
     runs-on: ubuntu-24.04
     steps:
       - name: Reset ANALYZER for scheduled and push runs
@@ -46,6 +47,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: recursive
       # This step will fetch/store the directory used by ccache before/after the ci run
       - uses: actions/cache@v4
         with:

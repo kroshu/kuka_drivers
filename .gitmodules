@@ -1,0 +1,3 @@
+[submodule "upstream/kuka_drivers"]
+	path = upstream/kuka_drivers
+	url = https://github.com/kuka-ros/kuka_drivers.git
