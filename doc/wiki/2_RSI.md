@@ -303,13 +303,13 @@ Both launch files support the following arguments:
 - `client_port`: port of the client machine (default: 59152)
 - `controller_ip`: The IP address of the KUKA Line Interface (KLI) - not used for `rsi_only` setup
 - `mxa_client_port`: port of the client machine where mxAutomation packets are received (default: 1337)
-- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
+- `robot_model` and `robot_family`: defines which robot to use. The available options for the valid model and family combinations can be found in the [readme](https://github.com/kuka-ros/kuka_robot_descriptions?tab=readme-ov-file#what-data-is-verified) of the `kuka_robot_descriptions` repository.
 - `mode`: if set to 'mock', the `KukaMockHardwareInterface` will be used instead of the `KukaRSIHardwareInterface`. This enables trying out the driver without actual hardware.
 - `gpio_config`: path to a GPIO xacro file defining a `gpio_config` macro (for example, `$(find kuka_rsi_driver)/config/gpio_config.xacro`). Empty by default, which disables GPIO interfaces and the GPIO controller.
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 4000 us, only used if `mode` is set to 'mock')
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kuka-ros/kuka_robot_descriptions?tab=readme-ov-file#custom-mock-hardware), (defaults to 4000 us, only used if `mode` is set to 'mock')
 - `controller_config_dir`: the directory that contains all controller configuration files (defaults to `kuka_rsi_driver/config`). The driver expects the following file names in this directory:
   - `ros2_controller_config_rsi_only.yaml` (used when `driver_version:=rsi_only`)
   - `ros2_controller_config_extended.yaml` (used when `driver_version:=eki_rsi` or `driver_version:=mxa_rsi`)
@@ -342,7 +342,7 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
-**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions?tab=readme-ov-file#modes).
+**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kuka-ros/kuka_robot_descriptions?tab=readme-ov-file#modes).
 
 When `enable_rsi_monitoring:=true` is used, the UDP port monitor uses [Scapy](https://scapy.net/) to passively sniff traffic on `client_port` (the RSI port), auto-detects the peer sender port from the first sent RSI packet, and correlates packets by `<IPOC>` value. Summary statistics are calculated only from matching receive/set packet pairs. Running `rsi_monitor_node` requires root privileges (or equivalent packet-capture capabilities such as `CAP_NET_RAW`/`CAP_NET_ADMIN`).
 
@@ -442,7 +442,7 @@ For custom setups, use the name of the corresponding context file.
 
 ### Client-side configuration
 
-See the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/blob/master/README.md#external-axis-support) for all client-side configuration steps. The relevant launch arguments for enabling KL composition are described in the [Launch arguments](#launch-arguments) section (`use_external_axis`, `kl_model`, `kl_prefix`, and the third-party integration parameters).
+See the [kuka_robot_descriptions README](https://github.com/kuka-ros/kuka_robot_descriptions/blob/master/README.md#external-axis-support) for all client-side configuration steps. The relevant launch arguments for enabling KL composition are described in the [Launch arguments](#launch-arguments) section (`use_external_axis`, `kl_model`, `kl_prefix`, and the third-party integration parameters).
 
 > [!NOTE]
 > The driver supports only __revolute__ and __prismatic__ external joints.
