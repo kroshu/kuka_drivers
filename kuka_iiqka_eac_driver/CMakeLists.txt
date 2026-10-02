@@ -31,7 +31,7 @@ include_directories(include)
 add_executable(robot_manager_node
   src/robot_manager_node.cpp)
 ament_target_dependencies(robot_manager_node std_msgs kuka_drivers_core kuka_driver_interfaces controller_manager_msgs)
-target_link_libraries(robot_manager_node kuka_drivers_core::communication_helpers)
+target_link_libraries(robot_manager_node)
 
 install(TARGETS robot_manager_node
   DESTINATION lib/${PROJECT_NAME})
