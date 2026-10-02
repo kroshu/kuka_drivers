@@ -77,7 +77,8 @@ if(kuka-external-control-sdk_FOUND)
     ${PROJECT_NAME}
   )
 else()
-  message(WARNING "kuka-external-control-sdk not found. Hardware interfaces will not be built. Only robot_manager is available for mock hardware.")
+  message(WARNING
+  "kuka-external-control-sdk not found. Hardware interfaces will not be built. Only robot_manager is available for mock hardware.")
 endif()
 
 install(
@@ -87,7 +88,7 @@ install(
 
 if(BUILD_TESTING)
   find_package(launch_testing_ament_cmake REQUIRED)
-  
+
   if(kuka-external-control-sdk_FOUND)
     add_launch_test(test/test_driver_startup_rsi_only.py)
     add_launch_test(test/test_driver_startup_eki_rsi.py)

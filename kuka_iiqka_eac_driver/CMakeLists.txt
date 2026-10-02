@@ -52,12 +52,13 @@ if(kuka-external-control-sdk_FOUND)
 
   install(TARGETS ${PROJECT_NAME}
     DESTINATION lib/${PROJECT_NAME})
-    
+
   ament_export_libraries(
     ${PROJECT_NAME}
   )
 else()
-  message(WARNING "kuka-external-control-sdk not found. Hardware interfaces will not be built. Only robot_manager is available for mock hardware.")
+  message(WARNING
+  "kuka-external-control-sdk not found. Hardware interfaces will not be built. Only robot_manager is available for mock hardware.")
 endif()
 
 install(DIRECTORY config launch test
