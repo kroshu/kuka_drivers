@@ -80,7 +80,7 @@ private:
 
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
-  bool impedance_parameters_configured_{false};
+  bool impedance_control_enabled_{false};
 
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};

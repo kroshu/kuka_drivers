@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <limits>
 #include <regex>
 #include <thread>
 #include <vector>
-
-#include <yaml-cpp/yaml.h>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "pluginlib/class_list_macros.hpp"
@@ -30,43 +29,6 @@
 
 namespace kuka_rsi_driver
 {
-namespace
-{
-bool parse_impedance_values(
-  const std::string & yaml_values, const std::string & name, std::vector<double> & values,
-  std::string & error)
-{
-  try
-  {
-    const auto parsed_values = YAML::Load(yaml_values);
-    if (!parsed_values.IsSequence())
-    {
-      error = name + " must be a YAML sequence";
-      return false;
-    }
-
-    for (const auto & value : parsed_values)
-    {
-      const double parsed_value = value.as<double>();
-      if (
-        !std::isfinite(parsed_value) || parsed_value < 0.0 ||
-        parsed_value > std::numeric_limits<float>::max())
-      {
-        error = name + " values must be finite and non-negative";
-        return false;
-      }
-      values.push_back(parsed_value);
-    }
-  }
-  catch (const YAML::Exception & exception)
-  {
-    error = name + " could not be parsed: " + exception.what();
-    return false;
-  }
-  return true;
-}
-}  // namespace
-
 CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   const hardware_interface::HardwareComponentInterfaceParams & params)
 {
@@ -85,44 +47,12 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   control_state_.cycle_time_command = 0.0;
   control_state_.hw_control_mode_command = 0.0;
 
-  const auto stiffness_param = info_.hardware_parameters.find("joint_stiffness");
-  const auto damping_param = info_.hardware_parameters.find("joint_damping");
-  if ((stiffness_param == info_.hardware_parameters.end()) !=
-      (damping_param == info_.hardware_parameters.end()))
-  {
-    RCLCPP_ERROR(logger_, "Both joint_stiffness and joint_damping must be configured together");
-    return CallbackReturn::ERROR;
-  }
-
-  if (stiffness_param == info_.hardware_parameters.end())
-  {
-    hw_stiffness_commands_.assign(info_.joints.size(), 0.0);
-    hw_damping_commands_.assign(info_.joints.size(), 0.0);
-  }
-  else
-  {
-    std::string error;
-    if (!parse_impedance_values(
-          stiffness_param->second, "joint_stiffness", hw_stiffness_commands_, error) ||
-        !parse_impedance_values(damping_param->second, "joint_damping", hw_damping_commands_, error))
-    {
-      RCLCPP_ERROR(logger_, "%s", error.c_str());
-      return CallbackReturn::ERROR;
-    }
-
-    const bool both_empty = hw_stiffness_commands_.empty() && hw_damping_commands_.empty();
-    if ((!both_empty &&
-         (hw_stiffness_commands_.size() != info_.joints.size() ||
-          hw_damping_commands_.size() != info_.joints.size())) ||
-        (hw_stiffness_commands_.empty() != hw_damping_commands_.empty()))
-    {
-      RCLCPP_ERROR(
-        logger_, "joint_stiffness and joint_damping must both contain one value per axis (%zu)",
-        info_.joints.size());
-      return CallbackReturn::ERROR;
-    }
-    impedance_parameters_configured_ = !both_empty;
-  }
+  const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
+  impedance_control_enabled_ =
+    impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true";
+  // Stiffness and damping are written by the controller through the command interfaces.
+  hw_stiffness_commands_.assign(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_damping_commands_.assign(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   return CallbackReturn::SUCCESS;
 }
@@ -142,12 +72,15 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
     interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CYCLE_TIME,
     &control_state_.cycle_time_command);
 
-  for (size_t i = 0; i < info_.joints.size(); ++i)
+  if (impedance_control_enabled_)
   {
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+    for (size_t i = 0; i < info_.joints.size(); ++i)
+    {
+      command_interfaces.emplace_back(
+        info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+      command_interfaces.emplace_back(
+        info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+    }
   }
 
   return command_interfaces;
@@ -231,10 +164,21 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
   if (control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL)
   {
-    if (!impedance_parameters_configured_)
+    if (!impedance_control_enabled_)
+    {
+      RCLCPP_ERROR(logger_, "Joint impedance requested, but impedance_control_enabled is false");
+      return CallbackReturn::ERROR;
+    }
+
+    const auto invalid_value = [](double value) {
+      return !std::isfinite(value) || value < 0.0 || value > std::numeric_limits<float>::max();
+    };
+    if (
+      std::any_of(hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), invalid_value) ||
+      std::any_of(hw_damping_commands_.begin(), hw_damping_commands_.end(), invalid_value))
     {
       RCLCPP_ERROR(
-        logger_, "Joint impedance requested, but joint_stiffness and joint_damping are not configured");
+        logger_, "Joint impedance requested before valid stiffness and damping commands were set");
       return CallbackReturn::ERROR;
     }
 
