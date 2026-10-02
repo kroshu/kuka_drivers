@@ -365,6 +365,11 @@ def launch_setup(context, *args, **kwargs):
         controllers["control_mode_handler"] = config_file("kuka_control_mode_handler_config.yaml")
         controllers["kss_message_handler"] = config_file("kuka_kss_message_handler_config.yaml")
 
+    if driver_version.perform(context) == "mxa_rsi" and robot_family_value == "lbr_iisy":
+        controllers["joint_group_impedance_controller"] = config_file(
+            "joint_impedance_controller_config.yaml"
+        )
+
     controller_spawners = [
         controller_spawner(name, prefix_cmd, param_file)
         for name, param_file in controllers.items()

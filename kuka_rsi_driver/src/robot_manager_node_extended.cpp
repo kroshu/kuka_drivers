@@ -34,19 +34,29 @@ RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
 
 CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
 {
-  const auto logger = get_logger();
-
   // Publish initial control mode
   std_msgs::msg::UInt32 message;
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);
 
-  return RobotManagerBase::configure_driver(configuration_controllers_);
+  return RobotManagerBase::configure_driver(GetConfigurationControllers());
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  return RobotManagerBase::cleanup_driver(configuration_controllers_);
+  return RobotManagerBase::cleanup_driver(GetConfigurationControllers());
+}
+
+std::vector<std::string> RobotManagerNodeEkiRsi::GetConfigurationControllers() const
+{
+  std::vector<std::string> controllers = configuration_controllers_;
+  // The impedance controller must be active before activation so it can write the
+  // stiffness/damping command interfaces the hardware locks in before RSI starts.
+  if (mxa_impedance_enabled_)
+  {
+    controllers.push_back(kuka_drivers_core::JOINT_GROUP_IMPEDANCE_CONTROLLER);
+  }
+  return controllers;
 }
 
 void RobotManagerNodeEkiRsi::EventSubscriptionCallback(

@@ -95,6 +95,17 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
 
   control_state_.status_manager.RegisterStateInterfaces(state_interfaces, interface_prefix_);
 
+  // Required by joint_group_impedance_controller, which claims it as a state interface.
+  if (impedance_control_enabled_)
+  {
+    for (size_t i = 0; i < info_.joints.size(); ++i)
+    {
+      state_interfaces.emplace_back(
+        info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
+        &interface_data_.position_commands[i]);
+    }
+  }
+
   return state_interfaces;
 }
 
