@@ -15,7 +15,7 @@
   <depend>kuka_drivers_core</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
-  <depend>kuka_external_control_sdk</depend>
+  <depend>kuka_external_control_sdk_iiqka</depend>
   <depend>std_msgs</depend>
   <depend>controller_manager_msgs</depend>
 

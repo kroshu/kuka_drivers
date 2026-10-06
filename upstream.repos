@@ -2,9 +2,9 @@
 repositories:
   kuka_robot_descriptions:
     type: git
-    url: https://github.com/kroshu/kuka_robot_descriptions.git
-    version: humble
+    url: https://github.com/kuka-ros/kuka_robot_descriptions.git
+  version: humble
   kuka-external-control-sdk:
     type: git
-    url: https://github.com/kroshu/kuka-external-control-sdk.git
+    url: https://github.com/kuka-ros/kuka_external_control_sdk.git
     version: master

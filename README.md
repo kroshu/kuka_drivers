@@ -1,11 +1,13 @@
 # ROS2 KUKA Drivers
 
-This repository contains ROS2 drivers for all KUKA operating systems.
+This repository combines community-supported code for legacy KUKA operating systems with officially supported, open-source driver packages from the [`kuka-ros/kuka_drivers`](https://github.com/kuka-ros/kuka_drivers) repository, included as the `upstream/kuka_drivers` Git submodule. The submodule provides the shared driver core, interfaces, RSI packages, and controllers; this repository contains drivers and controllers for legacy systems, including iiQKA EAC and Sunrise FRI.
+
+KSS and iiQKA.OS2 use the same RSI-based ROS 2 driver from the upstream repository, only the controller-side setup differs between the two systems.
 
 ROS2 Distro | Branch | Github CI | SonarCloud
 ------------ | -------------- | -------------- | --------------
-**Jazzy** | [`master`](https://github.com/kroshu/kuka_drivers/tree/master) | [![Build Status](https://github.com/kroshu//kuka_drivers/actions/workflows/industrial_ci_jazzy.yml/badge.svg?branch=master)](https://github.com/kroshu/kuka_drivers/actions/workflows/industrial_ci_jazzy.yml?branch=master) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers&metric=alert_status)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers)
-**Humble** | [`humble`](https://github.com/kroshu/kuka_drivers/tree/humble) | [![Build Status](https://github.com/kroshu//kuka_drivers/actions/workflows/industrial_ci_humble.yml/badge.svg)](https://github.com/kroshu/kuka_drivers/actions/workflows/industrial_ci_humble.yml) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kroshu_kuka_drivers&metric=alert_status&branch=humble)](https://sonarcloud.io/dashboard?id=kroshu_kuka_drivers)
+**Jazzy** | [`master`](https://github.com/kuka-ros/kuka_drivers/tree/master) | [![Build Status](https://github.com/kuka-ros/kuka_drivers/actions/workflows/industrial_ci_jazzy.yml/badge.svg?branch=master)](https://github.com/kuka-ros/kuka_drivers/actions/workflows/industrial_ci_jazzy.yml?branch=master) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kuka-ros_kuka_drivers&metric=alert_status)](https://sonarcloud.io/dashboard?id=kuka-ros_kuka_drivers)
+**Humble** | [`humble`](https://github.com/kuka-ros/kuka_drivers/tree/humble) | [![Build Status](https://github.com/kuka-ros/kuka_drivers/actions/workflows/industrial_ci_humble.yml/badge.svg?branch=humble)](https://github.com/kuka-ros/kuka_drivers/actions/workflows/industrial_ci_humble.yml?branch=humble) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kuka-ros_kuka_drivers&metric=alert_status&branch=humble)](https://dashboard.sonarcloud.io?id=kuka-ros_kuka_drivers)
 
 ## Requirements
 
@@ -47,8 +49,8 @@ Clone KUKA ROS2 repositories.
 
 ```bash
 cd ~/ros2_ws/src
-git clone -b humble https://github.com/kroshu/kuka_drivers.git
-vcs import < kuka_drivers/upstream.repos
+git clone --recurse-submodules -b humble https://github.com/kuka-ros/kuka_drivers.git
+vcs import --recursive < kuka_drivers/upstream.repos
 ```
 
 Install and initialize rosdep (if not already done)
@@ -81,13 +83,6 @@ Source workspace.
 # Possible values are: setup.bash, setup.sh, setup.zsh
 source ~/ros2_ws/install/setup.bash
 ```
-
-> [!NOTE]
-> As the `kuka_external_control_sdk` package is designed to work also outside of the ROS2 ecosystem, and is simply wrapped with a `package.xml` to simplify the setup, the following warnings are expected and can be ignored after sourcing:
-> ```
-> not found: "<WS>/install/kuka_external_control_sdk/share/kuka_external_control_sdk/local_setup.bash"
-> not found: "<WS>/install/kuka_external_control_sdk_examples/share/> kuka_external_control_sdk_examples/local_setup.bash"
-> ```
 
 ## Getting Started
 
