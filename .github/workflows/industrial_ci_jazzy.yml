@@ -26,7 +26,7 @@ jobs:
       BUILDER: colcon
       ANALYZER: sonarqube
       TEST_COVERAGE: true
-      UPSTREAM_WORKSPACE: 'github:kuka-ros/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#feature/kuka_official' #TODO: change to master after merge successful
+      UPSTREAM_WORKSPACE: 'github:kuka-ros/kuka_robot_descriptions#master github:kroshu/kuka-external-control-sdk#master'
       ROS_DISTRO: jazzy
       CCACHE_DIR: /github/home/.ccache # Directory for ccache (and how we enable ccache in industrial_ci)
       EVENT_NAME: ${{ github.event_name }}
