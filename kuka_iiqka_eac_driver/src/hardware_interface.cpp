@@ -72,63 +72,55 @@ CallbackReturn KukaEACHardwareInterface::on_init(
     interface_prefix_ = it->second;
   }
 
+  joint_interface_names_.resize(info_.joints.size());
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    const std::string & name = info_.joints[i].name;
+    auto & names = joint_interface_names_[i];
+    names.position_state = name + "/" + hardware_interface::HW_IF_POSITION;
+    names.effort_state = name + "/" + hardware_interface::HW_IF_EFFORT;
+    names.commanded_position_state = name + "/" + hardware_interface::HW_IF_COMMANDED_POSITION;
+    names.position_command = name + "/" + hardware_interface::HW_IF_POSITION;
+    names.effort_command = name + "/" + hardware_interface::HW_IF_EFFORT;
+    names.stiffness_command = name + "/" + hardware_interface::HW_IF_STIFFNESS;
+    names.damping_command = name + "/" + hardware_interface::HW_IF_DAMPING;
+  }
+  server_state_name_ =
+    interface_prefix_ + hardware_interface::STATE_PREFIX + "/" + hardware_interface::SERVER_STATE;
+  control_mode_name_ =
+    interface_prefix_ + hardware_interface::CONFIG_PREFIX + "/" + hardware_interface::CONTROL_MODE;
+  interpolation_count_name_ = interface_prefix_ + hardware_interface::CONFIG_PREFIX + "/" +
+                              hardware_interface::INTERPOLATION_COUNT;
+
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> KukaEACHardwareInterface::export_state_interfaces()
+std::vector<hardware_interface::InterfaceDescription>
+KukaEACHardwareInterface::export_unlisted_state_interface_descriptions()
 {
-  RCLCPP_DEBUG(rclcpp::get_logger("KukaEACHardwareInterface"), "Export state interfaces");
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_states_[i]);
-
-    state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_states_[i]);
-
-    state_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
-      &hw_commanded_position_states_[i]);
-  }
-
-  state_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::STATE_PREFIX, hardware_interface::SERVER_STATE,
-    &server_state_);
-
-  return state_interfaces;
+  hardware_interface::InterfaceInfo server_state_info{};
+  server_state_info.name = hardware_interface::SERVER_STATE;
+  server_state_info.initial_value = "0";
+  return {hardware_interface::InterfaceDescription(
+    interface_prefix_ + hardware_interface::STATE_PREFIX, server_state_info)};
 }
 
-std::vector<hardware_interface::CommandInterface>
-KukaEACHardwareInterface::export_command_interfaces()
+std::vector<hardware_interface::InterfaceDescription>
+KukaEACHardwareInterface::export_unlisted_command_interface_descriptions()
 {
-  RCLCPP_DEBUG(rclcpp::get_logger("KukaEACHardwareInterface"), "Export command interfaces");
+  hardware_interface::InterfaceInfo control_mode_info{};
+  control_mode_info.name = hardware_interface::CONTROL_MODE;
+  control_mode_info.initial_value = "0";
 
-  std::vector<hardware_interface::CommandInterface> command_interfaces;
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_position_commands_[i]);
+  hardware_interface::InterfaceInfo interpolation_count_info{};
+  interpolation_count_info.name = hardware_interface::INTERPOLATION_COUNT;
+  interpolation_count_info.initial_value = "0";
 
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_torque_commands_[i]);
-
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
-
-    command_interfaces.emplace_back(
-      info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
-  }
-
-  command_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::CONTROL_MODE,
-    &hw_control_mode_command_);
-
-  command_interfaces.emplace_back(
-    interface_prefix_ + hardware_interface::CONFIG_PREFIX, hardware_interface::INTERPOLATION_COUNT,
-    &interpolation_count_command_);
-
-  return command_interfaces;
+  return {
+    hardware_interface::InterfaceDescription(
+      interface_prefix_ + hardware_interface::CONFIG_PREFIX, control_mode_info),
+    hardware_interface::InterfaceDescription(
+      interface_prefix_ + hardware_interface::CONFIG_PREFIX, interpolation_count_info)};
 }
 
 CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
@@ -155,6 +147,8 @@ CallbackReturn KukaEACHardwareInterface::on_configure(const rclcpp_lifecycle::St
 
 CallbackReturn KukaEACHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 {
+  hw_control_mode_command_ = get_command<double>(control_mode_name_);
+
   kuka::external::control::Status create_event_observer =
     robot_ptr_->RegisterEventHandler(std::make_unique<KukaEACEventObserver>(this));
   if (create_event_observer.return_code == kuka::external::control::ReturnCode::ERROR)
@@ -220,11 +214,25 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
     {
       std::copy(
         hw_position_states_.begin(), hw_position_states_.end(), hw_position_commands_.begin());
+      // Push the bootstrap position command now, before any controller has had a chance to
+      // claim/write the interface this cycle, so write() does not pull an unset value.
+      for (size_t i = 0; i < info_.joints.size(); i++)
+      {
+        set_command(joint_interface_names_[i].position_command, hw_position_commands_[i]);
+      }
     }
 
     std::copy(
       hw_position_commands_.begin(), hw_position_commands_.end(),
       hw_commanded_position_states_.begin());
+
+    for (size_t i = 0; i < info_.joints.size(); i++)
+    {
+      set_state(joint_interface_names_[i].position_state, hw_position_states_[i]);
+      set_state(joint_interface_names_[i].effort_state, hw_torque_states_[i]);
+      set_state(
+        joint_interface_names_[i].commanded_position_state, hw_commanded_position_states_[i]);
+    }
 
     cycle_count_++;
   }
@@ -232,6 +240,7 @@ return_type KukaEACHardwareInterface::read(const rclcpp::Time &, const rclcpp::D
   // Modify state interface only in read
   std::lock_guard<std::mutex> lk(event_mutex_);
   server_state_ = static_cast<double>(last_event_);
+  set_state(server_state_name_, server_state_);
   return return_type::OK;
 }
 
@@ -242,6 +251,16 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
   {
     return return_type::OK;
   }
+
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    hw_position_commands_[i] = get_command<double>(joint_interface_names_[i].position_command);
+    hw_torque_commands_[i] = get_command<double>(joint_interface_names_[i].effort_command);
+    hw_stiffness_commands_[i] = get_command<double>(joint_interface_names_[i].stiffness_command);
+    hw_damping_commands_[i] = get_command<double>(joint_interface_names_[i].damping_command);
+  }
+  hw_control_mode_command_ = get_command<double>(control_mode_name_);
+  interpolation_count_command_ = get_command<double>(interpolation_count_name_);
 
   uint32_t current_count = static_cast<uint32_t>(interpolation_count_command_);
   // Skip validation while count is 0: EventBroadcaster only increments after all HW interfaces
@@ -255,9 +274,12 @@ return_type KukaEACHardwareInterface::write(const rclcpp::Time &, const rclcpp::
 
     if (current_count != expected_count)
     {
+      // WaitForInterpolationCount polls this callback repeatedly while it waits, so it must
+      // re-read the live command value each time, not the snapshot taken above.
       current_count = kuka_drivers_core::hardware_interface_utils::WaitForInterpolationCount(
         expected_count, current_count, is_async_hardware_,
-        [this]() { return static_cast<uint32_t>(interpolation_count_command_); });
+        [this]()
+        { return static_cast<uint32_t>(get_command<double>(interpolation_count_name_)); });
 
       if (current_count != expected_count)
       {
