@@ -80,7 +80,7 @@ Both launch files support the following argument:
 - `namespace`: adds a namespace to all nodes and controllers of the driver, and modifies the `prefix` argument of the robot description macro to `namespace_`
 - `x`, `y`, `z`: define the position of `base_link` relative to the `world` frame in meters (default: [0, 0, 0])
 - `roll`, `pitch`, `yaw`: define the orientation of `base_link` relative to the `world` frame in radians (default: [0, 0, 0])
-- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `mode` is set to 'mock')
+- `roundtrip_time`: The roundtrip time (in microseconds) to be enforced by the [KUKA mock hardware interface](https://github.com/kuka-ros/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#custom-mock-hardware), (defaults to 5000 us, only used if `mode` is set to 'mock')
 - `controller_config`: the location of the `ros2_control` configuration file (defaults to `kuka_sunrise_fri_driver/config/ros2_controller_config.yaml`)
 - `jtc_config`: the location of the configuration file for the `joint_trajectory_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_trajectory_controller_config.yaml`)
 - `jic_config`: the location of the configuration file for the `joint_impedance_controller` (defaults to `kuka_sunrise_fri_driver/config/joint_impedance_controller_config.yaml`)
@@ -95,7 +95,7 @@ The `startup_with_rviz.launch.py` additionally contains one argument:
 
 - `rviz_config`: the location of the `rviz` configuration file (defaults to `kuka_resources/config/view_6_axis_urdf.rviz`)
 
-**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kroshu/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#modes).
+**Details** about the `mode` parameter can be viewed in the [kuka_robot_descriptions README](https://github.com/kuka-ros/kuka_robot_descriptions/tree/humble?tab=readme-ov-file#modes).
 
 ### Stopping external control
 
