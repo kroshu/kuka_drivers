@@ -2,7 +2,7 @@
 
 This repository combines community-supported code for legacy KUKA operating systems with officially supported, open-source driver packages from the [`kuka-ros/kuka_drivers`](https://github.com/kuka-ros/kuka_drivers) repository, included as the `upstream/kuka_drivers` Git submodule. The submodule provides the shared driver core, interfaces, RSI packages, and controllers; this repository contains drivers and controllers for legacy systems, including iiQKA EAC and Sunrise FRI.
 
-KSS and iiQKA.OS2 use the same RSI-based ROS 2 driver from the upstream repository; the controller-side setup differs between the two systems.
+KSS and iiQKA.OS2 use the same RSI-based ROS 2 driver from the upstream repository, only the controller-side setup differs between the two systems.
 
 ROS2 Distro | Branch | Github CI | SonarCloud
 ------------ | -------------- | -------------- | --------------
