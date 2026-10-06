@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <iterator>
 #include <limits>
 #include <regex>
 #include <thread>
@@ -50,9 +51,42 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
   impedance_control_enabled_ =
     impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true";
+  external_axes_present_ = std::any_of(
+    info_.joints.begin(), info_.joints.end(), [](const auto & joint_info) {
+      const auto external_param = joint_info.parameters.find("is_external");
+      return external_param != joint_info.parameters.end() && external_param->second == "true";
+    });
+  if (impedance_control_enabled_ && external_axes_present_)
+  {
+    RCLCPP_WARN(
+      logger_, "Joint impedance is disabled because the system contains external axes");
+  }
+
   // Stiffness and damping are written by the controller through the command interfaces.
   hw_stiffness_commands_.assign(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_damping_commands_.assign(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+
+  if (impedance_control_enabled_)
+  {
+    static constexpr std::array<const char *, kImpedanceDof> impedance_joint_names = {
+      "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
+    for (std::size_t axis_index = 0; axis_index < impedance_joint_names.size(); ++axis_index)
+    {
+      const auto joint = std::find_if(
+        info_.joints.begin(), info_.joints.end(), [&](const auto & joint_info) {
+          return joint_info.name == impedance_joint_names[axis_index];
+        });
+      if (joint == info_.joints.end())
+      {
+        RCLCPP_ERROR(
+          logger_, "Impedance is enabled but required arm joint %s is missing",
+          impedance_joint_names[axis_index]);
+        return CallbackReturn::ERROR;
+      }
+      impedance_joint_indices_[axis_index] =
+        static_cast<std::size_t>(std::distance(info_.joints.begin(), joint));
+    }
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -74,12 +108,14 @@ KukaMxaRsiHardwareInterface::export_command_interfaces()
 
   if (impedance_control_enabled_)
   {
-    for (size_t i = 0; i < info_.joints.size(); ++i)
+    for (const auto joint_index : impedance_joint_indices_)
     {
       command_interfaces.emplace_back(
-        info_.joints[i].name, hardware_interface::HW_IF_STIFFNESS, &hw_stiffness_commands_[i]);
+        info_.joints[joint_index].name, hardware_interface::HW_IF_STIFFNESS,
+        &hw_stiffness_commands_[joint_index]);
       command_interfaces.emplace_back(
-        info_.joints[i].name, hardware_interface::HW_IF_DAMPING, &hw_damping_commands_[i]);
+        info_.joints[joint_index].name, hardware_interface::HW_IF_DAMPING,
+        &hw_damping_commands_[joint_index]);
     }
   }
 
@@ -98,11 +134,11 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
   // Required by joint_group_impedance_controller, which claims it as a state interface.
   if (impedance_control_enabled_)
   {
-    for (size_t i = 0; i < info_.joints.size(); ++i)
+    for (const auto joint_index : impedance_joint_indices_)
     {
       state_interfaces.emplace_back(
-        info_.joints[i].name, hardware_interface::HW_IF_COMMANDED_POSITION,
-        &interface_data_.position_commands[i]);
+        info_.joints[joint_index].name, hardware_interface::HW_IF_COMMANDED_POSITION,
+        &interface_data_.position_commands[joint_index]);
     }
   }
 
@@ -175,6 +211,13 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
   if (control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL)
   {
+    if (external_axes_present_)
+    {
+      RCLCPP_ERROR(
+        logger_, "Joint impedance cannot be activated when external axes are present");
+      return CallbackReturn::ERROR;
+    }
+
     if (!impedance_control_enabled_)
     {
       RCLCPP_ERROR(logger_, "Joint impedance requested, but impedance_control_enabled is false");
@@ -184,16 +227,25 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
     const auto invalid_value = [](double value) {
       return !std::isfinite(value) || value < 0.0 || value > std::numeric_limits<float>::max();
     };
-    if (
-      std::any_of(hw_stiffness_commands_.begin(), hw_stiffness_commands_.end(), invalid_value) ||
-      std::any_of(hw_damping_commands_.begin(), hw_damping_commands_.end(), invalid_value))
+    std::vector<double> stiffness_commands;
+    std::vector<double> damping_commands;
+    stiffness_commands.reserve(kImpedanceDof);
+    damping_commands.reserve(kImpedanceDof);
+    for (const auto joint_index : impedance_joint_indices_)
     {
-      RCLCPP_ERROR(
-        logger_, "Joint impedance requested before valid stiffness and damping commands were set");
-      return CallbackReturn::ERROR;
+      const auto stiffness = hw_stiffness_commands_[joint_index];
+      const auto damping = hw_damping_commands_[joint_index];
+      if (invalid_value(stiffness) || invalid_value(damping))
+      {
+        RCLCPP_ERROR(
+          logger_, "Joint impedance requested before valid stiffness and damping commands were set");
+        return CallbackReturn::ERROR;
+      }
+      stiffness_commands.push_back(stiffness);
+      damping_commands.push_back(damping);
     }
 
-    auto status = robot_ptr_->SetImpedance(hw_stiffness_commands_, hw_damping_commands_);
+    auto status = robot_ptr_->SetImpedance(stiffness_commands, damping_commands);
     if (status.return_code != kuka::external::control::ReturnCode::OK)
     {
       RCLCPP_ERROR(logger_, "Setting impedance failed: %s", status.message);

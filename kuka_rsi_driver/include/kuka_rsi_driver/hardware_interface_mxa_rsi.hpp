@@ -15,6 +15,8 @@
 #ifndef KUKA_RSI_DRIVER__HARDWARE_INTERFACE_MXA_RSI_HPP_
 #define KUKA_RSI_DRIVER__HARDWARE_INTERFACE_MXA_RSI_HPP_
 
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
@@ -69,6 +71,8 @@ public:
   KUKA_RSI_DRIVER_PUBLIC void mxa_init(const InitializationData &);
 
 private:
+  static constexpr std::size_t kImpedanceDof = 6;
+
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(
@@ -80,7 +84,9 @@ private:
 
   std::vector<double> hw_stiffness_commands_;
   std::vector<double> hw_damping_commands_;
+  std::array<std::size_t, kImpedanceDof> impedance_joint_indices_{};
   bool impedance_control_enabled_{false};
+  bool external_axes_present_{false};
 
   bool verify_robot_model_;
   std::atomic<bool> stop_requested_{false};
