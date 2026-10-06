@@ -1,6 +1,8 @@
 # ROS2 KUKA Drivers
 
-This repository contains ROS2 drivers for all KUKA operating systems.
+This repository combines community-supported code for legacy KUKA operating systems with officially supported, open-source driver packages from the [`kuka-ros/kuka_drivers`](https://github.com/kuka-ros/kuka_drivers) repository, included as the `upstream/kuka_drivers` Git submodule. The submodule provides the shared driver core, interfaces, RSI packages, and controllers; this repository contains drivers and controllers for legacy systems, including iiQKA EAC and Sunrise FRI.
+
+KSS and iiQKA.OS2 use the same RSI-based ROS 2 driver from the upstream repository; the controller-side setup differs between the two systems.
 
 ROS2 Distro | Branch | Github CI | SonarCloud
 ------------ | -------------- | -------------- | --------------
@@ -49,8 +51,8 @@ Clone KUKA ROS2 repositories.
 
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/kroshu/kuka_drivers.git
-vcs import < kuka_drivers/upstream.repos
+git clone --recurse-submodules https://github.com/kroshu/kuka_drivers.git
+vcs import --recursive < kuka_drivers/upstream.repos
 ```
 
 Install and initialize rosdep (if not already done)
@@ -83,13 +85,6 @@ Source workspace.
 # Possible values are: setup.bash, setup.sh, setup.zsh
 source ~/ros2_ws/install/setup.bash
 ```
-
-> [!NOTE]
-> As the `kuka_external_control_sdk` package is designed to work also outside of the ROS2 ecosystem, and is simply wrapped with a `package.xml` to simplify the setup, the following warnings are expected and can be ignored after sourcing:
-> ```
-> not found: "<WS>/install/kuka_external_control_sdk/share/kuka_external_control_sdk/local_setup.bash"
-> not found: "<WS>/install/kuka_external_control_sdk_examples/share/> kuka_external_control_sdk_examples/local_setup.bash"
-> ```
 
 ## Getting Started
 
