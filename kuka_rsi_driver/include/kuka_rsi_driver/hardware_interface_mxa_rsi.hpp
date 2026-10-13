@@ -73,6 +73,12 @@ public:
 private:
   static constexpr std::size_t kImpedanceDof = 6;
 
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointCommandInterfaces(
+    const hardware_interface::ComponentInfo & joint) const override;
+
+  KUKA_RSI_DRIVER_LOCAL bool CheckJointStateInterfaces(
+    const hardware_interface::ComponentInfo & joint) const override;
+
   KUKA_RSI_DRIVER_LOCAL void Read(const int64_t request_timeout) override;
 
   KUKA_RSI_DRIVER_LOCAL void CreateRobotInstance(

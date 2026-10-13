@@ -13,11 +13,13 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <iterator>
 #include <limits>
 #include <regex>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -25,11 +27,26 @@
 #include "pluginlib/class_list_macros.hpp"
 
 #include "kuka_drivers_core/hardware_interface_types.hpp"
+#include "kuka_drivers_core/joint_interface_validator.hpp"
 #include "kuka_rsi_driver/event_observers.hpp"
 #include "kuka_rsi_driver/hardware_interface_mxa_rsi.hpp"
 
 namespace kuka_rsi_driver
 {
+namespace
+{
+
+bool IsImpedanceArmJoint(const hardware_interface::ComponentInfo & joint)
+{
+  static constexpr std::array<const char *, 6> impedance_joint_names = {
+    "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
+  return std::any_of(
+    impedance_joint_names.begin(), impedance_joint_names.end(),
+    [&joint](const char * name) { return joint.name == name; });
+}
+
+}  // namespace
+
 CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   const hardware_interface::HardwareComponentInterfaceParams & params)
 {
@@ -89,6 +106,41 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   }
 
   return CallbackReturn::SUCCESS;
+}
+
+bool KukaMxaRsiHardwareInterface::CheckJointCommandInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  std::vector<std::string> expected_interfaces = {
+    hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY,
+    hardware_interface::HW_IF_EFFORT};
+  const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
+  if (
+    impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true" &&
+    IsImpedanceArmJoint(joint))
+  {
+    expected_interfaces.push_back(hardware_interface::HW_IF_STIFFNESS);
+    expected_interfaces.push_back(hardware_interface::HW_IF_DAMPING);
+  }
+  return kuka_drivers_core::urdf_validator::ValidateJointCommandInterfaces(
+    joint, expected_interfaces, logger_);
+}
+
+bool KukaMxaRsiHardwareInterface::CheckJointStateInterfaces(
+  const hardware_interface::ComponentInfo & joint) const
+{
+  std::vector<std::string> expected_interfaces = {
+    hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY,
+    hardware_interface::HW_IF_EFFORT};
+  const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
+  if (
+    impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true" &&
+    IsImpedanceArmJoint(joint))
+  {
+    expected_interfaces.push_back(hardware_interface::HW_IF_COMMANDED_POSITION);
+  }
+  return kuka_drivers_core::urdf_validator::ValidateJointStateInterfaces(
+    joint, expected_interfaces, logger_);
 }
 
 std::vector<hardware_interface::CommandInterface>
