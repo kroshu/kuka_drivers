@@ -200,8 +200,9 @@ KukaMxaRsiHardwareInterface::export_state_interfaces()
 CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
 {
   // mxA server does not store control mode / cycle time, initialize with default
+  constexpr auto default_cycle_time = RsiCycleTime::RSI_4MS;
   initialize_command_interfaces(
-    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, RsiCycleTime::RSI_4MS);
+    kuka_drivers_core::ControlMode::JOINT_POSITION_CONTROL, default_cycle_time);
 
   kuka::external::control::kss::Configuration mxa_config;
   mxa_config.installed_interface =
@@ -223,7 +224,15 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_configure(const rclcpp_lifecycle:
     mxa_config.kli_ip_address.c_str(), mxa_config.mxa_client_port, mxa_config.client_ip.c_str(),
     mxa_config.client_port);
 
-  auto status = robot_ptr_->RegisterStatusResponseHandler(
+  // The command interface already caches the default, but the SDK starts at UNSPECIFIED.
+  auto status = robot_ptr_->SetCycleTime(default_cycle_time);
+  if (status.return_code != kuka::external::control::ReturnCode::OK)
+  {
+    RCLCPP_ERROR(logger_, "Initializing mxA RSI cycle time failed: %s", status.message);
+    return CallbackReturn::ERROR;
+  }
+
+  status = robot_ptr_->RegisterStatusResponseHandler(
     std::make_unique<StatusUpdateHandler>(this, &control_state_.status_manager));
   if (status.return_code != kuka::external::control::ReturnCode::OK)
   {
