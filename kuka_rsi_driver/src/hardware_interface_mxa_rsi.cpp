@@ -270,6 +270,9 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
   // the values once RSI streaming starts.
   const auto control_mode =
     static_cast<kuka_drivers_core::ControlMode>(control_state_.hw_control_mode_command);
+  RCLCPP_INFO(
+    logger_, "mxA activation: control mode=%d, impedance enabled=%s",
+    static_cast<int>(control_mode), impedance_control_enabled_ ? "true" : "false");
   if (control_mode == kuka_drivers_core::ControlMode::JOINT_IMPEDANCE_CONTROL)
   {
     if (external_axes_present_)
@@ -299,11 +302,21 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_activate(const rclcpp_lifecycle::
       if (invalid_value(stiffness) || invalid_value(damping))
       {
         RCLCPP_ERROR(
-          logger_, "Joint impedance requested before valid stiffness and damping commands were set");
+          logger_, "Invalid impedance command for %s: stiffness=%g, damping=%g",
+          info_.joints[joint_index].name.c_str(), stiffness, damping);
         return CallbackReturn::ERROR;
       }
       stiffness_commands.push_back(stiffness);
       damping_commands.push_back(damping);
+    }
+
+    RCLCPP_INFO(
+      logger_, "Sending impedance via mxA TechFunction 4 for %zu axes", stiffness_commands.size());
+    for (std::size_t axis = 0; axis < stiffness_commands.size(); ++axis)
+    {
+      RCLCPP_INFO(
+        logger_, "Impedance A%zu: stiffness=%g, damping=%g", axis + 1, stiffness_commands[axis],
+        damping_commands[axis]);
     }
 
     auto status = robot_ptr_->SetImpedance(stiffness_commands, damping_commands);
