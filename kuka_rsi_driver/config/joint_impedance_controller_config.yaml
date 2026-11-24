@@ -1,5 +1,6 @@
 /**/joint_group_impedance_controller:
   ros__parameters:
+    type: kuka_controllers/JointGroupImpedanceController
     joints:
     - joint_1
     - joint_2

@@ -18,6 +18,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.logging import get_logger
 from launch.substitutions import (
     Command,
     FindExecutable,
@@ -267,7 +268,8 @@ def launch_setup(context, *args, **kwargs):
     robot_description = {"robot_description": robot_description_content}
 
     # The driver config contains only parameters that can be changed after startup
-    driver_config = get_package_share_directory("kuka_rsi_driver") + "/config/driver_config.yaml"
+    packaged_config_dir = os.path.join(get_package_share_directory("kuka_rsi_driver"), "config")
+    driver_config = os.path.join(packaged_config_dir, "driver_config.yaml")
     config_dir_path = controller_config_dir.perform(context)
 
     def config_file(filename):
@@ -278,11 +280,40 @@ def launch_setup(context, *args, **kwargs):
         if driver_version.perform(context) == "rsi_only"
         else config_file("ros2_controller_config_extended.yaml")
     )
-    mxa_impedance_enabled = (
+    impedance_config_file = None
+    if (
         driver_version.perform(context) == "mxa_rsi"
         and robot_family_value == "lbr_iisy"
         and not use_external_axis_value
-    )
+    ):
+        filename = "joint_impedance_controller_config.yaml"
+        requested_config = config_file(filename)
+        packaged_config = os.path.join(packaged_config_dir, filename)
+        logger = get_logger("kuka_rsi_driver")
+        # The packaged joint names are only suitable for a robot without a joint prefix.
+        if tf_prefix and os.path.realpath(requested_config) == os.path.realpath(packaged_config):
+            logger.warning(
+                f"Joint impedance disabled: provide {filename} with the joint prefix "
+                f"'{tf_prefix}' in controller_config_dir."
+            )
+        elif os.path.isfile(requested_config) and os.access(requested_config, os.R_OK):
+            impedance_config_file = requested_config
+        elif (
+            not tf_prefix
+            and os.path.isfile(packaged_config)
+            and os.access(packaged_config, os.R_OK)
+        ):
+            impedance_config_file = packaged_config
+            logger.warning(
+                f"Cannot read '{requested_config}'; using packaged impedance config "
+                f"'{packaged_config}'."
+            )
+        else:
+            logger.warning(
+                f"Joint impedance disabled: no readable impedance config at '{requested_config}' "
+                "and no compatible packaged config. Provide a config matching the robot's joints."
+            )
+    mxa_impedance_enabled = impedance_config_file is not None
 
     control_node = Node(
         namespace=ns,
@@ -368,9 +399,7 @@ def launch_setup(context, *args, **kwargs):
         controllers["kss_message_handler"] = config_file("kuka_kss_message_handler_config.yaml")
 
     if mxa_impedance_enabled:
-        controllers["joint_group_impedance_controller"] = config_file(
-            "joint_impedance_controller_config.yaml"
-        )
+        controllers["joint_group_impedance_controller"] = impedance_config_file
 
     controller_spawners = [
         controller_spawner(name, prefix_cmd, param_file)

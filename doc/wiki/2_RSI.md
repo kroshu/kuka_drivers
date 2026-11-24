@@ -321,6 +321,7 @@ Both launch files support the following arguments:
   - `gpio_controller_config.yaml` (used only if `use_gpio:=true`)
   - `kuka_control_mode_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
   - `kuka_kss_message_handler_config.yaml` (used only if `driver_version:=eki_rsi` or `mxa_rsi`)
+  - `joint_impedance_controller_config.yaml` (used for `mxa_rsi` on an LBR iisy without external axes). If a custom directory has no readable copy, the driver uses the packaged file for unprefixed joints. For prefixed joints, provide a file with matching joint names. If neither a readable custom file nor a compatible packaged file is available, startup continues with joint impedance disabled.
 - `use_external_axis`: if set to `true`, enables KL (linear track) composition using the `kuka_resources/urdf/robot_with_external_axis_template.urdf.xacro` template (defaults to `false`)
 - `kl_model`: the KL model to use when `use_external_axis` is enabled (default: `kl100_2`)
 - `kl_support_package`: the ROS package providing the KL description (default: `kuka_kl_support`)
