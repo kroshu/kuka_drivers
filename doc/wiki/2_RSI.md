@@ -68,13 +68,16 @@ The following configuration files are available in the `config` directory of the
 - `ros2_controller_config.yaml`: contains the controller types for every controller name. Should be only modified if a different controller is to be used.
 - configuration files for specific controllers, for further information, see the documentation of the given controller
 
+For `mxa_rsi` on an LBR iisy without external axes, the startup launch file loads the joint impedance controller. If your setup prefixes the joint names, use a `joint_impedance_controller_config.yaml` whose `joints` list matches the names in your robot description. The hardware interface sends impedance settings in the order of the internal joints in the `<ros2_control>` joint list.
+
 
 ### Runtime parameters
 
 The parameters in the driver configuration file can be changed during runtime using the parameter interface of the `robot_manager` node:
 
 - `position_controller_name`: The name of the controller (string) that controls the `position` interface of the robot. It can't be changed in active state.
-- `cycle_time`: The cycle time of RSI communication either 1 (4ms) or 2 (12ms). It can't be changed in active state.
+- `cycle_time`: The RSI cycle time, either 1 (4 ms) or 2 (12 ms), depending on the controller setup. The iiQKA.OS2 mxAutomation RSI setup accepts only 1 (4 ms). It can't be changed in active state.
+- `joint_stiffness` and `joint_damping`: For mxAutomation joint impedance, set both arrays on `robot_manager` before configuration or while inactive. Each array takes six floating-point values in the impedance controller's configured joint order. Stiffness must be nonnegative and damping must be between 0 and 1. The manager forwards the pair to the impedance controller on configuration and when the parameters change while inactive. Set them before activation so the controller can write the settings before RSI starts. Both default to empty, leaving impedance commands on the controller topic under user control.
 
 ### I/O configuration
 

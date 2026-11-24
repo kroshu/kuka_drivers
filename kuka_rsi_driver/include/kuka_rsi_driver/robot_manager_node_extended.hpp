@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "kuka_driver_interfaces/msg/hardware_event.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 
 #include "robot_manager_base.hpp"
@@ -44,11 +45,14 @@ private:
   bool OnControlModeChangeRequestAdditionalTasks(const int control_mode) override;
 
   std::vector<std::string> GetConfigurationControllers() const;
+  void PublishJointImpedance();
 
   std::condition_variable control_mode_cv_;
   std::mutex control_mode_cv_m_;
   bool control_mode_change_finished_ = false;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr control_mode_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_impedance_pub_;
+  PostSetParametersCallbackHandle::SharedPtr joint_impedance_parameter_callback_;
 
   const std::vector<std::string> configuration_controllers_ = {
     kuka_drivers_core::CONTROL_MODE_HANDLER,

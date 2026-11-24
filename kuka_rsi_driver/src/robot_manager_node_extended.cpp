@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include "communication_helpers/ros2_control_tools.hpp"
 #include "communication_helpers/service_tools.hpp"
 
@@ -26,10 +30,94 @@ using lifecycle_msgs::msg::State;
 
 namespace kuka_rsi_driver
 {
+namespace
+{
+constexpr std::size_t kImpedanceDof = 6;
+constexpr char kJointStiffness[] = "joint_stiffness";
+constexpr char kJointDamping[] = "joint_damping";
+
+bool IsValidImpedanceArray(const std::vector<double> & values, double max_value)
+{
+  return values.empty() ||
+         (values.size() == kImpedanceDof &&
+          std::all_of(values.begin(), values.end(), [max_value](double value) {
+            return std::isfinite(value) && value >= 0.0 && value <= max_value;
+          }));
+}
+}  // namespace
+
 RobotManagerNodeEkiRsi::RobotManagerNodeEkiRsi()
 {
   control_mode_pub_ = create_publisher<std_msgs::msg::UInt32>(
     "control_mode_handler/control_mode", rclcpp::SystemDefaultsQoS());
+
+  if (!mxa_impedance_enabled_)
+  {
+    return;
+  }
+
+  joint_impedance_pub_ = create_publisher<std_msgs::msg::Float64MultiArray>(
+    "joint_group_impedance_controller/commands", rclcpp::SystemDefaultsQoS());
+  const auto register_impedance_parameter = [this](const std::string & name, double max_value) {
+    registerParameter<std::vector<double>>(
+      name, {}, kuka_drivers_core::ParameterSetAccessRights{true, false},
+      [this, name, max_value](const std::vector<double> & values) {
+        if (IsValidImpedanceArray(values, max_value))
+        {
+          return true;
+        }
+        RCLCPP_ERROR(
+          get_logger(), "%s must be empty or contain %zu finite values in [0, %g]",
+          name.c_str(), kImpedanceDof, max_value);
+        return false;
+      });
+  };
+  register_impedance_parameter(kJointStiffness, std::numeric_limits<float>::max());
+  register_impedance_parameter(kJointDamping, 1.0);
+
+  joint_impedance_parameter_callback_ = add_post_set_parameters_callback(
+    [this](const std::vector<rclcpp::Parameter> & parameters) {
+      if (
+        get_current_state().id() == State::PRIMARY_STATE_INACTIVE &&
+        std::any_of(parameters.begin(), parameters.end(), [](const auto & parameter) {
+          return parameter.get_name() == kJointStiffness ||
+                 parameter.get_name() == kJointDamping;
+        }))
+      {
+        PublishJointImpedance();
+      }
+    });
+}
+
+void RobotManagerNodeEkiRsi::PublishJointImpedance()
+{
+  const auto stiffness = get_parameter(kJointStiffness).as_double_array();
+  const auto damping = get_parameter(kJointDamping).as_double_array();
+  if (stiffness.empty() && damping.empty())
+  {
+    return;
+  }
+  if (stiffness.empty() || damping.empty())
+  {
+    RCLCPP_WARN(get_logger(), "Set both joint_stiffness and joint_damping to publish impedance");
+    return;
+  }
+  if (
+    !IsValidImpedanceArray(stiffness, std::numeric_limits<float>::max()) ||
+    !IsValidImpedanceArray(damping, 1.0))
+  {
+    RCLCPP_ERROR(get_logger(), "Invalid joint impedance parameters; no command was published");
+    return;
+  }
+
+  std_msgs::msg::Float64MultiArray message;
+  message.data.reserve(2 * kImpedanceDof);
+  for (std::size_t axis = 0; axis < kImpedanceDof; ++axis)
+  {
+    message.data.push_back(stiffness[axis]);
+    message.data.push_back(damping[axis]);
+  }
+  joint_impedance_pub_->publish(message);
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::State &)
@@ -39,7 +127,12 @@ CallbackReturn RobotManagerNodeEkiRsi::on_configure(const rclcpp_lifecycle::Stat
   message.data = static_cast<int>(control_mode_);
   control_mode_pub_->publish(message);
 
-  return RobotManagerBase::configure_driver(GetConfigurationControllers());
+  const auto result = RobotManagerBase::configure_driver(GetConfigurationControllers());
+  if (result == SUCCESS && mxa_impedance_enabled_)
+  {
+    PublishJointImpedance();
+  }
+  return result;
 }
 
 CallbackReturn RobotManagerNodeEkiRsi::on_cleanup(const rclcpp_lifecycle::State &)

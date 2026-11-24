@@ -13,10 +13,8 @@
 // limitations under the License.
 
 #include <algorithm>
-#include <array>
 #include <chrono>
 #include <cmath>
-#include <iterator>
 #include <limits>
 #include <regex>
 #include <string>
@@ -36,13 +34,10 @@ namespace kuka_rsi_driver
 namespace
 {
 
-bool IsImpedanceArmJoint(const hardware_interface::ComponentInfo & joint)
+bool IsExternalJoint(const hardware_interface::ComponentInfo & joint)
 {
-  static constexpr std::array<const char *, 6> impedance_joint_names = {
-    "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
-  return std::any_of(
-    impedance_joint_names.begin(), impedance_joint_names.end(),
-    [&joint](const char * name) { return joint.name == name; });
+  const auto external_param = joint.parameters.find("is_external");
+  return external_param != joint.parameters.end() && external_param->second == "true";
 }
 
 }  // namespace
@@ -69,10 +64,7 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
   impedance_control_enabled_ =
     impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true";
   external_axes_present_ = std::any_of(
-    info_.joints.begin(), info_.joints.end(), [](const auto & joint_info) {
-      const auto external_param = joint_info.parameters.find("is_external");
-      return external_param != joint_info.parameters.end() && external_param->second == "true";
-    });
+    info_.joints.begin(), info_.joints.end(), IsExternalJoint);
   if (impedance_control_enabled_ && external_axes_present_)
   {
     RCLCPP_WARN(
@@ -85,23 +77,25 @@ CallbackReturn KukaMxaRsiHardwareInterface::on_init(
 
   if (impedance_control_enabled_)
   {
-    static constexpr std::array<const char *, kImpedanceDof> impedance_joint_names = {
-      "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
-    for (std::size_t axis_index = 0; axis_index < impedance_joint_names.size(); ++axis_index)
+    // Send impedance values in the same internal-axis order as the RSI joint configuration.
+    std::size_t arm_joint_count = 0;
+    for (std::size_t joint_index = 0; joint_index < info_.joints.size(); ++joint_index)
     {
-      const auto joint = std::find_if(
-        info_.joints.begin(), info_.joints.end(), [&](const auto & joint_info) {
-          return joint_info.name == impedance_joint_names[axis_index];
-        });
-      if (joint == info_.joints.end())
+      if (!IsExternalJoint(info_.joints[joint_index]))
       {
-        RCLCPP_ERROR(
-          logger_, "Impedance is enabled but required arm joint %s is missing",
-          impedance_joint_names[axis_index]);
-        return CallbackReturn::ERROR;
+        if (arm_joint_count < impedance_joint_indices_.size())
+        {
+          impedance_joint_indices_[arm_joint_count] = joint_index;
+        }
+        ++arm_joint_count;
       }
-      impedance_joint_indices_[axis_index] =
-        static_cast<std::size_t>(std::distance(info_.joints.begin(), joint));
+    }
+    if (arm_joint_count != impedance_joint_indices_.size())
+    {
+      RCLCPP_ERROR(
+        logger_, "Impedance requires %zu arm joints, but %zu were configured",
+        impedance_joint_indices_.size(), arm_joint_count);
+      return CallbackReturn::ERROR;
     }
   }
 
@@ -117,7 +111,7 @@ bool KukaMxaRsiHardwareInterface::CheckJointCommandInterfaces(
   const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
   if (
     impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true" &&
-    IsImpedanceArmJoint(joint))
+    !IsExternalJoint(joint))
   {
     expected_interfaces.push_back(hardware_interface::HW_IF_STIFFNESS);
     expected_interfaces.push_back(hardware_interface::HW_IF_DAMPING);
@@ -135,7 +129,7 @@ bool KukaMxaRsiHardwareInterface::CheckJointStateInterfaces(
   const auto impedance_param = info_.hardware_parameters.find("impedance_control_enabled");
   if (
     impedance_param != info_.hardware_parameters.end() && impedance_param->second == "true" &&
-    IsImpedanceArmJoint(joint))
+    !IsExternalJoint(joint))
   {
     expected_interfaces.push_back(hardware_interface::HW_IF_COMMANDED_POSITION);
   }
